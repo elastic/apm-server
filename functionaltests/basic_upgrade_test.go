@@ -23,6 +23,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
+	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 )
 
@@ -37,11 +38,11 @@ func runBasicUpgradeILMTest(
 	apmErrorLogsIgnored []types.Query,
 ) {
 	// All data streams in this upgrade should be ILM, with no rollover.
-	checkILM := checkDataStreamWant{
+	checkILM := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
-		IndicesPerDs:     1,
+		IndicesPerDS:     1,
 		IndicesManagedBy: []string{managedByILM},
 	}
 
@@ -66,19 +67,19 @@ func runBasicUpgradeLazyRolloverDSLTest(
 	toVersion ecclient.StackVersion,
 	apmErrorLogsIgnored []types.Query,
 ) {
-	checkDSL := checkDataStreamWant{
+	checkDSL := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        false,
 		DSManagedBy:      managedByDSL,
-		IndicesPerDs:     1,
+		IndicesPerDS:     1,
 		IndicesManagedBy: []string{managedByDSL},
 	}
 	// Verify lazy rollover happened, i.e. 2 indices per data stream.
-	checkDSLRollover := checkDataStreamWant{
+	checkDSLRollover := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        false,
 		DSManagedBy:      managedByDSL,
-		IndicesPerDs:     2,
+		IndicesPerDS:     2,
 		IndicesManagedBy: []string{managedByDSL, managedByDSL},
 	}
 
@@ -89,9 +90,9 @@ func runAllBasicUpgradeScenarios(
 	t *testing.T,
 	fromVersion ecclient.StackVersion,
 	toVersion ecclient.StackVersion,
-	checkPreUpgradeAfterIngest checkDataStreamWant,
-	checkPostUpgradeBeforeIngest checkDataStreamWant,
-	checkPostUpgradeAfterIngest checkDataStreamWant,
+	checkPreUpgradeAfterIngest asserts.CheckDataStreamsWant,
+	checkPostUpgradeBeforeIngest asserts.CheckDataStreamsWant,
+	checkPostUpgradeAfterIngest asserts.CheckDataStreamsWant,
 	apmErrorLogsIgnored []types.Query,
 ) {
 	t.Run("Default", func(t *testing.T) {

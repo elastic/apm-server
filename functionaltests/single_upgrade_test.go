@@ -50,10 +50,10 @@ type singleUpgradeTestCase struct {
 
 	dataStreamNamespace          string
 	setupFn                      additionalFunc
-	checkPreUpgradeAfterIngest   checkDataStreamWant
+	checkPreUpgradeAfterIngest   asserts.CheckDataStreamsWant
 	postUpgradeFn                additionalFunc
-	checkPostUpgradeBeforeIngest checkDataStreamWant
-	checkPostUpgradeAfterIngest  checkDataStreamWant
+	checkPostUpgradeBeforeIngest asserts.CheckDataStreamsWant
+	checkPostUpgradeAfterIngest  asserts.CheckDataStreamsWant
 
 	apmErrorLogsIgnored []types.Query
 }
@@ -75,7 +75,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	kbc := createKibanaClient(t, ctx, esc, esCfg)
 	g := createAPMGenerator(t, ctx, esc, esCfg)
 
-	atStartCount := getDocsCountPerDS(t, ctx, esc)
+	atStartCount := getDocCountPerDS(t, ctx, esc)
 	if tt.setupFn != nil {
 		t.Log("------ custom setup ------")
 		err := tt.setupFn(t, ctx, esc, kbc)
@@ -88,19 +88,19 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	t.Log("------ pre-upgrade ingestion assertions ------")
 	t.Log("check number of documents after initial ingestion")
-	firstIngestCount := getDocsCountPerDS(t, ctx, esc)
-	assertDocCount(t, firstIngestCount, atStartCount,
+	firstIngestCount := getDocCountPerDS(t, ctx, esc)
+	asserts.CheckDocCount(t, firstIngestCount, atStartCount,
 		expectedIngestForASingleRun(tt.dataStreamNamespace),
 		aggregationDataStreams(tt.dataStreamNamespace))
 
 	t.Log("check data streams after initial ingestion")
 	dss, err := esc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDataStreams(t, tt.checkPreUpgradeAfterIngest, dss)
+	asserts.CheckDataStreams(t, tt.checkPreUpgradeAfterIngest, dss)
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ perform upgrade ------")
-	beforeUpgradeCount := getDocsCountPerDS(t, ctx, esc)
+	beforeUpgradeCount := getDocCountPerDS(t, ctx, esc)
 	upgradeCluster(t, ctx, tf, *target, tt.toVersion.String())
 	t.Logf("time elapsed: %s", time.Since(start))
 
@@ -116,15 +116,15 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	// and further assertions.
 	// We don't expect any change here unless something broke during the upgrade.
 	t.Log("check number of documents across upgrade")
-	afterUpgradeCount := getDocsCountPerDS(t, ctx, esc)
-	assertDocCount(t, afterUpgradeCount, beforeUpgradeCount,
+	afterUpgradeCount := getDocCountPerDS(t, ctx, esc)
+	asserts.CheckDocCount(t, afterUpgradeCount, beforeUpgradeCount,
 		emptyIngestForASingleRun(tt.dataStreamNamespace),
 		aggregationDataStreams(tt.dataStreamNamespace))
 
 	t.Log("check data streams after upgrade")
 	dss, err = esc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDataStreams(t, tt.checkPostUpgradeBeforeIngest, dss)
+	asserts.CheckDataStreams(t, tt.checkPostUpgradeBeforeIngest, dss)
 
 	t.Log("------ post-upgrade ingestion ------")
 	require.NoError(t, g.RunBlockingWait(ctx, kbc, tt.toVersion.String()))
@@ -132,15 +132,15 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	t.Log("------ post-upgrade ingestion assertions ------")
 	t.Log("check number of documents after final ingestion")
-	secondIngestCount := getDocsCountPerDS(t, ctx, esc)
-	assertDocCount(t, secondIngestCount, afterUpgradeCount,
+	secondIngestCount := getDocCountPerDS(t, ctx, esc)
+	asserts.CheckDocCount(t, secondIngestCount, afterUpgradeCount,
 		expectedIngestForASingleRun(tt.dataStreamNamespace),
 		aggregationDataStreams(tt.dataStreamNamespace))
 
 	t.Log("check data streams after final ingestion")
 	dss2, err := esc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDataStreams(t, tt.checkPostUpgradeAfterIngest, dss2)
+	asserts.CheckDataStreams(t, tt.checkPostUpgradeAfterIngest, dss2)
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ check ES and APM error logs ------")

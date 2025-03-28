@@ -50,15 +50,7 @@ if [ "${LATEST_VERSION}" == "${PREV_LATEST_VERSION}" ]; then
 fi
 
 PREV_LATEST_OBSERVER_VERSION="${PREV_LATEST_VERSION}"
-if [[ ${PREV_LATEST_OBSERVER_VERSION} == "9.0.0" ]]; then
-    # Temporary hack due to 9.0.0 versioned as release candidate
-    PREV_LATEST_OBSERVER_VERSION="9.0.0-rc1"
-fi
 LATEST_OBSERVER_VERSION="${LATEST_VERSION}"
-if [[ ${LATEST_OBSERVER_VERSION} == "9.0.0" ]]; then
-    # Temporary hack due to 9.0.0 versioned as release candidate
-    LATEST_OBSERVER_VERSION="9.0.0-rc1"
-fi
 
 echo "-> Running basic upgrade smoke test for version ${VERSION}"
 

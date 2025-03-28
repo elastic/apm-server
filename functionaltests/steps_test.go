@@ -84,14 +84,14 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ te
 	e.kbc = createKibanaClient(t, ctx, e.esc, esCfg)
 	e.gen = createAPMGenerator(t, ctx, e.esc, esCfg)
 
-	docCount := getDocsCountPerDS(t, ctx, e.esc)
+	docCount := getDocCountPerDS(t, ctx, e.esc)
 	return testStepResult{DSDocCount: docCount}
 }
 
 var _ testStep = ingestionStep{}
 
 type ingestionStep struct {
-	CheckDataStream checkDataStreamWant
+	CheckDataStream asserts.CheckDataStreamsWant
 }
 
 var _ testStep = ingestionStep{}
@@ -103,22 +103,22 @@ func (i ingestionStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, p
 
 	t.Log("------ ingestion check ------")
 	t.Log("check number of documents after ingestion")
-	docCount := getDocsCountPerDS(t, ctx, e.esc)
-	assertDocCount(t, docCount, previousRes.DSDocCount,
+	docCount := getDocCountPerDS(t, ctx, e.esc)
+	asserts.CheckDocCount(t, docCount, previousRes.DSDocCount,
 		expectedIngestForASingleRun(e.dsNamespace),
 		aggregationDataStreams(e.dsNamespace))
 
 	t.Log("check data streams after ingestion")
 	dss, err := e.esc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDataStreams(t, i.CheckDataStream, dss)
+	asserts.CheckDataStreams(t, i.CheckDataStream, dss)
 
 	return testStepResult{DSDocCount: docCount}
 }
 
 type upgradeStep struct {
 	NewVersion      ecclient.StackVersion
-	CheckDataStream checkDataStreamWant
+	CheckDataStream asserts.CheckDataStreamsWant
 }
 
 var _ testStep = upgradeStep{}
@@ -130,18 +130,18 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 
 	t.Log("------ upgrade check ------")
 	t.Log("check number of documents across upgrade")
-	docCount := getDocsCountPerDS(t, ctx, e.esc)
+	docCount := getDocCountPerDS(t, ctx, e.esc)
 	// We assert that no changes happened in the number of documents after upgrade
 	// to ensure the state didn't change.
 	// We don't expect any change here unless something broke during the upgrade.
-	assertDocCount(t, docCount, previousRes.DSDocCount,
+	asserts.CheckDocCount(t, docCount, previousRes.DSDocCount,
 		emptyIngestForASingleRun(e.dsNamespace),
 		aggregationDataStreams(e.dsNamespace))
 
 	t.Log("check data streams after upgrade")
 	dss, err := e.esc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDataStreams(t, u.CheckDataStream, dss)
+	asserts.CheckDataStreams(t, u.CheckDataStream, dss)
 
 	return testStepResult{DSDocCount: docCount}
 }
