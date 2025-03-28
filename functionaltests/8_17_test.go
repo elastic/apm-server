@@ -21,10 +21,10 @@ import (
 	"testing"
 )
 
-func TestUpgrade_7_17_28_to_8_17_4(t *testing.T) {
+func TestUpgrade_7_17_to_8_17(t *testing.T) {
 	tt := singleUpgrade7xTestCase{
-		fromVersion: "7.17.28",
-		toVersion:   "8.17.3",
+		fromVersion: getLatestVersion(t, "7.17"),
+		toVersion:   getLatestVersion(t, "8.17"),
 
 		checkPreUpgradeAfterIngest:   checkDataStreamWant{},
 		checkPostUpgradeBeforeIngest: checkDataStreamWant{},

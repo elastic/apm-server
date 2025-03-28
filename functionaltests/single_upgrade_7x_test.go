@@ -20,7 +20,6 @@ package functionaltests
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 	"time"
 
@@ -30,14 +29,15 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
+	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
 
-func expectedStandaloneNoIngestion() esclient.APMIndexDocCount {
-	return esclient.APMIndexDocCount{
+func expectedStandaloneNoIngestion() esclient.IndicesDocCount {
+	return esclient.IndicesDocCount{
 		"apm-*-error-*":       0,
 		"apm-*-profile-*":     0,
 		"apm-*-span-*":        0,
@@ -47,8 +47,8 @@ func expectedStandaloneNoIngestion() esclient.APMIndexDocCount {
 	}
 }
 
-func expectedStandaloneIngestion() esclient.APMIndexDocCount {
-	return esclient.APMIndexDocCount{
+func expectedStandaloneIngestion() esclient.IndicesDocCount {
+	return esclient.IndicesDocCount{
 		"apm-*-error-*":       364,
 		"apm-*-profile-*":     0,
 		"apm-*-span-*":        10885,
@@ -70,8 +70,8 @@ func expectedStandaloneIngestion() esclient.APMIndexDocCount {
 // verify that ingestion works after upgrade and brings the cluster
 // to a know state.
 type singleUpgrade7xTestCase struct {
-	fromVersion string
-	toVersion   string
+	fromVersion ecclient.StackVersion
+	toVersion   ecclient.StackVersion
 
 	preIngestionSetup            func(*testing.T, *esclient.Client, *kbclient.Client) bool
 	checkPreUpgradeAfterIngest   checkDataStreamWant
@@ -80,9 +80,8 @@ type singleUpgrade7xTestCase struct {
 }
 
 func (tt singleUpgrade7xTestCase) Run(t *testing.T) {
-	// This test expects to start from a 7.x stack
-	// version.
-	if !strings.HasPrefix(tt.fromVersion, "7") {
+	// This test expects to start from a 7.x stack version.
+	if !tt.fromVersion.IsMajor(7) {
 		t.Fatalf("fromVersion should be a 7.x version, but %s found", tt.fromVersion)
 	}
 
@@ -94,7 +93,7 @@ func (tt singleUpgrade7xTestCase) Run(t *testing.T) {
 	tf, err := terraform.New(t, terraformDir(t))
 	require.NoError(t, err)
 
-	deploymentID, escfg := createCluster(t, ctx, tf, *target, tt.fromVersion, false)
+	deploymentID, escfg := createCluster(t, ctx, tf, *target, tt.fromVersion.String(), false)
 	t.Logf("time elapsed: %s", time.Since(start))
 	t.Log(deploymentID)
 
@@ -109,7 +108,7 @@ func (tt singleUpgrade7xTestCase) Run(t *testing.T) {
 	g := gen.NewV7(escfg.APMServerURL, apiKey)
 	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
 
-	previous, err := ecc.ApmDocCountV7(ctx)
+	previous, err := ecc.APMDocCountV7(ctx)
 	require.NoError(t, err)
 
 	if tt.preIngestionSetup != nil {
@@ -124,47 +123,65 @@ func (tt singleUpgrade7xTestCase) Run(t *testing.T) {
 	// require.NoError(t, kbc.MigrateAPMToIntegrationsServer(escfg.Password))
 	// t.Logf("time elapsed: %s", time.Now().Sub(start))
 
-	g = gen.New(escfg.APMServerURL, apiKey)
-	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
-
 	require.NoError(t, g.RunBlocking(ctx))
 	time.Sleep(15 * time.Second)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
-	beforeUpgradeCount, err := ecc.ApmDocCountV7(ctx)
+	beforeUpgradeCount, err := ecc.APMDocCountV7(ctx)
 	require.NoError(t, err)
 	// asserts.StandaloneDocsCount(t, beforeUpgradeCount, expectedStandaloneIngestion(), previous)
 	fmt.Println(beforeUpgradeCount, expectedStandaloneIngestion(), previous)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	t.Log("------ perform upgrade ------")
-	upgradeCluster(t, ctx, tf, *target, tt.toVersion, false)
+	upgradeCluster(t, ctx, tf, *target, tt.toVersion.String(), false)
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ post-upgrade assertions ------")
 
 	t.Log("check number of documents across upgrade")
-	afterUpgradeCount, err := ecc.ApmDocCountV7(ctx)
-	require.NoError(t, err)
-	// asserts.StandaloneDocsCount(t, afterUpgradeCount, expectedStandaloneNoIngestion(), beforeUpgradeCount)
-	fmt.Println(afterUpgradeCount, expectedStandaloneNoIngestion(), beforeUpgradeCount)
+	if tt.toVersion.IsMajor(7) {
+		afterUpgradeCount, err := ecc.APMDocCountV7(ctx)
+		require.NoError(t, err)
+		// asserts.StandaloneDocsCount(t, afterUpgradeCount, expectedStandaloneNoIngestion(), beforeUpgradeCount)
+		fmt.Println(afterUpgradeCount, expectedStandaloneNoIngestion(), beforeUpgradeCount)
+		// t.Log("check indices after upgrade")
+		// TODO: what checks do we want to run on standalone indices?
 
-	// t.Log("check indices after upgrade")
-	// TODO: what checks do we want to run on standalone indices?
+		t.Log("------ post-upgrade ingestion ------")
+		require.NoError(t, g.RunBlocking(ctx))
+		t.Logf("time elapsed: %s", time.Since(start))
 
-	t.Log("------ post-upgrade ingestion ------")
-	require.NoError(t, g.RunBlocking(ctx))
-	t.Logf("time elapsed: %s", time.Since(start))
+		t.Log("------ post-upgrade ingestion assertions ------")
+		t.Log("check number of documents after final ingestion")
+		afterUpgradeIngestionCount, err := ecc.APMDocCountV7(ctx)
+		require.NoError(t, err)
+		// asserts.StandaloneDocsCount(t, afterUpgradeIngestionCount, expectedStandaloneIngestion(), beforeUpgradeCount)
+		fmt.Println(afterUpgradeIngestionCount, expectedStandaloneIngestion(), afterUpgradeCount)
 
-	t.Log("------ post-upgrade ingestion assertions ------")
-	t.Log("check number of documents after final ingestion")
-	afterUpgradeIngestionCount, err := ecc.ApmDocCountV7(ctx)
-	require.NoError(t, err)
-	// asserts.StandaloneDocsCount(t, afterUpgradeIngestionCount, expectedStandaloneIngestion(), beforeUpgradeCount)
-	fmt.Println(afterUpgradeIngestionCount, expectedStandaloneIngestion(), beforeUpgradeCount)
+		// t.Log("check indices after final ingestion")
+		// TODO: what checks do we want to run on standalone indices?
+	} else {
+		afterUpgradeCount, err := ecc.APMDocCount(ctx)
+		require.NoError(t, err)
 
-	// t.Log("check indices after final ingestion")
-	// TODO: what checks do we want to run on standalone indices?
+		// Use default generator if not v7
+		g = gen.New(escfg.APMServerURL, apiKey)
+		g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
+
+		t.Log("------ post-upgrade ingestion ------")
+		require.NoError(t, g.RunBlocking(ctx))
+		t.Logf("time elapsed: %s", time.Since(start))
+
+		t.Log("------ post-upgrade ingestion assertions ------")
+		t.Log("check number of documents after final ingestion")
+		afterUpgradeIngestionCount, err := ecc.APMDocCount(ctx)
+		require.NoError(t, err)
+		assertDocCount(t, afterUpgradeIngestionCount, afterUpgradeCount,
+			expectedIngestForASingleRun("default"),
+			aggregationDataStreams("default"),
+		)
+	}
 
 	t.Log("------ check ES and APM error logs ------")
 	resp, err := ecc.GetESErrorLogs(ctx)

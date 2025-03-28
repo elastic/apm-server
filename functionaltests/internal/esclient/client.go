@@ -180,49 +180,49 @@ line 1:1: Unknown index [traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-
 	return res, nil
 }
 
-type ApmDocCountStandalone struct {
+type docCountV7 struct {
 	Count int `json:"count"`
 }
 
-type APMIndexDocCount map[string]int
+type IndicesDocCount map[string]int
 
-func (c *Client) ApmDocCountV7(ctx context.Context) (APMIndexDocCount, error) {
+func (c *Client) APMDocCountV7(ctx context.Context) (IndicesDocCount, error) {
 	indicesToCheck := []string{
 		"apm-*-transaction-*", "apm-*-span-*", "apm-*-error-*", "apm-*-metric-*",
 		"apm-*-profile-*",
 		"apm-*-onboarding-*",
 	}
 
-	getIndexCount := func(index string) (ApmDocCountStandalone, error) {
+	getIndexCount := func(index string) (docCountV7, error) {
 		resp, err := c.es.
 			Count().
 			Index(index).
 			FilterPath("count").
 			Perform(ctx)
 		if err != nil {
-			return ApmDocCountStandalone{}, fmt.Errorf("cannot get count for %s: %w", indicesToCheck[0], err)
+			return docCountV7{}, fmt.Errorf("cannot get count for %s: %w", indicesToCheck[0], err)
 		}
 
 		if resp.StatusCode > http.StatusOK {
-			return ApmDocCountStandalone{}, fmt.Errorf("count request for %s returned unexpected status code: %d", indicesToCheck[0], resp.StatusCode)
+			return docCountV7{}, fmt.Errorf("count request for %s returned unexpected status code: %d", indicesToCheck[0], resp.StatusCode)
 		}
 
 		b, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return ApmDocCountStandalone{}, fmt.Errorf("cannot read response body for %s: %w", resp.Request.URL.Path, err)
+			return docCountV7{}, fmt.Errorf("cannot read response body for %s: %w", resp.Request.URL.Path, err)
 		}
 		defer resp.Body.Close()
 
-		var dc ApmDocCountStandalone
+		var dc docCountV7
 		err = json.Unmarshal(b, &dc)
 		if err != nil {
-			return ApmDocCountStandalone{}, fmt.Errorf("cannot unmarshal JSON response for %s: %w", resp.Request.URL.Path, err)
+			return docCountV7{}, fmt.Errorf("cannot unmarshal JSON response for %s: %w", resp.Request.URL.Path, err)
 		}
 		return dc, nil
 	}
 
-	count := APMIndexDocCount{}
-	errs := []error{}
+	count := IndicesDocCount{}
+	var errs []error
 	for _, idx := range indicesToCheck {
 		dc, err := getIndexCount(idx)
 		if err != nil {
@@ -232,7 +232,7 @@ func (c *Client) ApmDocCountV7(ctx context.Context) (APMIndexDocCount, error) {
 	}
 
 	if len(errs) > 0 {
-		return APMIndexDocCount{}, errors.Join(errs...)
+		return IndicesDocCount{}, errors.Join(errs...)
 	}
 
 	return count, nil
@@ -252,9 +252,16 @@ func (c *Client) GetESErrorLogs(ctx context.Context) (*search.Response, error) {
 								"service.type": {Query: "elasticsearch"},
 							},
 						},
+					},
+					Should: []types.Query{
 						{
 							Match: map[string]types.MatchQuery{
 								"log.level": {Query: "ERROR"},
+							},
+						},
+						{
+							Match: map[string]types.MatchQuery{
+								"log.level": {Query: "error"},
 							},
 						},
 					},
@@ -295,6 +302,13 @@ func (c *Client) GetAPMErrorLogs(ctx context.Context, exclude []types.Query) (*s
 						{
 							Match: map[string]types.MatchQuery{
 								"service.name": {Query: "apm-server"},
+							},
+						},
+					},
+					Should: []types.Query{
+						{
+							Match: map[string]types.MatchQuery{
+								"log.level": {Query: "ERROR"},
 							},
 						},
 						{
