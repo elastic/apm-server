@@ -27,7 +27,9 @@ DOCKER_BUILD_ARGS := \
 
 DOCKER_IMAGES := \
 	build/docker/apm-server-$(APM_SERVER_VERSION).txt \
-	build/docker/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT.txt
+	build/docker/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT.txt \
+	build/docker/apm-server-fips-$(APM_SERVER_VERSION).txt \
+	build/docker/apm-server-fips-$(APM_SERVER_VERSION)-SNAPSHOT.txt
 
 # If GENERATE_WOLFI_IMAGES is set then generate wolfi docker images.
 ifdef GENERATE_WOLFI_IMAGES
@@ -41,6 +43,7 @@ build/docker/%.txt: VERSION := $(APM_SERVER_VERSION)
 build/docker/%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile
 build/docker/%-SNAPSHOT.txt: VERSION := $(APM_SERVER_VERSION)-SNAPSHOT
 build/docker/apm-server-wolfi-%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile.wolfi
+build/docker/apm-server-fips-%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile.fips
 
 INTERNAL_DOCKER_IMAGE := docker.elastic.co/observability-ci/apm-server-internal
 
@@ -51,12 +54,12 @@ $(DOCKER_IMAGES):
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		$(DOCKER_BUILD_ARGS) \
-		--tag $(INTERNAL_DOCKER_IMAGE):$(VERSION)$(if $(findstring arm64,$(GOARCH)),-arm64)$(if $(findstring wolfi,$(@)),-wolfi) \
+		--tag $(INTERNAL_DOCKER_IMAGE):$(VERSION)$(if $(findstring arm64,$(GOARCH)),-arm64)$(if $(findstring wolfi,$(@)),-wolfi)$(if $(findstring fips,$(@)),-fips) \
 		$(DOCKER_FILE_ARGS) .
 
 # Docker image tarballs. We distribute UBI Docker images only for AMD64.
 DOCKER_IMAGE_SUFFIX := docker-image$(if $(findstring arm64,$(GOARCH)),-arm64).tar.gz
-DOCKER_IMAGE_PREFIXES := apm-server
+DOCKER_IMAGE_PREFIXES := apm-server apm-server-fips
 # If GENERATE_WOLFI_IMAGES is set then generate wolfi docker images.
 ifdef GENERATE_WOLFI_IMAGES
 DOCKER_IMAGE_PREFIXES := $(DOCKER_IMAGE_PREFIXES) apm-server-wolfi
@@ -128,18 +131,22 @@ build/nfpm-%.yml: packaging/nfpm.yml
 
 DEB_ARCH := amd64 arm64
 DEBS := $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-%.deb, $(DEB_ARCH))
+DEBS += $(patsubst %, $(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-%.deb, $(DEB_ARCH))
 DEBS += $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT-%.deb, $(DEB_ARCH))
+DEBS += $(patsubst %, $(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-SNAPSHOT-%.deb, $(DEB_ARCH))
 DEBS_AMD64 := $(filter %-amd64.deb, $(DEBS))
 DEBS_ARM64 := $(filter %-arm64.deb, $(DEBS))
 
 RPM_ARCH := x86_64 aarch64
 RPMS := $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-%.rpm, $(RPM_ARCH))
+RPMS += $(patsubst %, $(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-%.rpm, $(RPM_ARCH))
 RPMS += $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT-%.rpm, $(RPM_ARCH))
+RPMS += $(patsubst %, $(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-SNAPSHOT-%.rpm, $(RPM_ARCH))
 RPMS_AMD64 := $(filter %-x86_64.rpm, $(RPMS))
 RPMS_ARM64 := $(filter %-aarch64.rpm, $(RPMS))
 
 $(DEBS_ARM64) $(RPMS_ARM64): $(COMMON_PACKAGE_FILES) build/apm-server-linux-arm64 build/nfpm-arm64.yml
-$(DEBS_AMD64) $(RPMS_AMD64): $(COMMON_PACKAGE_FILES) build/apm-server-linux-amd64 build/nfpm-amd64.yml
+$(DEBS_AMD64) $(RPMS_AMD64): $(COMMON_PACKAGE_FILES) build/apm-server-linux-amd64 build/apm-server-fips-linux-amd64 build/apm-server-fips-linux-arm64 build/nfpm-amd64.yml
 
 %.deb %.rpm:
 	@mkdir -p $(DISTDIR)
@@ -151,14 +158,20 @@ $(DEBS_AMD64) $(RPMS_AMD64): $(COMMON_PACKAGE_FILES) build/apm-server-linux-amd6
 ARCHIVES_DIR := build/archives
 ARCHIVE_PLATFORMS := darwin-x86_64 linux-x86_64 linux-arm64 windows-x86_64
 ARCHIVE_PREFIX := $(ARCHIVES_DIR)/apm-server-$(APM_SERVER_VERSION)
+ARCHIVE_FIPS_PLATFORMS := linux-x86_64 linux-arm64
+ARCHIVE_FIPS_PREFIX := $(ARCHIVES_DIR)/apm-server-fips-$(APM_SERVER_VERSION)
 ARCHIVES := $(addprefix $(ARCHIVE_PREFIX)-, $(ARCHIVE_PLATFORMS))
 ARCHIVES += $(addprefix $(ARCHIVE_PREFIX)-SNAPSHOT-, $(ARCHIVE_PLATFORMS))
+ARCHIVES += $(addprefix $(ARCHIVE_FIPS_PREFIX)-, $(ARCHIVE_FIPS_PLATFORMS))
+ARCHIVES += $(addprefix $(ARCHIVE_FIPS_PREFIX)-SNAPSHOT-, $(ARCHIVE_FIPS_PLATFORMS))
 
 $(ARCHIVE_PREFIX)-darwin-x86_64 $(ARCHIVE_PREFIX)-SNAPSHOT-darwin-x86_64: build/apm-server-darwin-amd64 $(COMMON_PACKAGE_FILES)
 $(ARCHIVE_PREFIX)-linux-x86_64 $(ARCHIVE_PREFIX)-SNAPSHOT-linux-x86_64: build/apm-server-linux-amd64 $(COMMON_PACKAGE_FILES)
 $(ARCHIVE_PREFIX)-linux-arm64 $(ARCHIVE_PREFIX)-SNAPSHOT-linux-arm64: build/apm-server-linux-arm64 $(COMMON_PACKAGE_FILES)
 $(ARCHIVE_PREFIX)-windows-x86_64 $(ARCHIVE_PREFIX)-SNAPSHOT-windows-x86_64: \
 	build/apm-server-windows-amd64.exe $(COMMON_PACKAGE_FILES) $(WINDOWS_PACKAGE_FILES)
+$(ARCHIVE_FIPS_PREFIX)-linux-x86_64 $(ARCHIVE_FIPS_PREFIX)-SNAPSHOT-linux-x86_64: build/apm-server-fips-linux-amd64 $(COMMON_PACKAGE_FILES)
+$(ARCHIVE_FIPS_PREFIX)-linux-arm64 $(ARCHIVE_FIPS_PREFIX)-SNAPSHOT-linux-arm64: build/apm-server-fips-linux-arm64 $(COMMON_PACKAGE_FILES)
 
 $(ARCHIVE_PREFIX)-%:
 	@rm -fr $@ && mkdir -p $@
@@ -167,6 +180,14 @@ $(ARCHIVE_PREFIX)-%:
 # the apm-server.yml can only be writable by the owner; let's avoid the issues with umask
 	install -m 600 apm-server.yml $@
 	cp $(filter build/apm-server-%, $^) $@/apm-server$(suffix $(filter build/apm-server-%, $^))
+
+$(ARCHIVE_FIPS_PREFIX)-%:
+	@rm -fr $@ && mkdir -p $@
+# see https://github.com/elastic/apm-server/blob/e8b7251db2a12b777deca4b925f845b7e9ed87d6/packaging/nfpm.yml#L56-L74
+	install -m 644 $(filter-out build/apm-server-fips-%, $^) $@
+# the apm-server.yml can only be writable by the owner; let's avoid the issues with umask
+	install -m 600 apm-server.yml $@
+	cp $(filter build/apm-server-fips-%, $^) $@/apm-server-fips$(suffix $(filter build/apm-server-fips-%, $^))
 
 $(DISTDIR)/%.tar.gz: $(ARCHIVES_DIR)/%
 	@mkdir -p $(DISTDIR) && rm -f $@
@@ -202,6 +223,14 @@ PACKAGE_SUFFIXES := \
 	x86_64.rpm \
 	aarch64.rpm
 
+PACKAGE_FIPS_SUFFIXES := \
+	linux-x86_64.tar.gz \
+	linux-arm64.tar.gz \
+	amd64.deb \
+	arm64.deb \
+	x86_64.rpm \
+	aarch64.rpm
+
 build/dependencies-$(APM_SERVER_VERSION)-SNAPSHOT.csv: build/dependencies-$(APM_SERVER_VERSION).csv
 	cp $< $@
 
@@ -214,12 +243,14 @@ package-docker-snapshot: $(DOCKER_IMAGE_SNAPSHOT_TARBALLS)
 package: \
 	package-docker \
 	$(patsubst %,$(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-%,$(PACKAGE_SUFFIXES)) \
+	$(patsubst %,$(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-%,$(PACKAGE_FIPS_SUFFIXES)) \
 	$(DISTDIR)/apm-server-ironbank-$(APM_SERVER_VERSION)-docker-build-context.tar.gz \
 	build/dependencies-$(APM_SERVER_VERSION).csv
 
 package-snapshot: \
 	package-docker-snapshot \
 	$(patsubst %,$(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT-%,$(PACKAGE_SUFFIXES)) \
+	$(patsubst %,$(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-SNAPSHOT-%,$(PACKAGE_FIPS_SUFFIXES)) \
 	$(DOCKER_IMAGE_SNAPSHOT_TARBALLS) \
 	$(DISTDIR)/apm-server-ironbank-$(APM_SERVER_VERSION)-SNAPSHOT-docker-build-context.tar.gz \
 	build/dependencies-$(APM_SERVER_VERSION)-SNAPSHOT.csv
