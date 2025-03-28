@@ -25,8 +25,6 @@ import (
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
-	"github.com/elastic/apm-server/functionaltests/internal/esclient"
-	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 )
 
 // runBasicUpgradeILMTest performs a basic upgrade test from `fromVersion` to
@@ -39,34 +37,21 @@ func runBasicUpgradeILMTest(
 	toVersion ecclient.StackVersion,
 	apmErrorLogsIgnored []types.Query,
 ) {
-	testCase := singleUpgradeTestCase{
-		fromVersion: fromVersion,
-		toVersion:   toVersion,
-		checkPreUpgradeAfterIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		checkPostUpgradeBeforeIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		checkPostUpgradeAfterIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		apmErrorLogsIgnored: apmErrorLogsIgnored,
+	// All data streams in this upgrade should be ILM, with no rollover.
+	checkILM := asserts.CheckDataStreamsWant{
+		Quantity:         8,
+		PreferIlm:        true,
+		DSManagedBy:      managedByILM,
+		IndicesPerDS:     1,
+		IndicesManagedBy: []string{managedByILM},
 	}
 
-	runAllBasicUpgradeScenarios(t, testCase)
+	runAllBasicUpgradeScenarios(
+		t,
+		fromVersion, toVersion,
+		checkILM, checkILM, checkILM,
+		apmErrorLogsIgnored,
+	)
 }
 
 // runBasicUpgradeLazyRolloverDSLTest performs a basic upgrade test from
@@ -87,54 +72,76 @@ func runBasicUpgradeLazyRolloverDSLTest(
 	toVersion ecclient.StackVersion,
 	apmErrorLogsIgnored []types.Query,
 ) {
-	testCase := singleUpgradeTestCase{
-		fromVersion: fromVersion,
-		toVersion:   toVersion,
-		checkPreUpgradeAfterIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByDSL},
-		},
-		checkPostUpgradeBeforeIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByDSL},
-		},
-		// Verify lazy rollover happened, i.e. 2 indices per data stream.
-		// Check data streams are managed by DSL.
-		checkPostUpgradeAfterIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
-			IndicesPerDS:     2,
-			IndicesManagedBy: []string{managedByDSL, managedByDSL},
-		},
-		apmErrorLogsIgnored: apmErrorLogsIgnored,
+	checkDSL := asserts.CheckDataStreamsWant{
+		Quantity:         8,
+		PreferIlm:        false,
+		DSManagedBy:      managedByDSL,
+		IndicesPerDS:     1,
+		IndicesManagedBy: []string{managedByDSL},
+	}
+	// Verify lazy rollover happened, i.e. 2 indices per data stream.
+	checkDSLRollover := asserts.CheckDataStreamsWant{
+		Quantity:         8,
+		PreferIlm:        false,
+		DSManagedBy:      managedByDSL,
+		IndicesPerDS:     2,
+		IndicesManagedBy: []string{managedByDSL, managedByDSL},
 	}
 
-	runAllBasicUpgradeScenarios(t, testCase)
+	runAllBasicUpgradeScenarios(
+		t,
+		fromVersion, toVersion,
+		checkDSL, checkDSL, checkDSLRollover,
+		apmErrorLogsIgnored,
+	)
 }
 
-func runAllBasicUpgradeScenarios(t *testing.T, testCase singleUpgradeTestCase) {
+func runAllBasicUpgradeScenarios(
+	t *testing.T,
+	fromVersion ecclient.StackVersion,
+	toVersion ecclient.StackVersion,
+	checkPreUpgradeAfterIngest asserts.CheckDataStreamsWant,
+	checkPostUpgradeBeforeIngest asserts.CheckDataStreamsWant,
+	checkPostUpgradeAfterIngest asserts.CheckDataStreamsWant,
+	apmErrorLogsIgnored []types.Query,
+) {
 	t.Run("Default", func(t *testing.T) {
 		t.Parallel()
-		tt := testCase
-		tt.Run(t)
+
+		r := testStepsRunner{
+			Steps: []testStep{
+				createStep{DeployVersion: fromVersion},
+				ingestionStep{CheckDataStream: checkPreUpgradeAfterIngest},
+				upgradeStep{NewVersion: toVersion, CheckDataStream: checkPostUpgradeBeforeIngest},
+				ingestionStep{CheckDataStream: checkPostUpgradeAfterIngest},
+				checkErrorLogsStep{APMErrorLogsIgnored: apmErrorLogsIgnored},
+			},
+		}
+
+		r.Run(t)
 	})
 
 	t.Run("Reroute", func(t *testing.T) {
 		t.Parallel()
-		tt := testCase
+
 		rerouteNamespace := "rerouted"
-		tt.dataStreamNamespace = rerouteNamespace
-		tt.setupFn = func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error {
+		setupFn := stepFunc(func(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 			t.Log("create reroute processors")
-			return createRerouteIngestPipeline(t, ctx, esc, rerouteNamespace)
+			createRerouteIngestPipeline(t, ctx, e.esc, rerouteNamespace)
+			return previousRes
+		})
+		r := testStepsRunner{
+			DataStreamNamespace: rerouteNamespace,
+			Steps: []testStep{
+				createStep{DeployVersion: fromVersion},
+				customStep{Func: setupFn},
+				ingestionStep{CheckDataStream: checkPreUpgradeAfterIngest},
+				upgradeStep{NewVersion: toVersion, CheckDataStream: checkPostUpgradeBeforeIngest},
+				ingestionStep{CheckDataStream: checkPostUpgradeAfterIngest},
+				checkErrorLogsStep{APMErrorLogsIgnored: apmErrorLogsIgnored},
+			},
 		}
-		tt.Run(t)
+
+		r.Run(t)
 	})
 }

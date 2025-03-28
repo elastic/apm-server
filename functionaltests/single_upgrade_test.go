@@ -99,7 +99,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	atStartCount := getDocCountPerDS(t, ctx, esc)
 	if tt.setupFn != nil {
 		t.Log("------ custom setup ------")
-		err = tt.setupFn(t, ctx, esc, kbc)
+		err := tt.setupFn(t, ctx, esc, kbc)
 		require.NoError(t, err, "custom setup failed")
 	}
 
@@ -154,7 +154,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Log("------ post-upgrade ingestion assertions ------")
 	t.Log("check number of documents after final ingestion")
 	secondIngestCount := getDocCountPerDS(t, ctx, esc)
-	asserts.CheckDocCount(t, secondIngestCount, beforeUpgradeCount,
+	asserts.CheckDocCount(t, secondIngestCount, afterUpgradeCount,
 		expectedIngestForASingleRun(tt.dataStreamNamespace),
 		aggregationDataStreams(tt.dataStreamNamespace))
 
