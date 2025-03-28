@@ -140,6 +140,8 @@ func (tt singleUpgrade7xTestCase) Run(t *testing.T) {
 	t.Log("------ post-upgrade assertions ------")
 
 	t.Log("check number of documents across upgrade")
+	// TODO: Should probably check that the v7 indices are still there...
+
 	if tt.toVersion.IsMajor(7) {
 		afterUpgradeCount, err := ecc.APMDocCountV7(ctx)
 		require.NoError(t, err)
