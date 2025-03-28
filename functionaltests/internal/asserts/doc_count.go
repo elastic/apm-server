@@ -29,10 +29,10 @@ import (
 // actual: the result of the last query
 // expected: how many we expect the ingestion to have produced
 // previous: any previous docs count to consider
-func StandaloneDocsCount(t *testing.T, actual, expected, previous esclient.APMIndexDocCount) {
+func StandaloneDocsCount(t *testing.T, actual, expected, previous esclient.IndicesDocCount) {
 	t.Helper()
 
-	errs := []error{}
+	var errs []error
 	for ds, a := range actual {
 		e, ok := expected[ds]
 		if !ok {
