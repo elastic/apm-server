@@ -28,11 +28,16 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 )
 
-// runBasicUpgradeILMTest performs a basic upgrade test from `fromVersion` to
-// `toVersion`. The test assumes that all data streams are using Index
-// Lifecycle Management (ILM) instead of Data Stream Lifecycle Management
-// (DSL), which should be the case for most recent APM data streams.
-func runBasicUpgradeILMTest(
+type basicUpgradeVersionConfig struct {
+	version         ecclient.StackVersion
+	preferILM       bool
+	indexManagement string
+}
+
+// testBasicUpgradeILM performs a basic upgrade test from `fromVersion`
+// to `toVersion`. This test assumes that all data streams and indices
+// (before and after upgrade) are managed exclusively by ILM.
+func testBasicUpgradeILM(
 	t *testing.T,
 	fromVersion ecclient.StackVersion,
 	toVersion ecclient.StackVersion,
@@ -65,22 +70,16 @@ func runBasicUpgradeILMTest(
 		apmErrorLogsIgnored: apmErrorLogsIgnored,
 	}
 
-	runAllBasicUpgradeScenarios(t, testCase)
+	runBasicUpgradeTestScenarios(t, testCase)
 }
 
-// runBasicUpgradeLazyRolloverDSLTest performs a basic upgrade test from
-// `fromVersion` to `toVersion`. The test assumes that all data streams are
-// using Data Stream Lifecycle Management (DSL) instead of Index Lifecycle
-// Management (ILM).
+// testBasicUpgradeILMLazyRollover performs a basic upgrade test from
+// `fromVersion` to `toVersion`. This test assumes that all data streams
+// and indices (before and after upgrade) are managed exclusively by ILM.
 //
-// In 8.15, the data stream management was migrated from ILM to DSL.
-// However, a bug was introduced, causing data streams to be unmanaged.
-// See https://github.com/elastic/apm-server/issues/13898.
-//
-// It was fixed by defaulting data stream management to DSL, and eventually
-// reverted back to ILM in 8.17. Therefore, data streams created in 8.15 and
-// 8.16 are managed by DSL instead of ILM.
-func runBasicUpgradeLazyRolloverDSLTest(
+// It also verifies that lazy rollover happened after post-upgrade
+// ingestion.
+func testBasicUpgradeILMLazyRollover(
 	t *testing.T,
 	fromVersion ecclient.StackVersion,
 	toVersion ecclient.StackVersion,
@@ -91,34 +90,33 @@ func runBasicUpgradeLazyRolloverDSLTest(
 		toVersion:   toVersion,
 		checkPreUpgradeAfterIngest: checkDataStreamWant{
 			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByDSL},
+			IndicesManagedBy: []string{managedByILM},
 		},
 		checkPostUpgradeBeforeIngest: checkDataStreamWant{
 			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByDSL},
+			IndicesManagedBy: []string{managedByILM},
 		},
 		// Verify lazy rollover happened, i.e. 2 indices per data stream.
-		// Check data streams are managed by DSL.
 		checkPostUpgradeAfterIngest: checkDataStreamWant{
 			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
 			IndicesPerDs:     2,
-			IndicesManagedBy: []string{managedByDSL, managedByDSL},
+			IndicesManagedBy: []string{managedByILM, managedByILM},
 		},
 		apmErrorLogsIgnored: apmErrorLogsIgnored,
 	}
 
-	runAllBasicUpgradeScenarios(t, testCase)
+	runBasicUpgradeTestScenarios(t, testCase)
 }
 
-func runAllBasicUpgradeScenarios(t *testing.T, testCase singleUpgradeTestCase) {
+func runBasicUpgradeTestScenarios(t *testing.T, testCase singleUpgradeTestCase) {
 	t.Run("Default", func(t *testing.T) {
 		t.Parallel()
 		tt := testCase
