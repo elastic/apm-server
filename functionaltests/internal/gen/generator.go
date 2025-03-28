@@ -27,37 +27,44 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/elastic/apm-perf/pkg/telemetrygen"
+
+	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 )
 
 type Generator struct {
-	Logger       *zap.Logger
-	APMAPIKey    string
-	APMServerURL string
-	EventRate    string
+	logger       *zap.Logger
+	kbc          *kbclient.Client
+	apmAPIKey    string
+	apmServerURL string
+	eventRate    string
 }
 
-func New(url, apikey string) *Generator {
+func New(url, apikey string, kbc *kbclient.Client, logger *zap.Logger) *Generator {
+	if logger == nil {
+		logger = zap.NewNop()
+	}
 	return &Generator{
-		Logger:       zap.NewNop(),
-		APMAPIKey:    apikey,
-		APMServerURL: url,
-		EventRate:    "1000/s",
+		logger:       logger,
+		kbc:          kbc,
+		apmAPIKey:    apikey,
+		apmServerURL: url,
+		eventRate:    "1000/s",
 	}
 }
 
 // RunBlocking runs the underlying generator in blocking mode.
 func (g *Generator) RunBlocking(ctx context.Context) error {
 	cfg := telemetrygen.DefaultConfig()
-	cfg.APIKey = g.APMAPIKey
+	cfg.APIKey = g.apmAPIKey
 
-	u, err := url.Parse(g.APMServerURL)
+	u, err := url.Parse(g.apmServerURL)
 	if err != nil {
 		return fmt.Errorf("cannot parse apm server url: %w", err)
 	}
 	cfg.ServerURL = u
 
-	if err = cfg.EventRate.Set(g.EventRate); err != nil {
+	if err = cfg.EventRate.Set(g.eventRate); err != nil {
 		return fmt.Errorf("cannot set event rate: %w", err)
 	}
 
@@ -66,8 +73,8 @@ func (g *Generator) RunBlocking(ctx context.Context) error {
 		return fmt.Errorf("cannot create telemetrygen generator: %w", err)
 	}
 
-	g.Logger.Info("ingest data")
-	gen.Logger = g.Logger
+	g.logger.Info("ingest data")
+	gen.Logger = g.logger
 	return gen.RunBlocking(ctx)
 }
 
@@ -77,15 +84,21 @@ func (g *Generator) RunBlocking(ctx context.Context) error {
 // This may lead to data loss if the final flush takes more than 30s, which may happen if the
 // quantity of data ingested with RunBlocking gets too big. The current quantity does not
 // trigger this behavior.
-func (g *Generator) RunBlockingWait(ctx context.Context, kbc *kbclient.Client, version string) error {
+func (g *Generator) RunBlockingWait(ctx context.Context, version ecclient.StackVersion, integrations bool) error {
 	if err := g.RunBlocking(ctx); err != nil {
 		return fmt.Errorf("cannot run generator: %w", err)
 	}
 
-	if err := flushAPMMetrics(ctx, kbc, version); err != nil {
-		return fmt.Errorf("cannot flush apm metrics: %w", err)
+	// With Fleet managed APM server, we can trigger metrics flush.
+	if integrations {
+		if err := flushAPMMetrics(ctx, g.kbc, version.String()); err != nil {
+			return fmt.Errorf("cannot flush apm metrics: %w", err)
+		}
+		return nil
 	}
 
+	// With standalone, we don't have Fleet, so simply just wait for some arbitrary time.
+	time.Sleep(20 * time.Second)
 	return nil
 }
 

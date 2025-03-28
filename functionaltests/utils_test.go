@@ -32,6 +32,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
+	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
@@ -87,7 +88,7 @@ func createCluster(
 	ctx context.Context,
 	tf *terraform.Runner,
 	target string,
-	fromVersion string,
+	fromVersion ecclient.StackVersion,
 	enableIntegrations bool,
 ) deploymentInfo {
 	t.Helper()
@@ -98,7 +99,7 @@ func createCluster(
 	ecTarget := terraform.Var("ec_target", target)
 	ecRegion := terraform.Var("ec_region", regionFrom(target))
 	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
-	version := terraform.Var("stack_version", fromVersion)
+	version := terraform.Var("stack_version", fromVersion.String())
 	integrations := terraform.Var("integrations_server", strconv.FormatBool(enableIntegrations))
 	name := terraform.Var("name", formattedTestName(t))
 	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, integrations, name))
@@ -137,7 +138,7 @@ func upgradeCluster(
 	ctx context.Context,
 	tf *terraform.Runner,
 	target string,
-	toVersion string,
+	toVersion ecclient.StackVersion,
 	enableIntegrations bool,
 ) {
 	t.Helper()
@@ -145,7 +146,7 @@ func upgradeCluster(
 	ecTarget := terraform.Var("ec_target", target)
 	ecRegion := terraform.Var("ec_region", regionFrom(target))
 	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
-	version := terraform.Var("stack_version", toVersion)
+	version := terraform.Var("stack_version", toVersion.String())
 	integrations := terraform.Var("integrations_server", strconv.FormatBool(enableIntegrations))
 	name := terraform.Var("name", formattedTestName(t))
 	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, integrations, name))
@@ -174,13 +175,13 @@ func createKibanaClient(t *testing.T, ctx context.Context, esc *esclient.Client,
 
 // createAPMGenerator instantiate a load generator for APM.
 // This function will also create an Elasticsearch API key with full permissions to be used by the generator.
-func createAPMGenerator(t *testing.T, ctx context.Context, esc *esclient.Client, deployInfo deploymentInfo) *gen.Generator {
+func createAPMGenerator(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client, deployInfo deploymentInfo) *gen.Generator {
 	t.Helper()
 	t.Log("create apm generator")
 	apiKey, err := esc.CreateAPIKey(ctx, "apmgenerator", -1, map[string]types.RoleDescriptor{})
 	require.NoError(t, err)
-	g := gen.New(deployInfo.APMServerURL, apiKey)
-	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
+	logger := zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
+	g := gen.New(deployInfo.APMServerURL, apiKey, kbc, logger)
 	return g
 }
 

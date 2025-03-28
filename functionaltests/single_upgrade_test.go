@@ -92,12 +92,12 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("------ cluster setup ------")
-	deployInfo := createCluster(t, ctx, tf, *target, tt.fromVersion.String(), integrations)
+	deployInfo := createCluster(t, ctx, tf, *target, tt.fromVersion, integrations)
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	esc := createESClient(t, deployInfo)
 	kbc := createKibanaClient(t, ctx, esc, deployInfo)
-	g := createAPMGenerator(t, ctx, esc, deployInfo)
+	g := createAPMGenerator(t, ctx, esc, kbc, deployInfo)
 
 	atStartCount, err := getDocsCountPerDS(t, ctx, esc)
 	require.NoError(t, err)
@@ -109,7 +109,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	}
 
 	t.Log("------ pre-upgrade ingestion ------")
-	require.NoError(t, g.RunBlockingWait(ctx, kbc, tt.fromVersion.String()))
+	require.NoError(t, g.RunBlockingWait(ctx, tt.fromVersion, integrations))
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ pre-upgrade ingestion assertions ------")
@@ -130,7 +130,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("------ perform upgrade ------")
-	upgradeCluster(t, ctx, tf, *target, tt.toVersion.String(), integrations)
+	upgradeCluster(t, ctx, tf, *target, tt.toVersion, integrations)
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	if tt.postUpgradeFn != nil {
@@ -157,7 +157,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	assertDataStreams(t, tt.checkPostUpgradeBeforeIngest, dss)
 
 	t.Log("------ post-upgrade ingestion ------")
-	require.NoError(t, g.RunBlockingWait(ctx, kbc, tt.toVersion.String()))
+	require.NoError(t, g.RunBlockingWait(ctx, tt.toVersion, integrations))
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ post-upgrade ingestion assertions ------")
