@@ -160,30 +160,42 @@ func (c *ServerCmd) cleanup() {
 func BuildServerBinary(goos, goarch string) (string, error) {
 	apmServerBinaryMu.Lock()
 	defer apmServerBinaryMu.Unlock()
-	if binary := apmServerBinary[goos]; binary != "" {
-		return binary, nil
-	}
+	fips := os.Getenv("GOFIPS140") != ""
 
 	repoRoot, err := getRepoRoot()
 	if err != nil {
 		return "", err
 	}
 	relpath := filepath.Join("build", fmt.Sprintf("apm-server-%s-%s", goos, goarch))
+	if fips {
+		relpath += "-fips"
+	}
 	if goos == "windows" {
 		relpath += ".exe"
 	}
 	abspath := filepath.Join(repoRoot, relpath)
 
+	if binary := apmServerBinary[abspath]; binary != "" {
+		return binary, nil
+	}
+
 	log.Println("Building apm-server...")
-	cmd := exec.Command("make", relpath)
+	task := "apm-server"
+	if fips {
+		task += "-fips"
+	}
+	cmd := exec.Command("make", task)
 	cmd.Dir = repoRoot
+	cmd.Env = append(cmd.Env, os.Environ()...)
+	cmd.Env = append(cmd.Env, "NOCP=1") // prevent race condition
+	cmd.Env = append(cmd.Env, "GOOS="+goos, "GOARCH="+goarch)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
 	log.Println("Built", abspath)
-	apmServerBinary[goos] = abspath
+	apmServerBinary[abspath] = abspath
 	return abspath, nil
 }
 
