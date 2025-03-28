@@ -11,3 +11,7 @@ cd $SDIR/..
 MAJOR_MINOR_VERSION=$(grep '^go' go.mod | cut -d' ' -f2 | cut -d. -f1-2)
 
 find ./ -type f -name "go.mod" -execdir go get go@$MAJOR_MINOR_VERSION \; -execdir go get toolchain@none \;
+
+# This is a no-op if there are no changes and help updatecli.
+# see https://www.updatecli.io/docs/plugins/resource/shell/#_shell_target
+git --no-pager diff || true
