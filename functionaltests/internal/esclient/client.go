@@ -145,8 +145,8 @@ type DocCount struct {
 	Count      int
 }
 
-// DataStreamsDocCount is an easy to assert on format reporting doc count for
-// data streams.
+// DataStreamsDocCount is an easy to assert on format reporting document count
+// for data streams.
 type DataStreamsDocCount map[string]int
 
 func (c *Client) APMDocCount(ctx context.Context) (DataStreamsDocCount, error) {

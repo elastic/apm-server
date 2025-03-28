@@ -153,8 +153,8 @@ func expectedIngestForASingleRun(namespace string) esclient.DataStreamsDocCount 
 	}
 }
 
-// emptyIngestForASingleRun represent the zero number of ingested document.
-// It is useful for asserting that the document count did not change after some operation.
+// emptyIngestForASingleRun represent an empty ingestion.
+// It is useful for asserting that the document count did not change after an operation.
 func emptyIngestForASingleRun(namespace string) esclient.DataStreamsDocCount {
 	return map[string]int{
 		fmt.Sprintf("traces-apm-%s", namespace):                     0,

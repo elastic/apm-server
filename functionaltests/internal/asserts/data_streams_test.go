@@ -28,7 +28,7 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 )
 
-func Test_assertDataStreams(t *testing.T) {
+func TestCheckDataStreams(t *testing.T) {
 	tests := []struct {
 		name     string
 		expected asserts.CheckDataStreamsWant
