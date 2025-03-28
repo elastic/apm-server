@@ -73,9 +73,9 @@ type singleUpgrade7xTestCase struct {
 	toVersion   string
 
 	preIngestionSetup            func(*testing.T, *esclient.Client, *kbclient.Client) bool
-	checkPreUpgradeAfterIngest   checkDatastreamWant
-	checkPostUpgradeBeforeIngest checkDatastreamWant
-	checkPostUpgradeAfterIngest  checkDatastreamWant
+	checkPreUpgradeAfterIngest   checkDataStreamWant
+	checkPostUpgradeBeforeIngest checkDataStreamWant
+	checkPostUpgradeAfterIngest  checkDataStreamWant
 }
 
 func (tt singleUpgrade7xTestCase) Run(t *testing.T) {

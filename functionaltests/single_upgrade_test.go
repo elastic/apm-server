@@ -74,7 +74,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("------ cluster setup ------")
-	_, esCfg := createCluster(t, ctx, tf, *target, tt.fromVersion.String(), false)
+	_, esCfg := createCluster(t, ctx, tf, *target, tt.fromVersion.String(), true)
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	esc, err := esclient.New(esCfg)
@@ -119,7 +119,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("------ perform upgrade ------")
-	upgradeCluster(t, ctx, tf, *target, tt.toVersion.String(), false)
+	upgradeCluster(t, ctx, tf, *target, tt.toVersion.String(), true)
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	if tt.postUpgradeFn != nil {
