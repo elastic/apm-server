@@ -182,12 +182,6 @@ func allDataStreams(namespace string) []string {
 	return res
 }
 
-// getDocCountPerDS retrieves document count per data stream.
-func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) (esclient.DataStreamsDocCount, error) {
-	t.Helper()
-	return esc.APMDocCount(ctx)
-}
-
 const (
 	targetQA = "qa"
 	// we use 'pro' because is the target passed by the Buildkite pipeline running

@@ -88,9 +88,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	g := gen.New(esCfg.APMServerURL, apiKey)
 	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
 
-	atStartCount, err := getDocCountPerDS(t, ctx, esc)
-	require.NoError(t, err)
-
+	atStartCount := getDocCountPerDS(t, ctx, esc)
 	if tt.setupFn != nil {
 		t.Log("------ custom setup ------")
 		err = tt.setupFn(t, ctx, esc, kbc)
@@ -103,8 +101,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	t.Log("------ pre-upgrade ingestion assertions ------")
 	t.Log("check number of documents after initial ingestion")
-	firstIngestCount, err := getDocCountPerDS(t, ctx, esc)
-	require.NoError(t, err)
+	firstIngestCount := getDocCountPerDS(t, ctx, esc)
 	asserts.CheckDocCount(t, firstIngestCount, atStartCount,
 		expectedIngestForASingleRun(tt.dataStreamNamespace),
 		aggregationDataStreams(tt.dataStreamNamespace))
@@ -115,10 +112,8 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	asserts.CheckDataStreams(t, tt.checkPreUpgradeAfterIngest, dss)
 	t.Logf("time elapsed: %s", time.Since(start))
 
-	beforeUpgradeCount, err := getDocCountPerDS(t, ctx, esc)
-	require.NoError(t, err)
-
 	t.Log("------ perform upgrade ------")
+	beforeUpgradeCount := getDocCountPerDS(t, ctx, esc)
 	upgradeCluster(t, ctx, tf, *target, tt.toVersion.String())
 	t.Logf("time elapsed: %s", time.Since(start))
 
@@ -134,8 +129,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	// and further assertions.
 	// We don't expect any change here unless something broke during the upgrade.
 	t.Log("check number of documents across upgrade")
-	afterUpgradeCount, err := getDocCountPerDS(t, ctx, esc)
-	require.NoError(t, err)
+	afterUpgradeCount := getDocCountPerDS(t, ctx, esc)
 	asserts.CheckDocCount(t, afterUpgradeCount, beforeUpgradeCount,
 		emptyIngestForASingleRun(tt.dataStreamNamespace),
 		aggregationDataStreams(tt.dataStreamNamespace))
@@ -151,8 +145,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	t.Log("------ post-upgrade ingestion assertions ------")
 	t.Log("check number of documents after final ingestion")
-	secondIngestCount, err := getDocCountPerDS(t, ctx, esc)
-	require.NoError(t, err)
+	secondIngestCount := getDocCountPerDS(t, ctx, esc)
 	asserts.CheckDocCount(t, secondIngestCount, beforeUpgradeCount,
 		expectedIngestForASingleRun(tt.dataStreamNamespace),
 		aggregationDataStreams(tt.dataStreamNamespace))
