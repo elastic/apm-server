@@ -154,9 +154,8 @@ func createAPMGenerator(t *testing.T, ctx context.Context, esc *esclient.Client,
 
 // createRerouteIngestPipeline creates custom pipelines to reroute logs, metrics and traces to different
 // data streams specified by namespace.
-func createRerouteIngestPipeline(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) error {
+func createRerouteIngestPipeline(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) {
 	t.Helper()
-
 	for _, pipeline := range []string{"logs@custom", "metrics@custom", "traces@custom"} {
 		err := esc.CreateIngestPipeline(ctx, pipeline, []types.ProcessorContainer{
 			{
@@ -165,22 +164,16 @@ func createRerouteIngestPipeline(t *testing.T, ctx context.Context, esc *esclien
 				},
 			},
 		})
-		if err != nil {
-			return err
-		}
+		require.NoError(t, err)
 	}
-	return nil
 }
 
 // performManualRollovers rollover all logs, metrics and traces data streams to new indices.
-func performManualRollovers(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) error {
+func performManualRollovers(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) {
 	t.Helper()
 
 	for _, ds := range allDataStreams(namespace) {
 		err := esc.PerformManualRollover(ctx, ds)
-		if err != nil {
-			return err
-		}
+		require.NoError(t, err)
 	}
-	return nil
 }

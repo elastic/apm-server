@@ -184,9 +184,11 @@ func allDataStreams(namespace string) []string {
 }
 
 // getDocsCountPerDS retrieves document count.
-func getDocsCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) (esclient.DataStreamsDocCount, error) {
+func getDocsCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.DataStreamsDocCount {
 	t.Helper()
-	return esc.APMDocCount(ctx)
+	docCount, err := esc.APMDocCount(ctx)
+	require.NoError(t, err)
+	return docCount
 }
 
 func sliceToMap(s []string) map[string]bool {
