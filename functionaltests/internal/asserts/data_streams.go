@@ -18,7 +18,6 @@
 package asserts
 
 import (
-	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -36,60 +35,28 @@ type CheckDataStreamsWant struct {
 }
 
 // CheckDataStreams asserts expected values on specific data streams.
-func CheckDataStreams(t *testing.T, want CheckDataStreamsWant, dss []types.DataStream) {
+func CheckDataStreams(t *testing.T, expected CheckDataStreamsWant, actual []types.DataStream) {
 	t.Helper()
 
-	require.Len(t, dss, want.Quantity, "number of data streams differs from expectations")
-	if want.IndicesPerDS != len(want.IndicesManagedBy) {
-		// Panic if not equal since it's due to developer mistake.
-		panic("IndicesPerDS and length of IndicesManagedBy is not equal")
-	}
-
-	getIndicesManagement := func(name string, indices []types.DataStreamIndex, wants []string) map[string]string {
-		if wants != nil {
-			if !assert.Equal(t, len(indices), len(wants),
-				"length of indices per data stream in %s mismatch", name) {
-				if len(wants) < len(indices) {
-					// Extend the slice so that the following will not panic.
-					wants = append(wants, slices.Repeat([]string{""}, len(indices)-len(wants))...)
-				}
-			}
+	require.Len(t, actual, expected.Quantity, "number of APM datastream differs from expectations")
+	for _, v := range actual {
+		if expected.PreferIlm {
+			assert.True(t, v.PreferIlm, "datastream %s should prefer ILM", v.Name)
+		} else {
+			assert.False(t, v.PreferIlm, "datastream %s should not prefer ILM", v.Name)
 		}
 
-		res := map[string]string{}
-		for i, index := range indices {
-			if wants != nil {
-				res[index.IndexName] = wants[i]
-			} else {
-				res[index.IndexName] = index.ManagedBy.Name
-			}
-		}
-		return res
-	}
-
-	type check struct {
-		DSManagedBy      string
-		PreferIlm        bool
-		IndicesPerDS     int
-		IndicesManagedBy map[string]string
-	}
-
-	expected := map[string]check{}
-	actual := map[string]check{}
-	for _, ds := range dss {
-		expected[ds.Name] = check{
-			DSManagedBy:      want.DSManagedBy,
-			PreferIlm:        want.PreferIlm,
-			IndicesPerDS:     want.IndicesPerDS,
-			IndicesManagedBy: getIndicesManagement(ds.Name, ds.Indices, want.IndicesManagedBy),
-		}
-		actual[ds.Name] = check{
-			DSManagedBy:      ds.NextGenerationManagedBy.Name,
-			IndicesPerDS:     len(ds.Indices),
-			PreferIlm:        ds.PreferIlm,
-			IndicesManagedBy: getIndicesManagement(ds.Name, ds.Indices, nil),
+		assert.Equal(t, expected.DSManagedBy, v.NextGenerationManagedBy.Name,
+			`datastream %s should be managed by "%s"`, v.Name, expected.DSManagedBy,
+		)
+		assert.Len(t, v.Indices, expected.IndicesPerDS,
+			"datastream %s should have %d indices", v.Name, expected.IndicesPerDS,
+		)
+		for i, index := range v.Indices {
+			assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name,
+				`index %s should be managed by "%s"`, index.IndexName,
+				expected.IndicesManagedBy[i],
+			)
 		}
 	}
-
-	assert.Equal(t, expected, actual, "data streams expectation not met")
 }

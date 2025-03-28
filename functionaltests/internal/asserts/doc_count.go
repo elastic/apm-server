@@ -18,6 +18,7 @@
 package asserts
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -43,20 +44,18 @@ func CheckDocCount(
 	}
 
 	skipped := sliceToMap(skippedDataStreams)
-	actualDiff := esclient.DataStreamsDocCount{}
 	for ds, v := range currDocCount {
 		if skipped[ds] {
 			continue
 		}
 
-		_, ok := expectedDiff[ds]
+		e, ok := expectedDiff[ds]
 		if !ok {
 			t.Errorf("unexpected documents (%d) for %s", v, ds)
 			continue
 		}
 
-		actualDiff[ds] = v - prevDocCount[ds]
+		assert.Equal(t, e, v-prevDocCount[ds],
+			fmt.Sprintf("wrong document count difference for %s", ds))
 	}
-
-	assert.Equal(t, expectedDiff, actualDiff, "document count differences expectation not met")
 }
