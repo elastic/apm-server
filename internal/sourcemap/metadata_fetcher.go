@@ -24,6 +24,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -32,7 +34,6 @@ import (
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
 type MetadataESFetcher struct {
@@ -187,16 +188,24 @@ func (s *MetadataESFetcher) sync(ctx context.Context) error {
 }
 
 func (s *MetadataESFetcher) clearScroll(ctx context.Context, scrollID string) {
-	resp, err := esapi.ClearScrollRequest{
-		ScrollID: []string{scrollID},
-	}.Do(ctx, s.esClient)
+	if scrollID == "" {
+		return
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, "/_search/scroll/"+scrollID, nil)
 	if err != nil {
 		s.logger.Warnf("failed to clear scroll: %v", err)
 		return
 	}
 
-	if resp.IsError() {
-		s.logger.Warnf("clearscroll request returned error: %s", resp.Status())
+	resp, err := s.esClient.Perform(req)
+	if err != nil {
+		s.logger.Warnf("failed to clear scroll: %v", err)
+		return
+	}
+
+	if resp.StatusCode > 299 {
+		s.logger.Warnf("clearscroll request returned error: %s", resp.Status)
 	}
 
 	resp.Body.Close()
@@ -280,14 +289,19 @@ func (s *MetadataESFetcher) initialSearch(ctx context.Context, updates map[ident
 	return s.handleUpdateRequest(resp, updates)
 }
 
-func (s *MetadataESFetcher) runSearchQuery(ctx context.Context) (*esapi.Response, error) {
-	req := esapi.SearchRequest{
-		Index:          []string{s.index},
-		Source:         []string{"service.*", "file.path", "content_sha256"},
-		TrackTotalHits: true,
-		Scroll:         time.Minute,
+func (s *MetadataESFetcher) runSearchQuery(ctx context.Context) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/"+s.index+"/_search", nil)
+	if err != nil {
+		return nil, err
 	}
-	return req.Do(ctx, s.esClient)
+
+	q := req.URL.Query()
+	q.Set("_source", strings.Join([]string{"service.*", "file.path", "content_sha256"}, ","))
+	q.Set("track_total_hits", "true")
+	q.Set("scroll", strconv.FormatInt(time.Minute.Milliseconds(), 10)+"ms")
+	req.URL.RawQuery = q.Encode()
+
+	return s.esClient.Perform(req)
 }
 
 type esSearchSourcemapResponse struct {
@@ -316,7 +330,7 @@ type esSourcemapResponse struct {
 	} `json:"hits"`
 }
 
-func (s *MetadataESFetcher) handleUpdateRequest(resp *esapi.Response, updates map[identifier]string) (*esSearchSourcemapResponse, error) {
+func (s *MetadataESFetcher) handleUpdateRequest(resp *http.Response, updates map[identifier]string) (*esSearchSourcemapResponse, error) {
 	// handle error response
 	if resp.StatusCode >= http.StatusMultipleChoices {
 		b, err := io.ReadAll(resp.Body)
@@ -324,9 +338,9 @@ func (s *MetadataESFetcher) handleUpdateRequest(resp *esapi.Response, updates ma
 			return nil, fmt.Errorf("failed to read response body: %w", err)
 		}
 		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnauthorized {
-			return nil, fmt.Errorf("%w: %s: %s", errFetcherUnvailable, resp.Status(), string(b))
+			return nil, fmt.Errorf("%w: %s: %s", errFetcherUnvailable, resp.Status, string(b))
 		}
-		return nil, fmt.Errorf("ES returned unknown status code: %s", resp.Status())
+		return nil, fmt.Errorf("ES returned unknown status code: %s", resp.Status)
 	}
 
 	// parse response
@@ -375,10 +389,14 @@ func (s *MetadataESFetcher) scrollsearch(ctx context.Context, scrollID string, u
 	return s.handleUpdateRequest(resp, updates)
 }
 
-func (s *MetadataESFetcher) runScrollSearchQuery(ctx context.Context, id string) (*esapi.Response, error) {
-	req := esapi.ScrollRequest{
-		ScrollID: id,
-		Scroll:   time.Minute,
+func (s *MetadataESFetcher) runScrollSearchQuery(ctx context.Context, id string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/_search/scroll", nil)
+	q := req.URL.Query()
+	q.Set("scroll", strconv.FormatInt(time.Minute.Milliseconds(), 10)+"ms")
+	q.Set("scroll_id", id)
+	req.URL.RawQuery = q.Encode()
+	if err != nil {
+		return nil, err
 	}
-	return req.Do(ctx, s.esClient)
+	return s.esClient.Perform(req)
 }

@@ -268,17 +268,24 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 	if err != nil {
 		return fmt.Errorf("unable to create warm-up handler: %w", err)
 	}
-	var wg sync.WaitGroup
+
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
+
+	var wg sync.WaitGroup
+	wg.Add(agents)
 	for i := 0; i < agents; i++ {
-		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			h.SendBatchesInLoop(ctx)
+			sendErr := h.SendBatchesInLoop(ctx)
+			if sendErr != nil && !errors.Is(sendErr, context.DeadlineExceeded) {
+				log.Printf("failed to send batches: %v", sendErr)
+			}
 		}()
 	}
+
 	wg.Wait()
+
 	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
 	defer cancel()
 	if err := expvar.WaitUntilServerInactive(ctx, url); err != nil {

@@ -16,7 +16,7 @@ jobs:
       matrix: ${{ steps.generator.outputs.matrix }}
     steps:
       - id: generator
-        uses: elastic/oblt-actions/elastic/active-branches@v1
+        uses: elastic/oblt-actions/elastic/active-branches@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
   bump:
     needs:
       - filter
@@ -25,7 +25,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.filter.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           ref: ${{ matrix.branch }}
 
@@ -41,11 +41,11 @@ jobs:
               "pull_requests": "write"
             }
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
 
-      - uses: elastic/oblt-actions/updatecli/run@v1
+      - uses: elastic/oblt-actions/updatecli/run@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
         with:
           command: --experimental apply --config .ci/updatecli/update-beats.yml --values .ci/updatecli/values.d/scm.yml
         env:
@@ -53,7 +53,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
 
       - if: ${{ failure()  }}
-        uses: elastic/oblt-actions/slack/send@v1
+        uses: elastic/oblt-actions/slack/send@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
         with:
           channel-id: '#apm-server'
           message: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"

@@ -77,19 +77,31 @@ func TestHttpProxyUrl(t *testing.T) {
 
 func TestAddresses(t *testing.T) {
 	t.Run("no protocol and path", func(t *testing.T) {
-		addresses, err := addresses(&Config{Hosts: []string{
+		urls, err := addresses(&Config{Hosts: []string{
 			"http://localhost", "http://localhost:9300", "localhost", "192.0.0.1", "192.0.0.2:8080"}})
 		require.NoError(t, err)
+
+		var addresses []string
+		for _, u := range urls {
+			addresses = append(addresses, u.String())
+		}
+
 		expected := []string{"http://localhost:9200", "http://localhost:9300",
 			"http://localhost:9200", "http://192.0.0.1:9200", "http://192.0.0.2:8080"}
 		assert.ElementsMatch(t, expected, addresses)
 	})
 
 	t.Run("with protocol and path", func(t *testing.T) {
-		addresses, err := addresses(&Config{Protocol: "https", Path: "xyz",
+		urls, err := addresses(&Config{Protocol: "https", Path: "xyz",
 			Hosts: []string{"http://localhost", "http://localhost:9300/abc",
 				"localhost/abc", "192.0.0.2:8080"}})
 		require.NoError(t, err)
+
+		var addresses []string
+		for _, u := range urls {
+			addresses = append(addresses, u.String())
+		}
+
 		expected := []string{"http://localhost:9200/xyz", "http://localhost:9300/abc",
 			"https://localhost:9200/abc", "https://192.0.0.2:8080/xyz"}
 		assert.ElementsMatch(t, expected, addresses)

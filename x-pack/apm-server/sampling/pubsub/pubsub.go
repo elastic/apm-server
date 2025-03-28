@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -21,8 +22,6 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-docappender/v2"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"github.com/elastic/go-elasticsearch/v8/esutil"
 
 	"github.com/elastic/apm-data/model/modeljson"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -64,9 +63,10 @@ func New(config Config) (*Pubsub, error) {
 // ctx is canceled, or traceIDs is closed.
 func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceIDs <-chan string) error {
 	appender, err := docappender.New(p.config.Client, docappender.Config{
-		CompressionLevel:   p.config.CompressionLevel,
-		FlushInterval:      p.config.FlushInterval,
-		DocumentBufferSize: 100, // Reduce memory footprint
+		CompressionLevel:     p.config.CompressionLevel,
+		FlushInterval:        p.config.FlushInterval,
+		DocumentBufferSize:   100, // Reduce memory footprint
+		IncludeSourceOnError: docappender.False,
 		// Disable autoscaling for the TBS sampled traces published documents.
 		Scaling: docappender.ScalingConfig{Disabled: true},
 		Logger:  zap.New(p.config.Logger.Core(), zap.WithCaller(true)),
@@ -235,16 +235,17 @@ func (p *Pubsub) refreshIndices(ctx context.Context, indices []string) error {
 	if len(indices) == 0 {
 		return nil
 	}
-	ignoreUnavailable := true
-	resp, err := esapi.IndicesRefreshRequest{
-		Index:             indices,
-		IgnoreUnavailable: &ignoreUnavailable,
-	}.Do(ctx, p.config.Client)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/"+strings.Join(indices, ",")+"/_refresh?ignore_unavailable=true", nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := p.config.Client.Perform(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.IsError() {
+	if resp.StatusCode > 299 {
 		message, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("index refresh request failed: %s", message)
 	}
@@ -305,7 +306,11 @@ func (p *Pubsub) searchIndexTraceIDs(ctx context.Context, out chan<- string, ind
 				}
 			}
 		}
-		if err := p.doSearchRequest(ctx, index, esutil.NewJSONReader(searchBody), &result); err != nil {
+		b, err := json.Marshal(searchBody)
+		if err != nil {
+			return -1, err
+		}
+		if err := p.doSearchRequest(ctx, index, bytes.NewReader(b), &result); err != nil {
 			if err == errIndexNotFound {
 				// Index was deleted.
 				break
@@ -329,15 +334,18 @@ func (p *Pubsub) searchIndexTraceIDs(ctx context.Context, out chan<- string, ind
 }
 
 func (p *Pubsub) doSearchRequest(ctx context.Context, index string, body io.Reader, out interface{}) error {
-	resp, err := esapi.SearchRequest{
-		Index: []string{index},
-		Body:  body,
-	}.Do(ctx, p.config.Client)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/"+index+"/_search", body)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := p.config.Client.Perform(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.IsError() {
+	if resp.StatusCode > 299 {
 		if resp.StatusCode == http.StatusNotFound {
 			return errIndexNotFound
 		}

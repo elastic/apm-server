@@ -1,0 +1,108 @@
+---
+version: 1
+interactions:
+- request:
+    body: '{"id":"elastic-cloud-apm","name":"Elastic APM","description":"Hello World","package":{"name":"apm","title":"Elastic
+      APM","version":"9.1.0-SNAPSHOT"},"force":false}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/fleet/package_policies/elastic-cloud-apm
+    method: PUT
+  response:
+    body: '{"item":{"id":"elastic-cloud-apm","version":"WzU0MSwyXQ==","name":"Elastic
+      APM","namespace":"default","package":{"name":"apm","title":"Elastic APM","version":"9.1.0-SNAPSHOT"},"enabled":true,"policy_id":"policy-elastic-agent-on-cloud","policy_ids":["policy-elastic-agent-on-cloud"],"inputs":[{"config":{"apm-server":{"value":{"agent":{"config":{"elasticsearch":{"api_key":"REDACTED"}}},"agent_config":[],"rum":{"source_mapping":{"elasticsearch":{"api_key":"REDACTED"},"metadata":[]}}}}},"enabled":true,"keep_enabled":true,"policy_template":"apmserver","type":"apm","streams":[],"vars":{"anonymous_allow_agent":{"type":"text","value":["rum-js","js-base","iOS/swift"]},"anonymous_allow_service":{"type":"text","value":[]},"anonymous_enabled":{"type":"bool","value":true},"anonymous_rate_limit_event_limit":{"type":"integer","value":300},"anonymous_rate_limit_ip_limit":{"type":"integer","value":1000},"api_key_enabled":{"type":"bool","value":true},"api_key_limit":{"type":"integer","value":100},"capture_personal_data":{"type":"bool","value":true},"default_service_environment":{"type":"text"},"enable_rum":{"type":"bool","value":true},"expvar_enabled":{"type":"bool","value":false},"host":{"value":"0.0.0.0:8200","type":"text","frozen":true},"idle_timeout":{"type":"text","value":"45s"},"java_attacher_agent_version":{"type":"text"},"java_attacher_discovery_rules":{"type":"yaml"},"java_attacher_enabled":{"type":"bool","value":false},"max_connections":{"type":"integer","value":0},"max_event_bytes":{"type":"integer","value":307200},"max_header_bytes":{"type":"integer","value":1048576},"pprof_enabled":{"type":"bool","value":false},"read_timeout":{"type":"text","value":"3600s"},"response_headers":{"type":"yaml"},"rum_allow_headers":{"type":"text","value":[]},"rum_allow_origins":{"type":"text","value":["\"*\""]},"rum_exclude_from_grouping":{"type":"text","value":"\"^/webpack\""},"rum_library_pattern":{"type":"text","value":"\"node_modules|bower_components|~\""},"rum_response_headers":{"type":"yaml"},"secret_token":{"type":"text","value":"REDACTED"},"shutdown_timeout":{"type":"text","value":"30s"},"tail_sampling_enabled":{"type":"bool","value":false},"tail_sampling_interval":{"type":"text","value":"1m"},"tail_sampling_policies":{"type":"yaml","value":"-
+      sample_rate: 0.1\n"},"tail_sampling_storage_limit":{"type":"text","value":"10GB"},"tls_certificate":{"value":"/app/config/certs/node.crt","type":"text","frozen":true},"tls_cipher_suites":{"type":"text","value":[]},"tls_curve_types":{"type":"text","value":[]},"tls_enabled":{"value":true,"type":"bool","frozen":true},"tls_key":{"value":"/app/config/certs/node.key","type":"text","frozen":true},"tls_supported_protocols":{"type":"text","value":["TLSv1.2","TLSv1.3"]},"url":{"value":"https://test","type":"text","frozen":true},"write_timeout":{"type":"text","value":"30s"}},"compiled_input":{"apm-server":{"auth":{"anonymous":{"allow_agent":["rum-js","js-base","iOS/swift"],"allow_service":null,"enabled":true,"rate_limit":{"event_limit":300,"ip_limit":1000}},"api_key":{"enabled":true,"limit":100},"secret_token":"REDACTED"},"capture_personal_data":true,"idle_timeout":"45s","default_service_environment":null,"expvar.enabled":false,"pprof.enabled":false,"host":"0.0.0.0:8200","max_connections":0,"max_event_size":307200,"max_header_size":1048576,"read_timeout":"3600s","response_headers":null,"java_attacher":{"enabled":false,"discovery-rules":null,"download-agent-version":null},"rum":{"allow_headers":null,"allow_origins":["*"],"enabled":true,"exclude_from_grouping":"^/webpack","library_pattern":"node_modules|bower_components|~","response_headers":null},"shutdown_timeout":"30s","ssl":{"enabled":true,"certificate":"/app/config/certs/node.crt","key":"/app/config/certs/node.key","key_passphrase":null,"supported_protocols":["TLSv1.2","TLSv1.3"],"cipher_suites":null,"curve_types":null},"write_timeout":"30s","sampling":{"tail":{"enabled":false,"interval":"1m","policies":[{"sample_rate":0.1}],"storage_limit":"10GB"}}}}}],"output_id":null,"elasticsearch":{"privileges":{"cluster":["cluster:monitor/main"]}},"revision":8,"created_at":"2025-03-24T03:16:50.938Z","created_by":"system","updated_at":"2025-03-24T03:59:51.073Z","updated_by":"4104729089","vars":{},"description":"Hello
+      World"}}'
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Content-Type:
+      - application/json; charset=utf-8
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Mon, 24 Mar 2025 03:59:53 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Vary:
+      - accept-encoding
+      X-Cloud-Request-Id:
+      - ZHgb4CkWR_iQpInhoBMhrA
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: "null"
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/fleet/package_policies/elastic-cloud-apm
+    method: GET
+  response:
+    body: '{"item":{"id":"elastic-cloud-apm","version":"WzU0MSwyXQ==","name":"Elastic
+      APM","namespace":"default","package":{"name":"apm","title":"Elastic APM","version":"9.1.0-SNAPSHOT"},"enabled":true,"policy_id":"policy-elastic-agent-on-cloud","policy_ids":["policy-elastic-agent-on-cloud"],"inputs":[{"config":{"apm-server":{"value":{"agent":{"config":{"elasticsearch":{"api_key":"REDACTED"}}},"agent_config":[],"rum":{"source_mapping":{"elasticsearch":{"api_key":"REDACTED"},"metadata":[]}}}}},"enabled":true,"keep_enabled":true,"policy_template":"apmserver","type":"apm","streams":[],"vars":{"anonymous_allow_agent":{"type":"text","value":["rum-js","js-base","iOS/swift"]},"anonymous_allow_service":{"type":"text","value":[]},"anonymous_enabled":{"type":"bool","value":true},"anonymous_rate_limit_event_limit":{"type":"integer","value":300},"anonymous_rate_limit_ip_limit":{"type":"integer","value":1000},"api_key_enabled":{"type":"bool","value":true},"api_key_limit":{"type":"integer","value":100},"capture_personal_data":{"type":"bool","value":true},"default_service_environment":{"type":"text"},"enable_rum":{"type":"bool","value":true},"expvar_enabled":{"type":"bool","value":false},"host":{"value":"0.0.0.0:8200","type":"text","frozen":true},"idle_timeout":{"type":"text","value":"45s"},"java_attacher_agent_version":{"type":"text"},"java_attacher_discovery_rules":{"type":"yaml"},"java_attacher_enabled":{"type":"bool","value":false},"max_connections":{"type":"integer","value":0},"max_event_bytes":{"type":"integer","value":307200},"max_header_bytes":{"type":"integer","value":1048576},"pprof_enabled":{"type":"bool","value":false},"read_timeout":{"type":"text","value":"3600s"},"response_headers":{"type":"yaml"},"rum_allow_headers":{"type":"text","value":[]},"rum_allow_origins":{"type":"text","value":["\"*\""]},"rum_exclude_from_grouping":{"type":"text","value":"\"^/webpack\""},"rum_library_pattern":{"type":"text","value":"\"node_modules|bower_components|~\""},"rum_response_headers":{"type":"yaml"},"secret_token":{"type":"text","value":"REDACTED"},"shutdown_timeout":{"type":"text","value":"30s"},"tail_sampling_enabled":{"type":"bool","value":false},"tail_sampling_interval":{"type":"text","value":"1m"},"tail_sampling_policies":{"type":"yaml","value":"-
+      sample_rate: 0.1\n"},"tail_sampling_storage_limit":{"type":"text","value":"10GB"},"tls_certificate":{"value":"/app/config/certs/node.crt","type":"text","frozen":true},"tls_cipher_suites":{"type":"text","value":[]},"tls_curve_types":{"type":"text","value":[]},"tls_enabled":{"value":true,"type":"bool","frozen":true},"tls_key":{"value":"/app/config/certs/node.key","type":"text","frozen":true},"tls_supported_protocols":{"type":"text","value":["TLSv1.2","TLSv1.3"]},"url":{"value":"https://test","type":"text","frozen":true},"write_timeout":{"type":"text","value":"30s"}},"compiled_input":{"apm-server":{"auth":{"anonymous":{"allow_agent":["rum-js","js-base","iOS/swift"],"allow_service":null,"enabled":true,"rate_limit":{"event_limit":300,"ip_limit":1000}},"api_key":{"enabled":true,"limit":100},"secret_token":"REDACTED"},"capture_personal_data":true,"idle_timeout":"45s","default_service_environment":null,"expvar.enabled":false,"pprof.enabled":false,"host":"0.0.0.0:8200","max_connections":0,"max_event_size":307200,"max_header_size":1048576,"read_timeout":"3600s","response_headers":null,"java_attacher":{"enabled":false,"discovery-rules":null,"download-agent-version":null},"rum":{"allow_headers":null,"allow_origins":["*"],"enabled":true,"exclude_from_grouping":"^/webpack","library_pattern":"node_modules|bower_components|~","response_headers":null},"shutdown_timeout":"30s","ssl":{"enabled":true,"certificate":"/app/config/certs/node.crt","key":"/app/config/certs/node.key","key_passphrase":null,"supported_protocols":["TLSv1.2","TLSv1.3"],"cipher_suites":null,"curve_types":null},"write_timeout":"30s","sampling":{"tail":{"enabled":false,"interval":"1m","policies":[{"sample_rate":0.1}],"storage_limit":"10GB"}}}}}],"output_id":null,"elasticsearch":{"privileges":{"cluster":["cluster:monitor/main"]}},"revision":8,"created_at":"2025-03-24T03:16:50.938Z","created_by":"system","updated_at":"2025-03-24T03:59:51.073Z","updated_by":"4104729089","vars":{},"description":"Hello
+      World"}}'
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Content-Type:
+      - application/json; charset=utf-8
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Mon, 24 Mar 2025 03:59:54 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Vary:
+      - accept-encoding
+      X-Cloud-Request-Id:
+      - WaE2EGZvS7STDFRV2o0ruQ
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""

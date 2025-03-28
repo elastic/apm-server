@@ -22,12 +22,20 @@ get_versions() {
 }
 
 get_latest_version() {
+    if [[ -z "${VERSIONS}" ]]; then
+        echo "-> Version not set, call get_versions first"
+        return 1
+    fi
     local version
     version=$(echo ${VERSIONS} | jq -r -c "max_by(. | select(. | startswith(\"${1}\")) | if endswith(\"-SNAPSHOT\") then .[:-9] else . end | split(\".\") | map(tonumber))")
     echo "${version}"
 }
 
 get_latest_patch() {
+    if [[ -z "${1}" ]]; then
+        echo "-> Version not set"
+        return 1
+    fi
     LATEST_PATCH=$(get_latest_version "${1}" | cut -d '.' -f3)
 }
 

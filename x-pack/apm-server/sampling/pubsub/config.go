@@ -11,14 +11,14 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 )
 
 // Config holds configuration for Pubsub.
 type Config struct {
 	// Client holds an Elasticsearch client, for indexing and searching for
 	// trace ID observations.
-	Client *elasticsearch.Client
+	Client *elastictransport.Client
 
 	// CompressionLevel holds the gzip compression level to use when bulk indexing,
 	// from 0 (gzip.NoCompression) to 9 (gzip.BestCompression). Higher values provide

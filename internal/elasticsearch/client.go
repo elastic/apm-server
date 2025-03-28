@@ -18,7 +18,6 @@
 package elasticsearch
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -28,17 +27,18 @@ import (
 	"go.elastic.co/apm/module/apmelasticsearch/v2"
 
 	"github.com/elastic/apm-server/internal/version"
-	esv8 "github.com/elastic/go-elasticsearch/v8"
-	esapiv8 "github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 )
 
 var retryableStatuses = []int{
 	http.StatusTooManyRequests,
 }
 
-var userAgent = fmt.Sprintf("Elastic-APM-Server/%s go-elasticsearch/%s", version.VersionWithQualifier(), esv8.Version)
+// apm-server doesn't use go-elasticsearch but we kept the user agent string for
+// compatibility
+var userAgent = fmt.Sprintf("Elastic-APM-Server/%s go-elasticsearch/%s", version.VersionWithQualifier(), version.Version)
 
-type Client = esv8.Client
+type Client = elastictransport.Client
 
 // ClientParams holds parameters for NewClientParams.
 type ClientParams struct {
@@ -101,11 +101,11 @@ func NewClientParams(args ClientParams) (*Client, error) {
 		apikey = base64.StdEncoding.EncodeToString([]byte(args.Config.APIKey))
 	}
 
-	return esv8.NewClient(esv8.Config{
+	return elastictransport.New(elastictransport.Config{
 		APIKey:        apikey,
 		Username:      args.Config.Username,
 		Password:      args.Config.Password,
-		Addresses:     addrs,
+		URLs:          addrs,
 		Header:        headers,
 		Transport:     apmelasticsearch.WrapRoundTripper(transport),
 		MaxRetries:    args.Config.MaxRetries,
@@ -115,13 +115,13 @@ func NewClientParams(args ClientParams) (*Client, error) {
 	})
 }
 
-func doRequest(ctx context.Context, transport esapiv8.Transport, req esapiv8.Request, out interface{}) error {
-	resp, err := req.Do(ctx, transport)
+func doRequest(client *elastictransport.Client, req *http.Request, out interface{}) error {
+	resp, err := client.Perform(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.IsError() {
+	if resp.StatusCode > 299 {
 		bytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err

@@ -16,6 +16,7 @@
 /apm-server.keystore
 /apm-server
 /apm-server-oss
+/apm-server-fips
 **/*.test
 /docs/elastic/
 html_docs
