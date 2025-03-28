@@ -36,6 +36,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -49,12 +50,11 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
+	"github.com/elastic/apm-data/model/modelpb"
 	_ "github.com/elastic/beats/v7/libbeat/outputs/console"
 	_ "github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
 
-	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/beatertest"
@@ -578,7 +578,16 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
 	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
-	_ = logp.DevelopmentSetup(logp.ToObserverOutput())
+	observedCore, observedLogs := observer.New(zapcore.DebugLevel)
+	err := logp.ConfigureWithOutputs(logp.Config{
+		Level:      logp.DebugLevel,
+		ToStderr:   false,
+		ToSyslog:   false,
+		ToFiles:    false,
+		ToEventLog: false,
+	}, observedCore)
+	require.NoError(t, err)
+
 	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
 		map[string]interface{}{
 			"instrumentation.enabled": true,
@@ -626,7 +635,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	// Assert that logs contain expected values:
 	// - Original error with the status code.
 	// - Request timeout is logged separately with the the original error status code.
-	logs := logp.ObserverLogs().Filter(func(l observer.LoggedEntry) bool {
+	logs := observedLogs.Filter(func(l observer.LoggedEntry) bool {
 		return l.Level == zapcore.ErrorLevel
 	}).AllUntimed()
 	assert.Len(t, logs, 1)

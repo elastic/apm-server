@@ -25,13 +25,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2/apmtest"
 	"go.elastic.co/apm/v2/transport/transporttest"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
-	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func TestMetadataFetcher(t *testing.T) {
@@ -215,10 +217,19 @@ func TestInvalidation(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
+			observedCore, observedLogs := observer.New(zapcore.DebugLevel)
+			err := logp.ConfigureWithOutputs(logp.Config{
+				Level:      logp.DebugLevel,
+				ToStderr:   false,
+				ToSyslog:   false,
+				ToFiles:    false,
+				ToEventLog: false,
+			}, observedCore)
+			require.NoError(t, err)
+
 			t.Cleanup(func() {
 				if t.Failed() {
-					for _, le := range logp.ObserverLogs().All() {
+					for _, le := range observedLogs.All() {
 						t.Log(le)
 					}
 				}
