@@ -125,6 +125,14 @@ func createKibanaClient(t *testing.T, ctx context.Context, esc *esclient.Client,
 	return kbc
 }
 
+// getDocCountPerDS retrieves document count per data stream.
+func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.DataStreamsDocCount {
+	t.Helper()
+	count, err := esc.APMDocCount(ctx)
+	require.NoError(t, err)
+	return count
+}
+
 // createRerouteIngestPipeline creates custom pipelines to reroute logs, metrics and traces to different
 // data streams specified by namespace.
 func createRerouteIngestPipeline(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) error {

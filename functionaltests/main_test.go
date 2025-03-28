@@ -25,12 +25,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 var (
@@ -166,6 +164,7 @@ func emptyIngestForASingleRun(namespace string) esclient.DataStreamsDocCount {
 	}
 }
 
+// aggregationDataStreams returns a list of APM data streams that go through aggregation.
 func aggregationDataStreams(namespace string) []string {
 	return []string{
 		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace),
@@ -181,77 +180,6 @@ func allDataStreams(namespace string) []string {
 		res = append(res, ds)
 	}
 	return res
-}
-
-// getDocsCountPerDS retrieves document count.
-func getDocsCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) (esclient.DataStreamsDocCount, error) {
-	t.Helper()
-	return esc.APMDocCount(ctx)
-}
-
-func sliceToMap(s []string) map[string]bool {
-	m := make(map[string]bool)
-	for _, v := range s {
-		m[v] = true
-	}
-	return m
-}
-
-// assertDocCount check if specified document count is equal to expected minus
-// documents count from a previous state.
-func assertDocCount(t *testing.T, current, previous, expectedDiff esclient.DataStreamsDocCount, skippedDataStreams []string) {
-	t.Helper()
-	skipped := sliceToMap(skippedDataStreams)
-	for ds, v := range current {
-		if skipped[ds] {
-			continue
-		}
-
-		e, ok := expectedDiff[ds]
-		if !ok {
-			t.Errorf("unexpected documents (%d) for %s", v, ds)
-			continue
-		}
-
-		assert.Equal(t, e, v-previous[ds],
-			fmt.Sprintf("wrong document count difference for %s", ds))
-	}
-}
-
-type checkDataStreamWant struct {
-	Quantity         int
-	DSManagedBy      string
-	IndicesPerDs     int
-	PreferIlm        bool
-	IndicesManagedBy []string
-}
-
-// assertDataStreams assert expected values on specific data streams in a cluster.
-func assertDataStreams(t *testing.T, expected checkDataStreamWant, actual []types.DataStream) {
-	t.Helper()
-
-	require.Len(t, actual, expected.Quantity, "number of APM datastream differs from expectations")
-	for _, v := range actual {
-		if expected.PreferIlm {
-			assert.True(t, v.PreferIlm, "datastream %s should prefer ILM", v.Name)
-		} else {
-			assert.False(t, v.PreferIlm, "datastream %s should not prefer ILM", v.Name)
-		}
-
-		assert.Equal(t, expected.DSManagedBy, v.NextGenerationManagedBy.Name,
-			`datastream %s should be managed by "%s"`, v.Name, expected.DSManagedBy,
-		)
-		assert.Len(t, v.Indices, expected.IndicesPerDs,
-			"datastream %s should have %d indices", v.Name, expected.IndicesPerDs,
-		)
-		for i, index := range v.Indices {
-			assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name,
-				`index %s should be managed by "%s"`, index.IndexName,
-				expected.IndicesManagedBy[i],
-			)
-		}
-	}
-
 }
 
 const (
