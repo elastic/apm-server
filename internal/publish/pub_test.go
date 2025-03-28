@@ -46,6 +46,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-data/model/modelpb"
+
 	"github.com/elastic/apm-server/internal/publish"
 )
 
@@ -98,8 +99,6 @@ func TestPublisherStopShutdownInactive(t *testing.T) {
 }
 
 func BenchmarkPublisher(b *testing.B) {
-	require.NoError(b, logp.DevelopmentSetup(logp.ToObserverOutput()))
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
