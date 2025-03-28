@@ -25,13 +25,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2/apmtest"
 	"go.elastic.co/apm/v2/transport/transporttest"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
+
+	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 )

@@ -23,7 +23,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"
@@ -32,6 +31,7 @@ import (
 	"go.elastic.co/apm/v2"
 	"go.elastic.co/apm/v2/apmtest"
 
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-server/internal/beater/headers"

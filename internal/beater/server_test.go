@@ -36,7 +36,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,10 +49,12 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/apm-data/model/modelpb"
 	_ "github.com/elastic/beats/v7/libbeat/outputs/console"
 	_ "github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
+
+	"github.com/elastic/apm-data/model/modelpb"
 
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/beater/api"
