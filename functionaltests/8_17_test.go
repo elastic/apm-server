@@ -22,15 +22,13 @@ import (
 )
 
 func TestUpgrade_7_17_28_to_8_17_4(t *testing.T) {
-	ecAPICheck(t)
-
 	tt := singleUpgrade7xTestCase{
 		fromVersion: "7.17.28",
 		toVersion:   "8.17.3",
 
-		checkPreUpgradeAfterIngest:   checkDatastreamWant{},
-		checkPostUpgradeBeforeIngest: checkDatastreamWant{},
-		checkPostUpgradeAfterIngest:  checkDatastreamWant{},
+		checkPreUpgradeAfterIngest:   checkDataStreamWant{},
+		checkPostUpgradeBeforeIngest: checkDataStreamWant{},
+		checkPostUpgradeAfterIngest:  checkDataStreamWant{},
 	}
 
 	tt.Run(t)

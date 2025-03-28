@@ -9,6 +9,7 @@ output "es_url" {
 output "username" {
   value = module.ec_deployment.elasticsearch_username
 }
+
 output "password" {
   value     = module.ec_deployment.elasticsearch_password
   sensitive = true

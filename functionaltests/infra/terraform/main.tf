@@ -14,7 +14,8 @@ module "ec_deployment" {
   elasticsearch_size       = "4g"
   elasticsearch_zone_count = 1
 
-  stack_version = var.stack_version
+  stack_version       = var.stack_version
+  integrations_server = var.integrations_server
 
   tags = merge(local.ci_tags, module.tags.tags)
 }

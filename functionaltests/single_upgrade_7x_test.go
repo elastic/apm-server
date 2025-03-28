@@ -122,6 +122,9 @@ func (tt singleUpgrade7xTestCase) Run(t *testing.T) {
 	// require.NoError(t, kbc.MigrateAPMToIntegrationsServer(escfg.Password))
 	// t.Logf("time elapsed: %s", time.Now().Sub(start))
 
+	g = gen.New(escfg.APMServerURL, apiKey)
+	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
+
 	require.NoError(t, g.RunBlocking(ctx))
 	time.Sleep(15 * time.Second)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
