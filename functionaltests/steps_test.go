@@ -39,9 +39,18 @@ type testStepsRunner struct {
 	Steps               []testStep
 }
 
+// Run runs the test steps in sequence, passing the result from the current step
+// into the next step etc.
 func (r testStepsRunner) Run(t *testing.T) {
 	if r.DataStreamNamespace == "" {
 		r.DataStreamNamespace = "default"
+	}
+
+	if len(r.Steps) == 0 {
+		t.Fatal("at least one step must be specified in test run")
+	}
+	if _, ok := r.Steps[0].(createStep); !ok {
+		t.Fatal("first step of test run must be createStep")
 	}
 
 	start := time.Now()
@@ -55,10 +64,12 @@ func (r testStepsRunner) Run(t *testing.T) {
 	}
 }
 
+// testStepResult contains the results of running the step.
 type testStepResult struct {
 	DSDocCount esclient.DataStreamsDocCount
 }
 
+// testStepEnv is the environment of the step that is run.
 type testStepEnv struct {
 	dsNamespace  string
 	version      ecclient.StackVersion
@@ -73,6 +84,14 @@ type testStep interface {
 	Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult
 }
 
+// createStep initializes the Terraform runner and deploys an Elastic Cloud
+// Hosted (ECH) cluster with the provided stack version. It also creates the
+// necessary clients and set them into testStepEnv.
+//
+// The output of this step is the initial document counts in ES.
+//
+// Note: This step should always be the first step of any test runs, since it
+// initializes all the necessary dependencies for subsequent steps.
 type createStep struct {
 	DeployVersion      ecclient.StackVersion
 	EnableIntegrations bool
@@ -90,15 +109,20 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ te
 	return testStepResult{DSDocCount: docCount}
 }
 
-var _ testStep = ingestionStep{}
+var _ testStep = ingestStep{}
 
-type ingestionStep struct {
+// ingestStep performs ingestion to the APM Server deployed on ECH. After
+// ingestion, it checks if the document counts difference between current
+// and previous is expected.
+//
+// The output of this step is the document counts after ingestion.
+type ingestStep struct {
 	CheckDataStream asserts.CheckDataStreamsWant
 }
 
-var _ testStep = ingestionStep{}
+var _ testStep = ingestStep{}
 
-func (i ingestionStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
+func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	t.Log("------ ingestion ------")
 	err := e.gen.RunBlockingWait(ctx, e.version, e.integrations)
 	require.NoError(t, err)
@@ -118,6 +142,12 @@ func (i ingestionStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, p
 	return testStepResult{DSDocCount: docCount}
 }
 
+// upgradeStep upgrades the ECH deployment from its current version to the new
+// version. It also sets the new version into testStepEnv, overwriting the
+// previous version. After upgrade, it checks that the document counts did not
+// change across upgrade.
+//
+// The output of this step is the document counts after upgrade.
 type upgradeStep struct {
 	NewVersion      ecclient.StackVersion
 	CheckDataStream asserts.CheckDataStreamsWant
@@ -148,6 +178,11 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 	return testStepResult{DSDocCount: docCount}
 }
 
+// checkErrorLogsStep checks if there are any unexpected error logs from both
+// Elasticsearch and APM Server. The provided APMErrorLogsIgnored is used to
+// ignore some APM logs from being included in the assertion.
+//
+// The output of this step is the previous step's result.
 type checkErrorLogsStep struct {
 	APMErrorLogsIgnored []types.Query
 }
@@ -171,6 +206,8 @@ func (c checkErrorLogsStep) Step(t *testing.T, ctx context.Context, e *testStepE
 
 type stepFunc func(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult
 
+// customStep is a custom step to be defined by the user's. The step will run
+// the provided Func.
 type customStep struct {
 	Func stepFunc
 }

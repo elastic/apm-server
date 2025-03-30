@@ -111,9 +111,9 @@ func runAllBasicUpgradeScenarios(
 		r := testStepsRunner{
 			Steps: []testStep{
 				createStep{DeployVersion: fromVersion},
-				ingestionStep{CheckDataStream: checkPreUpgradeAfterIngest},
+				ingestStep{CheckDataStream: checkPreUpgradeAfterIngest},
 				upgradeStep{NewVersion: toVersion, CheckDataStream: checkPostUpgradeBeforeIngest},
-				ingestionStep{CheckDataStream: checkPostUpgradeAfterIngest},
+				ingestStep{CheckDataStream: checkPostUpgradeAfterIngest},
 				checkErrorLogsStep{APMErrorLogsIgnored: apmErrorLogsIgnored},
 			},
 		}
@@ -135,9 +135,9 @@ func runAllBasicUpgradeScenarios(
 			Steps: []testStep{
 				createStep{DeployVersion: fromVersion},
 				customStep{Func: setupFn},
-				ingestionStep{CheckDataStream: checkPreUpgradeAfterIngest},
+				ingestStep{CheckDataStream: checkPreUpgradeAfterIngest},
 				upgradeStep{NewVersion: toVersion, CheckDataStream: checkPostUpgradeBeforeIngest},
-				ingestionStep{CheckDataStream: checkPostUpgradeAfterIngest},
+				ingestStep{CheckDataStream: checkPostUpgradeAfterIngest},
 				checkErrorLogsStep{APMErrorLogsIgnored: apmErrorLogsIgnored},
 			},
 		}
