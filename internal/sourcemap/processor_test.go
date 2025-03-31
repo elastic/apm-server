@@ -26,13 +26,16 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 
-	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
 )
@@ -251,13 +254,15 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 		},
 	}
 
-	err := logp.DevelopmentSetup(logp.ToObserverOutput())
-	require.NoError(t, err)
+	observedCore, observedLogs := observer.New(zapcore.DebugLevel)
+	wrapCore := zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+		return observedCore
+	})
 
 	for i := 0; i < 2; i++ {
 		processor := BatchProcessor{
 			Fetcher: fetcher,
-			Logger:  logp.NewLogger(logs.Stacktrace),
+			Logger:  logp.NewLogger(logs.Stacktrace, wrapCore),
 		}
 		err := processor.ProcessBatch(context.Background(), &modelpb.Batch{&span, &span})
 		assert.NoError(t, err)
@@ -270,7 +275,7 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 
 	// we should have 8 log messages (2 * 2 * 2)
 	// we are running the processor twice for a batch of two spans with 2 stacktraceframe each
-	entries := logp.ObserverLogs().TakeAll()
+	entries := observedLogs.All()
 	require.Len(t, entries, 8)
 	assert.Equal(t, "failed to fetch sourcemap with path (bundle.js): failure querying ES: client error", entries[0].Message)
 }
