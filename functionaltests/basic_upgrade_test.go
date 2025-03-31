@@ -21,11 +21,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/elastic/apm-server/functionaltests/internal/esclient"
-	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
+	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
+	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 )
 
 // runBasicUpgradeILMTest performs a basic upgrade test from `fromVersion` to
@@ -41,25 +42,25 @@ func runBasicUpgradeILMTest(
 	testCase := singleUpgradeTestCase{
 		fromVersion: fromVersion,
 		toVersion:   toVersion,
-		checkPreUpgradeAfterIngest: checkDatastreamWant{
+		checkPreUpgradeAfterIngest: asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
+			IndicesPerDS:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
-		checkPostUpgradeBeforeIngest: checkDatastreamWant{
+		checkPostUpgradeBeforeIngest: asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
+			IndicesPerDS:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
-		checkPostUpgradeAfterIngest: checkDatastreamWant{
+		checkPostUpgradeAfterIngest: asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
+			IndicesPerDS:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
 		apmErrorLogsIgnored: apmErrorLogsIgnored,
@@ -89,27 +90,27 @@ func runBasicUpgradeLazyRolloverDSLTest(
 	testCase := singleUpgradeTestCase{
 		fromVersion: fromVersion,
 		toVersion:   toVersion,
-		checkPreUpgradeAfterIngest: checkDatastreamWant{
+		checkPreUpgradeAfterIngest: asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        false,
 			DSManagedBy:      managedByDSL,
-			IndicesPerDs:     1,
+			IndicesPerDS:     1,
 			IndicesManagedBy: []string{managedByDSL},
 		},
-		checkPostUpgradeBeforeIngest: checkDatastreamWant{
+		checkPostUpgradeBeforeIngest: asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        false,
 			DSManagedBy:      managedByDSL,
-			IndicesPerDs:     1,
+			IndicesPerDS:     1,
 			IndicesManagedBy: []string{managedByDSL},
 		},
 		// Verify lazy rollover happened, i.e. 2 indices per data stream.
 		// Check data streams are managed by DSL.
-		checkPostUpgradeAfterIngest: checkDatastreamWant{
+		checkPostUpgradeAfterIngest: asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        false,
 			DSManagedBy:      managedByDSL,
-			IndicesPerDs:     2,
+			IndicesPerDS:     2,
 			IndicesManagedBy: []string{managedByDSL, managedByDSL},
 		},
 		apmErrorLogsIgnored: apmErrorLogsIgnored,
