@@ -27,15 +27,19 @@ DOCKER_BUILD_ARGS := \
 
 DOCKER_IMAGES := \
 	build/docker/apm-server-$(APM_SERVER_VERSION).txt \
-	build/docker/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT.txt \
-	build/docker/apm-server-fips-$(APM_SERVER_VERSION).txt \
-	build/docker/apm-server-fips-$(APM_SERVER_VERSION)-SNAPSHOT.txt
+	build/docker/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT.txt
 
 # If GENERATE_WOLFI_IMAGES is set then generate wolfi docker images.
 ifdef GENERATE_WOLFI_IMAGES
 DOCKER_IMAGES := $(DOCKER_IMAGES) \
 	build/docker/apm-server-wolfi-$(APM_SERVER_VERSION).txt \
 	build/docker/apm-server-wolfi-$(APM_SERVER_VERSION)-SNAPSHOT.txt
+endif
+
+ifdef GENERATE_FIPS_ARTIFACTS
+DOCKER_IMAGES := $(DOCKER_IMAGES) \
+	build/docker/apm-server-fips-$(APM_SERVER_VERSION).txt \
+	build/docker/apm-server-fips-$(APM_SERVER_VERSION)-SNAPSHOT.txt
 endif
 
 build/docker/%.txt: DOCKER_IMAGE_TAG := docker.elastic.co/apm/apm-server:%
@@ -59,10 +63,13 @@ $(DOCKER_IMAGES):
 
 # Docker image tarballs. We distribute UBI Docker images only for AMD64.
 DOCKER_IMAGE_SUFFIX := docker-image$(if $(findstring arm64,$(GOARCH)),-arm64).tar.gz
-DOCKER_IMAGE_PREFIXES := apm-server apm-server-fips
+DOCKER_IMAGE_PREFIXES := apm-server
 # If GENERATE_WOLFI_IMAGES is set then generate wolfi docker images.
 ifdef GENERATE_WOLFI_IMAGES
 DOCKER_IMAGE_PREFIXES := $(DOCKER_IMAGE_PREFIXES) apm-server-wolfi
+endif
+ifdef GENERATE_FIPS_ARTIFACTS
+DOCKER_IMAGE_PREFIXES := $(DOCKER_IMAGE_PREFIXES) apm-server-fips
 endif
 DOCKER_IMAGE_RELEASE_TARBALLS := $(patsubst %, $(DISTDIR)/%-$(APM_SERVER_VERSION)-$(DOCKER_IMAGE_SUFFIX), $(DOCKER_IMAGE_PREFIXES))
 DOCKER_IMAGE_SNAPSHOT_TARBALLS := $(patsubst %, $(DISTDIR)/%-$(APM_SERVER_VERSION)-SNAPSHOT-$(DOCKER_IMAGE_SUFFIX), $(DOCKER_IMAGE_PREFIXES))
@@ -131,22 +138,30 @@ build/nfpm-%.yml: packaging/nfpm.yml
 
 DEB_ARCH := amd64 arm64
 DEBS := $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-%.deb, $(DEB_ARCH))
-DEBS += $(patsubst %, $(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-%.deb, $(DEB_ARCH))
 DEBS += $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT-%.deb, $(DEB_ARCH))
+ifdef GENERATE_FIPS_ARTIFACTS
+DEBS += $(patsubst %, $(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-%.deb, $(DEB_ARCH))
 DEBS += $(patsubst %, $(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-SNAPSHOT-%.deb, $(DEB_ARCH))
+endif
 DEBS_AMD64 := $(filter %-amd64.deb, $(DEBS))
 DEBS_ARM64 := $(filter %-arm64.deb, $(DEBS))
 
 RPM_ARCH := x86_64 aarch64
 RPMS := $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-%.rpm, $(RPM_ARCH))
-RPMS += $(patsubst %, $(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-%.rpm, $(RPM_ARCH))
 RPMS += $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT-%.rpm, $(RPM_ARCH))
+ifdef GENERATE_FIPS_ARTIFACTS
+RPMS += $(patsubst %, $(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-%.rpm, $(RPM_ARCH))
 RPMS += $(patsubst %, $(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-SNAPSHOT-%.rpm, $(RPM_ARCH))
+endif
 RPMS_AMD64 := $(filter %-x86_64.rpm, $(RPMS))
 RPMS_ARM64 := $(filter %-aarch64.rpm, $(RPMS))
 
 $(DEBS_ARM64) $(RPMS_ARM64): $(COMMON_PACKAGE_FILES) build/apm-server-linux-arm64 build/nfpm-arm64.yml
-$(DEBS_AMD64) $(RPMS_AMD64): $(COMMON_PACKAGE_FILES) build/apm-server-linux-amd64 build/apm-server-fips-linux-amd64 build/apm-server-fips-linux-arm64 build/nfpm-amd64.yml
+$(DEBS_AMD64) $(RPMS_AMD64): $(COMMON_PACKAGE_FILES) build/apm-server-linux-amd64 build/nfpm-amd64.yml
+ifdef GENERATE_FIPS_ARTIFACTS
+$(DEBS_ARM64) $(RPMS_ARM64): build/apm-server-fips-linux-arm64
+$(DEBS_AMD64) $(RPMS_AMD64): build/apm-server-fips-linux-amd64
+endif
 
 %.deb %.rpm:
 	@mkdir -p $(DISTDIR)
@@ -243,17 +258,25 @@ package-docker-snapshot: $(DOCKER_IMAGE_SNAPSHOT_TARBALLS)
 package: \
 	package-docker \
 	$(patsubst %,$(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-%,$(PACKAGE_SUFFIXES)) \
-	$(patsubst %,$(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-%,$(PACKAGE_FIPS_SUFFIXES)) \
 	$(DISTDIR)/apm-server-ironbank-$(APM_SERVER_VERSION)-docker-build-context.tar.gz \
 	build/dependencies-$(APM_SERVER_VERSION).csv
+
+ifdef GENERATE_FIPS_ARTIFACTS
+package: \
+	$(patsubst %,$(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-%,$(PACKAGE_FIPS_SUFFIXES))
+endif
 
 package-snapshot: \
 	package-docker-snapshot \
 	$(patsubst %,$(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT-%,$(PACKAGE_SUFFIXES)) \
-	$(patsubst %,$(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-SNAPSHOT-%,$(PACKAGE_FIPS_SUFFIXES)) \
 	$(DOCKER_IMAGE_SNAPSHOT_TARBALLS) \
 	$(DISTDIR)/apm-server-ironbank-$(APM_SERVER_VERSION)-SNAPSHOT-docker-build-context.tar.gz \
 	build/dependencies-$(APM_SERVER_VERSION)-SNAPSHOT.csv
+
+ifdef GENERATE_FIPS_ARTIFACTS
+package-snapshot: \
+	$(patsubst %,$(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-SNAPSHOT-%,$(PACKAGE_FIPS_SUFFIXES))
+endif
 
 publish-docker-images:
 	docker push --all-tags $(INTERNAL_DOCKER_IMAGE)
