@@ -139,10 +139,10 @@ func (c *Client) GetDataStream(ctx context.Context, name string) ([]types.DataSt
 	return resp.DataStreams, nil
 }
 
-// DocCount is used to unmarshal response from ES|QL query in APMDocCount().
+// DocCount is used to unmarshal response from ES|QL query.
 type DocCount struct {
-	Count      int
 	DataStream string
+	Count      int
 }
 
 // DataStreamsDocCount is an easy to assert on format reporting document count
