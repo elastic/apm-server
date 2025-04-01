@@ -187,9 +187,11 @@ func (c *Client) GetESErrorLogs(ctx context.Context, exclude ...types.Query) (*s
 		Match: map[string]types.MatchQuery{
 			"message": {Query: "Bulk write of deprecation logs encountered some failures"},
 		}})
+	size := 100
 	res, err := c.es.Search().
 		Index("elastic-cloud-logs-*").
 		Request(&search.Request{
+			Size: &size,
 			Query: &types.Query{
 				Bool: &types.BoolQuery{
 					Must: []types.Query{
