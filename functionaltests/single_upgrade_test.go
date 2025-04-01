@@ -26,8 +26,6 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
@@ -126,7 +124,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ perform upgrade ------")
-  beforeUpgradeCount := getDocCountPerDS(t, ctx, esc)
+	beforeUpgradeCount := getDocCountPerDS(t, ctx, esc)
 	upgradeCluster(t, ctx, tf, *target, tt.toVersion, integrations)
 	t.Logf("time elapsed: %s", time.Since(start))
 
