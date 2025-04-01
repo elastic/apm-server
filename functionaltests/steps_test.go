@@ -95,6 +95,21 @@ type testStep interface {
 	Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult
 }
 
+// apmDeploymentMode is the deployment mode of APM in the cluster.
+// This is used instead of bool to avoid having to use bool pointer
+// (since the default is true).
+type apmDeploymentMode uint8
+
+const (
+	apmDefault apmDeploymentMode = iota
+	apmManaged
+	apmStandalone
+)
+
+func (mode apmDeploymentMode) enableIntegrations() bool {
+	return mode == apmDefault || mode == apmManaged
+}
+
 // createStep initializes the Terraform runner and deploys an Elastic Cloud
 // Hosted (ECH) cluster with the provided stack version. It also creates the
 // necessary clients and set them into testStepEnv.
@@ -104,20 +119,21 @@ type testStep interface {
 // Note: This step should always be the first step of any test runs, since it
 // initializes all the necessary dependencies for subsequent steps.
 type createStep struct {
-	DeployVersion      ecclient.StackVersion
-	EnableIntegrations bool
+	DeployVersion     ecclient.StackVersion
+	APMDeploymentMode apmDeploymentMode
 }
 
 func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ testStepResult) testStepResult {
 	t.Logf("------ cluster setup %s ------", c.DeployVersion)
 	e.tf = initTerraformRunner(t)
-	deployInfo := createCluster(t, ctx, e.tf, *target, c.DeployVersion, c.EnableIntegrations)
+	integrations := c.APMDeploymentMode.enableIntegrations()
+	deployInfo := createCluster(t, ctx, e.tf, *target, c.DeployVersion, integrations)
 	e.esc = createESClient(t, deployInfo)
 	e.kbc = createKibanaClient(t, ctx, e.esc, deployInfo)
 	e.gen = createAPMGenerator(t, ctx, e.esc, e.kbc, deployInfo)
 	// Update the environment version to the new one.
 	e.version = c.DeployVersion
-	e.integrations = c.EnableIntegrations
+	e.integrations = integrations
 
 	docCount := getDocCountPerDS(t, ctx, e.esc)
 	return testStepResult{DSDocCount: docCount}

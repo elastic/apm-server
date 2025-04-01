@@ -34,21 +34,6 @@ import (
 
 type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error
 
-// apmDeploymentMode is the deployment mode of APM in the cluster.
-// This is used instead of bool to avoid having to use bool pointer
-// (since the default is true).
-type apmDeploymentMode uint8
-
-const (
-	apmDefault apmDeploymentMode = iota
-	apmManaged
-	apmStandalone
-)
-
-func (mode apmDeploymentMode) enableIntegrations() bool {
-	return mode == apmDefault || mode == apmManaged
-}
-
 // singleUpgradeTestCase is a basic functional test case that performs a
 // cluster upgrade between 2 specified versions.
 //
