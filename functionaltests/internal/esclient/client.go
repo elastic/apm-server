@@ -228,7 +228,7 @@ func (c *Client) GetESErrorLogs(ctx context.Context, exclude ...types.Query) (*s
 // The search query is on the Index used by Elasticsearch monitoring to store logs.
 // exclude allows to pass in must_not clauses to be applied to the query to filter
 // the returned results.
-func (c *Client) GetAPMErrorLogs(ctx context.Context, exclude []types.Query) (*search.Response, error) {
+func (c *Client) GetAPMErrorLogs(ctx context.Context, exclude ...types.Query) (*search.Response, error) {
 	size := 100
 	res, err := c.es.Search().
 		Index("elastic-cloud-logs-*").

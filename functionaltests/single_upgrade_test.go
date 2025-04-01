@@ -174,7 +174,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	asserts.ZeroESLogs(t, *resp)
 
 	t.Log("checking APM error logs")
-	resp, err = esc.GetAPMErrorLogs(ctx, tt.apmErrorLogsIgnored)
+	resp, err = esc.GetAPMErrorLogs(ctx, tt.apmErrorLogsIgnored...)
 	require.NoError(t, err)
 	asserts.ZeroAPMLogs(t, *resp)
 }
