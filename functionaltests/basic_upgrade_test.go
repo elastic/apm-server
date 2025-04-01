@@ -67,26 +67,26 @@ func basicUpgradeLazyRolloverDSLTestScenarios(
 	toVersion ecclient.StackVersion,
 	apmErrorLogsIgnored []types.Query,
 ) []basicUpgradeTestScenario {
-	// All data streams should be managed by ILM, with no rollover.
-	checkILM := asserts.CheckDataStreamsWant{
+	// All data streams should be managed by DSL.
+	checkDSL := asserts.CheckDataStreamsWant{
 		Quantity:         8,
-		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
+		PreferIlm:        false,
+		DSManagedBy:      managedByDSL,
 		IndicesPerDS:     1,
-		IndicesManagedBy: []string{managedByILM},
+		IndicesManagedBy: []string{managedByDSL},
 	}
 	// Verify lazy rollover happened, i.e. 2 indices per data stream.
-	checkILMRollover := asserts.CheckDataStreamsWant{
+	checkDSLRollover := asserts.CheckDataStreamsWant{
 		Quantity:         8,
-		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
+		PreferIlm:        false,
+		DSManagedBy:      managedByDSL,
 		IndicesPerDS:     2,
-		IndicesManagedBy: []string{managedByILM, managedByILM},
+		IndicesManagedBy: []string{managedByDSL, managedByDSL},
 	}
 
 	return allBasicUpgradeScenarios(
 		fromVersion, toVersion,
-		checkILM, checkILM, checkILMRollover,
+		checkDSL, checkDSL, checkDSLRollover,
 		apmErrorLogsIgnored,
 	)
 }
@@ -106,7 +106,7 @@ func basicUpgradeLazyRolloverDSLTestScenarios(
 //     we insert a reroute ingest pipeline to reroute all APM data streams to
 //     a new namespace. This test is to ensure that APM data streams rerouting
 //     still works as expected across ingestion and upgrade.
-//     See https://github.com/elastic/apm-server/issues/13898 for motivation.
+//     See https://github.com/elastic/apm-server/issues/14060 for motivation.
 func allBasicUpgradeScenarios(
 	fromVersion ecclient.StackVersion,
 	toVersion ecclient.StackVersion,
