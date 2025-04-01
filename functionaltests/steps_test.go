@@ -115,6 +115,8 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ te
 	e.esc = createESClient(t, deployInfo)
 	e.kbc = createKibanaClient(t, ctx, e.esc, deployInfo)
 	e.gen = createAPMGenerator(t, ctx, e.esc, e.kbc, deployInfo)
+	// Update the environment version to the new one.
+	e.version = c.DeployVersion
 	e.integrations = c.EnableIntegrations
 
 	docCount := getDocCountPerDS(t, ctx, e.esc)
