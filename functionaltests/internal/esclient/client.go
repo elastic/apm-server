@@ -198,9 +198,16 @@ func (c *Client) GetESErrorLogs(ctx context.Context, exclude ...types.Query) (*s
 								"service.type": {Query: "elasticsearch"},
 							},
 						},
+					},
+					Should: []types.Query{
 						{
 							Match: map[string]types.MatchQuery{
 								"log.level": {Query: "ERROR"},
+							},
+						},
+						{
+							Match: map[string]types.MatchQuery{
+								"log.level": {Query: "error"},
 							},
 						},
 					},
@@ -231,6 +238,13 @@ func (c *Client) GetAPMErrorLogs(ctx context.Context, exclude []types.Query) (*s
 						{
 							Match: map[string]types.MatchQuery{
 								"service.name": {Query: "apm-server"},
+							},
+						},
+					},
+					Should: []types.Query{
+						{
+							Match: map[string]types.MatchQuery{
+								"log.level": {Query: "ERROR"},
 							},
 						},
 						{
