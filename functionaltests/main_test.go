@@ -112,13 +112,25 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// getBCVersionOrSkip retrieves the latest build-candidate version for the version prefix.
+// getLatestVersionOrSkip retrieves the latest non-snapshot version for the version prefix.
 // If the version is not found, the test is skipped via t.Skip.
-func getBCVersionOrSkip(t *testing.T, prefix string) ecclient.StackVersion {
+func getLatestVersionOrSkip(t *testing.T, prefix string) ecclient.StackVersion {
+	t.Helper()
+	version, ok := fetchedVersions.LatestFor(prefix)
+	if !ok {
+		t.Skipf("version for '%s' not found in EC region %s, skipping test", prefix, regionFrom(*target))
+		return ecclient.StackVersion{}
+	}
+	return version
+}
+
+// getLatestBCOrSkip retrieves the latest build-candidate version for the version prefix.
+// If the version is not found, the test is skipped via t.Skip.
+func getLatestBCOrSkip(t *testing.T, prefix string) ecclient.StackVersion {
 	t.Helper()
 	candidate, ok := fetchedCandidates.LatestFor(prefix)
 	if !ok {
-		t.Skip("skipping non-BC versions")
+		t.Skipf("BC for '%s' not found in EC region %s, skipping test", prefix, regionFrom(*target))
 		return ecclient.StackVersion{}
 	}
 	return candidate
@@ -128,15 +140,7 @@ func getBCVersionOrSkip(t *testing.T, prefix string) ecclient.StackVersion {
 func getLatestSnapshot(t *testing.T, prefix string) ecclient.StackVersion {
 	t.Helper()
 	version, ok := fetchedSnapshots.LatestFor(prefix)
-	require.True(t, ok, "no snapshot with prefix '%s' found in EC region %s", prefix, regionFrom(*target))
-	return version
-}
-
-// getLatestVersion retrieves the latest non-snapshot version for the version prefix.
-func getLatestVersion(t *testing.T, prefix string) ecclient.StackVersion {
-	t.Helper()
-	version, ok := fetchedVersions.LatestFor(prefix)
-	require.True(t, ok, "no version with prefix '%s' found in EC region %s", prefix, regionFrom(*target))
+	require.True(t, ok, "snapshot for '%s' found in EC region %s", prefix, regionFrom(*target))
 	return version
 }
 
