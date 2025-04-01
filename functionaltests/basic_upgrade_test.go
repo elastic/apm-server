@@ -37,7 +37,7 @@ func runBasicUpgradeILMTest(
 	toVersion ecclient.StackVersion,
 	apmErrorLogsIgnored []types.Query,
 ) {
-	// All data streams in this upgrade should be ILM, with no rollover.
+	// All data streams should be managed by ILM, with no rollover.
 	checkILM := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        true,
@@ -72,6 +72,7 @@ func runBasicUpgradeLazyRolloverDSLTest(
 	toVersion ecclient.StackVersion,
 	apmErrorLogsIgnored []types.Query,
 ) {
+	// All data streams should be managed by DSL.
 	checkDSL := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        false,
@@ -96,6 +97,22 @@ func runBasicUpgradeLazyRolloverDSLTest(
 	)
 }
 
+// runAllBasicUpgradeScenarios runs basic upgrade test scenarios
+// with the given parameters. The scenarios involved are:
+//
+//   - Default: The cluster is created, some data is ingested and the first
+//     check ensures that it's in the expected state. Then, an upgrade
+//     is triggered, and a second check confirms that the state did not
+//     drift after upgrade. A new ingestion is performed, and a third
+//     check verifies that ingestion works as expected after upgrade.
+//     Finally, error logs are examined to ensure there are no unexpected
+//     errors.
+//
+//   - Reroute: Same as Default scenario, except after the cluster is created,
+//     we insert a reroute ingest pipeline to reroute all APM data streams to
+//     a new namespace. This test is to ensure that APM data streams rerouting
+//     still works as expected across ingestion and upgrade.
+//     See https://github.com/elastic/apm-server/issues/13898 for motivation.
 func runAllBasicUpgradeScenarios(
 	t *testing.T,
 	fromVersion ecclient.StackVersion,

@@ -34,9 +34,16 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
 
+// testStepsRunner consists of composable testStep(s) that is run
+// in sequence.
 type testStepsRunner struct {
+	// DataStreamNamespace is the namespace for the APM data streams
+	// that is being tested. Defaults to "default".
+	//
+	// NOTE: Only applicable for stack versions 8+.
 	DataStreamNamespace string
-	Steps               []testStep
+	// Steps are the user defined test steps to be run.
+	Steps []testStep
 }
 
 // Run runs the test steps in sequence, passing the result from the current step
@@ -66,6 +73,10 @@ func (r testStepsRunner) Run(t *testing.T) {
 
 // testStepResult contains the results of running the step.
 type testStepResult struct {
+	// DSDocCount is the data streams document counts that is the
+	// result of this step.
+	//
+	// Note: Only applicable for stack versions 8+.
 	DSDocCount esclient.DataStreamsDocCount
 }
 
@@ -98,12 +109,13 @@ type createStep struct {
 }
 
 func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ testStepResult) testStepResult {
-	t.Log("------ cluster setup ------")
+	t.Logf("------ cluster setup %s ------", c.DeployVersion)
 	e.tf = initTerraformRunner(t)
 	deployInfo := createCluster(t, ctx, e.tf, *target, c.DeployVersion, c.EnableIntegrations)
 	e.esc = createESClient(t, deployInfo)
 	e.kbc = createKibanaClient(t, ctx, e.esc, deployInfo)
 	e.gen = createAPMGenerator(t, ctx, e.esc, e.kbc, deployInfo)
+	e.integrations = c.EnableIntegrations
 
 	docCount := getDocCountPerDS(t, ctx, e.esc)
 	return testStepResult{DSDocCount: docCount}
@@ -156,8 +168,9 @@ type upgradeStep struct {
 var _ testStep = upgradeStep{}
 
 func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
-	t.Log("------ upgrade ------")
+	t.Logf("------ upgrade %s to %s ------", e.version, u.NewVersion)
 	upgradeCluster(t, ctx, e.tf, *target, u.NewVersion, e.integrations)
+	// Update the environment version to the new one.
 	e.version = u.NewVersion
 
 	t.Log("------ upgrade check ------")

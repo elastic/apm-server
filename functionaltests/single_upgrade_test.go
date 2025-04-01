@@ -59,6 +59,8 @@ func (mode apmDeploymentMode) enableIntegrations() bool {
 // A new ingestion is performed and a final check is run, to
 // verify that ingestion works after upgrade and brings the cluster
 // to a know state.
+//
+// Deprecated: To be removed soon, use testStepsRunner instead.
 type singleUpgradeTestCase struct {
 	fromVersion ecclient.StackVersion
 	toVersion   ecclient.StackVersion
