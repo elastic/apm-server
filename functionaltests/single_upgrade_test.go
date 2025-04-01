@@ -23,19 +23,32 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
+
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
-	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error
+
+// apmDeploymentMode is the deployment mode of APM in the cluster.
+// This is used instead of bool to avoid having to use bool pointer
+// (since the default is true).
+type apmDeploymentMode uint8
+
+const (
+	apmDefault apmDeploymentMode = iota
+	apmManaged
+	apmStandalone
+)
+
+func (mode apmDeploymentMode) enableIntegrations() bool {
+	return mode == apmDefault || mode == apmManaged
+}
 
 // singleUpgradeTestCase is a basic functional test case that performs a
 // cluster upgrade between 2 specified versions.
@@ -50,18 +63,24 @@ type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client
 type singleUpgradeTestCase struct {
 	fromVersion ecclient.StackVersion
 	toVersion   ecclient.StackVersion
+	// apmDeployMode determines whether to deploy APM in
+	// managed mode (default) as opposed to standalone
+	apmDeployMode apmDeploymentMode
 
 	dataStreamNamespace          string
 	setupFn                      additionalFunc
-	checkPreUpgradeAfterIngest   checkDatastreamWant
+	checkPreUpgradeAfterIngest   asserts.CheckDataStreamsWant
 	postUpgradeFn                additionalFunc
-	checkPostUpgradeBeforeIngest checkDatastreamWant
-	checkPostUpgradeAfterIngest  checkDatastreamWant
+	checkPostUpgradeBeforeIngest asserts.CheckDataStreamsWant
+	checkPostUpgradeAfterIngest  asserts.CheckDataStreamsWant
 
+	// apmErrorLogsIgnored are the error logs to be ignored when
+	// checking for existence of errors in the upgrade test.
 	apmErrorLogsIgnored []types.Query
 }
 
 func (tt singleUpgradeTestCase) Run(t *testing.T) {
+	integrations := tt.apmDeployMode.enableIntegrations()
 	if tt.dataStreamNamespace == "" {
 		tt.dataStreamNamespace = "default"
 	}
@@ -73,23 +92,14 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("------ cluster setup ------")
-	_, esCfg := createCluster(t, ctx, tf, *target, tt.fromVersion.String())
+	deployInfo := createCluster(t, ctx, tf, *target, tt.fromVersion, integrations)
 	t.Logf("time elapsed: %s", time.Since(start))
 
-	esc, err := esclient.New(esCfg)
-	require.NoError(t, err)
+	esc := createESClient(t, deployInfo)
+	kbc := createKibanaClient(t, ctx, esc, deployInfo)
+	g := createAPMGenerator(t, ctx, esc, kbc, deployInfo)
 
-	kbc := createKibanaClient(t, ctx, esc, esCfg)
-
-	t.Log("create APM API key")
-	apiKey := createAPMAPIKey(t, ctx, esc)
-
-	g := gen.New(esCfg.APMServerURL, apiKey)
-	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
-
-	previous, err := getDocsCountPerDS(t, ctx, esc)
-	require.NoError(t, err)
-
+	atStartCount := getDocCountPerDS(t, ctx, esc)
 	if tt.setupFn != nil {
 		t.Log("------ custom setup ------")
 		err = tt.setupFn(t, ctx, esc, kbc)
@@ -97,28 +107,25 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	}
 
 	t.Log("------ pre-upgrade ingestion ------")
-	require.NoError(t, g.RunBlockingWait(ctx, kbc, tt.fromVersion.String()))
+	require.NoError(t, g.RunBlockingWait(ctx, tt.fromVersion, integrations))
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ pre-upgrade ingestion assertions ------")
 	t.Log("check number of documents after initial ingestion")
-	atStartCount, err := getDocsCountPerDS(t, ctx, esc)
-	require.NoError(t, err)
-	assertDocCount(t, atStartCount, previous,
+	firstIngestCount := getDocCountPerDS(t, ctx, esc)
+	asserts.CheckDocCount(t, firstIngestCount, atStartCount,
 		expectedIngestForASingleRun(tt.dataStreamNamespace),
 		aggregationDataStreams(tt.dataStreamNamespace))
 
 	t.Log("check data streams after initial ingestion")
 	dss, err := esc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDatastreams(t, tt.checkPreUpgradeAfterIngest, dss)
+	asserts.CheckDataStreams(t, tt.checkPreUpgradeAfterIngest, dss)
 	t.Logf("time elapsed: %s", time.Since(start))
 
-	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, esc)
-	require.NoError(t, err)
-
 	t.Log("------ perform upgrade ------")
-	upgradeCluster(t, ctx, tf, *target, tt.toVersion.String())
+	beforeUpgradeCount := getDocCountPerDS(t, ctx, esc)
+	upgradeCluster(t, ctx, tf, *target, tt.toVersion, integrations)
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	if tt.postUpgradeFn != nil {
@@ -133,29 +140,31 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	// and further assertions.
 	// We don't expect any change here unless something broke during the upgrade.
 	t.Log("check number of documents across upgrade")
-	assertDocCount(t, beforeUpgradeCount, esclient.APMDataStreamsDocCount{},
-		atStartCount, aggregationDataStreams(tt.dataStreamNamespace))
+	afterUpgradeCount := getDocCountPerDS(t, ctx, esc)
+	asserts.CheckDocCount(t, afterUpgradeCount, beforeUpgradeCount,
+		emptyIngestForASingleRun(tt.dataStreamNamespace),
+		aggregationDataStreams(tt.dataStreamNamespace))
 
 	t.Log("check data streams after upgrade")
 	dss, err = esc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDatastreams(t, tt.checkPostUpgradeBeforeIngest, dss)
+	asserts.CheckDataStreams(t, tt.checkPostUpgradeBeforeIngest, dss)
 
 	t.Log("------ post-upgrade ingestion ------")
-	require.NoError(t, g.RunBlockingWait(ctx, kbc, tt.toVersion.String()))
+	require.NoError(t, g.RunBlockingWait(ctx, tt.toVersion, integrations))
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ post-upgrade ingestion assertions ------")
 	t.Log("check number of documents after final ingestion")
-	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, esc)
-	require.NoError(t, err)
-	assertDocCount(t, afterUpgradeIngestionCount, beforeUpgradeCount,
-		expectedIngestForASingleRun(tt.dataStreamNamespace), aggregationDataStreams(tt.dataStreamNamespace))
+	secondIngestCount := getDocCountPerDS(t, ctx, esc)
+	asserts.CheckDocCount(t, secondIngestCount, beforeUpgradeCount,
+		expectedIngestForASingleRun(tt.dataStreamNamespace),
+		aggregationDataStreams(tt.dataStreamNamespace))
 
 	t.Log("check data streams after final ingestion")
 	dss2, err := esc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDatastreams(t, tt.checkPostUpgradeAfterIngest, dss2)
+	asserts.CheckDataStreams(t, tt.checkPostUpgradeAfterIngest, dss2)
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ check ES and APM error logs ------")

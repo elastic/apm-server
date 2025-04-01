@@ -25,12 +25,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 var (
@@ -146,7 +144,7 @@ func getLatestVersion(t *testing.T, prefix string) ecclient.StackVersion {
 // single run of ingest.
 // Only non aggregation data streams are included, as aggregation ones differs on different
 // runs.
-func expectedIngestForASingleRun(namespace string) esclient.APMDataStreamsDocCount {
+func expectedIngestForASingleRun(namespace string) esclient.DataStreamsDocCount {
 	return map[string]int{
 		fmt.Sprintf("traces-apm-%s", namespace):                     15013,
 		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 1437,
@@ -155,6 +153,18 @@ func expectedIngestForASingleRun(namespace string) esclient.APMDataStreamsDocCou
 	}
 }
 
+// emptyIngestForASingleRun represent an empty ingestion.
+// It is useful for asserting that the document count did not change after an operation.
+func emptyIngestForASingleRun(namespace string) esclient.DataStreamsDocCount {
+	return map[string]int{
+		fmt.Sprintf("traces-apm-%s", namespace):                     0,
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 0,
+		fmt.Sprintf("metrics-apm.internal-%s", namespace):           0,
+		fmt.Sprintf("logs-apm.error-%s", namespace):                 0,
+	}
+}
+
+// aggregationDataStreams returns a list of APM data streams that go through aggregation.
 func aggregationDataStreams(namespace string) []string {
 	return []string{
 		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace),
@@ -170,77 +180,6 @@ func allDataStreams(namespace string) []string {
 		res = append(res, ds)
 	}
 	return res
-}
-
-// getDocsCountPerDS retrieves document count.
-func getDocsCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) (esclient.APMDataStreamsDocCount, error) {
-	t.Helper()
-	return esc.ApmDocCount(ctx)
-}
-
-func sliceToMap(s []string) map[string]bool {
-	m := make(map[string]bool)
-	for _, v := range s {
-		m[v] = true
-	}
-	return m
-}
-
-// assertDocCount check if specified document count is equal to expected minus
-// documents count from a previous state.
-func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMDataStreamsDocCount, skippedDataStreams []string) {
-	t.Helper()
-	skipped := sliceToMap(skippedDataStreams)
-	for ds, v := range docsCount {
-		if skipped[ds] {
-			continue
-		}
-
-		e, ok := expected[ds]
-		if !ok {
-			t.Errorf("unexpected documents (%d) for %s", v, ds)
-			continue
-		}
-
-		assert.Equal(t, e, v-previous[ds],
-			fmt.Sprintf("wrong document count difference for %s", ds))
-	}
-}
-
-type checkDatastreamWant struct {
-	Quantity         int
-	DSManagedBy      string
-	IndicesPerDs     int
-	PreferIlm        bool
-	IndicesManagedBy []string
-}
-
-// assertDatastreams assert expected values on specific data streams in a cluster.
-func assertDatastreams(t *testing.T, expected checkDatastreamWant, actual []types.DataStream) {
-	t.Helper()
-
-	require.Len(t, actual, expected.Quantity, "number of APM datastream differs from expectations")
-	for _, v := range actual {
-		if expected.PreferIlm {
-			assert.True(t, v.PreferIlm, "datastream %s should prefer ILM", v.Name)
-		} else {
-			assert.False(t, v.PreferIlm, "datastream %s should not prefer ILM", v.Name)
-		}
-
-		assert.Equal(t, expected.DSManagedBy, v.NextGenerationManagedBy.Name,
-			`datastream %s should be managed by "%s"`, v.Name, expected.DSManagedBy,
-		)
-		assert.Len(t, v.Indices, expected.IndicesPerDs,
-			"datastream %s should have %d indices", v.Name, expected.IndicesPerDs,
-		)
-		for i, index := range v.Indices {
-			assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name,
-				`index %s should be managed by "%s"`, index.IndexName,
-				expected.IndicesManagedBy[i],
-			)
-		}
-	}
-
 }
 
 const (
