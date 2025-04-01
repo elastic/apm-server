@@ -8,6 +8,7 @@ env:
   IMAGE_UBUNTU_X86_64: "family/core-ubuntu-2404"
   IMAGE_UBUNTU_ARM_64: "core-ubuntu-2404-aarch64"
   GENERATE_WOLFI_IMAGES: true
+  GENERATE_FIPS_ARTIFACTS: true
 
 steps:
   - group: "Package"

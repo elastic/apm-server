@@ -19,7 +19,6 @@ package esclient
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -39,24 +38,20 @@ type Client struct {
 	es *elasticsearch.TypedClient
 }
 
-// New returns a new Client for querying APM data.
-func New(cfg Config) (*Client, error) {
+// New returns a new Client for accessing Elasticsearch.
+func New(esURL, username, password string) (*Client, error) {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
-	transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: cfg.TLSSkipVerify}
 
 	es, err := elasticsearch.NewTypedClient(elasticsearch.Config{
-		Addresses: []string{cfg.ElasticsearchURL},
-		Username:  cfg.Username,
-		APIKey:    cfg.APIKey,
-		Password:  cfg.Password,
+		Addresses: []string{esURL},
+		Username:  username,
+		Password:  password,
 		Transport: transport,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error creating Elasticsearch client: %w", err)
 	}
-	return &Client{
-		es: es,
-	}, nil
+	return &Client{es: es}, nil
 }
 
 var elasticsearchTimeUnits = []struct {
@@ -139,24 +134,24 @@ func (c *Client) GetDataStream(ctx context.Context, name string) ([]types.DataSt
 	return resp.DataStreams, nil
 }
 
-// ApmDocCount is used to unmarshal response from ES|QL query in ApmDocCount().
-type ApmDocCount struct {
+// DocCount is used to unmarshal response from ES|QL query.
+type DocCount struct {
+	DataStream string
 	Count      int
-	Datastream string
 }
 
-// APMDataStreamsDocCount is an easy to assert on format reporting doc count for
-// APM data streams.
-type APMDataStreamsDocCount map[string]int
+// DataStreamsDocCount is an easy to assert on format reporting document count
+// for data streams.
+type DataStreamsDocCount map[string]int
 
-func (c *Client) ApmDocCount(ctx context.Context) (APMDataStreamsDocCount, error) {
+func (c *Client) APMDocCount(ctx context.Context) (DataStreamsDocCount, error) {
 	q := `FROM traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-*.otel-*,metrics-apm*,apm-*,metrics-*.otel-*
 | EVAL datastream = CONCAT(data_stream.type, "-", data_stream.dataset, "-", data_stream.namespace)
 | STATS count = COUNT(*) BY datastream
 | SORT count DESC`
 
 	qry := c.es.Esql.Query().Query(q)
-	resp, err := query.Helper[ApmDocCount](ctx, qry)
+	resp, err := query.Helper[DocCount](ctx, qry)
 	if err != nil {
 		var eserr *types.ElasticsearchError
 		// suppress this error as it only indicates no data is available yet.
@@ -165,15 +160,15 @@ line 1:1: Unknown index [traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-
 		if errors.As(err, &eserr) &&
 			eserr.ErrorCause.Reason != nil &&
 			*eserr.ErrorCause.Reason == expected {
-			return APMDataStreamsDocCount{}, nil
+			return DataStreamsDocCount{}, nil
 		}
 
-		return APMDataStreamsDocCount{}, fmt.Errorf("cannot retrieve APM doc count: %w", err)
+		return DataStreamsDocCount{}, fmt.Errorf("cannot retrieve APM doc count: %w", err)
 	}
 
-	res := APMDataStreamsDocCount{}
+	res := DataStreamsDocCount{}
 	for _, dc := range resp {
-		res[dc.Datastream] = dc.Count
+		res[dc.DataStream] = dc.Count
 	}
 
 	return res, nil
@@ -183,7 +178,7 @@ line 1:1: Unknown index [traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-
 // The search query is on the Index used by Elasticsearch monitoring to store logs.
 func (c *Client) GetESErrorLogs(ctx context.Context) (*search.Response, error) {
 	res, err := c.es.Search().
-		Index("elastic-cloud-logs-8").
+		Index("elastic-cloud-logs-*").
 		Request(&search.Request{
 			Query: &types.Query{
 				Bool: &types.BoolQuery{
@@ -196,6 +191,17 @@ func (c *Client) GetESErrorLogs(ctx context.Context) (*search.Response, error) {
 						{
 							Match: map[string]types.MatchQuery{
 								"log.level": {Query: "ERROR"},
+							},
+						},
+					},
+					// There is an issue in ES: https://github.com/elastic/elasticsearch/issues/125445,
+					// that is causing deprecation logger bulk write failures.
+					// The error itself is harmless and irrelevant to APM, so we can ignore it.
+					// TODO: Remove this query once the above issue is fixed.
+					MustNot: []types.Query{
+						{
+							Match: map[string]types.MatchQuery{
+								"message": {Query: "Bulk write of deprecation logs encountered some failures"},
 							},
 						},
 					},
@@ -216,7 +222,7 @@ func (c *Client) GetESErrorLogs(ctx context.Context) (*search.Response, error) {
 func (c *Client) GetAPMErrorLogs(ctx context.Context, exclude []types.Query) (*search.Response, error) {
 	size := 100
 	res, err := c.es.Search().
-		Index("elastic-cloud-logs-8").
+		Index("elastic-cloud-logs-*").
 		Request(&search.Request{
 			Size: &size,
 			Query: &types.Query{
