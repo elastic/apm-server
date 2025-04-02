@@ -9,10 +9,10 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.2.0
 	github.com/elastic/apm-data v1.18.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250401142947-54b37e94363f
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250402140253-3f415d377ec6
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
 	github.com/elastic/elastic-agent-libs v0.18.10
-	github.com/elastic/elastic-agent-system-metrics v0.11.9
+	github.com/elastic/elastic-agent-system-metrics v0.11.11
 	github.com/elastic/elastic-transport-go/v8 v8.6.1
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.7.0
