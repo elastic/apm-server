@@ -24,7 +24,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -189,23 +188,18 @@ func createAPMGenerator(t *testing.T, ctx context.Context, esc *esclient.Client,
 	return g
 }
 
-// migrateStandaloneToManaged migrates the deployment to managed by enabling the integrations
-// server in the deployment.
-func migrateStandaloneToManaged(t *testing.T, ctx context.Context, kbc *kbclient.Client) {
-	t.Helper()
-	t.Log("migrate standalone to managed")
-	err := kbc.EnableIntegrationsServer(ctx)
-	require.NoError(t, err)
-	// APM Server needs some time to start serving requests again, and we don't have any
-	// visibility on when this completes.
-	// NOTE: This value comes from empirical observations.
-	time.Sleep(60 * time.Second)
-}
-
 // getDocCountPerDS retrieves document count per data stream.
 func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.DataStreamsDocCount {
 	t.Helper()
 	count, err := esc.APMDSDocCount(ctx)
+	require.NoError(t, err)
+	return count
+}
+
+// getDocCountPerIndex retrieves document count per index.
+func getDocCountPerIndex(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.IndicesDocCount {
+	t.Helper()
+	count, err := esc.APMDocCountV7(ctx)
 	require.NoError(t, err)
 	return count
 }

@@ -74,19 +74,33 @@ type testStepResult struct {
 	// DSDocCount is the data streams document counts that is the
 	// result of this step.
 	//
-	// Note: Only applicable for stack versions 8+.
+	// Note: Only applicable for stack versions >= 8.0.
 	DSDocCount esclient.DataStreamsDocCount
+
+	// IndicesDocCount is the indices document counts that is the
+	// result of this step.
+	//
+	// Note: Only applicable for stack versions < 8.0.
+	IndicesDocCount esclient.IndicesDocCount
 }
 
 // testStepEnv is the environment of the step that is run.
 type testStepEnv struct {
 	dsNamespace  string
-	version      ecclient.StackVersion
+	versions     ecclient.StackVersions
 	integrations bool
 	tf           *terraform.Runner
 	gen          *gen.Generator
 	kbc          *kbclient.Client
 	esc          *esclient.Client
+}
+
+func (env *testStepEnv) currentVersion() ecclient.StackVersion {
+	last, ok := env.versions.Last()
+	if !ok {
+		panic("test step env current version not found")
+	}
+	return last
 }
 
 type testStep interface {
@@ -129,21 +143,26 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ te
 	e.esc = createESClient(t, deployInfo)
 	e.kbc = createKibanaClient(t, deployInfo)
 	e.gen = createAPMGenerator(t, ctx, e.esc, e.kbc, deployInfo)
-	// Update the environment version to the new one.
-	e.version = c.DeployVersion
+	// Update the latest environment version to the new one.
+	e.versions = append(e.versions, c.DeployVersion)
 	e.integrations = integrations
 
-	docCount := getDocCountPerDS(t, ctx, e.esc)
-	return testStepResult{DSDocCount: docCount}
+	if e.currentVersion().Major < 8 {
+		return testStepResult{IndicesDocCount: getDocCountPerIndex(t, ctx, e.esc)}
+	}
+	return testStepResult{DSDocCount: getDocCountPerDS(t, ctx, e.esc)}
 }
 
 var _ testStep = ingestStep{}
 
 // ingestStep performs ingestion to the APM Server deployed on ECH. After
 // ingestion, it checks if the document counts difference between current
-// and previous is expected.
+// and previous is expected, and if the data streams are in an expected
+// state.
 //
-// The output of this step is the document counts after ingestion.
+// The output of this step is the data streams document counts after ingestion.
+//
+// NOTE: Only works for versions >= 8.0.
 type ingestStep struct {
 	CheckDataStream asserts.CheckDataStreamsWant
 }
@@ -151,30 +170,35 @@ type ingestStep struct {
 var _ testStep = ingestStep{}
 
 func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
-	t.Log("------ ingestion ------")
-	err := e.gen.RunBlockingWait(ctx, e.version, e.integrations)
+	if e.currentVersion().Major < 8 {
+		t.Fatal("ingest step should only be used for versions >= 8.0")
+	}
+
+	t.Log("------ ingest ------")
+	err := e.gen.RunBlockingWait(ctx, e.currentVersion(), e.integrations)
 	require.NoError(t, err)
 
-	t.Log("------ ingestion check ------")
+	t.Log("------ ingest check ------")
 	t.Log("check number of documents after ingestion")
-	docCount := getDocCountPerDS(t, ctx, e.esc)
-	asserts.CheckDocCount(t, docCount, previousRes.DSDocCount,
-		expectedIngestForASingleRun(e.dsNamespace))
+	dsDocCount := getDocCountPerDS(t, ctx, e.esc)
+	asserts.CheckDocCount(t, dsDocCount, previousRes.DSDocCount,
+		expectedDataStreamsIngest(e.dsNamespace))
 
 	t.Log("check data streams after ingestion")
 	dss, err := e.esc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
 	asserts.CheckDataStreams(t, i.CheckDataStream, dss)
 
-	return testStepResult{DSDocCount: docCount}
+	return testStepResult{DSDocCount: dsDocCount}
 }
 
 // upgradeStep upgrades the ECH deployment from its current version to the new
-// version. It also sets the new version into testStepEnv, overwriting the
-// previous version. After upgrade, it checks that the document counts did not
-// change across upgrade.
+// version. It also adds the new version into testStepEnv. After upgrade, it
+// checks that the document counts did not change across upgrade.
 //
-// The output of this step is the document counts after upgrade.
+// The output of this step is the data streams document counts after upgrade.
+//
+// NOTE: Only works from versions >= 8.0.
 type upgradeStep struct {
 	NewVersion      ecclient.StackVersion
 	CheckDataStream asserts.CheckDataStreamsWant
@@ -183,26 +207,30 @@ type upgradeStep struct {
 var _ testStep = upgradeStep{}
 
 func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
-	t.Logf("------ upgrade %s to %s ------", e.version, u.NewVersion)
+	if e.currentVersion().Major < 8 {
+		t.Fatal("upgrade step should only be used from versions >= 8.0")
+	}
+
+	t.Logf("------ upgrade %s to %s ------", e.currentVersion(), u.NewVersion)
 	upgradeCluster(t, ctx, e.tf, *target, u.NewVersion, e.integrations)
 	// Update the environment version to the new one.
-	e.version = u.NewVersion
+	e.versions = append(e.versions, u.NewVersion)
 
 	t.Log("------ upgrade check ------")
 	t.Log("check number of documents across upgrade")
-	docCount := getDocCountPerDS(t, ctx, e.esc)
 	// We assert that no changes happened in the number of documents after upgrade
 	// to ensure the state didn't change.
 	// We don't expect any change here unless something broke during the upgrade.
-	asserts.CheckDocCount(t, docCount, previousRes.DSDocCount,
-		emptyIngestForASingleRun(e.dsNamespace))
+	dsDocCount := getDocCountPerDS(t, ctx, e.esc)
+	asserts.CheckDocCount(t, dsDocCount, previousRes.DSDocCount,
+		emptyDataStreamsIngest(e.dsNamespace))
 
 	t.Log("check data streams after upgrade")
 	dss, err := e.esc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
 	asserts.CheckDataStreams(t, u.CheckDataStream, dss)
 
-	return testStepResult{DSDocCount: docCount}
+	return testStepResult{DSDocCount: dsDocCount}
 }
 
 // checkErrorLogsStep checks if there are any unexpected error logs from both
