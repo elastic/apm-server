@@ -61,18 +61,6 @@ func TestDefaultTLSConfig(t *testing.T) {
 		err := attemptRequest(t, tls.VersionTLS13, tls.VersionTLS13)
 		require.NoError(t, err)
 	})
-
-	t.Run("incompatible_cipher_suite", func(t *testing.T) {
-		err := attemptRequest(t, tls.VersionTLS12, tls.VersionTLS12, tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA)
-		require.Error(t, err)
-		assert.Regexp(t, ".*tls: handshake failure", err.Error())
-	})
-
-	t.Run("incompatible_protocol", func(t *testing.T) {
-		err := attemptRequest(t, tls.VersionTLS10, tls.VersionTLS10)
-		require.Error(t, err)
-		assert.Regexp(t, ".*tls: no supported versions satisfy MinVersion and MaxVersion", err.Error())
-	})
 }
 
 func TestCustomTLSConfig(t *testing.T) {

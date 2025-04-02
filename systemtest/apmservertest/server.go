@@ -362,7 +362,6 @@ func generateCerts(dir string, ca bool, keyUsage x509.ExtKeyUsage, hosts ...stri
 	}
 
 	keyOut, err := os.CreateTemp(dir, "client_key.pem")
-	//keyOut, err := os.OpenFile(filepath.Join(dir, "client_key.pem"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to open client_key.pem for writing: %w", err)
 	}
