@@ -19,6 +19,7 @@ package apmservertest
 
 import (
 	"context"
+	"crypto/fips140"
 	"fmt"
 	"log"
 	"os"
@@ -160,31 +161,26 @@ func (c *ServerCmd) cleanup() {
 func BuildServerBinary(goos, goarch string) (string, error) {
 	apmServerBinaryMu.Lock()
 	defer apmServerBinaryMu.Unlock()
-	fips := os.Getenv("GOFIPS140") != ""
+	if binary := apmServerBinary[goos]; binary != "" {
+		return binary, nil
+	}
 
 	repoRoot, err := getRepoRoot()
 	if err != nil {
 		return "", err
 	}
-	relpath := filepath.Join("build", fmt.Sprintf("apm-server-%s-%s", goos, goarch))
-	if fips {
-		relpath += "-fips"
+	name := "apm-server"
+	abspath := filepath.Join(repoRoot, "build", fmt.Sprintf("apm-server-%s-%s", goos, goarch))
+	if fips140.Enabled() {
+		abspath += "-fips"
+		name += "-fips"
 	}
 	if goos == "windows" {
 		relpath += ".exe"
 	}
-	abspath := filepath.Join(repoRoot, relpath)
 
-	if binary := apmServerBinary[abspath]; binary != "" {
-		return binary, nil
-	}
-
-	log.Println("Building apm-server...")
-	task := "apm-server"
-	if fips {
-		task += "-fips"
-	}
-	cmd := exec.Command("make", task)
+	log.Printf("Building %s...", name)
+	cmd := exec.Command("make", name)
 	cmd.Dir = repoRoot
 	cmd.Env = append(cmd.Env, os.Environ()...)
 	cmd.Env = append(cmd.Env, "NOCP=1") // prevent race condition
@@ -195,7 +191,7 @@ func BuildServerBinary(goos, goarch string) (string, error) {
 		return "", err
 	}
 	log.Println("Built", abspath)
-	apmServerBinary[abspath] = abspath
+	apmServerBinary[goos] = abspath
 	return abspath, nil
 }
 
