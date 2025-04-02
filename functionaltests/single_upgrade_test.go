@@ -23,20 +23,32 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
-	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
 
 type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error
+
+// apmDeploymentMode is the deployment mode of APM in the cluster.
+// This is used instead of bool to avoid having to use bool pointer
+// (since the default is true).
+type apmDeploymentMode uint8
+
+const (
+	apmDefault apmDeploymentMode = iota
+	apmManaged
+	apmStandalone
+)
+
+func (mode apmDeploymentMode) enableIntegrations() bool {
+	return mode == apmDefault || mode == apmManaged
+}
 
 // singleUpgradeTestCase is a basic functional test case that performs a
 // cluster upgrade between 2 specified versions.
@@ -51,6 +63,9 @@ type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client
 type singleUpgradeTestCase struct {
 	fromVersion ecclient.StackVersion
 	toVersion   ecclient.StackVersion
+	// apmDeployMode determines whether to deploy APM in
+	// managed mode (default) as opposed to standalone
+	apmDeployMode apmDeploymentMode
 
 	dataStreamNamespace          string
 	setupFn                      additionalFunc
@@ -59,10 +74,13 @@ type singleUpgradeTestCase struct {
 	checkPostUpgradeBeforeIngest asserts.CheckDataStreamsWant
 	checkPostUpgradeAfterIngest  asserts.CheckDataStreamsWant
 
+	// apmErrorLogsIgnored are the error logs to be ignored when
+	// checking for existence of errors in the upgrade test.
 	apmErrorLogsIgnored []types.Query
 }
 
 func (tt singleUpgradeTestCase) Run(t *testing.T) {
+	integrations := tt.apmDeployMode.enableIntegrations()
 	if tt.dataStreamNamespace == "" {
 		tt.dataStreamNamespace = "default"
 	}
@@ -74,19 +92,12 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("------ cluster setup ------")
-	_, esCfg := createCluster(t, ctx, tf, *target, tt.fromVersion.String())
+	deployInfo := createCluster(t, ctx, tf, *target, tt.fromVersion, integrations)
 	t.Logf("time elapsed: %s", time.Since(start))
 
-	esc, err := esclient.New(esCfg)
-	require.NoError(t, err)
-
-	kbc := createKibanaClient(t, ctx, esc, esCfg)
-
-	t.Log("create APM API key")
-	apiKey := createAPMAPIKey(t, ctx, esc)
-
-	g := gen.New(esCfg.APMServerURL, apiKey)
-	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
+	esc := createESClient(t, deployInfo)
+	kbc := createKibanaClient(t, ctx, esc, deployInfo)
+	g := createAPMGenerator(t, ctx, esc, kbc, deployInfo)
 
 	atStartCount := getDocCountPerDS(t, ctx, esc)
 	if tt.setupFn != nil {
@@ -96,7 +107,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	}
 
 	t.Log("------ pre-upgrade ingestion ------")
-	require.NoError(t, g.RunBlockingWait(ctx, kbc, tt.fromVersion.String()))
+	require.NoError(t, g.RunBlockingWait(ctx, tt.fromVersion, integrations))
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ pre-upgrade ingestion assertions ------")
@@ -114,7 +125,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	t.Log("------ perform upgrade ------")
 	beforeUpgradeCount := getDocCountPerDS(t, ctx, esc)
-	upgradeCluster(t, ctx, tf, *target, tt.toVersion.String())
+	upgradeCluster(t, ctx, tf, *target, tt.toVersion, integrations)
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	if tt.postUpgradeFn != nil {
@@ -140,7 +151,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	asserts.CheckDataStreams(t, tt.checkPostUpgradeBeforeIngest, dss)
 
 	t.Log("------ post-upgrade ingestion ------")
-	require.NoError(t, g.RunBlockingWait(ctx, kbc, tt.toVersion.String()))
+	require.NoError(t, g.RunBlockingWait(ctx, tt.toVersion, integrations))
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ post-upgrade ingestion assertions ------")

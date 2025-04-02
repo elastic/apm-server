@@ -27,6 +27,13 @@ variable "stack_version" {
   description = "The Elasticsearch version to bootstrap"
 }
 
+# https://www.elastic.co/guide/en/cloud/current/ec-manage-integrations-server.html
+variable "integrations_server" {
+  type        = bool
+  default     = true
+  description = "Combined APM and Fleet server"
+}
+
 # CI variables
 variable "BRANCH" {
   description = "Branch name or pull request for tagging purposes"
