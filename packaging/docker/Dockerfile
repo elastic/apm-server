@@ -21,13 +21,6 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     make apm-server
 
-<<<<<<< HEAD
-=======
-COPY --chmod=0644 apm-server.yml ./apm-server.yml
-RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
-RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
-
->>>>>>> 70f990d2 (feat(fips): add fips config file (#16487))
 ################################################################################
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
