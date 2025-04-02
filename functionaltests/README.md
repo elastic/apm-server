@@ -11,12 +11,12 @@ To run the tests, you will first need to set the `EC_API_KEY` environment variab
 
 Then, from the current directory, simply run:
 ```sh
-go test -v -timeout=30m -cleanup-on-failure=false -target="pro" ./
+go test -v -cleanup-on-failure=false -target="pro" ./
 ```
 
 You can also specify a specific test you want to run, for example:
 ```sh
-go test -run=TestUpgrade_8_18_to_9_0 -v -timeout=30m -cleanup-on-failure=false -target="pro" ./
+go test -run=TestUpgrade_8_18_to_9_0 -v -cleanup-on-failure=false -target="pro" ./
 ```
 
 Note: Before running tests, make sure to delete the Terraforms by running `rm -r tf-*`.
@@ -56,8 +56,13 @@ This means that the test will start from `from_version`, and be upgraded to `to_
 `to_version_2` etc. all the way to `to_version_N`.
 
 The file that each test is in is named after the last minor version in the upgrade chain. For example, if the test name
-is `TestUpgrade_7_17_to_8_18_to_9_0_Something`, it should be written in `9_0_test.go`.
+is `TestUpgrade_7_17_to_8_18_to_9_0_Something`, it should be in `9_0_test.go`.
 
-### Standalone to Managed Tests
+### Standalone-to-Managed Tests
 
-TODO
+If the standalone-to-managed test includes an upgrade, simply add `Standalone_to_Managed` at the end of the test name,
+e.g. `TestUpgrade_7_17_to_8_x_Standalone_to_Managed`. Otherwise, if there is no upgrade simply omit the `Upgrade`
+prefix, e.g. `Test_7_17_Standalone_to_Managed`.
+
+The file that the standalone-to-managed test should be in follows the same idea as upgrade tests. For example, if the
+test name is `Test_7_17_Standalone_to_Managed`, it should be in `7_17_test.go`
