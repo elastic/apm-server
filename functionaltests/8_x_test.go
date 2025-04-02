@@ -20,12 +20,12 @@ package functionaltests
 import (
 	"testing"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 )
 
 func TestUpgrade_7_17_to_8_x_Snapshot_Standalone_to_Managed(t *testing.T) {
+	t.Parallel()
+
 	fromVersion := getLatestSnapshot(t, "7.17")
 	toVersion := getLatestSnapshot(t, "8")
 
@@ -50,11 +50,13 @@ func TestUpgrade_7_17_to_8_x_Snapshot_Standalone_to_Managed(t *testing.T) {
 			migrateManagedStep{},
 			ingestStep{CheckDataStream: checkILM},
 			checkErrorLogsStep{
-				APMErrorLogsIgnored: []types.Query{
+				ESErrorLogsIgnored: esErrorLogs{
+					eventLoopShutdown,
+				},
+				APMErrorLogsIgnored: apmErrorLogs{
 					tlsHandshakeError,
 					esReturnedUnknown503,
 					refreshCache503,
-					eventLoopShutdown,
 					// TODO: remove once fixed
 					populateSourcemapFetcher403,
 				},
@@ -66,6 +68,8 @@ func TestUpgrade_7_17_to_8_x_Snapshot_Standalone_to_Managed(t *testing.T) {
 }
 
 func TestUpgrade_7_17_to_8_x_BC_Standalone_to_Managed(t *testing.T) {
+	t.Parallel()
+
 	fromVersion := getLatestVersion(t, "7.17")
 	toVersion := getBCVersionOrSkip(t, "8")
 
@@ -90,11 +94,13 @@ func TestUpgrade_7_17_to_8_x_BC_Standalone_to_Managed(t *testing.T) {
 			migrateManagedStep{},
 			ingestStep{CheckDataStream: checkILM},
 			checkErrorLogsStep{
-				APMErrorLogsIgnored: []types.Query{
+				ESErrorLogsIgnored: esErrorLogs{
+					eventLoopShutdown,
+				},
+				APMErrorLogsIgnored: apmErrorLogs{
 					tlsHandshakeError,
 					esReturnedUnknown503,
 					refreshCache503,
-					eventLoopShutdown,
 					// TODO: remove once fixed
 					populateSourcemapFetcher403,
 				},
