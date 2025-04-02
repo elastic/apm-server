@@ -48,7 +48,7 @@ func TestDefaultTLSConfig(t *testing.T) {
 	}
 
 	t.Run("compatible_cipher_suite", func(t *testing.T) {
-		err := attemptRequest(t, 0, 0, tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256)
+		err := attemptRequest(t, 0, 0, tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256)
 		require.NoError(t, err)
 	})
 
@@ -79,7 +79,7 @@ func TestCustomTLSConfig(t *testing.T) {
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.TLS = &apmservertest.TLSConfig{
 		SupportedProtocols: []string{"TLSv1.2"},
-		CipherSuites:       []string{"ECDHE-RSA-AES-128-GCM-SHA256"},
+		CipherSuites:       []string{"ECDHE-ECDSA-AES-128-GCM-SHA256"},
 	}
 	require.NoError(t, srv.StartTLS())
 
@@ -98,7 +98,7 @@ func TestCustomTLSConfig(t *testing.T) {
 	}
 
 	t.Run("compatible_cipher_suite", func(t *testing.T) {
-		err := attemptRequest(t, 0, 0, tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256)
+		err := attemptRequest(t, 0, 0, tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256)
 		require.NoError(t, err)
 	})
 
