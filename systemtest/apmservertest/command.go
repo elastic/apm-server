@@ -176,7 +176,7 @@ func BuildServerBinary(goos, goarch string) (string, error) {
 		name += "-fips"
 	}
 	if goos == "windows" {
-		relpath += ".exe"
+		abspath += ".exe"
 	}
 
 	log.Printf("Building %s...", name)
