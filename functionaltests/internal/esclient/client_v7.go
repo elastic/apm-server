@@ -30,8 +30,11 @@ type docCountV7 struct {
 	Count int `json:"count"`
 }
 
+// IndicesDocCount is an easy to assert on format reporting document count
+// for indices.
 type IndicesDocCount map[string]int
 
+// APMDocCountV7 retrieves the document count per index of all APM indices.
 func (c *Client) APMDocCountV7(ctx context.Context) (IndicesDocCount, error) {
 	indicesToCheck := []string{
 		"apm-*-transaction-*", "apm-*-span-*", "apm-*-error-*", "apm-*-metric-*",

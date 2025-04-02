@@ -26,6 +26,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/elastic/apm-perf/pkg/supportedstacks"
 	"github.com/elastic/apm-perf/pkg/telemetrygen"
 
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
@@ -37,7 +38,6 @@ type Generator struct {
 	kbc          *kbclient.Client
 	apmAPIKey    string
 	apmServerURL string
-	eventRate    string
 }
 
 func New(url, apikey string, kbc *kbclient.Client, logger *zap.Logger) *Generator {
@@ -49,14 +49,20 @@ func New(url, apikey string, kbc *kbclient.Client, logger *zap.Logger) *Generato
 		kbc:          kbc,
 		apmAPIKey:    apikey,
 		apmServerURL: url,
-		eventRate:    "1000/s",
 	}
 }
 
-// RunBlocking runs the underlying generator in blocking mode.
-func (g *Generator) RunBlocking(ctx context.Context) error {
+// runBlocking runs the underlying generator in blocking mode.
+func (g *Generator) runBlocking(ctx context.Context, version ecclient.StackVersion) error {
+	eventRate := "1000/s"
+
 	cfg := telemetrygen.DefaultConfig()
 	cfg.APIKey = g.apmAPIKey
+	cfg.TargetStackVersion = supportedstacks.TargetStackVersionLatest
+	if version.Major == 7 {
+		eventRate = "100/s" // Using 1000/s resulted in consistent 503 for 7x.
+		cfg.TargetStackVersion = supportedstacks.TargetStackVersion7x
+	}
 
 	u, err := url.Parse(g.apmServerURL)
 	if err != nil {
@@ -64,7 +70,7 @@ func (g *Generator) RunBlocking(ctx context.Context) error {
 	}
 	cfg.ServerURL = u
 
-	if err = cfg.EventRate.Set(g.eventRate); err != nil {
+	if err = cfg.EventRate.Set(eventRate); err != nil {
 		return fmt.Errorf("cannot set event rate: %w", err)
 	}
 
@@ -82,10 +88,10 @@ func (g *Generator) RunBlocking(ctx context.Context) error {
 // data to be flushed before proceeding. This allows the caller to ensure than 1m aggregation
 // metrics are ingested immediately after raw data ingestion, without variable delays.
 // This may lead to data loss if the final flush takes more than 30s, which may happen if the
-// quantity of data ingested with RunBlocking gets too big. The current quantity does not
+// quantity of data ingested with runBlocking gets too big. The current quantity does not
 // trigger this behavior.
 func (g *Generator) RunBlockingWait(ctx context.Context, version ecclient.StackVersion, integrations bool) error {
-	if err := g.RunBlocking(ctx); err != nil {
+	if err := g.runBlocking(ctx, version); err != nil {
 		return fmt.Errorf("cannot run generator: %w", err)
 	}
 
@@ -98,7 +104,7 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ecclient.StackV
 	}
 
 	// With standalone, we don't have Fleet, so simply just wait for some arbitrary time.
-	time.Sleep(20 * time.Second)
+	time.Sleep(30 * time.Second)
 	return nil
 }
 

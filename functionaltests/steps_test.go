@@ -161,8 +161,7 @@ func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, prev
 	t.Log("check number of documents after ingestion")
 	docCount := getDocCountPerDS(t, ctx, e.esc)
 	asserts.CheckDocCount(t, docCount, previousRes.DSDocCount,
-		expectedIngestForASingleRun(e.dsNamespace),
-		aggregationDataStreams(e.dsNamespace))
+		expectedIngestForASingleRun(e.dsNamespace))
 
 	t.Log("check data streams after ingestion")
 	dss, err := e.esc.GetDataStream(ctx, "*apm*")
@@ -198,8 +197,7 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 	// to ensure the state didn't change.
 	// We don't expect any change here unless something broke during the upgrade.
 	asserts.CheckDocCount(t, docCount, previousRes.DSDocCount,
-		emptyIngestForASingleRun(e.dsNamespace),
-		aggregationDataStreams(e.dsNamespace))
+		emptyIngestForASingleRun(e.dsNamespace))
 
 	t.Log("check data streams after upgrade")
 	dss, err := e.esc.GetDataStream(ctx, "*apm*")
