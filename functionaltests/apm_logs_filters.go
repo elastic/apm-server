@@ -63,4 +63,11 @@ var (
 			"message": {Query: "failed to populate sourcemap metadata: fetcher unavailable: 403 Forbidden:"},
 		},
 	}
+
+	// Safe to ignore: https://github.com/elastic/elasticsearch/pull/97301.
+	eventLoopShutdown = types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "Failed to submit a listener notification task. Event loop shut down?"},
+		},
+	}
 )
