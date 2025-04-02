@@ -81,3 +81,28 @@ var (
 		},
 	})
 )
+
+// These vars are Elasticsearch query matchers to filter out some specific
+// log lines from Elasticsearch logs.
+// To be used to filter the Elasticsearch logs in test cases.
+type (
+	esErrorLog  types.Query
+	esErrorLogs []esErrorLog
+)
+
+func (e esErrorLogs) ToQueries() []types.Query {
+	queries := make([]types.Query, 0, len(e))
+	for _, entry := range e {
+		queries = append(queries, types.Query(entry))
+	}
+	return queries
+}
+
+var (
+	// Safe to ignore: https://github.com/elastic/elasticsearch/pull/97301.
+	eventLoopShutdown = esErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "Failed to submit a listener notification task. Event loop shut down?"},
+		},
+	})
+)

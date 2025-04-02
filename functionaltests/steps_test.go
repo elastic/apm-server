@@ -239,6 +239,7 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 //
 // The output of this step is the previous step's result.
 type checkErrorLogsStep struct {
+	ESErrorLogsIgnored  esErrorLogs
 	APMErrorLogsIgnored apmErrorLogs
 }
 
@@ -247,7 +248,7 @@ var _ testStep = checkErrorLogsStep{}
 func (c checkErrorLogsStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	t.Log("------ check ES and APM error logs ------")
 	t.Log("checking ES error logs")
-	resp, err := e.esc.GetESErrorLogs(ctx)
+	resp, err := e.esc.GetESErrorLogs(ctx, c.ESErrorLogsIgnored.ToQueries()...)
 	require.NoError(t, err)
 	asserts.ZeroESLogs(t, *resp)
 
