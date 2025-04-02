@@ -39,6 +39,10 @@ func CheckDocCount(
 ) {
 	t.Helper()
 
+	if prevDocCount == nil {
+		prevDocCount = currDocCount
+	}
+
 	// Check that all expected data streams appear.
 	for ds := range expectedDiff {
 		if _, ok := currDocCount[ds]; !ok {

@@ -39,6 +39,10 @@ func CheckDocCountV7(
 ) {
 	t.Helper()
 
+	if prevDocCount == nil {
+		prevDocCount = currDocCount
+	}
+
 	// Check that all expected indices appear.
 	for idx := range expectedDiff {
 		if _, ok := currDocCount[idx]; !ok {

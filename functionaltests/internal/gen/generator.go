@@ -19,7 +19,10 @@ package gen
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -52,6 +55,29 @@ func New(url, apikey string, kbc *kbclient.Client, logger *zap.Logger) *Generato
 	}
 }
 
+func (g *Generator) waitForAPMToBePublishReady(ctx context.Context, maxWaitDuration time.Duration) error {
+	timer := time.NewTimer(maxWaitDuration)
+	defer timer.Stop()
+
+	for {
+		select {
+		case <-timer.C:
+			return fmt.Errorf("apm server not yet ready after %s", maxWaitDuration)
+		default:
+			info, err := queryAPMInfo(ctx, g.apmServerURL, g.apmAPIKey)
+			if err != nil {
+				// Log error and continue in loop.
+				g.logger.Warn("failed to query apm info", zap.Error(err))
+			} else if info.PublishReady {
+				// Ready to publish events to APM.
+				return nil
+			}
+
+			time.Sleep(1 * time.Second)
+		}
+	}
+}
+
 // runBlocking runs the underlying generator in blocking mode.
 func (g *Generator) runBlocking(ctx context.Context, version ecclient.StackVersion) error {
 	eventRate := "1000/s"
@@ -60,7 +86,7 @@ func (g *Generator) runBlocking(ctx context.Context, version ecclient.StackVersi
 	cfg.APIKey = g.apmAPIKey
 	cfg.TargetStackVersion = supportedstacks.TargetStackVersionLatest
 	if version.Major == 7 {
-		eventRate = "100/s" // Using 1000/s resulted in consistent 503 for 7x.
+		eventRate = "200/s" // Using 1000/s resulted in consistent 503 for 7x.
 		cfg.TargetStackVersion = supportedstacks.TargetStackVersion7x
 	}
 
@@ -77,6 +103,11 @@ func (g *Generator) runBlocking(ctx context.Context, version ecclient.StackVersi
 	gen, err := telemetrygen.New(cfg)
 	if err != nil {
 		return fmt.Errorf("cannot create telemetrygen generator: %w", err)
+	}
+
+	g.logger.Info("wait for apm server to be ready")
+	if err = g.waitForAPMToBePublishReady(ctx, 20*time.Second); err != nil {
+		return err
 	}
 
 	g.logger.Info("ingest data")
@@ -137,6 +168,45 @@ func flushAPMMetrics(ctx context.Context, kbc *kbclient.Client, version string) 
 	// APM Server needs some time to flush all metrics, and we don't have any
 	// visibility on when this completes.
 	// NOTE: This value comes from empirical observations.
-	time.Sleep(10 * time.Second)
+	time.Sleep(20 * time.Second)
 	return nil
+}
+
+type apmInfoResp struct {
+	Version      string `json:"version"`
+	PublishReady bool   `json:"publish_ready"`
+}
+
+func queryAPMInfo(ctx context.Context, apmServerURL string, apmAPIKey string) (apmInfoResp, error) {
+	var httpClient http.Client
+	var empty apmInfoResp
+
+	req, err := http.NewRequest(http.MethodGet, apmServerURL, nil)
+	if err != nil {
+		return empty, fmt.Errorf("cannot create http request: %w", err)
+	}
+
+	req.Header.Add("Authorization", fmt.Sprintf("ApiKey %s", apmAPIKey))
+	req = req.WithContext(ctx)
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return empty, fmt.Errorf("cannot send http request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return empty, fmt.Errorf("request failed with status code %d", resp.StatusCode)
+	}
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return empty, fmt.Errorf("cannot read response body: %w", err)
+	}
+
+	var apmInfo apmInfoResp
+	if err = json.Unmarshal(b, &apmInfo); err != nil {
+		return empty, fmt.Errorf("cannot unmarshal response body: %w", err)
+	}
+
+	return apmInfo, nil
 }
