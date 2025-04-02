@@ -30,25 +30,9 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
-	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
 
 type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error
-
-// apmDeploymentMode is the deployment mode of APM in the cluster.
-// This is used instead of bool to avoid having to use bool pointer
-// (since the default is true).
-type apmDeploymentMode uint8
-
-const (
-	apmDefault apmDeploymentMode = iota
-	apmManaged
-	apmStandalone
-)
-
-func (mode apmDeploymentMode) enableIntegrations() bool {
-	return mode == apmDefault || mode == apmManaged
-}
 
 // singleUpgradeTestCase is a basic functional test case that performs a
 // cluster upgrade between 2 specified versions.
@@ -60,6 +44,8 @@ func (mode apmDeploymentMode) enableIntegrations() bool {
 // A new ingestion is performed and a final check is run, to
 // verify that ingestion works after upgrade and brings the cluster
 // to a know state.
+//
+// Deprecated: To be removed soon, use testStepsRunner instead.
 type singleUpgradeTestCase struct {
 	fromVersion ecclient.StackVersion
 	toVersion   ecclient.StackVersion
@@ -87,9 +73,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	start := time.Now()
 	ctx := context.Background()
-	copyTerraforms(t)
-	tf, err := terraform.New(t, terraformDir(t))
-	require.NoError(t, err)
+	tf := initTerraformRunner(t)
 
 	t.Log("------ cluster setup ------")
 	deployInfo := createCluster(t, ctx, tf, *target, tt.fromVersion, integrations)
@@ -102,7 +86,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	atStartCount := getDocCountPerDS(t, ctx, esc)
 	if tt.setupFn != nil {
 		t.Log("------ custom setup ------")
-		err = tt.setupFn(t, ctx, esc, kbc)
+		err := tt.setupFn(t, ctx, esc, kbc)
 		require.NoError(t, err, "custom setup failed")
 	}
 
@@ -157,7 +141,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Log("------ post-upgrade ingestion assertions ------")
 	t.Log("check number of documents after final ingestion")
 	secondIngestCount := getDocCountPerDS(t, ctx, esc)
-	asserts.CheckDocCount(t, secondIngestCount, beforeUpgradeCount,
+	asserts.CheckDocCount(t, secondIngestCount, afterUpgradeCount,
 		expectedIngestForASingleRun(tt.dataStreamNamespace),
 		aggregationDataStreams(tt.dataStreamNamespace))
 

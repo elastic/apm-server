@@ -50,15 +50,22 @@ func terraformDir(t *testing.T) string {
 	return fmt.Sprintf("tf-%s", formattedTestName(t))
 }
 
-// copyTerraforms copies the static Terraform files to the Terraform directory for this test.
-// It will remove all existing files from the test Terraform directory if it exists, before copying into it.
-func copyTerraforms(t *testing.T) {
+// initTerraformRunner copies the static Terraform files to the Terraform directory for this test,
+// then initializes the Terraform runner in that directory.
+//
+// Note: This function will remove all existing files from the test Terraform directory if it exists,
+// before copying into it.
+func initTerraformRunner(t *testing.T) *terraform.Runner {
 	t.Helper()
 	dirName := terraformDir(t)
 	err := os.RemoveAll(dirName)
 	require.NoError(t, err)
 	err = os.CopyFS(terraformDir(t), os.DirFS("infra/terraform"))
 	require.NoError(t, err)
+
+	tf, err := terraform.New(t, dirName)
+	require.NoError(t, err)
+	return tf
 }
 
 type deploymentInfo struct {
@@ -208,9 +215,8 @@ func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) e
 
 // createRerouteIngestPipeline creates custom pipelines to reroute logs, metrics and traces to different
 // data streams specified by namespace.
-func createRerouteIngestPipeline(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) error {
+func createRerouteIngestPipeline(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) {
 	t.Helper()
-
 	for _, pipeline := range []string{"logs@custom", "metrics@custom", "traces@custom"} {
 		err := esc.CreateIngestPipeline(ctx, pipeline, []types.ProcessorContainer{
 			{
@@ -219,22 +225,16 @@ func createRerouteIngestPipeline(t *testing.T, ctx context.Context, esc *esclien
 				},
 			},
 		})
-		if err != nil {
-			return err
-		}
+		require.NoError(t, err)
 	}
-	return nil
 }
 
 // performManualRollovers rollover all logs, metrics and traces data streams to new indices.
-func performManualRollovers(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) error {
+func performManualRollovers(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) {
 	t.Helper()
 
 	for _, ds := range allDataStreams(namespace) {
 		err := esc.PerformManualRollover(ctx, ds)
-		if err != nil {
-			return err
-		}
+		require.NoError(t, err)
 	}
-	return nil
 }
