@@ -226,7 +226,7 @@ func (c checkErrorLogsStep) Step(t *testing.T, ctx context.Context, e *testStepE
 	asserts.ZeroESLogs(t, *resp)
 
 	t.Log("checking APM error logs")
-	resp, err = e.esc.GetAPMErrorLogs(ctx, c.APMErrorLogsIgnored)
+	resp, err = e.esc.GetAPMErrorLogs(ctx, c.APMErrorLogsIgnored...)
 	require.NoError(t, err)
 	asserts.ZeroAPMLogs(t, *resp)
 
