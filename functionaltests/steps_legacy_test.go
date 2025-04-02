@@ -124,6 +124,12 @@ func (u upgradeLegacyStep) Step(t *testing.T, ctx context.Context, e *testStepEn
 	return testStepResult{DSDocCount: getDocCountPerDS(t, ctx, e.esc)}
 }
 
+// migrateManagedStep migrates the ECH APM deployment from standalone mode to
+// managed mode, which involves enabling the integrations server via Kibana.
+// It also checks that the document counts did not change across the migration.
+//
+// The output of this step is the indices document counts if version < 8.0,
+// or data streams document counts if version >= 8.0.
 type migrateManagedStep struct{}
 
 var _ testStep = migrateManagedStep{}
