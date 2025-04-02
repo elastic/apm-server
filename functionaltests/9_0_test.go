@@ -26,8 +26,7 @@ import (
 func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeILMTest(
-		t,
+	scenarios := basicUpgradeILMTestScenarios(
 		getLatestSnapshot(t, "8.18"),
 		getLatestSnapshot(t, "9.0"),
 		[]types.Query{
@@ -38,13 +37,18 @@ func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
 			populateSourcemapFetcher403,
 		},
 	)
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(t *testing.T) {
+			t.Parallel()
+			scenario.Runner.Run(t)
+		})
+	}
 }
 
 func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeILMTest(
-		t,
+	scenarios := basicUpgradeILMTestScenarios(
 		getLatestVersion(t, "8.18"),
 		getBCVersionOrSkip(t, "9.0"),
 		[]types.Query{
@@ -55,4 +59,10 @@ func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
 			populateSourcemapFetcher403,
 		},
 	)
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(t *testing.T) {
+			t.Parallel()
+			scenario.Runner.Run(t)
+		})
+	}
 }
