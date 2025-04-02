@@ -176,10 +176,22 @@ line 1:1: Unknown index [traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-
 
 // GetESErrorLogs retrieves Elasticsearch error logs.
 // The search query is on the Index used by Elasticsearch monitoring to store logs.
-func (c *Client) GetESErrorLogs(ctx context.Context) (*search.Response, error) {
+// exclude allows to pass in must_not clauses to be applied to the query to filter
+// the returned results.
+func (c *Client) GetESErrorLogs(ctx context.Context, exclude ...types.Query) (*search.Response, error) {
+	// There is an issue in ES: https://github.com/elastic/elasticsearch/issues/125445,
+	// that is causing deprecation logger bulk write failures.
+	// The error itself is harmless and irrelevant to APM, so we can ignore it.
+	// TODO: Remove this query once the above issue is fixed.
+	exclude = append(exclude, types.Query{
+		Match: map[string]types.MatchQuery{
+			"message": {Query: "Bulk write of deprecation logs encountered some failures"},
+		}})
+	size := 100
 	res, err := c.es.Search().
 		Index("elastic-cloud-logs-*").
 		Request(&search.Request{
+			Size: &size,
 			Query: &types.Query{
 				Bool: &types.BoolQuery{
 					Must: []types.Query{
@@ -189,22 +201,12 @@ func (c *Client) GetESErrorLogs(ctx context.Context) (*search.Response, error) {
 							},
 						},
 						{
-							Match: map[string]types.MatchQuery{
-								"log.level": {Query: "ERROR"},
+							QueryString: &types.QueryStringQuery{
+								Query: `log.level: ("error" OR "ERROR")`,
 							},
 						},
 					},
-					// There is an issue in ES: https://github.com/elastic/elasticsearch/issues/125445,
-					// that is causing deprecation logger bulk write failures.
-					// The error itself is harmless and irrelevant to APM, so we can ignore it.
-					// TODO: Remove this query once the above issue is fixed.
-					MustNot: []types.Query{
-						{
-							Match: map[string]types.MatchQuery{
-								"message": {Query: "Bulk write of deprecation logs encountered some failures"},
-							},
-						},
-					},
+					MustNot: exclude,
 				},
 			},
 		}).Do(ctx)
@@ -219,7 +221,7 @@ func (c *Client) GetESErrorLogs(ctx context.Context) (*search.Response, error) {
 // The search query is on the Index used by Elasticsearch monitoring to store logs.
 // exclude allows to pass in must_not clauses to be applied to the query to filter
 // the returned results.
-func (c *Client) GetAPMErrorLogs(ctx context.Context, exclude []types.Query) (*search.Response, error) {
+func (c *Client) GetAPMErrorLogs(ctx context.Context, exclude ...types.Query) (*search.Response, error) {
 	size := 100
 	res, err := c.es.Search().
 		Index("elastic-cloud-logs-*").
@@ -234,8 +236,8 @@ func (c *Client) GetAPMErrorLogs(ctx context.Context, exclude []types.Query) (*s
 							},
 						},
 						{
-							Match: map[string]types.MatchQuery{
-								"log.level": {Query: "error"},
+							QueryString: &types.QueryStringQuery{
+								Query: `log.level: ("error" OR "ERROR")`,
 							},
 						},
 					},
