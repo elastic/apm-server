@@ -169,7 +169,6 @@ func createESClient(t *testing.T, deployInfo deploymentInfo) *esclient.Client {
 }
 
 // createKibanaClient instantiate an HTTP API client with dedicated methods to query the Kibana API.
-// This function will also create an Elasticsearch API key with full permissions to be used by the HTTP client.
 func createKibanaClient(t *testing.T, deployInfo deploymentInfo) *kbclient.Client {
 	t.Helper()
 	t.Log("create kibana client")
