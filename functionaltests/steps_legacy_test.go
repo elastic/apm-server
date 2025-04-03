@@ -74,10 +74,16 @@ func (i ingestLegacyStep) Step(t *testing.T, ctx context.Context, e *testStepEnv
 
 	t.Log("------ ingest check ------")
 	t.Log("check number of documents after ingestion")
-	idxDocCount := getDocCountPerIndex(t, ctx, e.esc)
+	if e.integrations {
+		dsDocCount := getDocCountPerDSV7(t, ctx, e.esc)
+		asserts.CheckDocCount(t, dsDocCount, previousRes.DSDocCount,
+			expectedDataStreamsIngest(e.dsNamespace))
+		return testStepResult{DSDocCount: dsDocCount}
+	}
+
+	idxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
 	asserts.CheckDocCountV7(t, idxDocCount, previousRes.IndicesDocCount,
 		expectedIndicesIngest())
-
 	return testStepResult{IndicesDocCount: idxDocCount}
 }
 
@@ -110,7 +116,7 @@ func (u upgradeLegacyStep) Step(t *testing.T, ctx context.Context, e *testStepEn
 	// We assert that no changes happened in the number of documents after upgrade
 	// to ensure the state didn't change.
 	// We don't expect any change here unless something broke during the upgrade.
-	idxDocCount := getDocCountPerIndex(t, ctx, e.esc)
+	idxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
 	asserts.CheckDocCountV7(t, idxDocCount, previousRes.IndicesDocCount,
 		emptyIndicesIngest())
 
@@ -155,7 +161,7 @@ func (m migrateManagedStep) Step(t *testing.T, ctx context.Context, e *testStepE
 	// to ensure the state didn't change.
 	// We don't expect any change here unless something broke during the migration.
 	if e.currentVersion().Major < 8 {
-		idxDocCount := getDocCountPerIndex(t, ctx, e.esc)
+		idxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
 		asserts.CheckDocCountV7(t, idxDocCount, previousRes.IndicesDocCount,
 			emptyIndicesIngest())
 		return testStepResult{IndicesDocCount: idxDocCount}

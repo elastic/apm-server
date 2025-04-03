@@ -152,7 +152,7 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ te
 	e.integrations = integrations
 
 	if e.currentVersion().Major < 8 {
-		return testStepResult{IndicesDocCount: getDocCountPerIndex(t, ctx, e.esc)}
+		return testStepResult{IndicesDocCount: getDocCountPerIndexV7(t, ctx, e.esc)}
 	}
 	return testStepResult{DSDocCount: getDocCountPerDS(t, ctx, e.esc)}
 }
