@@ -80,7 +80,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	esc := createESClient(t, deployInfo)
-	kbc := createKibanaClient(t, ctx, esc, deployInfo)
+	kbc := createKibanaClient(t, deployInfo)
 	g := createAPMGenerator(t, ctx, esc, kbc, deployInfo)
 
 	atStartCount := getDocCountPerDS(t, ctx, esc)
