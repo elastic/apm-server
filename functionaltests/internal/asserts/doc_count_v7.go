@@ -26,16 +26,16 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 )
 
-// CheckDocCount checks if difference in data stream document count between
+// CheckDocCountV7 checks if difference in index document count between
 // current and previous state is equal to the expected, barring the skipped
-// data streams.
+// indices.
 //
 // NOTE: Ingestion should never remove documents. If the expectedDiff is
-// negative, the data stream will be expected to appear, but the document
-// count will not be asserted.
-func CheckDocCount(
+// negative, the index will be expected to appear, but the document count
+// will not be asserted.
+func CheckDocCountV7(
 	t *testing.T,
-	currDocCount, prevDocCount, expectedDiff esclient.DataStreamsDocCount,
+	currDocCount, prevDocCount, expectedDiff esclient.IndicesDocCount,
 ) {
 	t.Helper()
 
@@ -43,27 +43,26 @@ func CheckDocCount(
 		prevDocCount = currDocCount
 	}
 
-	// Check that all expected data streams appear.
-	for ds := range expectedDiff {
-		if _, ok := currDocCount[ds]; !ok {
-			t.Errorf("expected data stream %s not found", ds)
+	// Check that all expected indices appear.
+	for idx := range expectedDiff {
+		if _, ok := currDocCount[idx]; !ok {
+			t.Errorf("expected index %s not found", idx)
 			continue
 		}
 	}
 
-	// Check document counts for all data streams.
-	for ds, v := range currDocCount {
-		e, ok := expectedDiff[ds]
+	// Check document counts for all indices.
+	for idx, v := range currDocCount {
+		e, ok := expectedDiff[idx]
 		if !ok {
-			t.Errorf("unexpected documents (%d) for data stream %s", v, ds)
-			continue
+			t.Errorf("unexpected documents (%d) for index %s", v, idx)
 		}
 
 		if e < 0 {
 			continue
 		}
 
-		assert.Equal(t, e, v-prevDocCount[ds],
-			fmt.Sprintf("wrong document count difference for data stream %s", ds))
+		assert.Equal(t, e, v-prevDocCount[idx],
+			fmt.Sprintf("wrong document count difference for index %s", idx))
 	}
 }

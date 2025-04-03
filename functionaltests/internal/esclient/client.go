@@ -144,8 +144,10 @@ type DocCount struct {
 // for data streams.
 type DataStreamsDocCount map[string]int
 
+// APMDocCount retrieves the document count per data stream of all APM data streams.
 func (c *Client) APMDocCount(ctx context.Context) (DataStreamsDocCount, error) {
 	q := `FROM traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-*.otel-*,metrics-apm*,apm-*,metrics-*.otel-*
+| WHERE data_stream.type IS NOT NULL
 | EVAL datastream = CONCAT(data_stream.type, "-", data_stream.dataset, "-", data_stream.namespace)
 | STATS count = COUNT(*) BY datastream
 | SORT count DESC`

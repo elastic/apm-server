@@ -98,8 +98,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Log("check number of documents after initial ingestion")
 	firstIngestCount := getDocCountPerDS(t, ctx, esc)
 	asserts.CheckDocCount(t, firstIngestCount, atStartCount,
-		expectedIngestForASingleRun(tt.dataStreamNamespace),
-		aggregationDataStreams(tt.dataStreamNamespace))
+		expectedIngestForASingleRun(tt.dataStreamNamespace))
 
 	t.Log("check data streams after initial ingestion")
 	dss, err := esc.GetDataStream(ctx, "*apm*")
@@ -126,8 +125,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Log("check number of documents across upgrade")
 	afterUpgradeCount := getDocCountPerDS(t, ctx, esc)
 	asserts.CheckDocCount(t, afterUpgradeCount, beforeUpgradeCount,
-		emptyIngestForASingleRun(tt.dataStreamNamespace),
-		aggregationDataStreams(tt.dataStreamNamespace))
+		emptyIngestForASingleRun(tt.dataStreamNamespace))
 
 	t.Log("check data streams after upgrade")
 	dss, err = esc.GetDataStream(ctx, "*apm*")
@@ -142,8 +140,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Log("check number of documents after final ingestion")
 	secondIngestCount := getDocCountPerDS(t, ctx, esc)
 	asserts.CheckDocCount(t, secondIngestCount, afterUpgradeCount,
-		expectedIngestForASingleRun(tt.dataStreamNamespace),
-		aggregationDataStreams(tt.dataStreamNamespace))
+		expectedIngestForASingleRun(tt.dataStreamNamespace))
 
 	t.Log("check data streams after final ingestion")
 	dss2, err := esc.GetDataStream(ctx, "*apm*")

@@ -27,10 +27,9 @@ import (
 
 func TestCheckDocCount(t *testing.T) {
 	type args struct {
-		currDocCount       esclient.DataStreamsDocCount
-		prevDocCount       esclient.DataStreamsDocCount
-		expectedDiff       esclient.DataStreamsDocCount
-		skippedDataStreams []string
+		currDocCount esclient.DataStreamsDocCount
+		prevDocCount esclient.DataStreamsDocCount
+		expectedDiff esclient.DataStreamsDocCount
 	}
 	tests := []struct {
 		name string
@@ -50,18 +49,16 @@ func TestCheckDocCount(t *testing.T) {
 					"metrics-apm.app.opbeans_python-default": 10,
 				},
 				expectedDiff: esclient.DataStreamsDocCount{
-					"traces-apm-default":     50,
-					"logs-apm.error-default": 100,
-				},
-				skippedDataStreams: []string{
-					"metrics-apm.app.opbeans_python-default",
+					"traces-apm-default":                     50,
+					"logs-apm.error-default":                 100,
+					"metrics-apm.app.opbeans_python-default": -1,
 				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			CheckDocCount(t, tt.args.currDocCount, tt.args.prevDocCount, tt.args.expectedDiff, tt.args.skippedDataStreams)
+			CheckDocCount(t, tt.args.currDocCount, tt.args.prevDocCount, tt.args.expectedDiff)
 			assert.False(t, t.Failed())
 		})
 	}
