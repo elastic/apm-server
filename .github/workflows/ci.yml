@@ -57,7 +57,8 @@ jobs:
       - run: go test -v -race ./...
       - env:
           KIBANA_URL: "https://kibana.test"
-          KIBANA_API_KEY: "dummy"
+          KIBANA_USERNAME: "dummy"
+          KIBANA_PASSWORD: "dummy"
           EC_URL: "https://elastic-cloud.test"
           EC_API_KEY: "dummy"
           EC_REGION: "gcp-us-west2"

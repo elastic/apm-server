@@ -129,7 +129,7 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ te
 	integrations := c.APMDeploymentMode.enableIntegrations()
 	deployInfo := createCluster(t, ctx, e.tf, *target, c.DeployVersion, integrations)
 	e.esc = createESClient(t, deployInfo)
-	e.kbc = createKibanaClient(t, ctx, e.esc, deployInfo)
+	e.kbc = createKibanaClient(t, deployInfo)
 	e.gen = createAPMGenerator(t, ctx, e.esc, e.kbc, deployInfo)
 	// Update the environment version to the new one.
 	e.version = c.DeployVersion

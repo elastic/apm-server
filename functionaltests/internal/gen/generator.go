@@ -135,7 +135,7 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ecclient.StackV
 	}
 
 	// With standalone, we don't have Fleet, so simply just wait for some arbitrary time.
-	time.Sleep(30 * time.Second)
+	time.Sleep(60 * time.Second)
 	return nil
 }
 
@@ -158,17 +158,14 @@ func flushAPMMetrics(ctx context.Context, kbc *kbclient.Client, version string) 
 	// Sending an update with modifying the description is enough to trigger
 	// final aggregations in APM Server and flush of in-flight metrics.
 	policy.Description = fmt.Sprintf("Functional tests %s", version)
-	if err = kbc.UpdatePackagePolicyByID(ctx, policyID, kbclient.UpdatePackagePolicyRequest{
-		PackagePolicy: policy,
-		Force:         false,
-	}); err != nil {
+	if err = kbc.UpdatePackagePolicyByID(ctx, policyID, policy); err != nil {
 		return fmt.Errorf("cannot update elastic-cloud-apm package policy: %w", err)
 	}
 
 	// APM Server needs some time to flush all metrics, and we don't have any
 	// visibility on when this completes.
 	// NOTE: This value comes from empirical observations.
-	time.Sleep(20 * time.Second)
+	time.Sleep(40 * time.Second)
 	return nil
 }
 

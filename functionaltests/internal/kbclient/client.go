@@ -30,17 +30,13 @@ import (
 	"time"
 )
 
-func New(kibanaURL, apiKey string, username, password string) (*Client, error) {
+func New(kibanaURL, username, password string) (*Client, error) {
 	if kibanaURL == "" {
 		return nil, fmt.Errorf("kbclient.New kibanaURL must not be empty")
-	}
-	if apiKey == "" {
-		return nil, fmt.Errorf("kbclient.New apiKey must not be empty")
 	}
 
 	return &Client{
 		url:                 kibanaURL,
-		apiKey:              apiKey,
 		superUsername:       username,
 		superPassword:       password,
 		SupportedAPIVersion: "2023-10-31",
@@ -52,9 +48,8 @@ type Client struct {
 	http.Client
 	// url is the Kibana URL where requests will be directed to.
 	url string
-	// apiKey should be an Elasticsearch API key with appropriate privileges.
-	apiKey string
 
+	// Fleet API access require superuser role before 8.1.0.
 	// superUsername should be an Elasticsearch superuser username.
 	superUsername string
 	// superPassword should be an Elasticsearch superuser password.
@@ -64,7 +59,7 @@ type Client struct {
 }
 
 // prepareRequest creates a http.Request with required headers for interacting with Kibana.
-func (c *Client) prepareRequest(method, path string, body any, super bool) (*http.Request, error) {
+func (c *Client) prepareRequest(method, path string, body any) (*http.Request, error) {
 	b, err := json.Marshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal body: %w", err)
@@ -79,13 +74,10 @@ func (c *Client) prepareRequest(method, path string, body any, super bool) (*htt
 	req.Header.Add("kbn-xsrf", "true")
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Elastic-Api-Version", c.SupportedAPIVersion)
-	if super {
-		userPass := fmt.Sprintf("%s:%s", c.superUsername, c.superPassword)
-		basicAuth := base64.StdEncoding.EncodeToString([]byte(userPass))
-		req.Header.Add("Authorization", fmt.Sprintf("Basic %s", basicAuth))
-	} else {
-		req.Header.Add("Authorization", fmt.Sprintf("ApiKey %s", c.apiKey))
-	}
+
+	userPass := fmt.Sprintf("%s:%s", c.superUsername, c.superPassword)
+	basicAuth := base64.StdEncoding.EncodeToString([]byte(userPass))
+	req.Header.Add("Authorization", fmt.Sprintf("Basic %s", basicAuth))
 
 	return req, nil
 }
@@ -98,11 +90,10 @@ func (c *Client) sendRequest(
 	method string,
 	path string,
 	body any,
-	super bool,
 	handleRespError func(statusCode int, body []byte) error,
 ) ([]byte, error) {
 	methodPath := fmt.Sprintf("%s %s", method, path)
-	req, err := c.prepareRequest(method, path, body, super)
+	req, err := c.prepareRequest(method, path, body)
 	if err != nil {
 		return nil, fmt.Errorf("cannot prepare request (%s): %w", methodPath, err)
 	}
@@ -144,16 +135,31 @@ func (e ElasticAgentPolicyNotFoundError) Error() string {
 }
 
 type PackagePolicy struct {
-	Name        string           `json:"name"`
-	Description string           `json:"description"`
-	Package     PackagePolicyPkg `json:"package"`
-	PolicyID    string           `json:"policy_id"`
-	PolicyIDs   []string         `json:"policy_ids"`
+	Name        string               `json:"name"`
+	Description string               `json:"description"`
+	Package     PackagePolicyPkg     `json:"package"`
+	Namespace   string               `json:"namespace"`
+	Inputs      []PackagePolicyInput `json:"inputs"`
+	OutputID    string               `json:"output_id"`
+	PolicyID    string               `json:"policy_id,omitempty"`
+	PolicyIDs   []string             `json:"policy_ids,omitempty"`
+	Enabled     bool                 `json:"enabled"`
 }
 
 type PackagePolicyPkg struct {
 	Name    string `json:"name"`
+	Title   string `json:"title"`
 	Version string `json:"version"`
+}
+
+type PackagePolicyInput struct {
+	Config         any            `json:"config"`
+	Enabled        bool           `json:"enabled"`
+	Streams        []any          `json:"streams"`
+	Type           string         `json:"type"`
+	Vars           map[string]any `json:"vars"`
+	KeepEnabled    bool           `json:"keep_enabled"`
+	PolicyTemplate string         `json:"policy_template"`
 }
 
 type getPackagePolicyResponse struct {
@@ -174,7 +180,7 @@ func (c *Client) GetPackagePolicyByID(ctx context.Context, policyID string) (Pac
 		return nil
 	}
 
-	b, err := c.sendRequest(ctx, http.MethodGet, path, nil, false, handleRespError)
+	b, err := c.sendRequest(ctx, http.MethodGet, path, nil, handleRespError)
 	if err != nil {
 		return PackagePolicy{}, err
 	}
@@ -187,19 +193,14 @@ func (c *Client) GetPackagePolicyByID(ctx context.Context, policyID string) (Pac
 	return policyResp.Item, nil
 }
 
-type UpdatePackagePolicyRequest struct {
-	PackagePolicy
-	Force bool `json:"force"`
-}
-
 // UpdatePackagePolicyByID performs a Package Policy update in Fleet through the Fleet Kibana APIs.
 // https://www.elastic.co/docs/api/doc/kibana/v8/operation/operation-update-package-policy
-func (c *Client) UpdatePackagePolicyByID(ctx context.Context, policyID string, request UpdatePackagePolicyRequest) error {
+func (c *Client) UpdatePackagePolicyByID(ctx context.Context, policyID string, policy PackagePolicy) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	path := fmt.Sprintf("/api/fleet/package_policies/%s", policyID)
-	_, err := c.sendRequest(ctx, http.MethodPut, path, request, false, nil)
+	_, err := c.sendRequest(ctx, http.MethodPut, path, policy, nil)
 	return err
 }
 
@@ -218,7 +219,7 @@ func (c *Client) EnableIntegrationsServer(ctx context.Context) error {
 	// This is an internal API that is not publicly documented.
 	// https://github.com/elastic/kibana/blob/12aa3fc/x-pack/solutions/observability/plugins/apm/server/routes/fleet/route.ts#L146
 	path := "/internal/apm/fleet/cloud_apm_package_policy"
-	b, err := c.sendRequest(ctx, http.MethodPost, path, nil, true, nil)
+	b, err := c.sendRequest(ctx, http.MethodPost, path, nil, nil)
 	if err != nil {
 		return err
 	}
