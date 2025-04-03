@@ -59,7 +59,7 @@ func TestUpgrade_7_17_to_8_x_BC_Standalone_to_Managed(t *testing.T) {
 }
 
 func upgradeThenManagedRunner(fromVersion, toVersion ecclient.StackVersion) testStepsRunner {
-	// Data streams in 8.x should be all ILM.
+	// Data streams in 8.x should be all ILM if upgraded to a stack < 8.15 and > 8.16.
 	checkILM := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        true,
