@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
+	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 )
 
 func TestUpgrade_7_17_to_8_x_Snapshot_Standalone_to_Managed(t *testing.T) {
@@ -29,42 +30,17 @@ func TestUpgrade_7_17_to_8_x_Snapshot_Standalone_to_Managed(t *testing.T) {
 	fromVersion := getLatestSnapshot(t, "7.17")
 	toVersion := getLatestSnapshot(t, "8")
 
-	// Data streams in 8.x should be all ILM.
-	checkILM := asserts.CheckDataStreamsWant{
-		Quantity:         8,
-		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
-		IndicesPerDS:     1,
-		IndicesManagedBy: []string{managedByILM},
-	}
+	t.Run("UpgradeFirst", func(t *testing.T) {
+		t.Parallel()
+		runner := upgradeThenManagedRunner(fromVersion, toVersion)
+		runner.Run(t)
+	})
 
-	runner := testStepsRunner{
-		Steps: []testStep{
-			createStep{
-				DeployVersion:     fromVersion,
-				APMDeploymentMode: apmStandalone,
-			},
-			ingestLegacyStep{},
-			upgradeLegacyStep{NewVersion: toVersion},
-			ingestStep{CheckDataStream: checkILM},
-			migrateManagedStep{},
-			ingestStep{CheckDataStream: checkILM},
-			checkErrorLogsStep{
-				ESErrorLogsIgnored: esErrorLogs{
-					eventLoopShutdown,
-				},
-				APMErrorLogsIgnored: apmErrorLogs{
-					tlsHandshakeError,
-					esReturnedUnknown503,
-					refreshCache503,
-					// TODO: remove once fixed
-					populateSourcemapFetcher403,
-				},
-			},
-		},
-	}
-
-	runner.Run(t)
+	t.Run("ManagedFirst", func(t *testing.T) {
+		t.Parallel()
+		runner := managedThenUpgradeRunner(fromVersion, toVersion)
+		runner.Run(t)
+	})
 }
 
 func TestUpgrade_7_17_to_8_x_BC_Standalone_to_Managed(t *testing.T) {
@@ -73,6 +49,20 @@ func TestUpgrade_7_17_to_8_x_BC_Standalone_to_Managed(t *testing.T) {
 	fromVersion := getLatestVersion(t, "7.17")
 	toVersion := getBCVersionOrSkip(t, "8")
 
+	t.Run("UpgradeFirst", func(t *testing.T) {
+		t.Parallel()
+		runner := upgradeThenManagedRunner(fromVersion, toVersion)
+		runner.Run(t)
+	})
+
+	t.Run("ManagedFirst", func(t *testing.T) {
+		t.Parallel()
+		runner := managedThenUpgradeRunner(fromVersion, toVersion)
+		runner.Run(t)
+	})
+}
+
+func upgradeThenManagedRunner(fromVersion, toVersion ecclient.StackVersion) testStepsRunner {
 	// Data streams in 8.x should be all ILM.
 	checkILM := asserts.CheckDataStreamsWant{
 		Quantity:         8,
@@ -82,7 +72,7 @@ func TestUpgrade_7_17_to_8_x_BC_Standalone_to_Managed(t *testing.T) {
 		IndicesManagedBy: []string{managedByILM},
 	}
 
-	runner := testStepsRunner{
+	return testStepsRunner{
 		Steps: []testStep{
 			createStep{
 				DeployVersion:     fromVersion,
@@ -107,6 +97,41 @@ func TestUpgrade_7_17_to_8_x_BC_Standalone_to_Managed(t *testing.T) {
 			},
 		},
 	}
+}
 
-	runner.Run(t)
+func managedThenUpgradeRunner(fromVersion, toVersion ecclient.StackVersion) testStepsRunner {
+	// Data streams in 8.x should be all ILM.
+	checkILM := asserts.CheckDataStreamsWant{
+		Quantity:         8,
+		PreferIlm:        true,
+		DSManagedBy:      managedByILM,
+		IndicesPerDS:     1,
+		IndicesManagedBy: []string{managedByILM},
+	}
+
+	return testStepsRunner{
+		Steps: []testStep{
+			createStep{
+				DeployVersion:     fromVersion,
+				APMDeploymentMode: apmStandalone,
+			},
+			ingestLegacyStep{},
+			migrateManagedStep{},
+			ingestLegacyStep{},
+			upgradeLegacyStep{NewVersion: toVersion},
+			ingestStep{CheckDataStream: checkILM},
+			checkErrorLogsStep{
+				ESErrorLogsIgnored: esErrorLogs{
+					eventLoopShutdown,
+				},
+				APMErrorLogsIgnored: apmErrorLogs{
+					tlsHandshakeError,
+					esReturnedUnknown503,
+					refreshCache503,
+					// TODO: remove once fixed
+					populateSourcemapFetcher403,
+				},
+			},
+		},
+	}
 }
