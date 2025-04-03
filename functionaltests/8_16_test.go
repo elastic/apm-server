@@ -26,8 +26,7 @@ import (
 func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeLazyRolloverDSLTest(
-		t,
+	scenarios := basicUpgradeLazyRolloverDSLTestScenarios(
 		getLatestSnapshot(t, "8.15"),
 		getLatestSnapshot(t, "8.16"),
 		[]types.Query{
@@ -41,13 +40,18 @@ func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 			populateSourcemapFetcher403,
 		},
 	)
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(t *testing.T) {
+			t.Parallel()
+			scenario.Runner.Run(t)
+		})
+	}
 }
 
 func TestUpgrade_8_15_to_8_16_BC(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeLazyRolloverDSLTest(
-		t,
+	scenarios := basicUpgradeLazyRolloverDSLTestScenarios(
 		getLatestVersion(t, "8.15"),
 		getBCVersionOrSkip(t, "8.16"),
 		[]types.Query{
@@ -61,4 +65,10 @@ func TestUpgrade_8_15_to_8_16_BC(t *testing.T) {
 			populateSourcemapFetcher403,
 		},
 	)
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(t *testing.T) {
+			t.Parallel()
+			scenario.Runner.Run(t)
+		})
+	}
 }
