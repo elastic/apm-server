@@ -110,8 +110,9 @@ func getHttpClient(t *testing.T) (*recorder.Recorder, *http.Client) {
 
 func TestClient_GetPackagePolicyByID(t *testing.T) {
 	kibanaURL := os.Getenv("KIBANA_URL")
-	apikey := os.Getenv("KIBANA_API_KEY")
-	kbc, err := kbclient.New(kibanaURL, apikey, "", "")
+	username := os.Getenv("KIBANA_USERNAME")
+	password := os.Getenv("KIBANA_PASSWORD")
+	kbc, err := kbclient.New(kibanaURL, username, password)
 	require.NoError(t, err)
 	_, httpc := getHttpClient(t)
 	kbc.Client = *httpc
@@ -123,16 +124,17 @@ func TestClient_GetPackagePolicyByID(t *testing.T) {
 
 func TestClient_UpdatePackagePolicyByID(t *testing.T) {
 	kibanaURL := os.Getenv("KIBANA_URL")
-	apiKey := os.Getenv("KIBANA_API_KEY")
-	kbc, err := kbclient.New(kibanaURL, apiKey, "", "")
+	username := os.Getenv("KIBANA_USERNAME")
+	password := os.Getenv("KIBANA_PASSWORD")
+	kbc, err := kbclient.New(kibanaURL, username, password)
 	require.NoError(t, err)
 	_, httpc := getHttpClient(t)
 	kbc.Client = *httpc
 
 	ctx := context.Background()
 	policyID := "elastic-cloud-apm"
-	err = kbc.UpdatePackagePolicyByID(ctx, policyID, kbclient.UpdatePackagePolicyRequest{
-		PackagePolicy: kbclient.PackagePolicy{
+	err = kbc.UpdatePackagePolicyByID(ctx, policyID,
+		kbclient.PackagePolicy{
 			Name:        "Elastic APM",
 			Description: "Hello World",
 			Package: kbclient.PackagePolicyPkg{
@@ -140,8 +142,7 @@ func TestClient_UpdatePackagePolicyByID(t *testing.T) {
 				Version: "9.1.0-SNAPSHOT",
 			},
 		},
-		Force: false,
-	})
+	)
 	require.NoError(t, err)
 
 	policy, err := kbc.GetPackagePolicyByID(ctx, policyID)
