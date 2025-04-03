@@ -73,7 +73,7 @@ func (c *Client) prepareRequest(method, path string, body any, super bool) (*htt
 	url := fmt.Sprintf("%s%s", c.url, path)
 	req, err := http.NewRequest(method, url, bytes.NewReader(b))
 	if err != nil {
-		return nil, fmt.Errorf("cannot create HTTP request: %w", err)
+		return nil, fmt.Errorf("cannot create http request: %w", err)
 	}
 
 	req.Header.Add("kbn-xsrf", "true")
