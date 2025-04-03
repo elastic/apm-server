@@ -136,9 +136,13 @@ type createStep struct {
 }
 
 func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ testStepResult) testStepResult {
+	integrations := c.APMDeploymentMode.enableIntegrations()
+	if c.DeployVersion.Major < 8 && integrations {
+		t.Fatal("create step cannot enable integrations for versions < 8.0")
+	}
+
 	t.Logf("------ cluster setup %s ------", c.DeployVersion)
 	e.tf = initTerraformRunner(t)
-	integrations := c.APMDeploymentMode.enableIntegrations()
 	deployInfo := createCluster(t, ctx, e.tf, *target, c.DeployVersion, integrations)
 	e.esc = createESClient(t, deployInfo)
 	e.kbc = createKibanaClient(t, deployInfo)
