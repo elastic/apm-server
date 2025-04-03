@@ -188,7 +188,7 @@ func createAPMGenerator(t *testing.T, ctx context.Context, esc *esclient.Client,
 	return g
 }
 
-// getDocCountPerDS retrieves document count per data stream.
+// getDocCountPerDS retrieves document count per data stream for versions >= 8.0.
 func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.DataStreamsDocCount {
 	t.Helper()
 	count, err := esc.APMDSDocCount(ctx)
@@ -196,10 +196,18 @@ func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) e
 	return count
 }
 
-// getDocCountPerIndex retrieves document count per index.
-func getDocCountPerIndex(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.IndicesDocCount {
+// getDocCountPerDS retrieves document count per data stream for versions < 8.0.
+func getDocCountPerDSV7(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.DataStreamsDocCount {
 	t.Helper()
-	count, err := esc.APMDocCountV7(ctx)
+	count, err := esc.APMDSDocCountV7(ctx)
+	require.NoError(t, err)
+	return count
+}
+
+// getDocCountPerIndexV7 retrieves document count per index for versions < 8.0.
+func getDocCountPerIndexV7(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.IndicesDocCount {
+	t.Helper()
+	count, err := esc.APMIdxDocCountV7(ctx)
 	require.NoError(t, err)
 	return count
 }
