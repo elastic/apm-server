@@ -19,6 +19,7 @@ package functionaltests
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -38,8 +39,10 @@ type testStepsRunner struct {
 	// DataStreamNamespace is the namespace for the APM data streams
 	// that is being tested. Defaults to "default".
 	//
-	// NOTE: Only applicable for stack versions 8+.
+	// NOTE: Only applicable for stack versions >= 8.0 or 7.x with
+	// integrations enabled.
 	DataStreamNamespace string
+
 	// Steps are the user defined test steps to be run.
 	Steps []testStep
 }
@@ -168,7 +171,8 @@ var _ testStep = ingestStep{}
 //
 // NOTE: Only works for versions >= 8.0.
 type ingestStep struct {
-	CheckDataStream asserts.CheckDataStreamsWant
+	CheckDataStream   asserts.CheckDataStreamsWant
+	IgnoreDataStreams []string
 }
 
 var _ testStep = ingestStep{}
@@ -184,16 +188,24 @@ func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, prev
 
 	t.Log("------ ingest check ------")
 	t.Log("check number of documents after ingestion")
-	dsDocCount := getDocCountPerDS(t, ctx, e.esc)
+	ignoreDS := formatAll(i.IgnoreDataStreams, e.dsNamespace)
+	dsDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
 	asserts.CheckDocCount(t, dsDocCount, previousRes.DSDocCount,
 		expectedDataStreamsIngest(e.dsNamespace))
 
 	t.Log("check data streams after ingestion")
-	dss, err := e.esc.GetDataStream(ctx, "*apm*")
-	require.NoError(t, err)
-	asserts.CheckDataStreams(t, i.CheckDataStream, dss)
+	dataStreams := getAPMDataStreams(t, ctx, e.esc, ignoreDS...)
+	asserts.CheckDataStreams(t, i.CheckDataStream, dataStreams)
 
 	return testStepResult{DSDocCount: dsDocCount}
+}
+
+func formatAll(formats []string, v string) []string {
+	res := make([]string, 0, len(formats))
+	for _, format := range formats {
+		res = append(res, fmt.Sprintf(format, v))
+	}
+	return res
 }
 
 // upgradeStep upgrades the ECH deployment from its current version to the new
@@ -230,9 +242,8 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 		emptyDataStreamsIngest(e.dsNamespace))
 
 	t.Log("check data streams after upgrade")
-	dss, err := e.esc.GetDataStream(ctx, "*apm*")
-	require.NoError(t, err)
-	asserts.CheckDataStreams(t, u.CheckDataStream, dss)
+	dataStreams := getAPMDataStreams(t, ctx, e.esc)
+	asserts.CheckDataStreams(t, u.CheckDataStream, dataStreams)
 
 	return testStepResult{DSDocCount: dsDocCount}
 }

@@ -19,6 +19,7 @@ package functionaltests
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -47,8 +48,33 @@ func emptyIndicesIngest() esclient.IndicesDocCount {
 		"apm-*-profile-*":     0,
 		"apm-*-span-*":        0,
 		"apm-*-transaction-*": 0,
-		"apm-*-metric-*":      -1,
 		"apm-*-onboarding-*":  0,
+		"apm-*-metric-*":      -1,
+	}
+}
+
+func expectedDataStreamsIngestV7(namespace string) esclient.DataStreamsDocCount {
+	return map[string]int{
+		fmt.Sprintf("traces-apm-%s", namespace):                     15013,
+		fmt.Sprintf("logs-apm.error-%s", namespace):                 364,
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 1492,
+		fmt.Sprintf("metrics-apm.app.opbeans_node-%s", namespace):   27,
+		fmt.Sprintf("metrics-apm.app.opbeans_go-%s", namespace):     11,
+		fmt.Sprintf("metrics-apm.app.opbeans_ruby-%s", namespace):   24,
+		// Document count fluctuates constantly.
+		fmt.Sprintf("metrics-apm.internal-%s", namespace): -1,
+	}
+}
+
+func emptyDataStreamsIngestV7(namespace string) esclient.DataStreamsDocCount {
+	return map[string]int{
+		fmt.Sprintf("traces-apm-%s", namespace):                     0,
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 0,
+		fmt.Sprintf("metrics-apm.app.opbeans_node-%s", namespace):   0,
+		fmt.Sprintf("metrics-apm.app.opbeans_go-%s", namespace):     0,
+		fmt.Sprintf("metrics-apm.app.opbeans_ruby-%s", namespace):   0,
+		fmt.Sprintf("metrics-apm.internal-%s", namespace):           0,
+		fmt.Sprintf("logs-apm.error-%s", namespace):                 0,
 	}
 }
 
@@ -74,17 +100,19 @@ func (i ingestLegacyStep) Step(t *testing.T, ctx context.Context, e *testStepEnv
 
 	t.Log("------ ingest check ------")
 	t.Log("check number of documents after ingestion")
-	if e.integrations {
-		dsDocCount := getDocCountPerDSV7(t, ctx, e.esc)
-		asserts.CheckDocCount(t, dsDocCount, previousRes.DSDocCount,
-			expectedDataStreamsIngest(e.dsNamespace))
-		return testStepResult{DSDocCount: dsDocCount}
+	// Standalone, check indices.
+	if !e.integrations {
+		idxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
+		asserts.CheckDocCountV7(t, idxDocCount, previousRes.IndicesDocCount,
+			expectedIndicesIngest())
+		return testStepResult{IndicesDocCount: idxDocCount}
 	}
 
-	idxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
-	asserts.CheckDocCountV7(t, idxDocCount, previousRes.IndicesDocCount,
-		expectedIndicesIngest())
-	return testStepResult{IndicesDocCount: idxDocCount}
+	// Managed, check data streams
+	dsDocCount := getDocCountPerDSV7(t, ctx, e.esc, e.dsNamespace)
+	asserts.CheckDocCount(t, dsDocCount, previousRes.DSDocCount,
+		expectedDataStreamsIngestV7(e.dsNamespace))
+	return testStepResult{DSDocCount: dsDocCount}
 }
 
 // upgradeLegacyStep upgrades the ECH deployment from its current version to
@@ -116,17 +144,19 @@ func (u upgradeLegacyStep) Step(t *testing.T, ctx context.Context, e *testStepEn
 	// We assert that no changes happened in the number of documents after upgrade
 	// to ensure the state didn't change.
 	// We don't expect any change here unless something broke during the upgrade.
-	idxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
-	asserts.CheckDocCountV7(t, idxDocCount, previousRes.IndicesDocCount,
-		emptyIndicesIngest())
-
-	// Upgrade from version < 8.0 to < 8.0, return indices as result.
-	if e.currentVersion().Major < 8 {
+	if !e.integrations {
+		// Standalone, return indices even if upgraded to >= 8.0, since indices
+		// will simply be ignored by 8.x checks.
+		idxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
+		asserts.CheckDocCountV7(t, idxDocCount, previousRes.IndicesDocCount,
+			emptyIndicesIngest())
 		return testStepResult{IndicesDocCount: idxDocCount}
 	}
 
-	// Upgrade from version < 8.0 to >= 8.0, return data streams as result.
-	// Don't need to assert data streams, since there's likely nothing.
+	// Managed, should be data streams regardless of upgrade.
+	dsDocCount := getDocCountPerDSV7(t, ctx, e.esc, e.dsNamespace)
+	asserts.CheckDocCount(t, dsDocCount, previousRes.DSDocCount,
+		emptyDataStreamsIngestV7(e.dsNamespace))
 	return testStepResult{DSDocCount: getDocCountPerDS(t, ctx, e.esc)}
 }
 

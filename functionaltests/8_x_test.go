@@ -101,12 +101,20 @@ func upgradeThenManagedRunner(fromVersion, toVersion ecclient.StackVersion) test
 
 func managedThenUpgradeRunner(fromVersion, toVersion ecclient.StackVersion) testStepsRunner {
 	// Data streams in 8.x should be all ILM.
-	checkILM := asserts.CheckDataStreamsWant{
+	checkILMRollover := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
-		IndicesPerDS:     1,
-		IndicesManagedBy: []string{managedByILM},
+		IndicesPerDS:     2,
+		IndicesManagedBy: []string{managedByILM, managedByILM},
+	}
+
+	// These data streams are created in 7.x, but not used in 8.x,
+	// so we ignore them to avoid wrong assertions.
+	ignoredDataStreams := []string{
+		"metrics-apm.app.opbeans_node-%s",
+		"metrics-apm.app.opbeans_ruby-%s",
+		"metrics-apm.app.opbeans_go-%s",
 	}
 
 	return testStepsRunner{
@@ -119,15 +127,22 @@ func managedThenUpgradeRunner(fromVersion, toVersion ecclient.StackVersion) test
 			migrateManagedStep{},
 			ingestLegacyStep{},
 			upgradeLegacyStep{NewVersion: toVersion},
-			ingestStep{CheckDataStream: checkILM},
+			ingestStep{
+				IgnoreDataStreams: ignoredDataStreams,
+				CheckDataStream:   checkILMRollover,
+			},
 			checkErrorLogsStep{
 				ESErrorLogsIgnored: esErrorLogs{
 					eventLoopShutdown,
+					addIndexTemplateTracesError,
 				},
 				APMErrorLogsIgnored: apmErrorLogs{
 					tlsHandshakeError,
 					esReturnedUnknown503,
 					refreshCache503,
+					preconditionClusterInfoCtxCanceled,
+					waitServerReadyCtxCanceled,
+					grpcServerStopped,
 					// TODO: remove once fixed
 					populateSourcemapFetcher403,
 				},
