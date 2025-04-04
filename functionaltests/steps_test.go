@@ -129,7 +129,7 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ te
 	integrations := c.APMDeploymentMode.enableIntegrations()
 	deployInfo := createCluster(t, ctx, e.tf, *target, c.DeployVersion, integrations)
 	e.esc = createESClient(t, deployInfo)
-	e.kbc = createKibanaClient(t, ctx, e.esc, deployInfo)
+	e.kbc = createKibanaClient(t, deployInfo)
 	e.gen = createAPMGenerator(t, ctx, e.esc, e.kbc, deployInfo)
 	// Update the environment version to the new one.
 	e.version = c.DeployVersion
@@ -161,8 +161,7 @@ func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, prev
 	t.Log("check number of documents after ingestion")
 	docCount := getDocCountPerDS(t, ctx, e.esc)
 	asserts.CheckDocCount(t, docCount, previousRes.DSDocCount,
-		expectedIngestForASingleRun(e.dsNamespace),
-		aggregationDataStreams(e.dsNamespace))
+		expectedIngestForASingleRun(e.dsNamespace))
 
 	t.Log("check data streams after ingestion")
 	dss, err := e.esc.GetDataStream(ctx, "*apm*")
@@ -198,8 +197,7 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 	// to ensure the state didn't change.
 	// We don't expect any change here unless something broke during the upgrade.
 	asserts.CheckDocCount(t, docCount, previousRes.DSDocCount,
-		emptyIngestForASingleRun(e.dsNamespace),
-		aggregationDataStreams(e.dsNamespace))
+		emptyIngestForASingleRun(e.dsNamespace))
 
 	t.Log("check data streams after upgrade")
 	dss, err := e.esc.GetDataStream(ctx, "*apm*")
@@ -228,7 +226,7 @@ func (c checkErrorLogsStep) Step(t *testing.T, ctx context.Context, e *testStepE
 	asserts.ZeroESLogs(t, *resp)
 
 	t.Log("checking APM error logs")
-	resp, err = e.esc.GetAPMErrorLogs(ctx, c.APMErrorLogsIgnored)
+	resp, err = e.esc.GetAPMErrorLogs(ctx, c.APMErrorLogsIgnored...)
 	require.NoError(t, err)
 	asserts.ZeroAPMLogs(t, *resp)
 
