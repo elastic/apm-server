@@ -19,6 +19,7 @@ package apmservertest
 
 import (
 	"context"
+	"crypto/fips140"
 	"fmt"
 	"log"
 	"os"
@@ -168,15 +169,22 @@ func BuildServerBinary(goos, goarch string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	relpath := filepath.Join("build", fmt.Sprintf("apm-server-%s-%s", goos, goarch))
-	if goos == "windows" {
-		relpath += ".exe"
+	name := "apm-server"
+	abspath := filepath.Join(repoRoot, "build", fmt.Sprintf("apm-server-%s-%s", goos, goarch))
+	if fips140.Enabled() {
+		abspath += "-fips"
+		name += "-fips"
 	}
-	abspath := filepath.Join(repoRoot, relpath)
+	if goos == "windows" {
+		abspath += ".exe"
+	}
 
-	log.Println("Building apm-server...")
-	cmd := exec.Command("make", relpath)
+	log.Printf("Building %s...", name)
+	cmd := exec.Command("make", name)
 	cmd.Dir = repoRoot
+	cmd.Env = append(cmd.Env, os.Environ()...)
+	cmd.Env = append(cmd.Env, "NOCP=1") // prevent race condition
+	cmd.Env = append(cmd.Env, "GOOS="+goos, "GOARCH="+goarch)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
