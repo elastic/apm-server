@@ -358,7 +358,7 @@ func generateCerts(dir string, ca bool, keyUsage x509.ExtKeyUsage, hosts ...stri
 		return "", "", fmt.Errorf("failed to write data to client_cert.pem: %w", err)
 	}
 	if err := certOut.Close(); err != nil {
-		return "", "", fmt.Errorf("Error closing client_cert.pem: %w", err)
+		return "", "", fmt.Errorf("error closing client_cert.pem: %w", err)
 	}
 
 	keyOut, err := os.CreateTemp(dir, "client_key.pem")
