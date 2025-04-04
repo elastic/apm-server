@@ -38,19 +38,23 @@ type CheckDataStreamsWant struct {
 func CheckDataStreams(t *testing.T, expected CheckDataStreamsWant, actual []types.DataStream) {
 	t.Helper()
 
-	require.Len(t, actual, expected.Quantity, "number of APM datastream differs from expectations")
+	// Preliminarily check that these two are matching, to avoid panic later.
+	require.Len(t, expected.IndicesManagedBy, expected.IndicesPerDS,
+		"length of IndicesManagedBy should be equal to IndicesPerDS")
+	assert.Len(t, actual, expected.Quantity, "number of APM data streams differs from expectations")
+
 	for _, v := range actual {
 		if expected.PreferIlm {
-			assert.True(t, v.PreferIlm, "datastream %s should prefer ILM", v.Name)
+			assert.True(t, v.PreferIlm, "data stream %s should prefer ILM", v.Name)
 		} else {
-			assert.False(t, v.PreferIlm, "datastream %s should not prefer ILM", v.Name)
+			assert.False(t, v.PreferIlm, "data stream %s should not prefer ILM", v.Name)
 		}
 
 		assert.Equal(t, expected.DSManagedBy, v.NextGenerationManagedBy.Name,
-			`datastream %s should be managed by "%s"`, v.Name, expected.DSManagedBy,
+			`data stream %s should be managed by "%s"`, v.Name, expected.DSManagedBy,
 		)
 		assert.Len(t, v.Indices, expected.IndicesPerDS,
-			"datastream %s should have %d indices", v.Name, expected.IndicesPerDS,
+			"data stream %s should have %d indices", v.Name, expected.IndicesPerDS,
 		)
 		for i, index := range v.Indices {
 			assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name,
