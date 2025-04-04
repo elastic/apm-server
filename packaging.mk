@@ -202,7 +202,7 @@ $(ARCHIVE_FIPS_PREFIX)-%:
 	install -m 644 $(filter-out build/apm-server-fips-%, $^) $@
 # the apm-server.yml can only be writable by the owner; let's avoid the issues with umask
 	install -m 600 apm-server.yml $@
-	cp $(filter build/apm-server-fips-%, $^) $@/apm-server-fips$(suffix $(filter build/apm-server-fips-%, $^))
+	cp $(filter build/apm-server-fips-%, $^) $@/apm-server$(suffix $(filter build/apm-server-fips-%, $^))
 
 $(DISTDIR)/%.tar.gz: $(ARCHIVES_DIR)/%
 	@mkdir -p $(DISTDIR) && rm -f $@
