@@ -23,17 +23,21 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
+// Data streams get marked for lazy rollover by ES when something
+// changed in the underlying template(s), which in this case is
+// the apm-data plugin update for 8.19 and 9.1:
+// https://github.com/elastic/elasticsearch/pull/119995.
+
+func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 	t.Parallel()
 
-	scenarios := basicUpgradeILMTestScenarios(
-		getLatestSnapshot(t, "8.18"),
+	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
 		getLatestSnapshot(t, "9.0"),
+		getLatestSnapshot(t, "9.1"),
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
-			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
 	)
@@ -45,17 +49,58 @@ func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
 	}
 }
 
-func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
+func TestUpgrade_9_0_to_9_1_BC(t *testing.T) {
 	t.Parallel()
 
-	scenarios := basicUpgradeILMTestScenarios(
-		getLatestVersionOrSkip(t, "8.18"),
-		getLatestBCOrSkip(t, "9.0"),
+	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
+		getLatestVersionOrSkip(t, "9.0"),
+		getLatestBCOrSkip(t, "9.1"),
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
-			// TODO: remove once fixed
+			populateSourcemapFetcher403,
+		},
+	)
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(t *testing.T) {
+			t.Parallel()
+			scenario.Runner.Run(t)
+		})
+	}
+}
+
+func TestUpgrade_8_19_to_9_1_Snapshot(t *testing.T) {
+	t.Parallel()
+
+	scenarios := basicUpgradeILMTestScenarios(
+		getLatestSnapshot(t, "8.19"),
+		getLatestSnapshot(t, "9.1"),
+		[]types.Query{
+			tlsHandshakeError,
+			esReturnedUnknown503,
+			refreshCache503,
+			populateSourcemapFetcher403,
+		},
+	)
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(t *testing.T) {
+			t.Parallel()
+			scenario.Runner.Run(t)
+		})
+	}
+}
+
+func TestUpgrade_8_19_to_9_1_BC(t *testing.T) {
+	t.Parallel()
+
+	scenarios := basicUpgradeILMTestScenarios(
+		getLatestVersionOrSkip(t, "8.19"),
+		getLatestBCOrSkip(t, "9.1"),
+		[]types.Query{
+			tlsHandshakeError,
+			esReturnedUnknown503,
+			refreshCache503,
 			populateSourcemapFetcher403,
 		},
 	)
