@@ -24,7 +24,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -128,7 +127,7 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ecclient.StackV
 
 	// With Fleet managed APM server, we can trigger metrics flush.
 	if integrations {
-		if err := flushAPMMetrics(ctx, g.kbc, version.String()); err != nil {
+		if err := flushAPMMetrics(ctx, g.kbc, version); err != nil {
 			return fmt.Errorf("cannot flush apm metrics: %w", err)
 		}
 		return nil
@@ -141,25 +140,17 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ecclient.StackV
 
 // flushAPMMetrics sends an update to the Fleet APM package policy in order
 // to trigger the flushing of in-flight APM metrics.
-func flushAPMMetrics(ctx context.Context, kbc *kbclient.Client, version string) error {
+func flushAPMMetrics(ctx context.Context, kbc *kbclient.Client, version ecclient.StackVersion) error {
 	policyID := "elastic-cloud-apm"
-	policy, err := kbc.GetPackagePolicyByID(ctx, policyID)
-	if err != nil {
-		return fmt.Errorf("cannot get elastic-cloud-apm package policy: %w", err)
-	}
+	description := fmt.Sprintf("Functional tests %s", version)
 
-	// If the package policy version returned from API does not match with
-	// expected version, set it ourselves to hopefully circumvent it.
-	// Relevant issue: https://github.com/elastic/kibana/issues/215437.
-	if !strings.HasPrefix(policy.Package.Version, version) {
-		// Set the expected version for this ingestion.
-		policy.Package.Version = version
-	}
 	// Sending an update with modifying the description is enough to trigger
 	// final aggregations in APM Server and flush of in-flight metrics.
-	policy.Description = fmt.Sprintf("Functional tests %s", version)
-	if err = kbc.UpdatePackagePolicyByID(ctx, policyID, policy); err != nil {
-		return fmt.Errorf("cannot update elastic-cloud-apm package policy: %w", err)
+	if err := kbc.UpdatePackagePolicyDescriptionByID(ctx, policyID, version, description); err != nil {
+		return fmt.Errorf(
+			"cannot update %s package policy description for trigger flush: %w",
+			policyID, err,
+		)
 	}
 
 	// APM Server needs some time to flush all metrics, and we don't have any
