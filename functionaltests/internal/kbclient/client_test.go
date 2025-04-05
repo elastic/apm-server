@@ -108,7 +108,7 @@ func getHttpClient(t *testing.T) (*recorder.Recorder, *http.Client) {
 	return rec, hc
 }
 
-func TestClient_GetPackagePolicyByID(t *testing.T) {
+func newRecordedTestClient(t *testing.T) *kbclient.Client {
 	kibanaURL := os.Getenv("KIBANA_URL")
 	username := os.Getenv("KIBANA_USERNAME")
 	password := os.Getenv("KIBANA_PASSWORD")
@@ -116,6 +116,12 @@ func TestClient_GetPackagePolicyByID(t *testing.T) {
 	require.NoError(t, err)
 	_, httpc := getHttpClient(t)
 	kbc.Client = *httpc
+
+	return kbc
+}
+
+func TestClient_GetPackagePolicyByID(t *testing.T) {
+	kbc := newRecordedTestClient(t)
 
 	policy, err := kbc.GetPackagePolicyByID(context.Background(), "elastic-cloud-apm")
 	require.NoError(t, err)
@@ -123,17 +129,11 @@ func TestClient_GetPackagePolicyByID(t *testing.T) {
 }
 
 func TestClient_UpdatePackagePolicyByID(t *testing.T) {
-	kibanaURL := os.Getenv("KIBANA_URL")
-	username := os.Getenv("KIBANA_USERNAME")
-	password := os.Getenv("KIBANA_PASSWORD")
-	kbc, err := kbclient.New(kibanaURL, username, password)
-	require.NoError(t, err)
-	_, httpc := getHttpClient(t)
-	kbc.Client = *httpc
+	kbc := newRecordedTestClient(t)
 
 	ctx := context.Background()
 	policyID := "elastic-cloud-apm"
-	err = kbc.UpdatePackagePolicyByID(ctx, policyID,
+	err := kbc.UpdatePackagePolicyByID(ctx, policyID,
 		kbclient.PackagePolicy{
 			Name:        "Elastic APM",
 			Description: "Hello World",
@@ -148,4 +148,26 @@ func TestClient_UpdatePackagePolicyByID(t *testing.T) {
 	policy, err := kbc.GetPackagePolicyByID(ctx, policyID)
 	require.NoError(t, err)
 	assert.Equal(t, "Hello World", policy.Description)
+}
+
+func TestClient_ResolveMigrationDeprecations(t *testing.T) {
+	kbc := newRecordedTestClient(t)
+
+	ctx := context.Background()
+	// Check that there are some critical deprecation warnings.
+	deprecations, err := kbc.QueryCriticalESDeprecations(ctx)
+	require.NoError(t, err)
+	require.Greater(t, len(deprecations), 0)
+	for _, deprecation := range deprecations {
+		require.True(t, deprecation.IsCritical)
+	}
+
+	// Resolve them.
+	err = kbc.ResolveMigrationDeprecations(ctx)
+	require.NoError(t, err)
+
+	// Check that there are no more.
+	deprecations, err = kbc.QueryCriticalESDeprecations(ctx)
+	require.NoError(t, err)
+	assert.Len(t, deprecations, 0)
 }
