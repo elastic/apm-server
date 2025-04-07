@@ -20,8 +20,6 @@ package functionaltests
 import (
 	"testing"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 )
 
@@ -64,7 +62,7 @@ func TestUpgrade_8_16_to_8_17_Snapshot(t *testing.T) {
 			IndicesPerDS:     2,
 			IndicesManagedBy: []string{managedByDSL, managedByILM},
 		},
-		[]types.Query{
+		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
@@ -111,7 +109,7 @@ func TestUpgrade_8_16_to_8_17_BC(t *testing.T) {
 			IndicesPerDS:     2,
 			IndicesManagedBy: []string{managedByDSL, managedByILM},
 		},
-		[]types.Query{
+		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,

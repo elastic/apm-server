@@ -19,8 +19,6 @@ package functionaltests
 
 import (
 	"testing"
-
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 // Data streams get marked for lazy rollover by ES when something
@@ -34,7 +32,7 @@ func TestUpgrade_8_18_to_8_19_Snapshot(t *testing.T) {
 	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
 		getLatestSnapshot(t, "8.18"),
 		getLatestSnapshot(t, "8.19"),
-		[]types.Query{
+		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
@@ -55,7 +53,7 @@ func TestUpgrade_8_18_to_8_19_BC(t *testing.T) {
 	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
 		getLatestVersionOrSkip(t, "8.18"),
 		getLatestBCOrSkip(t, "8.19"),
-		[]types.Query{
+		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,

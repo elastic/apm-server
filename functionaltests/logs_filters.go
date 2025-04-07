@@ -22,49 +22,62 @@ import "github.com/elastic/go-elasticsearch/v8/typedapi/types"
 // These vars are Elasticsearch query matchers to filter out some specific
 // log lines from APM Server logs.
 // To be used to filter the APM Server logs in test cases.
+type (
+	apmErrorLog  types.Query
+	apmErrorLogs []apmErrorLog
+)
+
+func (e apmErrorLogs) ToQueries() []types.Query {
+	queries := make([]types.Query, 0, len(e))
+	for _, entry := range e {
+		queries = append(queries, types.Query(entry))
+	}
+	return queries
+}
+
 var (
-	tlsHandshakeError = types.Query{
+	tlsHandshakeError = apmErrorLog(types.Query{
 		MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
 			"message": {Query: "http: TLS handshake error from 127.0.0.1:"},
 		},
-	}
+	})
 
-	esReturnedUnknown503 = types.Query{
+	esReturnedUnknown503 = apmErrorLog(types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "ES returned unknown status code: 503 Service Unavailable"},
 		},
-	}
+	})
 
-	refreshCache503 = types.Query{
-		MatchPhrase: map[string]types.MatchPhraseQuery{
-			"message": {Query: "refresh cache elasticsearch returned status 503"},
-		},
-	}
-	refreshCacheCtxDeadline = types.Query{
-		MatchPhrase: map[string]types.MatchPhraseQuery{
-			"message": {Query: "refresh cache error: context deadline exceeded"},
-		},
-	}
-	refreshCacheCtxCanceled = types.Query{
-		MatchPhrase: map[string]types.MatchPhraseQuery{
-			"message": {Query: "refresh cache error: context canceled"},
-		},
-	}
-
-	preconditionFailed = types.Query{
+	preconditionFailed = apmErrorLog(types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "precondition failed: context canceled"},
 		},
-	}
+	})
 
-	populateSourcemapServerShuttingDown = types.Query{
+	populateSourcemapServerShuttingDown = apmErrorLog(types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "failed to populate sourcemap metadata: failed to run initial search query: fetcher unavailable: server shutting down"},
 		},
-	}
-	populateSourcemapFetcher403 = types.Query{
+	})
+	populateSourcemapFetcher403 = apmErrorLog(types.Query{
 		MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
 			"message": {Query: "failed to populate sourcemap metadata: fetcher unavailable: 403 Forbidden:"},
 		},
-	}
+	})
+
+	refreshCache503 = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "refresh cache elasticsearch returned status 503"},
+		},
+	})
+	refreshCacheCtxDeadline = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "refresh cache error: context deadline exceeded"},
+		},
+	})
+	refreshCacheCtxCanceled = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "refresh cache error: context canceled"},
+		},
+	})
 )
