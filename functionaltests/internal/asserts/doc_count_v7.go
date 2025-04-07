@@ -40,7 +40,7 @@ func CheckDocCountV7(
 	t.Helper()
 
 	if prevDocCount == nil {
-		prevDocCount = currDocCount
+		prevDocCount = map[string]int{}
 	}
 
 	// Check that all expected indices appear.
@@ -56,6 +56,7 @@ func CheckDocCountV7(
 		e, ok := expectedDiff[idx]
 		if !ok {
 			t.Errorf("unexpected documents (%d) for index %s", v, idx)
+			continue
 		}
 
 		if e < 0 {
