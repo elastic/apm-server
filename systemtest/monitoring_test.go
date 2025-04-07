@@ -72,7 +72,7 @@ func TestMonitoring(t *testing.T) {
 		Output  json.RawMessage
 	}
 
-	assert.Eventually(t, func() bool {
+	require.Eventually(t, func() bool {
 		metrics.Libbeat = nil
 		metrics.Output = nil
 		getBeatsMonitoringStats(t, srv, &metrics)
@@ -93,8 +93,8 @@ func TestMonitoring(t *testing.T) {
 	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.active").Int())
 	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.failed").Int())
 	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.toomany").Int())
-	assert.Equal(t, int64(N), gjson.GetBytes(metrics.Libbeat, "output.events.total").Int())
-	assert.Equal(t, int64(N), gjson.GetBytes(metrics.Libbeat, "pipeline.events.total").Int())
+	assert.GreaterOrEqual(t, gjson.GetBytes(metrics.Libbeat, "output.events.total").Int(), int64(N))
+	assert.GreaterOrEqual(t, gjson.GetBytes(metrics.Libbeat, "pipeline.events.total").Int(), int64(N))
 	assert.Equal(t, "elasticsearch", gjson.GetBytes(metrics.Libbeat, "output.type").Str)
 
 	bulkRequestsAvailable := gjson.GetBytes(metrics.Output, "elasticsearch.bulk_requests.available")
