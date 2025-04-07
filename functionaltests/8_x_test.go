@@ -42,8 +42,8 @@ func TestUpgrade_7_17_to_8_x_Snapshot_Standalone_to_Managed(t *testing.T) {
 }
 
 func TestUpgrade_7_17_to_8_x_BC_Standalone_to_Managed(t *testing.T) {
-	fromVersion := getLatestVersion(t, "7.17")
-	toVersion := getBCVersionOrSkip(t, "8")
+	fromVersion := getLatestVersionOrSkip(t, "7.17")
+	toVersion := getLatestBCOrSkip(t, "8")
 
 	t.Run("UpgradeFirst", func(t *testing.T) {
 		t.Parallel()
@@ -96,13 +96,37 @@ func upgradeThenManagedRunner(fromVersion, toVersion ecclient.StackVersion) test
 }
 
 func managedThenUpgradeRunner(fromVersion, toVersion ecclient.StackVersion) testStepsRunner {
-	// Data streams in 8.x should be all ILM.
-	checkILM := asserts.CheckDataStreamsWant{
-		Quantity:         8,
+	checkILM := asserts.CheckDataStreamIndividualWant{
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
-		IndicesPerDS:     1,
 		IndicesManagedBy: []string{managedByILM},
+	}
+	checkILMRollover := asserts.CheckDataStreamIndividualWant{
+		PreferIlm:        true,
+		DSManagedBy:      managedByILM,
+		IndicesManagedBy: []string{managedByILM, managedByILM},
+	}
+
+	check := map[string]asserts.CheckDataStreamIndividualWant{
+		// These data streams are created in 7.x as well, so when we ingest again
+		// in 8.x, they will be rolled-over.
+		"traces-apm-%s":                     checkILMRollover,
+		"metrics-apm.app.opbeans_python-%s": checkILMRollover,
+		"metrics-apm.internal-%s":           checkILMRollover,
+		"logs-apm.error-%s":                 checkILMRollover,
+		// These data streams are only created in 8.x, so they will only have 1 index.
+		"metrics-apm.service_destination.1m-%s": checkILM,
+		"metrics-apm.service_transaction.1m-%s": checkILM,
+		"metrics-apm.service_summary.1m-%s":     checkILM,
+		"metrics-apm.transaction.1m-%s":         checkILM,
+	}
+
+	// These data streams are created in 7.x, but not used in 8.x,
+	// so we ignore them to avoid wrong assertions.
+	ignoredDataStreams := []string{
+		"metrics-apm.app.opbeans_node-%s",
+		"metrics-apm.app.opbeans_ruby-%s",
+		"metrics-apm.app.opbeans_go-%s",
 	}
 
 	return testStepsRunner{
@@ -115,15 +139,22 @@ func managedThenUpgradeRunner(fromVersion, toVersion ecclient.StackVersion) test
 			migrateManagedStep{},
 			ingestLegacyStep{},
 			upgradeLegacyStep{NewVersion: toVersion},
-			ingestStep{CheckDataStream: checkILM},
+			ingestStep{
+				IgnoreDataStreams:         ignoredDataStreams,
+				CheckIndividualDataStream: check,
+			},
 			checkErrorLogsStep{
 				ESErrorLogsIgnored: esErrorLogs{
 					eventLoopShutdown,
+					addIndexTemplateTracesError,
 				},
 				APMErrorLogsIgnored: apmErrorLogs{
 					tlsHandshakeError,
 					esReturnedUnknown503,
 					refreshCache503,
+					preconditionClusterInfoCtxCanceled,
+					waitServerReadyCtxCanceled,
+					grpcServerStopped,
 					// TODO: remove once fixed
 					populateSourcemapFetcher403,
 				},

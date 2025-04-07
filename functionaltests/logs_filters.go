@@ -48,9 +48,20 @@ var (
 		},
 	})
 
+	grpcServerStopped = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "grpc: the server has been stopped"},
+		},
+	})
+
 	preconditionFailed = apmErrorLog(types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "precondition failed: context canceled"},
+		},
+	})
+	preconditionClusterInfoCtxCanceled = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "precondition failed: failed to query cluster info: context canceled"},
 		},
 	})
 
@@ -80,6 +91,12 @@ var (
 			"message": {Query: "refresh cache error: context canceled"},
 		},
 	})
+
+	waitServerReadyCtxCanceled = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "error waiting for server to be ready: context canceled"},
+		},
+	})
 )
 
 // These vars are Elasticsearch query matchers to filter out some specific
@@ -103,6 +120,12 @@ var (
 	eventLoopShutdown = esErrorLog(types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "Failed to submit a listener notification task. Event loop shut down?"},
+		},
+	})
+
+	addIndexTemplateTracesError = esErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "error adding index template [traces-apm@mappings] for [apm]"},
 		},
 	})
 )

@@ -20,7 +20,9 @@ package functionaltests
 import (
 	"context"
 	"fmt"
+	"maps"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -188,18 +190,43 @@ func createAPMGenerator(t *testing.T, ctx context.Context, esc *esclient.Client,
 	return g
 }
 
+func sliceToSet[T comparable](s []T) map[T]bool {
+	m := make(map[T]bool)
+	for _, ele := range s {
+		m[ele] = true
+	}
+	return m
+}
+
+// getAPMDataStreams get all APM related data streams.
+func getAPMDataStreams(t *testing.T, ctx context.Context, esc *esclient.Client, ignoreDS ...string) []types.DataStream {
+	t.Helper()
+	dataStreams, err := esc.GetDataStream(ctx, "*apm*")
+	require.NoError(t, err)
+
+	ignore := sliceToSet(ignoreDS)
+	return slices.DeleteFunc(dataStreams, func(ds types.DataStream) bool {
+		return ignore[ds.Name]
+	})
+}
+
 // getDocCountPerDS retrieves document count per data stream for versions >= 8.0.
-func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.DataStreamsDocCount {
+func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client, ignoreDS ...string) esclient.DataStreamsDocCount {
 	t.Helper()
 	count, err := esc.APMDSDocCount(ctx)
 	require.NoError(t, err)
+
+	ignore := sliceToSet(ignoreDS)
+	maps.DeleteFunc(count, func(ds string, _ int) bool {
+		return ignore[ds]
+	})
 	return count
 }
 
 // getDocCountPerDS retrieves document count per data stream for versions < 8.0.
-func getDocCountPerDSV7(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.DataStreamsDocCount {
+func getDocCountPerDSV7(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) esclient.DataStreamsDocCount {
 	t.Helper()
-	count, err := esc.APMDSDocCountV7(ctx)
+	count, err := esc.APMDSDocCountV7(ctx, namespace)
 	require.NoError(t, err)
 	return count
 }
