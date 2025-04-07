@@ -26,7 +26,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/patrickmn/go-cache"
+	"github.com/cespare/xxhash/v2"
+	"github.com/elastic/go-freelru"
 
 	es "github.com/elastic/apm-server/internal/elasticsearch"
 )
@@ -178,25 +179,35 @@ func (a *apikeyAuthorizer) Authorize(ctx context.Context, action Action, _ Resou
 }
 
 type privilegesCache struct {
-	cache *cache.Cache
+	cache *freelru.ShardedLRU[string, *es.HasPrivilegesResponse]
 	size  int
 }
 
-func newPrivilegesCache(expiration time.Duration, size int) *privilegesCache {
-	return &privilegesCache{cache: cache.New(expiration, cleanupInterval), size: size}
+func hashStringXXHASH(s string) uint32 {
+	return uint32(xxhash.Sum64String(s))
+}
+
+func newPrivilegesCache(expiration time.Duration, size int) (*privilegesCache, error) {
+	cacheSize := size
+	if cacheSize < 1 {
+		cacheSize = 8192
+	}
+	lru, err := freelru.NewSharded[string, *es.HasPrivilegesResponse](uint32(cacheSize), hashStringXXHASH)
+	if err != nil {
+		return nil, err
+	}
+	lru.SetLifetime(expiration)
+	return &privilegesCache{cache: lru, size: size}, nil
 }
 
 func (c *privilegesCache) isFull() bool {
-	return c.cache.ItemCount() >= c.size
+	return c.cache.Len() >= c.size
 }
 
 func (c *privilegesCache) get(id string) (*es.HasPrivilegesResponse, bool) {
-	if val, exists := c.cache.Get(id); exists {
-		return val.(*es.HasPrivilegesResponse), true
-	}
-	return nil, false
+	return c.cache.Get(id)
 }
 
 func (c *privilegesCache) add(id string, privileges *es.HasPrivilegesResponse) {
-	c.cache.SetDefault(id, privileges)
+	c.cache.Add(id, privileges)
 }

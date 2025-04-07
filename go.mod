@@ -16,6 +16,7 @@ require (
 	github.com/elastic/elastic-transport-go/v8 v8.6.1
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.7.0
+	github.com/elastic/go-freelru v0.16.0
 	github.com/elastic/go-sysinfo v1.15.3
 	github.com/elastic/go-ucfg v0.8.8
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
@@ -24,9 +25,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.7.0
 	github.com/gorilla/mux v1.8.1
-	github.com/hashicorp/golang-lru v1.0.2
 	github.com/libp2p/go-reuseport v0.4.0
-	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.9.1

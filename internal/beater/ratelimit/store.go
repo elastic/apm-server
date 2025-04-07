@@ -18,11 +18,12 @@
 package ratelimit
 
 import (
+	"errors"
 	"net/netip"
 	"sync"
 
-	"github.com/hashicorp/golang-lru/simplelru"
-	"github.com/pkg/errors"
+	"github.com/cespare/xxhash/v2"
+	"github.com/elastic/go-freelru"
 	"golang.org/x/time/rate"
 )
 
@@ -34,11 +35,15 @@ import (
 // requests from cache_size*2 unique keys, which would lead to
 // the creation of new rate limiter entities with full allowance.
 type Store struct {
-	cache          simplelru.LRU
+	cache          *freelru.LRU[netip.Addr, **rate.Limiter]
 	limit          int
 	burstFactor    int
 	mu             sync.Mutex //guards limiter in cache
 	evictedLimiter *rate.Limiter
+}
+
+func hashStringXXHASH(ip netip.Addr) uint32 {
+	return uint32(xxhash.Sum64(ip.AsSlice()))
 }
 
 // NewStore returns a new instance of the Store
@@ -49,15 +54,15 @@ func NewStore(size, rateLimit, burstFactor int) (*Store, error) {
 
 	store := Store{limit: rateLimit, burstFactor: burstFactor}
 
-	var onEvicted = func(_ interface{}, value interface{}) {
-		store.evictedLimiter = *value.(**rate.Limiter)
-	}
-
-	c, err := simplelru.NewLRU(size, simplelru.EvictCallback(onEvicted))
+	lru, err := freelru.New[netip.Addr, **rate.Limiter](uint32(size), hashStringXXHASH)
 	if err != nil {
 		return nil, err
 	}
-	store.cache = *c
+	lru.SetOnEvict(func(ip netip.Addr, l **rate.Limiter) {
+		store.evictedLimiter = *l
+	})
+
+	store.cache = lru
 	return &store, nil
 }
 
@@ -69,7 +74,7 @@ func (s *Store) ForIP(ip netip.Addr) *rate.Limiter {
 	defer s.mu.Unlock()
 
 	if l, ok := s.cache.Get(ip); ok {
-		return *l.(**rate.Limiter)
+		return *l
 	}
 
 	var limiter *rate.Limiter

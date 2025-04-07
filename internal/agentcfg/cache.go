@@ -20,9 +20,10 @@ package agentcfg
 import (
 	"time"
 
-	gocache "github.com/patrickmn/go-cache"
+	"github.com/cespare/xxhash/v2"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/go-freelru"
 )
 
 const (
@@ -31,31 +32,42 @@ const (
 
 type cache struct {
 	logger  *logp.Logger
-	gocache *gocache.Cache
+	gocache *freelru.ShardedLRU[string, Result]
 }
 
-func newCache(logger *logp.Logger, exp time.Duration) *cache {
+func hashStringXXHASH(s string) uint32 {
+	return uint32(xxhash.Sum64String(s))
+}
+
+func newCache(logger *logp.Logger, exp time.Duration) (*cache, error) {
 	logger.Infof("Cache creation with expiration %v.", exp)
+	lru, err := freelru.NewSharded[string, Result](8192, hashStringXXHASH)
+	if err != nil {
+		return nil, err
+	}
+	lru.SetLifetime(exp)
+
 	return &cache{
 		logger:  logger,
-		gocache: gocache.New(exp, cleanupInterval)}
+		gocache: lru,
+	}, nil
 }
 
 func (c *cache) fetch(query Query, fetch func() (Result, error)) (Result, error) {
 	// return from cache if possible
 	value, found := c.gocache.Get(query.id())
-	if found && value != nil {
-		return value.(Result), nil
+	if found {
+		return value, nil
 	}
 	// retrieve resource from external source
 	result, err := fetch()
 	if err != nil {
 		return result, err
 	}
-	c.gocache.SetDefault(query.id(), result)
+	c.gocache.Add(query.id(), result)
 
 	if c.logger.IsDebug() {
-		c.logger.Debugf("Cache size %v. Added ID %v.", c.gocache.ItemCount(), query.id())
+		c.logger.Debugf("Cache size %v. Added ID %v.", c.gocache.Len(), query.id())
 	}
 	return result, nil
 }
