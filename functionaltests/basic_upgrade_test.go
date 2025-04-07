@@ -57,6 +57,41 @@ func basicUpgradeILMTestScenarios(
 	)
 }
 
+// basicUpgradeLazyRolloverILMTestScenarios returns all scenarios for basic
+// upgrade test from `fromVersion` to `toVersion`. The test assumes that all
+// data streams (before and after upgrade) are using Index Lifecycle Management
+// (ILM) instead of Data Stream Lifecycle Management (DSL), which should be the
+// case for most recent APM data streams. It will also verify that lazy
+// rollover happened on post-upgrade ingestion.
+func basicUpgradeLazyRolloverILMTestScenarios(
+	fromVersion ecclient.StackVersion,
+	toVersion ecclient.StackVersion,
+	apmErrorLogsIgnored []types.Query,
+) []basicUpgradeTestScenario {
+	// All data streams should be managed by ILM.
+	checkILM := asserts.CheckDataStreamsWant{
+		Quantity:         8,
+		PreferIlm:        true,
+		DSManagedBy:      managedByILM,
+		IndicesPerDS:     1,
+		IndicesManagedBy: []string{managedByILM},
+	}
+	// Verify lazy rollover happened, i.e. 2 indices per data stream.
+	checkILMRollover := asserts.CheckDataStreamsWant{
+		Quantity:         8,
+		PreferIlm:        true,
+		DSManagedBy:      managedByILM,
+		IndicesPerDS:     2,
+		IndicesManagedBy: []string{managedByILM, managedByILM},
+	}
+
+	return allBasicUpgradeScenarios(
+		fromVersion, toVersion,
+		checkILM, checkILM, checkILMRollover,
+		apmErrorLogsIgnored,
+	)
+}
+
 // basicUpgradeLazyRolloverDSLTestScenarios returns all scenarios for basic
 // upgrade test from `fromVersion` to `toVersion`. The test assumes that all
 // data streams (before and after upgrade) are using Data Stream Lifecycle
