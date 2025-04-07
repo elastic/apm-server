@@ -62,8 +62,8 @@ $(APM_SERVER_FIPS_BINARIES):
 	mkdir -p build
 	docker cp apm-server-fips-cont:/usr/share/apm-server/apm-server "build/apm-server-fips-$(GOOS)-$(GOARCH)"
 	# cleanup running container
-	docker container rm apm-server-fips-cont || true
-	docker image rm apm-server-fips-image-temp || true
+	docker container rm apm-server-fips-cont
+	docker image rm apm-server-fips-image-temp
 
 # Rule to build apm-server binaries, using Go's native cross-compilation.
 #
