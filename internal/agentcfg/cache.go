@@ -26,10 +26,6 @@ import (
 	"github.com/elastic/go-freelru"
 )
 
-const (
-	cleanupInterval = 60 * time.Second
-)
-
 type cache struct {
 	logger  *logp.Logger
 	gocache *freelru.ShardedLRU[string, Result]

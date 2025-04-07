@@ -33,8 +33,6 @@ import (
 	es "github.com/elastic/apm-server/internal/elasticsearch"
 )
 
-const cleanupInterval = 60 * time.Second
-
 const (
 	// Application is a constant mapped to the "application" field for the Elasticsearch security API
 	// This identifies privileges and keys created for APM
