@@ -64,3 +64,42 @@ func CheckDataStreams(t *testing.T, expected CheckDataStreamsWant, actual []type
 		}
 	}
 }
+
+type CheckDataStreamIndividualWant struct {
+	DSManagedBy      string
+	PreferIlm        bool
+	IndicesManagedBy []string
+}
+
+func CheckDataStreamsIndividually(t *testing.T, expected map[string]CheckDataStreamIndividualWant, actual []types.DataStream) {
+	t.Helper()
+
+	assert.Len(t, actual, len(expected), "number of APM data streams differs from expectations")
+
+	for _, v := range actual {
+		e, ok := expected[v.Name]
+		if !ok {
+			t.Errorf("data stream %s not in expectation", v.Name)
+			continue
+		}
+
+		if e.PreferIlm {
+			assert.True(t, v.PreferIlm, "data stream %s should prefer ILM", v.Name)
+		} else {
+			assert.False(t, v.PreferIlm, "data stream %s should not prefer ILM", v.Name)
+		}
+
+		assert.Equal(t, e.DSManagedBy, v.NextGenerationManagedBy.Name,
+			`data stream %s should be managed by "%s"`, v.Name, e.DSManagedBy,
+		)
+		assert.Len(t, v.Indices, len(e.IndicesManagedBy),
+			"data stream %s should have %d indices", v.Name, len(e.IndicesManagedBy),
+		)
+		for i, index := range v.Indices {
+			assert.Equal(t, e.IndicesManagedBy[i], index.ManagedBy.Name,
+				`index %s should be managed by "%s"`, index.IndexName,
+				e.IndicesManagedBy[i],
+			)
+		}
+	}
+}
