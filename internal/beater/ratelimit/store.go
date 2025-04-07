@@ -23,8 +23,9 @@ import (
 	"sync"
 
 	"github.com/cespare/xxhash/v2"
-	"github.com/elastic/go-freelru"
 	"golang.org/x/time/rate"
+
+	"github.com/elastic/go-freelru"
 )
 
 // Store is a LRU cache holding cache_size rate limiters,

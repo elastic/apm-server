@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/cespare/xxhash/v2"
+
 	"github.com/elastic/go-freelru"
 
 	es "github.com/elastic/apm-server/internal/elasticsearch"
