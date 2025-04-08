@@ -30,13 +30,13 @@ func TestUpgrade_7_17_to_8_x_Snapshot_Standalone_to_Managed(t *testing.T) {
 
 	t.Run("UpgradeFirst", func(t *testing.T) {
 		t.Parallel()
-		runner := upgradeThenManagedRunner(fromVersion, toVersion)
+		runner := upgradeThenManaged78Runner(fromVersion, toVersion)
 		runner.Run(t)
 	})
 
 	t.Run("ManagedFirst", func(t *testing.T) {
 		t.Parallel()
-		runner := managedThenUpgradeRunner(fromVersion, toVersion)
+		runner := managedThenUpgrade78Runner(fromVersion, toVersion)
 		runner.Run(t)
 	})
 }
@@ -47,18 +47,18 @@ func TestUpgrade_7_17_to_8_x_BC_Standalone_to_Managed(t *testing.T) {
 
 	t.Run("UpgradeFirst", func(t *testing.T) {
 		t.Parallel()
-		runner := upgradeThenManagedRunner(fromVersion, toVersion)
+		runner := upgradeThenManaged78Runner(fromVersion, toVersion)
 		runner.Run(t)
 	})
 
 	t.Run("ManagedFirst", func(t *testing.T) {
 		t.Parallel()
-		runner := managedThenUpgradeRunner(fromVersion, toVersion)
+		runner := managedThenUpgrade78Runner(fromVersion, toVersion)
 		runner.Run(t)
 	})
 }
 
-func upgradeThenManagedRunner(fromVersion, toVersion ecclient.StackVersion) testStepsRunner {
+func upgradeThenManaged78Runner(fromVersion, toVersion ecclient.StackVersion) testStepsRunner {
 	// Data streams in 8.x should be all ILM if upgraded to a stack < 8.15 and > 8.16.
 	checkILM := asserts.CheckDataStreamsWant{
 		Quantity:         8,
@@ -95,7 +95,7 @@ func upgradeThenManagedRunner(fromVersion, toVersion ecclient.StackVersion) test
 	}
 }
 
-func managedThenUpgradeRunner(fromVersion, toVersion ecclient.StackVersion) testStepsRunner {
+func managedThenUpgrade78Runner(fromVersion, toVersion ecclient.StackVersion) testStepsRunner {
 	checkILM := asserts.CheckDataStreamIndividualWant{
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
