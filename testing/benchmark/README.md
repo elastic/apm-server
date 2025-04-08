@@ -15,7 +15,7 @@ credentials to run the benchmark against it.
 - `scp`
 - `jq`
 - `go`
-- `okta-aws-cli` (only for `all` and `auth` targets)
+- `okta-aws-cli` v2.4.0+ (only for `all` and `auth` targets)
 
 ## Credentials
 
