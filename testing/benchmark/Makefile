@@ -34,7 +34,12 @@ APM_SERVER_IP = $(shell terraform output -raw apm_server_ip)
 SHELL = /bin/bash
 .SHELLFLAGS = -o pipefail -c
 
-export AWS_PROFILE ?= elastic-observability
+# This profile will also be used by the Terraform provider.
+
+# export AWS_PROFILE if CI is not defined
+ifeq ($(CI),)
+	export AWS_PROFILE ?= elastic-observability
+endif
 
 .default: all
 
