@@ -142,6 +142,12 @@ variable "standalone_apm_server_volume_size" {
   description = "Optional volume size in GB to use for APM Server VM"
 }
 
+variable "standalone_apm_server_iops" {
+  default     = null
+  type        = number
+  description = "Optional disk IOPS in GB to use for APM Server VM"
+}
+
 ## VPC Network settings
 
 variable "vpc_cidr" {

@@ -16,7 +16,7 @@ jobs:
       contents: read
       packages: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: Get token
         id: get_token
@@ -30,26 +30,26 @@ jobs:
               "pull_requests": "write"
             }
 
-      - uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: elastic/oblt-actions/updatecli/run@v1
+      - uses: elastic/oblt-actions/updatecli/run@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
         with:
           command: --experimental compose diff
         env:
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
 
-      - uses: elastic/oblt-actions/updatecli/run@v1
+      - uses: elastic/oblt-actions/updatecli/run@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
         with:
           command: --experimental compose apply
         env:
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
 
       - if: ${{ failure()  }}
-        uses: elastic/oblt-actions/slack/send@v1
+        uses: elastic/oblt-actions/slack/send@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
         with:
           channel-id: '#apm-server'
           message: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"

@@ -48,3 +48,8 @@ output "stack_version" {
 output "admin_console_url" {
   value = "https://admin.found.no/deployments/${ec_deployment.deployment.id}/integrations_server"
 }
+
+output "ech_apm_component_id" {
+  value       = var.integrations_server ? ec_deployment.deployment.integrations_server[0].resource_id : ec_deployment.deployment.apm[0].resource_id
+  description = "APM or Integrations Server Cloud component ID"
+}

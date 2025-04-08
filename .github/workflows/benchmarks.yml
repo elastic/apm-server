@@ -4,39 +4,47 @@ on:
   workflow_dispatch:
     inputs:
       runStandalone:
-        description: 'Run the benchmarks against standalone APM Server with Moxy'
+        description: 'Benchmark against standalone APM Server with Moxy'
         required: false
         type: boolean
         default: false
       enableTailSampling:
-        description: 'Enable tail-based sampling on the APM server'
+        description: 'Enable tail-based sampling on APM server'
         required: false
         type: boolean
         default: false
       tailSamplingStorageLimit:
-        description: 'Storage size limit of tail-based sampling on the APM server, defaults to 10GB'
+        description: 'Storage size limit of tail-based sampling on APM server'
         required: false
         type: string
         default: "10GB"
       profile:
-        description: 'The system profile used to run the benchmarks'
+        description: 'System profile for benchmark, e.g. system-profiles/8GBx1zone.tfvars'
         required: false
         type: string
+        # defaults set below (TFVARS_SOURCE)
       runOnStable:
-        description: 'Run the benchmarks on the latest stable version'
+        description: 'Benchmark on latest stable version'
         required: false
         type: boolean
         default: false
       benchmarkAgents:
-        description: 'Set the number of agents to send data to the APM Server'
+        description: 'Number of benchmark agents sending data to APM Server'
         required: false
         type: string
+        # defaults set in Makefile
       benchmarkRun:
-        description: 'Set the expression that matches the benchmark scenarios to run'
+        description: 'Benchmark scenarios that only match regex, e.g. BenchmarkAgentAll'
         required: false
         type: string
+        # defaults set in Makefile
+      warmupTime:
+        description: 'Benchmark warmup time for APM Server e.g. 3s, 5m, 2h'
+        required: false
+        type: string
+        # defaults set below (Set up env)
       pgoExport:
-        description: 'Run the benchmarks with PGO export'
+        description: 'Benchmark with PGO export'
         required: false
         type: boolean
         default: false
@@ -71,7 +79,7 @@ jobs:
       TF_VAR_apm_server_tail_sampling_storage_limit: ${{ inputs.tailSamplingStorageLimit || '10GB' }} # set the default again otherwise schedules won't work
       RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 0 1 * *' }}
       PGO_EXPORT: ${{ inputs.pgoExport || github.event.schedule=='0 0 1 * *' }}
-      TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # // Default to use an 8gb profile
+      TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # set the default again otherwise schedules won't work
       TF_VAR_BUILD_ID: ${{ github.run_id }}
       TF_VAR_ENVIRONMENT: ci
       TF_VAR_REPO: ${{ github.repository }}
@@ -80,13 +88,13 @@ jobs:
       GOBENCH_USERNAME: ${{ secrets.GOBENCH_USERNAME }}
       GOBENCH_HOST: ${{ secrets.GOBENCH_HOST }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: 'go.mod'
 
-      - uses: rlespinasse/github-slug-action@aba9f8db6ef36e0733227a62673d6592b1f430ea
+      - uses: rlespinasse/github-slug-action@955b5ba4560860f8a633bd24190941f16016e42c # 955b5ba4560860f8a633bd24190941f16016e42c
 
       - name: Set up env
         run: |
@@ -102,27 +110,41 @@ jobs:
           if [ ! -z "${{ inputs.benchmarkRun }}" ]; then
             echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
           fi
+          if [ ! -z "${{ inputs.warmupTime }}" ]; then
+            echo "BENCHMARK_WARMUP_TIME=${{ inputs.warmupTime }}" >> "$GITHUB_ENV"
+          elif  [ "${{github.event_name}}" == 'schedule' ] && [ "${{env.RUN_STANDALONE}}" == 'false' ]; then
+            echo "BENCHMARK_WARMUP_TIME=10m" >> "$GITHUB_ENV"
+          elif  [ "${{github.event_name}}" == 'schedule' ] && [ "${{env.RUN_STANDALONE}}" == 'true' ]; then
+            echo "BENCHMARK_WARMUP_TIME=3m" >> "$GITHUB_ENV"
+          else
+            echo "BENCHMARK_WARMUP_TIME=5m" >> "$GITHUB_ENV"
+          fi
+
+      # exclude BenchmarkTraces* from scheduled benchmarks
+      - if: github.event_name == 'schedule'
+        run: |
+          echo "BENCHMARK_RUN=Benchmark[^T]" >> "$GITHUB_ENV"
 
       - name: Log in to the Elastic Container registry
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
           username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
           password: ${{ secrets.ELASTIC_DOCKER_PASSWORD }}
 
-      - uses: elastic/oblt-actions/google/auth@v1
+      - uses: elastic/oblt-actions/google/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
 
-      - uses: elastic/oblt-actions/aws/auth@v1
+      - uses: elastic/oblt-actions/aws/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
         with:
           role-duration-seconds: 21600 # 6 hours
 
-      - uses: google-github-actions/get-secretmanager-secrets@e5bb06c2ca53b244f978d33348d18317a7f263ce # v2.2.2
+      - uses: google-github-actions/get-secretmanager-secrets@a8440875e1c2892062aef9061228d4f1af8f919b # v2.2.3
         with:
           export_to_environment: true
           secrets: |-
             EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
 
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: ~1.10.0
           terraform_wrapper: false
@@ -175,7 +197,7 @@ jobs:
           $PNG_REPORT_FILE
 
       - name: Upload PNG
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: kibana-png-report
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.PNG_REPORT_FILE }}
@@ -191,7 +213,7 @@ jobs:
           echo "png_report_url=https://elastic-apm-server-benchmark-reports.s3.amazonaws.com/${DEST_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Upload benchmark result
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: benchmark-result
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_RESULT }}
@@ -205,7 +227,7 @@ jobs:
         run: make cp-cpuprof
 
       - name: Upload CPU profile
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: cpu-profile
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
@@ -227,12 +249,12 @@ jobs:
       # GitHub bot won't trigger any CI builds.
       # See https://github.com/peter-evans/create-pull-request/issues/48#issuecomment-537478081
       - name: Configure git user
-        uses: elastic/oblt-actions/git/setup@v1
+        uses: elastic/oblt-actions/git/setup@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
         with:
           github-token: ${{ steps.get_token.outputs.token }}
 
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@cb9bde2e2525e640591a934b1fd28eef1dcaf5e5  # v6.2.0
+        uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec  # v6.3.0
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -252,7 +274,7 @@ jobs:
       # there is a high chance things will stop working
       # This is trying to reduce the chances of that happening.
       # See https://github.com/elastic/observability-test-environments/actions/workflows/cluster-rotate-api-keys.yml
-      - uses: google-github-actions/get-secretmanager-secrets@e5bb06c2ca53b244f978d33348d18317a7f263ce # v2.2.2
+      - uses: google-github-actions/get-secretmanager-secrets@a8440875e1c2892062aef9061228d4f1af8f919b # v2.2.3
         if: always()
         with:
           export_to_environment: true
@@ -265,7 +287,7 @@ jobs:
 
       # Notify failure to Slack only on schedule (nightly run)
       - if: failure() && github.event_name == 'schedule'
-        uses: elastic/oblt-actions/slack/notify-result@v1
+        uses: elastic/oblt-actions/slack/notify-result@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"

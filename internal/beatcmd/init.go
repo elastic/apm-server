@@ -18,12 +18,6 @@
 package beatcmd
 
 import (
-	cryptorand "crypto/rand"
-	"math"
-	"math/big"
-	"math/rand"
-	"time"
-
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	_ "github.com/elastic/beats/v7/libbeat/monitoring/report/elasticsearch" // register default monitoring reporting
 	_ "github.com/elastic/beats/v7/libbeat/outputs/codec/json"
@@ -36,19 +30,7 @@ import (
 )
 
 func init() {
-	initRand()
 	initFlags()
-}
-
-func initRand() {
-	n, err := cryptorand.Int(cryptorand.Reader, big.NewInt(math.MaxInt64))
-	var seed int64
-	if err != nil {
-		seed = time.Now().UnixNano()
-	} else {
-		seed = n.Int64()
-	}
-	rand.Seed(seed) //lint:ignore SA1019 libbeat uses deprecated math/rand functions prolifically
 }
 
 func initFlags() {

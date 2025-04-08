@@ -41,6 +41,10 @@ type Client struct {
 func NewClient(cfg ClientConfig) (*Client, error) {
 	// Never fetch the Kibana version; we don't use it.
 	cfg.IgnoreVersion = true
+	if cfg.Headers == nil {
+		cfg.Headers = make(map[string]string)
+	}
+	cfg.Headers["X-Elastic-Product-Origin"] = "observability"
 	client, err := kibana.NewClientWithConfig(
 		&cfg, "apm-server",
 		version.VersionWithQualifier(),

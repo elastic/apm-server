@@ -2,7 +2,7 @@ user_name = "USER"
 
 # APM bench
 
-worker_instance_type = "c6i.2xlarge"
+worker_instance_type = "c6i.4xlarge"
 
 # Elastic Cloud
 

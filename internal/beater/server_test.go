@@ -55,6 +55,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-data/model/modelpb"
+
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/beatertest"
@@ -440,7 +441,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		// We must send a valid JSON response for the libbeat
 		// elasticsearch client to send bulk requests.
-		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
+		_, _ = fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
 	})
 
 	done := make(chan struct{})
@@ -463,13 +464,25 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
+	// The `max_requests` setting is the max number of concurrent bulk requests in docappender.
+	// The `elasticsearch.bulk_requests.available` metric below will be equal to `max_requests - x` where x is
+	// the number of times the mux handler "/_bulk" above is called.
+	//
+	// If `max_requests` > 1, the "/_bulk" mux handler may be called multiple times by docappender due to low
+	// flush interval of 1ms. This causes flaky tests below as `elasticsearch.bulk_requests.available` metric
+	// can be `max_requests - 1` or `max_requests - 2` depending on race conditions.
+	//
+	// To solve this, we can either increase the flush interval, or simply set `max_requests` to 1 such that
+	// there will not be multiple calls to "/_bulk". In this case, we chose the latter solution since it is
+	// more consistent (than relying on flush timing).
+	const maxRequests = 1
 	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"output.elasticsearch": map[string]interface{}{
 			"hosts":          []string{elasticsearchServer.URL},
 			"flush_interval": "1ms",
 			"backoff":        map[string]interface{}{"init": "1ms", "max": "1ms"},
 			"max_retries":    0,
-			"max_requests":   10,
+			"max_requests":   maxRequests,
 		},
 	})))
 
@@ -492,7 +505,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
 		"elasticsearch.events.count":            5,
 		"elasticsearch.events.queued":           5,
-		"elasticsearch.bulk_requests.available": 9,
+		"elasticsearch.bulk_requests.available": maxRequests - 1,
 	})
 }
 
@@ -566,7 +579,16 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
 	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
-	_ = logp.DevelopmentSetup(logp.ToObserverOutput())
+	observedCore, observedLogs := observer.New(zapcore.DebugLevel)
+	err := logp.ConfigureWithOutputs(logp.Config{
+		Level:      logp.DebugLevel,
+		ToStderr:   false,
+		ToSyslog:   false,
+		ToFiles:    false,
+		ToEventLog: false,
+	}, observedCore)
+	require.NoError(t, err)
+
 	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
 		map[string]interface{}{
 			"instrumentation.enabled": true,
@@ -614,7 +636,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	// Assert that logs contain expected values:
 	// - Original error with the status code.
 	// - Request timeout is logged separately with the the original error status code.
-	logs := logp.ObserverLogs().Filter(func(l observer.LoggedEntry) bool {
+	logs := observedLogs.Filter(func(l observer.LoggedEntry) bool {
 		return l.Level == zapcore.ErrorLevel
 	}).AllUntimed()
 	assert.Len(t, logs, 1)

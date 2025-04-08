@@ -12,7 +12,7 @@ provider "ec" {}
 
 module "tags" {
   source  = "../../infra/terraform/modules/tags"
-  project = "smoke-test-supported-os"
+  project = "apm-server"
 }
 
 locals {
@@ -22,6 +22,7 @@ locals {
     branch       = var.BRANCH
     build        = var.BUILD_ID
     created_date = var.CREATED_DATE
+    subproject   = "smoke-test-supported-os"
   }
 }
 

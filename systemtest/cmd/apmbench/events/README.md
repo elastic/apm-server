@@ -1,0 +1,1 @@
+These event files are the trace only versions of their counterparts in apm-perf, obtained by e.g. `grep -E '^{"span|^{"transaction|^{"meta' apm-python-6.7.2.ndjson > apm-python-traces-6.7.2.ndjson`. These sampled traces files are useful to benchmark tail-based sampling.

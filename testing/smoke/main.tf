@@ -10,6 +10,22 @@ terraform {
 
 provider "ec" {}
 
+module "tags" {
+  source  = "../../infra/terraform/modules/tags"
+  project = "apm-server"
+}
+
+locals {
+  ci_tags = {
+    environment  = coalesce(var.ENVIRONMENT, "dev")
+    repo         = coalesce(var.REPO, "apm-server")
+    branch       = var.BRANCH
+    build        = var.BUILD_ID
+    created_date = var.CREATED_DATE
+    subproject   = "smoke-test"
+  }
+}
+
 module "ec_deployment" {
   source = "../../infra/terraform/modules/ec_deployment"
   region = var.region
@@ -24,6 +40,7 @@ module "ec_deployment" {
 
   stack_version       = var.stack_version
   integrations_server = var.integrations_server
+  tags                = merge(local.ci_tags, module.tags.tags)
 }
 
 variable "stack_version" {
@@ -81,4 +98,28 @@ output "elasticsearch_password" {
 output "stack_version" {
   value       = module.ec_deployment.stack_version
   description = "The matching stack pack version from the provided stack_version"
+}
+
+# CI variables
+variable "BRANCH" {
+  description = "Branch name or pull request for tagging purposes"
+  default     = "unknown"
+}
+
+variable "BUILD_ID" {
+  description = "Build ID in the CI for tagging purposes"
+  default     = "unknown"
+}
+
+variable "CREATED_DATE" {
+  description = "Creation date in epoch time for tagging purposes"
+  default     = "unknown"
+}
+
+variable "ENVIRONMENT" {
+  default = "unknown"
+}
+
+variable "REPO" {
+  default = "unknown"
 }

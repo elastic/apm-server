@@ -22,6 +22,12 @@ variable "apm_volume_size" {
   description = "Optional apm server volume size in GB override"
 }
 
+variable "apm_iops" {
+  default     = null
+  type        = number
+  description = "Optional apm server disk IOPS override"
+}
+
 variable "vpc_id" {
   description = "VPC ID to provision the EC2 instance"
   type        = string

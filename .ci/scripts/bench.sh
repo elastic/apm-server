@@ -170,7 +170,7 @@ if [ "${CI}" == "true" ] ; then
   export BUILDKITE_TOKEN="${BUILDKITE_TOKEN_SECRET}"
 
   echo "--- Setting up the :golang: environment..."
-  GO_VERSION=$(cat .go-version)
+  GO_VERSION=$(grep '^go' go.mod | cut -d' ' -f2)
   OS_NAME=linux
   OS_ARCH=amd64
   retry 5 curl -sL -o "${BASE_PROJECT}"/gvm "https://github.com/andrewkroh/gvm/releases/download/v0.5.2/gvm-${OS_NAME}-${OS_ARCH}"

@@ -7,7 +7,7 @@ ARG GOLANG_VERSION
 ################################################################################
 FROM golang:${GOLANG_VERSION} AS builder
 WORKDIR /src
-COPY go.mod go.sum .go-version /src/
+COPY go.mod go.sum /src/
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY Makefile *.mk /src/
 COPY cmd /src/cmd
@@ -20,7 +20,6 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     make apm-server
 
-COPY apm-server.yml ./apm-server.yml
 COPY --chmod=0644 apm-server.yml ./apm-server.yml
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
@@ -29,7 +28,7 @@ RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:f6e0a71b7e0875b54ea559c2e0a6478703268a8d4b8bdcf5d911d0dae76aef51
+FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:414cfa255ea10eaef4528a26d5618eb67cf487b635ee20f8f14b9317bfd6a4be
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION

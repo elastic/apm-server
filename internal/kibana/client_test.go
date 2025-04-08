@@ -92,6 +92,7 @@ func TestClientHeaders(t *testing.T) {
 
 	assert.Equal(t, "Basic dXNlcjpwYXNz", headers.Get("Authorization"))
 	assert.Equal(t, []string{"abc", "123"}, headers.Values("Combined"))
+	assert.Equal(t, "observability", headers.Get("X-Elastic-Product-Origin"))
 }
 
 func TestClientSend(t *testing.T) {

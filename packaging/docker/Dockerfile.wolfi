@@ -7,8 +7,8 @@ ARG GOLANG_VERSION
 ################################################################################
 FROM docker.elastic.co/wolfi/go:${GOLANG_VERSION} as builder
 WORKDIR /src
-COPY go.mod go.sum .go-version /src/
-RUN --mount=type=cache,target=/go/pkg/mod go mod download
+COPY go.mod go.sum /src/
+RUN --mount=type=cache,target=/root/go/pkg/mod go mod download
 COPY Makefile *.mk /src/
 COPY cmd /src/cmd
 COPY internal /src/internal
@@ -16,11 +16,10 @@ COPY x-pack /src/x-pack
 COPY .git /src/.git
 COPY script /src/script
 
-RUN --mount=type=cache,target=/go/pkg/mod \
+RUN --mount=type=cache,target=/root/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     make apm-server
 
-COPY apm-server.yml ./apm-server.yml
 COPY --chmod=0644 apm-server.yml ./apm-server.yml
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
@@ -29,7 +28,7 @@ RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM cgr.dev/chainguard/static:latest@sha256:853bfd4495abb4b65ede8fc9332513ca2626235589c2cef59b4fce5082d0836d
+FROM cgr.dev/chainguard/static:latest@sha256:9276a4ebe6b98cd1bbd53b8139228434a0e4f00d06d39e33688e9bd759986656
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION

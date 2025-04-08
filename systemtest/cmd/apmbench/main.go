@@ -19,6 +19,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"flag"
 	"fmt"
 	"log"
@@ -79,27 +80,62 @@ func BenchmarkOTLPTraces(b *testing.B, l *rate.Limiter) {
 // Even though files are loaded alphabetically and the events sent sequentially
 // there is inherent randomness in the order the events are sent to APM Sever.
 func BenchmarkAgentAll(b *testing.B, l *rate.Limiter) {
-	benchmarkAgent(b, l, `*.ndjson`)
+	benchmarkAgent(b, l, `apm-*.ndjson`)
 }
 
 func BenchmarkAgentGo(b *testing.B, l *rate.Limiter) {
-	benchmarkAgent(b, l, `go*.ndjson`)
+	benchmarkAgent(b, l, `apm-go*.ndjson`)
 }
 
 func BenchmarkAgentNodeJS(b *testing.B, l *rate.Limiter) {
-	benchmarkAgent(b, l, `nodejs*.ndjson`)
+	benchmarkAgent(b, l, `apm-nodejs*.ndjson`)
 }
 
 func BenchmarkAgentPython(b *testing.B, l *rate.Limiter) {
-	benchmarkAgent(b, l, `python*.ndjson`)
+	benchmarkAgent(b, l, `apm-python*.ndjson`)
 }
 
 func BenchmarkAgentRuby(b *testing.B, l *rate.Limiter) {
-	benchmarkAgent(b, l, `ruby*.ndjson`)
+	benchmarkAgent(b, l, `apm-ruby*.ndjson`)
 }
 
 func benchmarkAgent(b *testing.B, l *rate.Limiter, expr string) {
 	h := benchtest.NewEventHandler(b, expr, l)
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			h.SendBatches(context.Background())
+		}
+	})
+}
+
+// events contains custom events that are not in apm-perf.
+//
+//go:embed events/*.ndjson
+var events embed.FS
+
+func BenchmarkTracesAgentAll(b *testing.B, l *rate.Limiter) {
+	benchmarkTracesAgent(b, l, `apm-*.ndjson`)
+}
+
+func BenchmarkTracesAgentGo(b *testing.B, l *rate.Limiter) {
+	benchmarkTracesAgent(b, l, `apm-go*.ndjson`)
+}
+
+func BenchmarkTracesAgentNodeJS(b *testing.B, l *rate.Limiter) {
+	benchmarkTracesAgent(b, l, `apm-nodejs*.ndjson`)
+}
+
+func BenchmarkTracesAgentPython(b *testing.B, l *rate.Limiter) {
+	benchmarkTracesAgent(b, l, `apm-python*.ndjson`)
+}
+
+func BenchmarkTracesAgentRuby(b *testing.B, l *rate.Limiter) {
+	benchmarkTracesAgent(b, l, `apm-ruby*.ndjson`)
+}
+
+// benchmarkTracesAgent benchmarks with traces only. Useful to benchmark TBS.
+func benchmarkTracesAgent(b *testing.B, l *rate.Limiter, expr string) {
+	h := benchtest.NewFSEventHandler(b, expr, l, events)
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			h.SendBatches(context.Background())
@@ -154,6 +190,11 @@ func main() {
 		BenchmarkAgentPython,
 		BenchmarkAgentRuby,
 		Benchmark10000AggregationGroups,
+		BenchmarkTracesAgentAll,
+		BenchmarkTracesAgentGo,
+		BenchmarkTracesAgentNodeJS,
+		BenchmarkTracesAgentPython,
+		BenchmarkTracesAgentRuby,
 	); err != nil {
 		log.Fatal(err)
 	}

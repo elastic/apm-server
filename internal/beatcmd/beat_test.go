@@ -32,6 +32,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -50,7 +51,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-docappender/v2/docappendertest"
-	"github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 // TestRunMaxProcs ensures Beat.Run calls the GOMAXPROCS adjustment code by looking for log messages.
@@ -164,10 +164,10 @@ func TestLibbeatMetrics(t *testing.T) {
 		switch requestIndex.Add(1) {
 		case 2:
 			result.HasErrors = true
-			result.Items[0]["create"] = esutil.BulkIndexerResponseItem{Status: 400}
+			result.Items[0]["create"] = docappendertest.BulkIndexerResponseItem{Status: 400}
 		case 4:
 			result.HasErrors = true
-			result.Items[0]["create"] = esutil.BulkIndexerResponseItem{Status: 429}
+			result.Items[0]["create"] = docappendertest.BulkIndexerResponseItem{Status: 429}
 		default:
 			// success
 		}
@@ -262,6 +262,46 @@ func TestLibbeatMetrics(t *testing.T) {
 				"created":   int64(1),
 				"destroyed": int64(0),
 			},
+		},
+	}, snapshot)
+}
+
+func TestAddAPMServerMetrics(t *testing.T) {
+	r := monitoring.NewRegistry()
+	sm := metricdata.ScopeMetrics{
+		Metrics: []metricdata.Metrics{
+			{
+				Name: "apm-server.foo.request",
+				Data: metricdata.Sum[int64]{
+					DataPoints: []metricdata.DataPoint[int64]{
+						{
+							Value: 1,
+						},
+					},
+				},
+			},
+			{
+				Name: "apm-server.foo.response",
+				Data: metricdata.Sum[int64]{
+					DataPoints: []metricdata.DataPoint[int64]{
+						{
+							Value: 1,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	monitoring.NewFunc(r, "apm-server", func(m monitoring.Mode, v monitoring.Visitor) {
+		addAPMServerMetrics(v, sm)
+	})
+
+	snapshot := monitoring.CollectStructSnapshot(r, monitoring.Full, false)
+	assert.Equal(t, map[string]any{
+		"foo": map[string]any{
+			"request":  int64(1),
+			"response": int64(1),
 		},
 	}, snapshot)
 }

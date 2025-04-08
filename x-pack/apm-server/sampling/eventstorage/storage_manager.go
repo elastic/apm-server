@@ -449,7 +449,7 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskUsageThreshold 
 		return uint64(float64(sm.cachedDiskStat.total.Load()) * diskUsageThreshold)
 	}
 	// the total disk space could change in runtime, but it is still useful to print it out in logs.
-	sm.logger.Infof("setting disk usage threshold to %.2f of total disk space of %0.1fgb", diskUsageThreshold, float64(sm.cachedDiskStat.total.Load())/gb)
+	sm.logger.Infof("setting disk usage threshold to %.0f%% of total disk space of %0.1fgb", diskUsageThreshold*100, float64(sm.cachedDiskStat.total.Load())/gb)
 	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, diskThreshold)
 	rw = NewStorageLimitReadWriter(
 		fmt.Sprintf("disk usage threshold %.2f", diskUsageThreshold),

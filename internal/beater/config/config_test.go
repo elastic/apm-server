@@ -151,6 +151,28 @@ func TestUnpackConfig(t *testing.T) {
 		Backoff:          elasticsearch.DefaultBackoffConfig,
 	}
 
+	overrideCredentialsOutputESConfigMalformed := DefaultConfig()
+	overrideCredentialsOutputESConfigMalformed.AgentConfig.ESOverrideConfigured = true
+	overrideCredentialsOutputESConfigMalformed.AgentConfig.ESConfig = &elasticsearch.Config{
+		Hosts:            elasticsearch.Hosts{"localhost:9202"},
+		Protocol:         "https",
+		Timeout:          5 * time.Second,
+		APIKey:           "id2:api_key2",
+		MaxRetries:       3,
+		CompressionLevel: 5,
+		Backoff:          elasticsearch.DefaultBackoffConfig,
+	}
+	overrideCredentialsOutputESConfigMalformed.RumConfig.Enabled = true
+	overrideCredentialsOutputESConfigMalformed.RumConfig.SourceMapping.ESConfig = &elasticsearch.Config{
+		Hosts:            elasticsearch.Hosts{"localhost:9201"},
+		Protocol:         "https",
+		Timeout:          5 * time.Second,
+		Password:         "foo",
+		MaxRetries:       3,
+		CompressionLevel: 5,
+		Backoff:          elasticsearch.DefaultBackoffConfig,
+	}
+
 	tests := map[string]struct {
 		inpCfg         map[string]interface{}
 		inpOutputESCfg map[string]interface{}
@@ -364,7 +386,7 @@ func TestUnpackConfig(t *testing.T) {
 						IngestRateDecayFactor: 0.25,
 						StorageLimit:          "0",
 						StorageLimitParsed:    0,
-						DiskUsageThreshold:    0.9,
+						DiskUsageThreshold:    0.8,
 						TTL:                   30 * time.Minute,
 					},
 				},
@@ -592,6 +614,28 @@ func TestUnpackConfig(t *testing.T) {
 				"protocol": "https",
 			},
 			outCfg: overrideCredentialsOutputESConfig,
+		},
+		"agentcfg and rum sourcemapping override credentials output es config malformed": {
+			inpCfg: map[string]interface{}{
+				"rum.enabled": true,
+				"rum.source_mapping.elasticsearch": map[string]interface{}{
+					"hosts":    []string{"localhost:9201"},
+					"password": "foo",
+					"invalid":  "invalid",
+				},
+				"agent.config.elasticsearch": map[string]interface{}{
+					"hosts":   []string{"localhost:9202"},
+					"api_key": "id2:api_key2",
+					"invalid": "invalid",
+				},
+			},
+			inpOutputESCfg: map[string]interface{}{
+				"hosts":    []string{"localhost:9200"},
+				"username": "output_username",
+				"password": "output_password",
+				"protocol": "https",
+			},
+			outCfg: overrideCredentialsOutputESConfigMalformed,
 		},
 	}
 

@@ -21,8 +21,22 @@ get_versions() {
     VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | contains("-") | not)] | sort_by(.| split(".") | map(tonumber))')
 }
 
+get_latest_version() {
+    if [[ -z "${VERSIONS}" ]]; then
+        echo "-> Version not set, call get_versions first"
+        return 1
+    fi
+    local version
+    version=$(echo ${VERSIONS} | jq -r -c "max_by(. | select(. | startswith(\"${1}\")) | if endswith(\"-SNAPSHOT\") then .[:-9] else . end | split(\".\") | map(tonumber))")
+    echo "${version}"
+}
+
 get_latest_patch() {
-    LATEST_PATCH=$(echo ${VERSIONS} | jq -r -c "max_by(. | select(. | startswith(\"${1}\")) | if endswith(\"-SNAPSHOT\") then .[:-9] else . end | split(\".\") | map(tonumber))" | cut -d '.' -f3)
+    if [[ -z "${1}" ]]; then
+        echo "-> Version not set"
+        return 1
+    fi
+    LATEST_PATCH=$(get_latest_version "${1}" | cut -d '.' -f3)
 }
 
 get_latest_snapshot() {
@@ -337,10 +351,6 @@ data_stream_assertions() {
     MAJOR=$(echo $VERSION | cut -d. -f1)
     MINOR=$(echo $VERSION | cut -d. -f2)
 
-    # Starting from 8.15 we use data stream lifecycle management.
-    if [ $MAJOR -eq 8 ] && [ $MINOR -lt 15 ] || [ $MAJOR -lt 8 ]; then
-        data_stream_assert_templates_ilm ${VERSION}
-    fi
     data_stream_assert_pipelines
     data_stream_assert_events ${VERSION} ${ENTRIES}
 }

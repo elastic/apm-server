@@ -34,18 +34,19 @@ func eventComparer() *pebble.Comparer {
 		}
 		return comparer.ComparePointSuffixes(a[ap:], b[bp:])
 	}
-	comparer.Name = "apmserver.EventComparer"
+	comparer.Name = "apmserver.EventComparer" // this should stay constant, otherwise existing database won't open
 	return &comparer
 }
 
 func OpenEventPebble(storageDir string) (*pebble.DB, error) {
+	// Option values are picked and validated in https://github.com/elastic/apm-server/issues/15568
 	opts := &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logp.NewLogger(logs.Sampling),
 		MemTableSize:       16 << 20,
 		Levels: []pebble.LevelOptions{
 			{
-				BlockSize:    16 << 10,
+				BlockSize:    32 << 10, // the bigger the blocks, the better the compression and the smaller the index block
 				Compression:  func() pebble.Compression { return pebble.SnappyCompression },
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
@@ -53,15 +54,15 @@ func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 		},
 		Comparer: eventComparer(),
 	}
-	opts.Experimental.MaxWriterConcurrency = 1 // >0 enables parallel writers, the actual value doesn't matter
 	return pebble.Open(filepath.Join(storageDir, "event"), opts)
 }
 
 func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
+	// Option values are picked and validated in https://github.com/elastic/apm-server/issues/15568
 	return pebble.Open(filepath.Join(storageDir, "decision"), &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logp.NewLogger(logs.Sampling),
-		MemTableSize:       2 << 20,
+		MemTableSize:       2 << 20, // big memtables are slow to scan, and significantly slow the hot path
 		Levels: []pebble.LevelOptions{
 			{
 				BlockSize:    2 << 10,

@@ -19,6 +19,7 @@ package otlp
 
 import (
 	"context"
+	"sync"
 
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
@@ -32,7 +33,10 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-var unsupportedGRPCMetricRegistration metric.Registration
+var (
+	grpcMetricRegistrationMu          sync.Mutex
+	unsupportedGRPCMetricRegistration metric.Registration
+)
 
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
 func RegisterGRPCServices(
@@ -57,10 +61,13 @@ func RegisterGRPCServices(
 		"apm-server.otlp.grpc.metrics.consumer.unsupported_dropped",
 	)
 
+	grpcMetricRegistrationMu.Lock()
+	defer grpcMetricRegistrationMu.Unlock()
+
 	// TODO we should add an otel counter metric directly in the
 	// apm-data consumer, then we could get rid of the callback.
 	if unsupportedGRPCMetricRegistration != nil {
-		unsupportedGRPCMetricRegistration.Unregister()
+		_ = unsupportedGRPCMetricRegistration.Unregister()
 	}
 	unsupportedGRPCMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
 		stats := consumer.Stats()

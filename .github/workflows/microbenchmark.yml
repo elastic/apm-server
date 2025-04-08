@@ -7,8 +7,8 @@ on:
   push:
     branches:
       - main
-      - "8.[0-9]+"
-      - "8.x"
+      - "8.*"
+      - "9.*"
     paths-ignore:
       - '**.md'
       - '**.asciidoc'
@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Run buildkite pipeline
-        uses: elastic/oblt-actions/buildkite/run@v1.9.1
+        uses: elastic/oblt-actions/buildkite/run@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1.25.0
         with:
           token: ${{ secrets.BUILDKITE_TOKEN }}
           pipeline: apm-agent-microbenchmark

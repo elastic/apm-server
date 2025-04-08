@@ -4,7 +4,7 @@ set -eo pipefail
 
 VERSION=${1}
 if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
-    VERSION=$(curl -s "https://artifacts-api.elastic.co/v1/versions" | jq -r '[.versions[] | select(. | startswith("8"))] | last')
+    VERSION=$(curl -s "https://artifacts-api.elastic.co/v1/versions" | jq -r '.versions[-1]')
 fi
 LATEST_BUILD=$(curl -s "https://artifacts-api.elastic.co/v1/versions/${VERSION}/builds/" | jq -r '.builds[0]')
 

@@ -5,7 +5,7 @@ GITCOMMITTIMESTAMPUNIX ?= $(shell git log -1 --pretty=%ct)
 GITREFFILE ?= $(GITDIR)/$(shell git rev-parse --symbolic-full-name HEAD)
 GITROOT ?= $(shell git rev-parse --show-toplevel)
 
-GOLANG_VERSION=$(shell cat $(GITROOT)/.go-version)
+GOLANG_VERSION=$(shell grep '^go' go.mod | cut -d' ' -f2)
 GOARCH:=$(shell go env GOARCH)
 
 APM_SERVER_ONLY_VERSION=$(shell grep "const Version" $(GITROOT)/internal/version/version.go | cut -d'=' -f2 | tr -d '" ')
