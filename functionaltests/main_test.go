@@ -22,7 +22,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"maps"
 	"os"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -112,13 +114,25 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// getBCVersionOrSkip retrieves the latest build-candidate version for the version prefix.
+// getLatestVersionOrSkip retrieves the latest non-snapshot version for the version prefix.
 // If the version is not found, the test is skipped via t.Skip.
-func getBCVersionOrSkip(t *testing.T, prefix string) ecclient.StackVersion {
+func getLatestVersionOrSkip(t *testing.T, prefix string) ecclient.StackVersion {
+	t.Helper()
+	version, ok := fetchedVersions.LatestFor(prefix)
+	if !ok {
+		t.Skipf("version for '%s' not found in EC region %s, skipping test", prefix, regionFrom(*target))
+		return ecclient.StackVersion{}
+	}
+	return version
+}
+
+// getLatestBCOrSkip retrieves the latest build-candidate version for the version prefix.
+// If the version is not found, the test is skipped via t.Skip.
+func getLatestBCOrSkip(t *testing.T, prefix string) ecclient.StackVersion {
 	t.Helper()
 	candidate, ok := fetchedCandidates.LatestFor(prefix)
 	if !ok {
-		t.Skip("skipping non-BC versions")
+		t.Skipf("BC for '%s' not found in EC region %s, skipping test", prefix, regionFrom(*target))
 		return ecclient.StackVersion{}
 	}
 	return candidate
@@ -128,58 +142,48 @@ func getBCVersionOrSkip(t *testing.T, prefix string) ecclient.StackVersion {
 func getLatestSnapshot(t *testing.T, prefix string) ecclient.StackVersion {
 	t.Helper()
 	version, ok := fetchedSnapshots.LatestFor(prefix)
-	require.True(t, ok, "no snapshot with prefix '%s' found in EC region %s", prefix, regionFrom(*target))
+	require.True(t, ok, "snapshot for '%s' found in EC region %s", prefix, regionFrom(*target))
 	return version
 }
 
-// getLatestVersion retrieves the latest non-snapshot version for the version prefix.
-func getLatestVersion(t *testing.T, prefix string) ecclient.StackVersion {
-	t.Helper()
-	version, ok := fetchedVersions.LatestFor(prefix)
-	require.True(t, ok, "no version with prefix '%s' found in EC region %s", prefix, regionFrom(*target))
-	return version
-}
-
-// expectedIngestForASingleRun represent the expected number of ingested document after a
-// single run of ingest.
-// Only non aggregation data streams are included, as aggregation ones differs on different
-// runs.
+// expectedIngestForASingleRun represent the expected number of ingested document
+// after a single run of ingest.
+//
+// NOTE: The aggregation data streams have negative counts, because they are
+// expected to appear but the document counts should not be asserted.
 func expectedIngestForASingleRun(namespace string) esclient.DataStreamsDocCount {
 	return map[string]int{
-		fmt.Sprintf("traces-apm-%s", namespace):                     15013,
-		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 1437,
-		fmt.Sprintf("metrics-apm.internal-%s", namespace):           1351,
-		fmt.Sprintf("logs-apm.error-%s", namespace):                 364,
+		fmt.Sprintf("traces-apm-%s", namespace):                         15013,
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace):     1437,
+		fmt.Sprintf("metrics-apm.internal-%s", namespace):               1351,
+		fmt.Sprintf("logs-apm.error-%s", namespace):                     364,
+		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace): -1,
+		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace): -1,
+		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace):     -1,
+		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace):         -1,
 	}
 }
 
 // emptyIngestForASingleRun represent an empty ingestion.
 // It is useful for asserting that the document count did not change after an operation.
+//
+// NOTE: The aggregation data streams have negative counts, because they
+// are expected to appear but the document counts should not be asserted.
 func emptyIngestForASingleRun(namespace string) esclient.DataStreamsDocCount {
 	return map[string]int{
-		fmt.Sprintf("traces-apm-%s", namespace):                     0,
-		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 0,
-		fmt.Sprintf("metrics-apm.internal-%s", namespace):           0,
-		fmt.Sprintf("logs-apm.error-%s", namespace):                 0,
-	}
-}
-
-// aggregationDataStreams returns a list of APM data streams that go through aggregation.
-func aggregationDataStreams(namespace string) []string {
-	return []string{
-		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace),
-		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace),
-		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace),
-		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace),
+		fmt.Sprintf("traces-apm-%s", namespace):                         0,
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace):     0,
+		fmt.Sprintf("metrics-apm.internal-%s", namespace):               0,
+		fmt.Sprintf("logs-apm.error-%s", namespace):                     0,
+		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace): -1,
+		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace): -1,
+		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace):     -1,
+		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace):         -1,
 	}
 }
 
 func allDataStreams(namespace string) []string {
-	res := aggregationDataStreams(namespace)
-	for ds := range expectedIngestForASingleRun(namespace) {
-		res = append(res, ds)
-	}
-	return res
+	return slices.Collect(maps.Keys(expectedIngestForASingleRun(namespace)))
 }
 
 const (
@@ -190,7 +194,7 @@ const (
 )
 
 // regionFrom returns the appropriate region to run test
-// againts based on specified target.
+// against based on specified target.
 // https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html
 func regionFrom(target string) string {
 	switch target {

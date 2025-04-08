@@ -20,8 +20,7 @@ RUN --mount=type=cache,target=/root/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     make apm-server-fips
 
-COPY apm-server.yml ./apm-server.yml
-COPY --chmod=0644 apm-server.yml ./apm-server.yml
+COPY --chmod=0644 apm-server-fips.yml ./apm-server.yml
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 
@@ -80,8 +79,8 @@ COPY --chmod=0644 --chown=nonroot:nonroot licenses/ELASTIC-LICENSE-2.0.txt /lice
 COPY --chmod=0644 --chown=nonroot:nonroot NOTICE-fips.txt /licenses/NOTICE.txt
 
 WORKDIR /usr/share/apm-server
-COPY --chmod=0755 --chown=nonroot:nonroot --from=builder /src/apm-server-fips ./apm-server-fips
+COPY --chmod=0755 --chown=nonroot:nonroot --from=builder /src/apm-server-fips ./apm-server
 COPY --chmod=0644 --chown=nonroot:nonroot --from=builder /src/apm-server.yml ./apm-server.yml
 
 EXPOSE 8200
-ENTRYPOINT ["/usr/share/apm-server/apm-server-fips", "--environment=container"]
+ENTRYPOINT ["/usr/share/apm-server/apm-server", "--environment=container"]

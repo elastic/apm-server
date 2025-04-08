@@ -25,116 +25,168 @@ import (
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
-	"github.com/elastic/apm-server/functionaltests/internal/esclient"
-	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 )
 
-// runBasicUpgradeILMTest performs a basic upgrade test from `fromVersion` to
-// `toVersion`. The test assumes that all data streams are using Index
-// Lifecycle Management (ILM) instead of Data Stream Lifecycle Management
-// (DSL), which should be the case for most recent APM data streams.
-func runBasicUpgradeILMTest(
-	t *testing.T,
+type basicUpgradeTestScenario struct {
+	Name   string
+	Runner testStepsRunner
+}
+
+// basicUpgradeILMTestScenarios returns all scenarios for basic upgrade test
+// from `fromVersion` to `toVersion`. The test assumes that all data streams
+// (before and after upgrade) are using Index Lifecycle Management (ILM)
+// instead of Data Stream Lifecycle Management (DSL), which should be the case
+// for most recent APM data streams.
+func basicUpgradeILMTestScenarios(
 	fromVersion ecclient.StackVersion,
 	toVersion ecclient.StackVersion,
 	apmErrorLogsIgnored []types.Query,
-) {
-	testCase := singleUpgradeTestCase{
-		fromVersion: fromVersion,
-		toVersion:   toVersion,
-		checkPreUpgradeAfterIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		checkPostUpgradeBeforeIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		checkPostUpgradeAfterIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		apmErrorLogsIgnored: apmErrorLogsIgnored,
+) []basicUpgradeTestScenario {
+	checkILM := asserts.CheckDataStreamsWant{
+		Quantity:         8,
+		PreferIlm:        true,
+		DSManagedBy:      managedByILM,
+		IndicesPerDS:     1,
+		IndicesManagedBy: []string{managedByILM},
 	}
 
-	runAllBasicUpgradeScenarios(t, testCase)
+	return allBasicUpgradeScenarios(
+		fromVersion, toVersion,
+		checkILM, checkILM, checkILM,
+		apmErrorLogsIgnored,
+	)
 }
 
-// runBasicUpgradeLazyRolloverDSLTest performs a basic upgrade test from
-// `fromVersion` to `toVersion`. The test assumes that all data streams are
-// using Data Stream Lifecycle Management (DSL) instead of Index Lifecycle
-// Management (ILM).
-//
-// In 8.15, the data stream management was migrated from ILM to DSL.
-// However, a bug was introduced, causing data streams to be unmanaged.
-// See https://github.com/elastic/apm-server/issues/13898.
-//
-// It was fixed by defaulting data stream management to DSL, and eventually
-// reverted back to ILM in 8.17. Therefore, data streams created in 8.15 and
-// 8.16 are managed by DSL instead of ILM.
-func runBasicUpgradeLazyRolloverDSLTest(
-	t *testing.T,
+// basicUpgradeLazyRolloverILMTestScenarios returns all scenarios for basic
+// upgrade test from `fromVersion` to `toVersion`. The test assumes that all
+// data streams (before and after upgrade) are using Index Lifecycle Management
+// (ILM) instead of Data Stream Lifecycle Management (DSL), which should be the
+// case for most recent APM data streams. It will also verify that lazy
+// rollover happened on post-upgrade ingestion.
+func basicUpgradeLazyRolloverILMTestScenarios(
 	fromVersion ecclient.StackVersion,
 	toVersion ecclient.StackVersion,
 	apmErrorLogsIgnored []types.Query,
-) {
-	testCase := singleUpgradeTestCase{
-		fromVersion: fromVersion,
-		toVersion:   toVersion,
-		checkPreUpgradeAfterIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByDSL},
-		},
-		checkPostUpgradeBeforeIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByDSL},
-		},
-		// Verify lazy rollover happened, i.e. 2 indices per data stream.
-		// Check data streams are managed by DSL.
-		checkPostUpgradeAfterIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
-			IndicesPerDS:     2,
-			IndicesManagedBy: []string{managedByDSL, managedByDSL},
-		},
-		apmErrorLogsIgnored: apmErrorLogsIgnored,
+) []basicUpgradeTestScenario {
+	// All data streams should be managed by ILM.
+	checkILM := asserts.CheckDataStreamsWant{
+		Quantity:         8,
+		PreferIlm:        true,
+		DSManagedBy:      managedByILM,
+		IndicesPerDS:     1,
+		IndicesManagedBy: []string{managedByILM},
+	}
+	// Verify lazy rollover happened, i.e. 2 indices per data stream.
+	checkILMRollover := asserts.CheckDataStreamsWant{
+		Quantity:         8,
+		PreferIlm:        true,
+		DSManagedBy:      managedByILM,
+		IndicesPerDS:     2,
+		IndicesManagedBy: []string{managedByILM, managedByILM},
 	}
 
-	runAllBasicUpgradeScenarios(t, testCase)
+	return allBasicUpgradeScenarios(
+		fromVersion, toVersion,
+		checkILM, checkILM, checkILMRollover,
+		apmErrorLogsIgnored,
+	)
 }
 
-func runAllBasicUpgradeScenarios(t *testing.T, testCase singleUpgradeTestCase) {
-	t.Run("Default", func(t *testing.T) {
-		t.Parallel()
-		tt := testCase
-		tt.Run(t)
+// basicUpgradeLazyRolloverDSLTestScenarios returns all scenarios for basic
+// upgrade test from `fromVersion` to `toVersion`. The test assumes that all
+// data streams (before and after upgrade) are using Data Stream Lifecycle
+// Management (DSL) instead of Index Lifecycle Management (ILM). It will also
+// verify that lazy rollover happened on post-upgrade ingestion.
+func basicUpgradeLazyRolloverDSLTestScenarios(
+	fromVersion ecclient.StackVersion,
+	toVersion ecclient.StackVersion,
+	apmErrorLogsIgnored []types.Query,
+) []basicUpgradeTestScenario {
+	// All data streams should be managed by DSL.
+	checkDSL := asserts.CheckDataStreamsWant{
+		Quantity:         8,
+		PreferIlm:        false,
+		DSManagedBy:      managedByDSL,
+		IndicesPerDS:     1,
+		IndicesManagedBy: []string{managedByDSL},
+	}
+	// Verify lazy rollover happened, i.e. 2 indices per data stream.
+	checkDSLRollover := asserts.CheckDataStreamsWant{
+		Quantity:         8,
+		PreferIlm:        false,
+		DSManagedBy:      managedByDSL,
+		IndicesPerDS:     2,
+		IndicesManagedBy: []string{managedByDSL, managedByDSL},
+	}
+
+	return allBasicUpgradeScenarios(
+		fromVersion, toVersion,
+		checkDSL, checkDSL, checkDSLRollover,
+		apmErrorLogsIgnored,
+	)
+}
+
+// allBasicUpgradeScenarios returns all basic upgrade test scenarios.
+// The scenarios involved are:
+//
+//   - Default: The cluster is created, some data is ingested and the first
+//     check ensures that it's in the expected state. Then, an upgrade
+//     is triggered, and a second check confirms that the state did not
+//     drift after upgrade. A new ingestion is performed, and a third
+//     check verifies that ingestion works as expected after upgrade.
+//     Finally, error logs are examined to ensure there are no unexpected
+//     errors.
+//
+//   - Reroute: Same as Default scenario, except after the cluster is created,
+//     we insert a reroute ingest pipeline to reroute all APM data streams to
+//     a new namespace. This test is to ensure that APM data streams rerouting
+//     still works as expected across ingestion and upgrade.
+//     See https://github.com/elastic/apm-server/issues/14060 for motivation.
+func allBasicUpgradeScenarios(
+	fromVersion ecclient.StackVersion,
+	toVersion ecclient.StackVersion,
+	checkPreUpgradeAfterIngest asserts.CheckDataStreamsWant,
+	checkPostUpgradeBeforeIngest asserts.CheckDataStreamsWant,
+	checkPostUpgradeAfterIngest asserts.CheckDataStreamsWant,
+	apmErrorLogsIgnored []types.Query,
+) []basicUpgradeTestScenario {
+	var scenarios []basicUpgradeTestScenario
+
+	// Default
+	scenarios = append(scenarios, basicUpgradeTestScenario{
+		Name: "Default",
+		Runner: testStepsRunner{
+			Steps: []testStep{
+				createStep{DeployVersion: fromVersion},
+				ingestStep{CheckDataStream: checkPreUpgradeAfterIngest},
+				upgradeStep{NewVersion: toVersion, CheckDataStream: checkPostUpgradeBeforeIngest},
+				ingestStep{CheckDataStream: checkPostUpgradeAfterIngest},
+				checkErrorLogsStep{APMErrorLogsIgnored: apmErrorLogsIgnored},
+			},
+		},
 	})
 
-	t.Run("Reroute", func(t *testing.T) {
-		t.Parallel()
-		tt := testCase
-		rerouteNamespace := "rerouted"
-		tt.dataStreamNamespace = rerouteNamespace
-		tt.setupFn = func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error {
-			t.Log("create reroute processors")
-			return createRerouteIngestPipeline(t, ctx, esc, rerouteNamespace)
-		}
-		tt.Run(t)
+	// Reroute
+	rerouteNamespace := "rerouted"
+	setupFn := stepFunc(func(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
+		t.Log("create reroute processors")
+		createRerouteIngestPipeline(t, ctx, e.esc, rerouteNamespace)
+		return previousRes
 	})
+	scenarios = append(scenarios, basicUpgradeTestScenario{
+		Name: "Reroute",
+		Runner: testStepsRunner{
+			DataStreamNamespace: rerouteNamespace,
+			Steps: []testStep{
+				createStep{DeployVersion: fromVersion},
+				customStep{Func: setupFn},
+				ingestStep{CheckDataStream: checkPreUpgradeAfterIngest},
+				upgradeStep{NewVersion: toVersion, CheckDataStream: checkPostUpgradeBeforeIngest},
+				ingestStep{CheckDataStream: checkPostUpgradeAfterIngest},
+				checkErrorLogsStep{APMErrorLogsIgnored: apmErrorLogsIgnored},
+			},
+		},
+	})
+
+	return scenarios
 }
