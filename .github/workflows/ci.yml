@@ -28,8 +28,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
           cache: true
@@ -43,13 +43,13 @@ jobs:
         os: ['macos-latest', 'ubuntu-latest', 'windows-latest']
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: antontroshin/setup-go@bda02de8887c9946189f81e7e59512914aeb9ea4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: antontroshin/setup-go@bda02de8887c9946189f81e7e59512914aeb9ea4 # bda02de8887c9946189f81e7e59512914aeb9ea4
         if: runner.os == 'Windows'
         with:
           go-version-file: go.mod
           cache: true
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         if: runner.os != 'Windows'
         with:
           go-version-file: go.mod
@@ -57,7 +57,11 @@ jobs:
       - run: go test -v -race ./...
       - env:
           KIBANA_URL: "https://kibana.test"
-          KIBANA_APIKEY: "dummy"
+          KIBANA_USERNAME: "dummy"
+          KIBANA_PASSWORD: "dummy"
+          EC_URL: "https://elastic-cloud.test"
+          EC_API_KEY: "dummy"
+          EC_REGION: "gcp-us-west2"
         # run functionaltests internal tests
         # functionaltests themselves are run in the functional-tests pipeline
         run: cd ./functionaltests && go test -v -race ./internal/...
@@ -65,8 +69,8 @@ jobs:
   test-fips:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
           cache: true
@@ -78,8 +82,8 @@ jobs:
   system-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: systemtest/go.mod
           cache: true
@@ -95,8 +99,8 @@ jobs:
   test-package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
           cache: false
@@ -113,8 +117,8 @@ jobs:
     env:
       GENERATE_WOLFI_IMAGES: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
           cache: false
@@ -133,24 +137,24 @@ jobs:
 
   # Only for forked PRs, when changing the .go-version, then we need to note that the wolfi docker image needs to be
   # validated
-  #validate-wolfi-docker-image:
-  #  runs-on: ubuntu-latest
-  #  if: ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true ) || github.actor == 'dependabot[bot]'
-  #  steps:
-  #    - uses: actions/checkout@v4
-  #    - name: Get changed files
-  #      id: changed-files
-  #      uses: tj-actions/changed-files@dcc7a0cba800f454d79fff4b993e8c3555bcc0a8 # v45.0.7
-  #      with:
-  #        files: .go-version
-  #
-  #    - name: If .go-version changed validate docker image is available.
-  #      if: steps.changed-files.outputs.any_changed == 'true'
-  #      run: |
-  #        echo "If you change the .go-version please use a branch in the upstream repository to validate the wolfi images with test-package-and-push."
-  #        echo "Otherwise, this validation will run and fail the CI build."
-  #        echo "Please validate the wolfi image is available by running the following command:"
-  #        echo "::notice::docker pull docker.elastic.co/wolfi/go:$(cat .go-version)"
-  #        echo "If they are available you could skip this validation."
-  #        echo "However, we recommend to use an upstream branch to run the CI specialised steps for the packaging system."
-  #        exit 1
+  validate-wolfi-docker-image:
+    runs-on: ubuntu-latest
+    if: ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true ) || github.actor == 'dependabot[bot]'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@6f67ee9ac810f0192ea7b3d2086406f97847bcf9 # v45.0.7
+        with:
+          files: .go-version
+
+      - name: If .go-version changed validate docker image is available.
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "If you change the .go-version please use a branch in the upstream repository to validate the wolfi images with test-package-and-push."
+          echo "Otherwise, this validation will run and fail the CI build."
+          echo "Please validate the wolfi image is available by running the following command:"
+          echo "::notice::docker pull docker.elastic.co/wolfi/go:$(cat .go-version)"
+          echo "If they are available you could skip this validation."
+          echo "However, we recommend to use an upstream branch to run the CI specialised steps for the packaging system."
+          exit 1

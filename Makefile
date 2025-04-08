@@ -38,12 +38,30 @@ APM_SERVER_BINARIES:= \
 	build/apm-server-darwin-amd64 \
 	build/apm-server-darwin-arm64
 
+APM_SERVER_FIPS_BINARIES:= \
+	build/apm-server-fips-linux-amd64 \
+	build/apm-server-fips-linux-arm64
+
 # Strip binary and inject the Git commit hash and timestamp.
 LDFLAGS := \
 	-s \
 	-X github.com/elastic/apm-server/internal/version.qualifier=$(ELASTIC_QUALIFIER) \
 	-X github.com/elastic/beats/v7/libbeat/version.commit=$(GITCOMMIT) \
 	-X github.com/elastic/beats/v7/libbeat/version.buildTime=$(GITCOMMITTIMESTAMP)
+
+# Rule to build apm-server fips binaries
+.PHONY: $(APM_SERVER_FIPS_BINARIES)
+$(APM_SERVER_FIPS_BINARIES):
+	docker run --privileged --rm "tonistiigi/binfmt:latest@sha256:1b804311fe87047a4c96d38b4b3ef6f62fca8cd125265917a9e3dc3c996c39e6" --install arm64,amd64
+	# rely on Dockerfile.fips to use the go fips toolchain
+	docker buildx build --platform "$(GOOS)/$(GOARCH)" --build-arg GOLANG_VERSION="$(shell go list -m -f '{{.Version}}' go)" -f ./packaging/docker/Dockerfile.fips -t apm-server-fips-image-temp .
+	# remove any leftover container from a failed task
+	docker rm apm-server-fips-cont || true
+	docker create --name apm-server-fips-cont apm-server-fips-image-temp
+	mkdir -p build
+	docker cp apm-server-fips-cont:/usr/share/apm-server/apm-server-fips "build/apm-server-fips-$(GOOS)-$(GOARCH)"
+	# cleanup running container
+	docker rm apm-server-fips-cont
 
 # Rule to build apm-server binaries, using Go's native cross-compilation.
 #
@@ -63,7 +81,7 @@ apm-server-build:
 	env CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) \
 	go build -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) $(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
 
-build/apm-server-linux-%: GOOS=linux
+build/apm-server-linux-% build/apm-server-fips-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
 build/apm-server-windows-%: GOOS=windows
 build/apm-server-windows-%: EXTENSION=.exe
@@ -261,7 +279,10 @@ gofmt: add-headers
 MODULE_DEPS=$(sort $(shell \
   go list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
 
-notice: NOTICE.txt
+MODULE_DEPS_FIPS=$(sort $(shell \
+  go list -deps -tags=darwin,linux,windows,requirefips -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
+
+notice: NOTICE.txt NOTICE-fips.txt
 NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod
 	mkdir -p build/
 	go list -m -json $(MODULE_DEPS) | go tool go.elastic.co/go-licence-detector \
@@ -272,6 +293,17 @@ NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod
 		-noticeOut NOTICE.txt \
 		-depsTemplate tools/notice/dependencies.csv.tmpl \
 		-depsOut build/dependencies-$(APM_SERVER_VERSION).csv
+
+NOTICE-fips.txt build/dependencies-$(APM_SERVER_VERSION)-fips.csv: go.mod
+	mkdir -p build/
+	go list -tags=requirefips -m -json $(MODULE_DEPS_FIPS) | go tool go.elastic.co/go-licence-detector \
+		-includeIndirect \
+		-overrides tools/notice/overrides.json \
+		-rules tools/notice/rules.json \
+		-noticeTemplate tools/notice/NOTICE.txt.tmpl \
+		-noticeOut NOTICE-fips.txt \
+		-depsTemplate tools/notice/dependencies.csv.tmpl \
+		-depsOut build/dependencies-$(APM_SERVER_VERSION)-fips.csv
 
 ##############################################################################
 # Rules for creating and installing build tools.
@@ -323,11 +355,16 @@ testing/rally/corpora:
 SMOKETEST_VERSIONS ?= latest
 # supported-os tests are exclude and hence they are not running as part of this process
 # since they are required to run against different versions in a different CI pipeline.
-SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d | grep -v supported-os | grep -v /managed)
+SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d | grep -v supported-os | grep -v /managed | grep -v legacy)
+SMOKETEST_DIRS_LEGACY = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d | grep legacy)
 
 .PHONY: smoketest/discover
 smoketest/discover:
 	@ echo "$(SMOKETEST_DIRS)" | jq -cnR '[inputs | select(length > 0)]'
+
+.PHONY: smoketest/discover-legacy
+smoketest/discover-legacy:
+	@ echo "$(SMOKETEST_DIRS_LEGACY)" | jq -cnR '[inputs | select(length > 0)]'
 
 .PHONY: smoketest/run-version
 smoketest/run-version:
@@ -352,10 +389,17 @@ smoketest/all:
 	@ for test_dir in $(SMOKETEST_DIRS); do \
 		$(MAKE) smoketest/run TEST_DIR=$${test_dir}; \
 	done
+	@ for test_dir in $(SMOKETEST_DIRS_LEGACY); do \
+		$(MAKE) smoketest/run TEST_DIR=$${test_dir}; \
+	done
 
 .PHONY: smoketest/all/cleanup
 smoketest/all/cleanup:
 	@ for test_dir in $(SMOKETEST_DIRS); do \
+		echo "-> Cleanup $${test_dir} smoke tests..."; \
+		$(MAKE) smoketest/cleanup TEST_DIR=$${test_dir}; \
+	done
+	@ for test_dir in $(SMOKETEST_DIRS_LEGACY); do \
 		echo "-> Cleanup $${test_dir} smoke tests..."; \
 		$(MAKE) smoketest/cleanup TEST_DIR=$${test_dir}; \
 	done

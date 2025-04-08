@@ -26,20 +26,26 @@ jobs:
       fail-fast: false
       matrix:
         environment:
-          - 'qa'
           - 'pro'
+        active-version:
+          - '8.16'
+          - '8.17'
+          - '8.18'
+          - '8.19'
+          - '9.0'
+          - '9.1'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
         with:
           terraform_version: "${{ env.TERRAFORM_VERSION }}"
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: 'functionaltests/go.mod'
 
-      - uses: elastic/oblt-actions/google/auth@v1
+      - uses: elastic/oblt-actions/google/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
 
       - uses: google-github-actions/get-secretmanager-secrets@a8440875e1c2892062aef9061228d4f1af8f919b # v2.2.3
         with:
@@ -47,9 +53,13 @@ jobs:
           secrets: |-
             EC_API_KEY:elastic-observability/elastic-cloud-observability-team-${{ matrix.environment }}-api-key
 
-      - run: |
+      - name: "Run functional tests"
+        working-directory: ${{ github.workspace }}/functionaltests
+        run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          cd functionaltests && go test -v -timeout=30m -cleanup-on-failure=false -target "${{ matrix.environment }}" ./
+          VERSION="${{ matrix.active-version }}"
+          VERSION="${VERSION//./_}"
+          go test -run="_to_${VERSION}" -v -timeout=30m -cleanup-on-failure=false -target="${{ matrix.environment }}" ./
 
 #  notify:
 #    if: always()

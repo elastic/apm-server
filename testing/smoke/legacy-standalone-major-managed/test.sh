@@ -14,7 +14,7 @@ if [[ "${1}" == "latest" ]]; then
     # SNAPSHOT version can only be upgraded to another SNAPSHOT version
     get_latest_snapshot
     LATEST_VERSION_7=$(echo "${VERSIONS}" | jq -r -c "map(select(. | startswith(\"${VERSION_7}\"))) | .[-1]")
-    ASSERTION_VERSION_7=${LATEST_SNAPSHOT_VERSION%-*} # strip -SNAPSHOT suffix
+    ASSERTION_VERSION_7=${LATEST_VERSION_7%-*} # strip -SNAPSHOT suffix
     LATEST_VERSION_8=$(echo "${VERSIONS}" | jq -r '[.[] | select(. | startswith("8"))] | last')
     ASSERTION_VERSION_8=${LATEST_VERSION_8%-*} # strip -SNAPSHOT suffix
 else
@@ -25,11 +25,7 @@ else
     ASSERTION_VERSION_8=${LATEST_VERSION_8}
 fi
 
-if [[ -n ${LATEST_VERSION_9} ]]; then
-    echo "-> Running ${LATEST_VERSION_7} standalone to ${LATEST_VERSION_8} standalone to ${LATEST_VERSION_9} standalone to ${LATEST_VERSION_9} managed"
-else
-    echo "-> Running ${LATEST_VERSION_7} standalone to ${LATEST_VERSION_8} standalone to ${LATEST_VERSION_8} managed"
-fi
+echo "-> Running ${LATEST_VERSION_7} standalone to ${LATEST_VERSION_8} standalone to ${LATEST_VERSION_8} managed"
 
 if [[ -z ${SKIP_DESTROY} ]]; then
     trap "terraform_destroy" EXIT

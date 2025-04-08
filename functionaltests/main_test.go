@@ -21,20 +21,34 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
+	"maps"
+	"os"
+	"slices"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
+var (
+	// cleanupOnFailure determines whether the created resources should be cleaned up on test failure.
+	cleanupOnFailure = flag.Bool(
+		"cleanup-on-failure",
+		true,
+		"Whether to run cleanup even if the test failed.",
+	)
 
-// target is the Elastic Cloud environment to target with these test.
-// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
-var target *string = flag.String("target", "pro", "The target environment where to run tests againts. Valid values are: qa, pro")
+	// target is the Elastic Cloud environment to target with these test.
+	// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
+	target = flag.String(
+		"target",
+		"pro",
+		"The target environment where to run tests againts. Valid values are: qa, pro.",
+	)
+)
 
 const (
 	// managedByDSL is the constant string used by Elasticsearch to specify that an Index is managed by Data Stream Lifecycle management.
@@ -43,109 +57,133 @@ const (
 	managedByILM = "Index Lifecycle Management"
 )
 
-const (
-	defaultNamespace = "default"
+var (
+	// fetchedCandidates are the build-candidate stack versions prefetched from Elastic Cloud API.
+	fetchedCandidates ecclient.StackVersions
+	// fetchedSnapshots are the snapshot stack versions prefetched from Elastic Cloud API.
+	fetchedSnapshots ecclient.StackVersions
+	// fetchedVersions are the non-snapshot stack versions prefetched from Elastic Cloud API.
+	fetchedVersions ecclient.StackVersions
 )
 
-// expectedIngestForASingleRun represent the expected number of ingested document after a
-// single run of ingest.
-// Only non aggregation data streams are included, as aggregation ones differs on different
-// runs.
-func expectedIngestForASingleRun(namespace string) esclient.APMDataStreamsDocCount {
+func TestMain(m *testing.M) {
+	flag.Parse()
+
+	// This is a simple check to alert users if this necessary env var
+	// is not available.
+	//
+	// Functional tests are expected to run Terraform code to operate
+	// on infrastructure required for each test and to query Elastic
+	// Cloud APIs. In both cases a valid API key is required.
+	ecAPIKey := os.Getenv("EC_API_KEY")
+	if ecAPIKey == "" {
+		log.Fatal("EC_API_KEY env var not set")
+		return
+	}
+
+	ctx := context.Background()
+	ecRegion := regionFrom(*target)
+	ecc, err := ecclient.New(endpointFrom(*target), ecAPIKey)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	candidates, err := ecc.GetCandidateVersions(ctx, ecRegion)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	fetchedCandidates = candidates
+
+	snapshots, err := ecc.GetSnapshotVersions(ctx, ecRegion)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	fetchedSnapshots = snapshots
+
+	versions, err := ecc.GetVersions(ctx, ecRegion)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	fetchedVersions = versions
+
+	code := m.Run()
+	os.Exit(code)
+}
+
+// getLatestVersionOrSkip retrieves the latest non-snapshot version for the version prefix.
+// If the version is not found, the test is skipped via t.Skip.
+func getLatestVersionOrSkip(t *testing.T, prefix string) ecclient.StackVersion {
+	t.Helper()
+	version, ok := fetchedVersions.LatestFor(prefix)
+	if !ok {
+		t.Skipf("version for '%s' not found in EC region %s, skipping test", prefix, regionFrom(*target))
+		return ecclient.StackVersion{}
+	}
+	return version
+}
+
+// getLatestBCOrSkip retrieves the latest build-candidate version for the version prefix.
+// If the version is not found, the test is skipped via t.Skip.
+func getLatestBCOrSkip(t *testing.T, prefix string) ecclient.StackVersion {
+	t.Helper()
+	candidate, ok := fetchedCandidates.LatestFor(prefix)
+	if !ok {
+		t.Skipf("BC for '%s' not found in EC region %s, skipping test", prefix, regionFrom(*target))
+		return ecclient.StackVersion{}
+	}
+	return candidate
+}
+
+// getLatestSnapshot retrieves the latest snapshot version for the version prefix.
+func getLatestSnapshot(t *testing.T, prefix string) ecclient.StackVersion {
+	t.Helper()
+	version, ok := fetchedSnapshots.LatestFor(prefix)
+	require.True(t, ok, "snapshot for '%s' found in EC region %s", prefix, regionFrom(*target))
+	return version
+}
+
+// expectedIngestForASingleRun represent the expected number of ingested document
+// after a single run of ingest.
+//
+// NOTE: The aggregation data streams have negative counts, because they are
+// expected to appear but the document counts should not be asserted.
+func expectedIngestForASingleRun(namespace string) esclient.DataStreamsDocCount {
 	return map[string]int{
-		fmt.Sprintf("traces-apm-%s", namespace):                     15013,
-		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 1437,
-		fmt.Sprintf("metrics-apm.internal-%s", namespace):           1351,
-		fmt.Sprintf("logs-apm.error-%s", namespace):                 364,
+		fmt.Sprintf("traces-apm-%s", namespace):                         15013,
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace):     1437,
+		fmt.Sprintf("metrics-apm.internal-%s", namespace):               1351,
+		fmt.Sprintf("logs-apm.error-%s", namespace):                     364,
+		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace): -1,
+		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace): -1,
+		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace):     -1,
+		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace):         -1,
 	}
 }
 
-func aggregationDataStreams(namespace string) []string {
-	return []string{
-		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace),
-		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace),
-		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace),
-		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace),
+// emptyIngestForASingleRun represent an empty ingestion.
+// It is useful for asserting that the document count did not change after an operation.
+//
+// NOTE: The aggregation data streams have negative counts, because they
+// are expected to appear but the document counts should not be asserted.
+func emptyIngestForASingleRun(namespace string) esclient.DataStreamsDocCount {
+	return map[string]int{
+		fmt.Sprintf("traces-apm-%s", namespace):                         0,
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace):     0,
+		fmt.Sprintf("metrics-apm.internal-%s", namespace):               0,
+		fmt.Sprintf("logs-apm.error-%s", namespace):                     0,
+		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace): -1,
+		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace): -1,
+		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace):     -1,
+		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace):         -1,
 	}
 }
 
 func allDataStreams(namespace string) []string {
-	res := aggregationDataStreams(namespace)
-	for ds := range expectedIngestForASingleRun(namespace) {
-		res = append(res, ds)
-	}
-	return res
-}
-
-// getDocsCountPerDS retrieves document count.
-func getDocsCountPerDS(t *testing.T, ctx context.Context, ecc *esclient.Client) (esclient.APMDataStreamsDocCount, error) {
-	t.Helper()
-	return ecc.ApmDocCount(ctx)
-}
-
-func sliceToMap(s []string) map[string]bool {
-	m := make(map[string]bool)
-	for _, v := range s {
-		m[v] = true
-	}
-	return m
-}
-
-// assertDocCount check if specified document count is equal to expected minus
-// documents count from a previous state.
-func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMDataStreamsDocCount, skippedDataStreams []string) {
-	t.Helper()
-	skipped := sliceToMap(skippedDataStreams)
-	for ds, v := range docsCount {
-		if skipped[ds] {
-			continue
-		}
-
-		e, ok := expected[ds]
-		if !ok {
-			t.Errorf("unexpected documents (%d) for %s", v, ds)
-			continue
-		}
-
-		assert.Equal(t, e, v-previous[ds],
-			fmt.Sprintf("wrong document count difference for %s", ds))
-	}
-}
-
-type checkDatastreamWant struct {
-	Quantity         int
-	DSManagedBy      string
-	IndicesPerDs     int
-	PreferIlm        bool
-	IndicesManagedBy []string
-}
-
-// assertDatastreams assert expected values on specific data streams in a cluster.
-func assertDatastreams(t *testing.T, expected checkDatastreamWant, actual []types.DataStream) {
-	t.Helper()
-
-	require.Len(t, actual, expected.Quantity, "number of APM datastream differs from expectations")
-	for _, v := range actual {
-		if expected.PreferIlm {
-			assert.True(t, v.PreferIlm, "datastream %s should prefer ILM", v.Name)
-		} else {
-			assert.False(t, v.PreferIlm, "datastream %s should not prefer ILM", v.Name)
-		}
-
-		assert.Equal(t, expected.DSManagedBy, v.NextGenerationManagedBy.Name,
-			`datastream %s should be managed by "%s"`, v.Name, expected.DSManagedBy,
-		)
-		assert.Len(t, v.Indices, expected.IndicesPerDs,
-			"datastream %s should have %d indices", v.Name, expected.IndicesPerDs,
-		)
-		for i, index := range v.Indices {
-			assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name,
-				`index %s should be managed by "%s"`, index.IndexName,
-				expected.IndicesManagedBy[i],
-			)
-		}
-	}
-
+	return slices.Collect(maps.Keys(expectedIngestForASingleRun(namespace)))
 }
 
 const (
@@ -156,7 +194,7 @@ const (
 )
 
 // regionFrom returns the appropriate region to run test
-// againts based on specified target.
+// against based on specified target.
 // https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html
 func regionFrom(target string) string {
 	switch target {

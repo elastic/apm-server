@@ -9,7 +9,7 @@ on:
 
 jobs:
   docs-preview:
-    uses: elastic/docs-builder/.github/workflows/preview-build.yml@main
+    uses: elastic/docs-builder/.github/workflows/preview-build.yml@4fd8e89dd8147ac5301c55a24f9dfce0bedb06cf # main
     with:
       path-pattern: docs/**
     permissions:

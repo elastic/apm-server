@@ -2,26 +2,31 @@
 mapped_pages:
   - https://www.elastic.co/guide/en/observability/current/apm-known-issues.html
 
-navigation_title: "Elastic APM"
+navigation_title: "Known issues"
 ---
 
 # Elastic APM known issues
+Known issues are significant defects or limitations that may impact your implementation. These issues are actively being worked on and will be addressed in a future release. Review the Elastic APM known issues to help you make informed decisions, such as upgrading to a new version.
 
 % Use the following template to add entries to this page.
 
 % :::{dropdown} Title of known issue
-% **Details**
-% On [Month/Day/Year], a known issue was discovered that [description of known issue].
+% **Applicable versions for the known issue and the version for when the known issue was fixed**
+% On [Month Day, Year], a known issue was discovered that [description of known issue].
+% For more information, check [Issue #](Issue link).
 
 % **Workaround**
 % Workaround description.
 
-% **Resolved**
-% On [Month/Day/Year], this issue was resolved.
-
 :::
 
-APM has the following known issues:
+:::{dropdown} Tail Sampling may not compact / expired TTLs as quickly as desired, causing increased storage usage.
+**Elastic Stack versions: 8.0.0+ < 9.0**
+There are some issues with the Tail Sampling implementation in versions 8.0.0+ < 9.0 that may cause the buffered traces to not be compacted or expired as quickly as desired. This can lead to increased storage usage for longer than the default 30m TTL.
+
+This may manifest in two ways, increased value log (vlog) file size and increased SST (LSM) file size. LSM growth and late compaction is particularly troublesome given how the underlying K/V database performs compactions on its layers. There is noticeable LSM growth for use-cases where traces are under 1KB in size, since they are written to the LSM layer directly.
+
+This issue is fixed in 9.0.0, due to a re-implementation of how the underlying tail sampling databases are used. The new implementation uses a more efficient partitioning scheme, allowing more efficient expiration of traces.
 
 :::{dropdown} prefer_ilm required in component templates to create custom lifecycle policies
 
@@ -65,6 +70,7 @@ POST /metrics-apm.transaction.1m-default/_rollover
 POST /metrics-apm.transaction.10m-default/_rollover
 POST /metrics-apm.transaction.60m-default/_rollover
 ```
+
 :::
 
 :::{dropdown} Upgrading to v8.15.0 may cause APM indices to lose their lifecycle policy
@@ -91,10 +97,10 @@ Upgrading to 8.15.1 resolves the lifecycle issue for any new indices created for
 Default `<data_retention_period>` for each data stream is available in [this guide](docs-content://solutions/observability/apps/index-lifecycle-management.md).
 
 This issue is fixed in 8.15.1 ([elastic/elasticsearch#112432](https://github.com/elastic/elasticsearch/pull/112432)).
+
 :::
 
 :::{dropdown} Upgrading to v8.13.0 to v8.13.2 breaks APM anomaly rules [broken-apm-anomaly-rule]
-
 *Elastic Stack versions: 8.13.0, 8.13.1, 8.13.2*<br> *Fixed in Elastic Stack version 8.13.3*
 
 This issue occurs when upgrading the Elastic Stack to version 8.13.0, 8.13.1, or 8.13.2. This issue may go unnoticed unless you actively monitor your {{kib}} logs. The following log indicates the presence of this issue:
@@ -217,7 +223,6 @@ There are three ways to fix this error:
 :::
 
 :::{dropdown} Upgrading APM Server to 8.11+ might break event intake from older APM Java agents
-
 *APM Server versions: >=8.11.0*<br> *Elastic APM Java agent versions: < 1.43.0*
 
 If you are using APM Server (> v8.11.0) and the Elastic APM Java agent (< v1.43.0), the agent may be sending empty histogram metricsets.
@@ -231,7 +236,6 @@ The fix is to upgrade the Elastic APM Java agent to a version >= 1.43.0. Find de
 :::
 
 :::{dropdown} traces-apm@custom ingest pipeline applied to certain data streams unintentionally
-
 *APM Server versions: 8.12.0*<br>
 
 If you’re using the Elastic APM Server v8.12.0, the `traces-apm@custom` ingest pipeline is now additionally applied to data streams `traces-apm.sampled-*` and `traces-apm.rum-*`, and applied twice for `traces-apm-*`. This bug impacts users with a non-empty `traces-apm@custom` ingest pipeline.
@@ -243,7 +247,6 @@ A fix was released in 8.12.1: [elastic/kibana#175448](https://github.com/elastic
 :::
 
 :::{dropdown} Ingesting new JVM metrics in 8.9 and 8.10 breaks upgrade to 8.11 and stops ingestion
-
 *APM Server versions: 8.11.0, 8.11.1*<br> *Elastic APM Java agent versions: 1.39.0+*
 
 If you’re using the Elastic APM Java agent v1.39.0+ to send new JVM metrics to APM Server v8.9.x and v8.10.x, upgrading to 8.11.0 or 8.11.1 will silently fail and stop ingesting APM metrics.
@@ -270,7 +273,6 @@ A fix was released in 8.11.2: [elastic/kibana#171712](https://github.com/elastic
 :::
 
 :::{dropdown} APM integration package upgrade through Fleet causes excessive data stream rollovers
-
 *APM Server versions: <= 8.12.1 +*
 
 If you’re upgrading APM integration package to any versions <= 8.12.1, in some rare cases, the upgrade fails with a mapping conflict error. The upgrade process keeps rolling over the data stream in an unsuccessful attempt to work around the error. As a result, many empty backing indices for APM data streams are created.
@@ -292,8 +294,7 @@ A fix was released in 8.12.2: [elastic/apm-server#12219](https://github.com/elas
 :::
 
 :::{dropdown} Performance regression: APM issues too many small bulk requests for Elasticsearch output
-
-*APM Server versions: >=8.13.0, <= 8.14.2*
+*APM Server versions: >=8.13.0, <= 8.14.2*<br>
 
 If you’re on APM server version >=8.13.0, <= 8.14.2_, using Elasticsearch output, do not specify any `output.elasticsearch.flush_bytes`, and do not disable compression explicitly by setting `output.elasticsearch.compression_level` to `0`, APM server will issue smaller bulk requests of 24KB size, and more bulk requests will need to be made to maintain the original throughput. This causes Elasticsearch to experience higher load, and APM server may exhibit Elasticsearch backpressure symptoms.
 
