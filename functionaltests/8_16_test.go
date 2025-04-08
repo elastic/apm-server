@@ -29,7 +29,7 @@ import (
 // reverted back to ILM in 8.17. Therefore, data streams created in 8.15 and
 // 8.16 are managed by DSL instead of ILM.
 
-func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
+func TestUpgrade_8_15_to_8_16__Snapshot(t *testing.T) {
 	t.Parallel()
 
 	scenarios := basicUpgradeLazyRolloverDSLTestScenarios(
@@ -54,7 +54,7 @@ func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 	}
 }
 
-func TestUpgrade_8_15_to_8_16_BC(t *testing.T) {
+func TestUpgrade_8_15_to_8_16__BC(t *testing.T) {
 	t.Parallel()
 
 	scenarios := basicUpgradeLazyRolloverDSLTestScenarios(
