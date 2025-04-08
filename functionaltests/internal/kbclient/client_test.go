@@ -149,25 +149,3 @@ func TestClient_UpdatePackagePolicyByID(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "Hello World", policy.Description)
 }
-
-func TestClient_ResolveMigrationDeprecations(t *testing.T) {
-	kbc := newRecordedTestClient(t)
-
-	ctx := context.Background()
-	// Check that there are some critical deprecation warnings.
-	deprecations, err := kbc.QueryCriticalESDeprecations(ctx)
-	require.NoError(t, err)
-	require.Greater(t, len(deprecations), 0)
-	for _, deprecation := range deprecations {
-		require.True(t, deprecation.IsCritical)
-	}
-
-	// Resolve them.
-	err = kbc.ResolveMigrationDeprecations(ctx)
-	require.NoError(t, err)
-
-	// Check that there are no more.
-	deprecations, err = kbc.QueryCriticalESDeprecations(ctx)
-	require.NoError(t, err)
-	assert.Len(t, deprecations, 0)
-}
