@@ -28,24 +28,16 @@ var (
 			"message": {Query: "http: TLS handshake error from 127.0.0.1:"},
 		},
 	}
+
 	esReturnedUnknown503 = types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "ES returned unknown status code: 503 Service Unavailable"},
 		},
 	}
+
 	refreshCache503 = types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "refresh cache elasticsearch returned status 503"},
-		},
-	}
-	preconditionFailed = types.Query{
-		MatchPhrase: map[string]types.MatchPhraseQuery{
-			"message": {Query: "precondition failed: context canceled"},
-		},
-	}
-	populateSourcemapServerShuttingDown = types.Query{
-		MatchPhrase: map[string]types.MatchPhraseQuery{
-			"message": {Query: "failed to populate sourcemap metadata: failed to run initial search query: fetcher unavailable: server shutting down"},
 		},
 	}
 	refreshCacheCtxDeadline = types.Query{
@@ -56,6 +48,18 @@ var (
 	refreshCacheCtxCanceled = types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "refresh cache error: context canceled"},
+		},
+	}
+
+	preconditionFailed = types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "precondition failed: context canceled"},
+		},
+	}
+
+	populateSourcemapServerShuttingDown = types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "failed to populate sourcemap metadata: failed to run initial search query: fetcher unavailable: server shutting down"},
 		},
 	}
 	populateSourcemapFetcher403 = types.Query{
