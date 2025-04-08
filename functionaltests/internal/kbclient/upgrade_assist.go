@@ -28,8 +28,12 @@ import (
 )
 
 func (c *Client) ResolveMigrationDeprecations(ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
+
+	if err := c.migrateSystemIndicesAndWait(ctx); err != nil {
+		return err
+	}
 
 	deprecations, err := c.QueryCriticalESDeprecations(ctx)
 	if err != nil {
@@ -127,4 +131,75 @@ func (c *Client) markDataStreamAsReadOnly(ctx context.Context, dataStream string
 
 	_, err := c.sendRequest(ctx, http.MethodPost, path, req, nil)
 	return err
+}
+
+type SystemIndicesMigrationStatus string
+
+const (
+	MigrationNeeded   SystemIndicesMigrationStatus = "MIGRATION_NEEDED"
+	NoMigrationNeeded SystemIndicesMigrationStatus = "NO_MIGRATION_NEEDED"
+	InProgress        SystemIndicesMigrationStatus = "IN_PROGRESS"
+)
+
+type systemIndicesMigrationResponse struct {
+	MigrationStatus string `json:"migration_status"`
+}
+
+// QuerySystemIndicesMigrationStatus returns the system indices migration status retrieved
+// through the Upgrade Assistant API:
+// https://www.elastic.co/guide/en/kibana/current/upgrade-assistant.html.
+func (c *Client) QuerySystemIndicesMigrationStatus(ctx context.Context) (SystemIndicesMigrationStatus, error) {
+	path := "/api/upgrade_assistant/system_indices_migration"
+	b, err := c.sendRequest(ctx, http.MethodGet, path, nil, nil)
+
+	var systemIndicesMigrationResp systemIndicesMigrationResponse
+	if err = json.Unmarshal(b, &systemIndicesMigrationResp); err != nil {
+		return "", fmt.Errorf("cannot unmarshal response body: %w", err)
+	}
+
+	status := SystemIndicesMigrationStatus(systemIndicesMigrationResp.MigrationStatus)
+	return status, nil
+}
+
+// migrateSystemIndices migrates the system indices through the Upgrade Assistant API:
+// https://www.elastic.co/guide/en/kibana/current/upgrade-assistant.html.
+func (c *Client) migrateSystemIndices(ctx context.Context) error {
+	path := "/api/upgrade_assistant/system_indices_migration"
+	_, err := c.sendRequest(ctx, http.MethodPost, path, nil, nil)
+	return err
+}
+
+// migrateSystemIndicesAndWait first checks that the system indices need to be migrated.
+// If they do, it will call migrateSystemIndices all keep waiting until the migration
+// status is done.
+func (c *Client) migrateSystemIndicesAndWait(ctx context.Context) error {
+	status, err := c.QuerySystemIndicesMigrationStatus(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to query system indices migration status: %w", err)
+	}
+
+	// Migration needed, call migrate API.
+	if status == MigrationNeeded {
+		if err = c.migrateSystemIndices(ctx); err != nil {
+			return fmt.Errorf("failed to migrate system indices: %w", err)
+		}
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			status, err = c.QuerySystemIndicesMigrationStatus(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to query system indices migration status: %w", err)
+			}
+			// Migration done.
+			if status == NoMigrationNeeded {
+				return nil
+			}
+			// Migration in progress, wait for a while.
+			time.Sleep(5 * time.Second)
+		}
+	}
 }
