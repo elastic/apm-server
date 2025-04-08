@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Observability Intake APIs",
-    "description": "## Documentation source and versions\n\nThis documentation is derived from the `main` branch of the [apm-server](https://github.com/elastic/apm-server) repository.\nFor the unabbreviated OpenAPI document, refer to [](https://github.com/elastic/apm-server/tree/main/docs/spec/openapi).\n\nIt is provided under license [Attribution-NonCommercial-NoDerivatives 4.0 International](https://creativecommons.org/licenses/by-nc-nd/4.0/).\n",
+    "description": "## Documentation source and versions\n\nThis documentation is derived from the `main` branch of the [apm-server](https://github.com/elastic/apm-server) repository.\nFor the unabbreviated OpenAPI document, refer to [docs/spec/openapi](https://github.com/elastic/apm-server/tree/main/docs/spec/openapi).\n\nIt is provided under license [Attribution-NonCommercial-NoDerivatives 4.0 International](https://creativecommons.org/licenses/by-nc-nd/4.0/).\n",
     "version": "0.1",
     "license": {
       "name": "Elastic License 2.0",
@@ -53,18 +53,6 @@
         "summary": "Get general server information",
         "description": "This lightweight endpoint is useful as a server up/down health check.\nTo configure authenticated access to the APM server, the instructions at [APM API key](https://www.elastic.co/guide/en/observability/current/api-key.html) or [APM Secret Token](https://www.elastic.co/guide/en/observability/current/secret-token.html) must be followed to configure the correct permissions for APM access.\n",
         "operationId": "getServerHealth",
-        "tags": [
-          "server info"
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/200_server_info"
-          }
-        }
-      },
-      "post": {
-        "summary": "Get general server information",
-        "operationId": "postServerHealth",
         "tags": [
           "server info"
         ],
