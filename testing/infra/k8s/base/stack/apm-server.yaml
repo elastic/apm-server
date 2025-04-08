@@ -3,7 +3,7 @@ kind: ApmServer
 metadata:
   name: apm-server
 spec:
-  version: 8.16.7-861074ac-SNAPSHOT
+  version: 8.16.7-c2ef0770-SNAPSHOT
   count: 1
   http:
     tls:
