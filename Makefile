@@ -53,15 +53,17 @@ LDFLAGS := \
 .PHONY: $(APM_SERVER_FIPS_BINARIES)
 $(APM_SERVER_FIPS_BINARIES):
 	docker run --privileged --rm "tonistiigi/binfmt:latest@sha256:1b804311fe87047a4c96d38b4b3ef6f62fca8cd125265917a9e3dc3c996c39e6" --install arm64,amd64
-	# rely on Dockerfile.fips to use the go fips toolchain
-	docker buildx build --platform "$(GOOS)/$(GOARCH)" --build-arg GOLANG_VERSION="$(shell go list -m -f '{{.Version}}' go)" -f ./packaging/docker/Dockerfile.fips -t apm-server-fips-image-temp .
 	# remove any leftover container from a failed task
-	docker rm apm-server-fips-cont || true
-	docker create --name apm-server-fips-cont apm-server-fips-image-temp
+	docker container rm apm-server-fips-cont || true
+	docker image rm apm-server-fips-image-temp || true
+	# rely on Dockerfile.fips to use the go fips toolchain
+	docker buildx build --load --platform "$(GOOS)/$(GOARCH)" --build-arg GOLANG_VERSION="$(shell go list -m -f '{{.Version}}' go)" -f ./packaging/docker/Dockerfile.fips -t apm-server-fips-image-temp .
+	docker container create --name apm-server-fips-cont apm-server-fips-image-temp
 	mkdir -p build
-	docker cp apm-server-fips-cont:/usr/share/apm-server/apm-server-fips "build/apm-server-fips-$(GOOS)-$(GOARCH)"
+	docker cp apm-server-fips-cont:/usr/share/apm-server/apm-server "build/apm-server-fips-$(GOOS)-$(GOARCH)"
 	# cleanup running container
-	docker rm apm-server-fips-cont
+	docker container rm apm-server-fips-cont
+	docker image rm apm-server-fips-image-temp
 
 # Rule to build apm-server binaries, using Go's native cross-compilation.
 #
@@ -79,7 +81,7 @@ $(APM_SERVER_BINARIES):
 .PHONY: apm-server-build
 apm-server-build:
 	env CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) \
-	go build -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) $(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
+	go build -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) -tags=grpcnotrace,$(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
 
 build/apm-server-linux-% build/apm-server-fips-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
@@ -108,7 +110,7 @@ apm-server apm-server-fips: PKG=./x-pack/apm-server
 apm-server-fips: CGO_ENABLED=1
 apm-server apm-server-oss: CGO_ENABLED=0
 
-apm-server-fips: GOTAGS=-tags=requirefips
+apm-server-fips: GOTAGS=requirefips
 
 apm-server-oss: SUFFIX=-oss
 apm-server-fips: SUFFIX=-fips
