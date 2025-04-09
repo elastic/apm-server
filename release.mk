@@ -61,7 +61,7 @@ endif
 
 ifeq ($(RELEASE_TYPE),major)
 	BASE_BRANCH ?= main
-	CHANGELOG_BRANCH = main
+	UPDATE_MERGIFY = true
 endif
 
 #######################
@@ -107,7 +107,7 @@ minor-release:
 #
 .PHONY: major-release
 major-release:
-# NOTE: major release uses minor-release with BASE_BRANCH=main and CHANGELOG_BRANCH=main
+# NOTE: major release uses minor-release with BASE_BRANCH=main
 	$(MAKE) minor-release
 
 # This is the contract with the GitHub action .github/workflows/run-patch-release.yml
