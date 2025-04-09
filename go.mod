@@ -7,7 +7,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/cockroachdb/pebble/v2 v2.0.3
 	github.com/dustin/go-humanize v1.0.1
-	github.com/elastic/apm-aggregation v1.2.0
+	github.com/elastic/apm-aggregation v1.3.0
 	github.com/elastic/apm-data v1.18.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250325090137-0c4e2d0af92c
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
@@ -50,7 +50,7 @@ require (
 	golang.org/x/sync v0.13.0
 	golang.org/x/term v0.31.0
 	golang.org/x/time v0.11.0
-	google.golang.org/grpc v1.71.0
+	google.golang.org/grpc v1.71.1
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -69,7 +69,7 @@ require (
 	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/axiomhq/hyperloglog v0.2.0 // indirect
+	github.com/axiomhq/hyperloglog v0.2.5 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bitfield/gotestdox v0.2.2 // indirect
@@ -83,9 +83,8 @@ require (
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240816210425-c5d0cb0b6fc0 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
-	github.com/cockroachdb/pebble v1.1.2 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
-	github.com/cockroachdb/swiss v0.0.0-20250228210649-a321086955f2 // indirect
+	github.com/cockroachdb/swiss v0.0.0-20250327203710-2932b022f6df // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
 	github.com/cyphar/filepath-securejoin v0.3.6 // indirect
@@ -154,6 +153,7 @@ require (
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/josephspurrier/goversioninfo v1.4.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/kamstrup/intmap v0.5.1 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
@@ -172,7 +172,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect
 	github.com/muesli/mango v0.1.0 // indirect
 	github.com/muesli/mango-cobra v1.2.0 // indirect
 	github.com/muesli/mango-pflag v0.1.0 // indirect
