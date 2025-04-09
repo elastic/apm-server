@@ -148,7 +148,7 @@ func flushAPMMetrics(ctx context.Context, kbc *kbclient.Client, version ecclient
 	// final aggregations in APM Server and flush of in-flight metrics.
 	if err := kbc.UpdatePackagePolicyDescriptionByID(ctx, policyID, version, description); err != nil {
 		return fmt.Errorf(
-			"cannot update %s package policy description for trigger flush: %w",
+			"cannot update %s package policy description to flush aggregation metrics: %w",
 			policyID, err,
 		)
 	}
