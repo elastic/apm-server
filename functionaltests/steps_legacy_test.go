@@ -202,3 +202,14 @@ func (m migrateManagedStep) Step(t *testing.T, ctx context.Context, e *testStepE
 		emptyDataStreamsIngest(e.dsNamespace))
 	return testStepResult{DSDocCount: dsDocCount}
 }
+
+type resolveDeprecationsStep struct{}
+
+var _ testStep = resolveDeprecationsStep{}
+
+func (r resolveDeprecationsStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
+	t.Log("------ resolve migration deprecations ------")
+	err := e.kbc.ResolveMigrationDeprecations(ctx)
+	require.NoError(t, err)
+	return previousRes
+}
