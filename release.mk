@@ -93,7 +93,7 @@ minor-release:
 	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
 	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
-	$(MAKE) update-changelog
+	$(MAKE) update-changelog VERSION=$(RELEASE_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update changelogs for $(RELEASE_BRANCH) release"
 
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
