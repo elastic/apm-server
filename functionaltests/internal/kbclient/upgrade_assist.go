@@ -170,8 +170,7 @@ func (c *Client) migrateSystemIndices(ctx context.Context) error {
 }
 
 // migrateSystemIndicesAndWait first checks that the system indices need to be migrated.
-// If they do, it will call migrateSystemIndices all keep waiting until the migration
-// status is done.
+// If they do, it will call migrateSystemIndices and wait until the migration is done.
 func (c *Client) migrateSystemIndicesAndWait(ctx context.Context) error {
 	status, err := c.QuerySystemIndicesMigrationStatus(ctx)
 	if err != nil {
