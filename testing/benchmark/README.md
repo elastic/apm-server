@@ -15,13 +15,11 @@ credentials to run the benchmark against it.
 - `scp`
 - `jq`
 - `go`
-- `okta-awscli` (only for `all` and `auth` targets)
-  - `python3`
-  - `awscli`
+- `okta-aws-cli` v2.4.0+ (only for `all` and `auth` targets)
 
 ## Credentials
 
-To successfully use the this environment, you will need to have credentials for:
+To successfully use this environment, you will need to have credentials for:
 
 - An AWS account.
 - ESS or self-serviced ECE environment API key (`EC_API_KEY` environment variable).
@@ -30,14 +28,10 @@ To successfully use the this environment, you will need to have credentials for:
 
 In order to facilitate self-service of this environment without assuming the consumer
 has the AWS credentials up to date, the `make all` (default target) and `make auth`
-uses `okta-awscli` to generate the necessary credentials in `~/.aws/credentials`.
-For more information on how to set up these, please refer to our [internal docs](https://github.com/elastic/observability-dev/blob/main/environments/ecetest/README.md#okta-aws-cli-setup).
+uses `okta-aws-cli` to generate the necessary credentials in `~/.aws/credentials`.
+For more information on how to set up these, please refer to our [internal docs](https://github.com/elastic/observability-dev/blob/main/docs/how-we-work/aws-onboarding.md).
 
-It isn't a requirement to use `okta-awscli`, and your own credentials can be used
-as long as they are provided in `~/.aws/credentials` under the `default` profile.
-
-If you want to use a different profile, you can set the `AWS_PROFILE` make variable
-to a different value.
+It is required to use `okta-aws-cli` for programmatic access to `elastic-observability` AWS Account.
 
 ### ESS Credentials
 
