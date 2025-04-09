@@ -26,7 +26,7 @@ import (
 // the apm-data plugin update for 8.19 and 9.1:
 // https://github.com/elastic/elasticsearch/pull/119995.
 
-func TestUpgrade_9_0_to_9_1__Snapshot(t *testing.T) {
+func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 	t.Parallel()
 
 	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
@@ -47,7 +47,7 @@ func TestUpgrade_9_0_to_9_1__Snapshot(t *testing.T) {
 	}
 }
 
-func TestUpgrade_9_0_to_9_1__BC(t *testing.T) {
+func TestUpgrade_9_0_to_9_1_BC(t *testing.T) {
 	t.Parallel()
 
 	scenarios := basicUpgradeLazyRolloverILMTestScenarios(

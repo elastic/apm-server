@@ -21,7 +21,7 @@ import (
 	"testing"
 )
 
-func TestUpgrade_8_18_to_9_0__Snapshot(t *testing.T) {
+func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
 	t.Parallel()
 
 	scenarios := basicUpgradeILMTestScenarios(
@@ -43,7 +43,7 @@ func TestUpgrade_8_18_to_9_0__Snapshot(t *testing.T) {
 	}
 }
 
-func TestUpgrade_8_18_to_9_0__BC(t *testing.T) {
+func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
 	t.Parallel()
 
 	scenarios := basicUpgradeILMTestScenarios(
