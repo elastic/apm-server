@@ -81,7 +81,7 @@ $(APM_SERVER_BINARIES):
 .PHONY: apm-server-build
 apm-server-build:
 	env CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) \
-	go build -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) $(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
+	go build -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) -tags=grpcnotrace,$(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
 
 build/apm-server-linux-% build/apm-server-fips-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
@@ -110,7 +110,7 @@ apm-server apm-server-fips: PKG=./x-pack/apm-server
 apm-server-fips: CGO_ENABLED=1
 apm-server apm-server-oss: CGO_ENABLED=0
 
-apm-server-fips: GOTAGS=-tags=requirefips
+apm-server-fips: GOTAGS=requirefips
 
 apm-server-oss: SUFFIX=-oss
 apm-server-fips: SUFFIX=-fips
