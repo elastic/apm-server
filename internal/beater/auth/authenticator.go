@@ -154,7 +154,10 @@ func NewAuthenticator(cfg config.AgentAuth) (*Authenticator, error) {
 			return nil, err
 		}
 
-		cache := newPrivilegesCache(cacheTimeoutMinute, cfg.APIKey.LimitPerMin)
+		cache, err := newPrivilegesCache(cacheTimeoutMinute, cfg.APIKey.LimitPerMin)
+		if err != nil {
+			return nil, err
+		}
 		b.apikey = newApikeyAuth(client, cache)
 	}
 	if cfg.Anonymous.Enabled {

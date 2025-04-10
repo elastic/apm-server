@@ -41,13 +41,21 @@ type cacheSetup struct {
 }
 
 func newCacheSetup(t testing.TB, service string, exp time.Duration, init bool) cacheSetup {
+<<<<<<< HEAD
 	setup := cacheSetup{
 		query:  Query{Service: Service{Name: service}, Etag: "123"},
 		cache:  newCache(logptest.NewTestingLogger(t, ""), exp),
+=======
+	cache, err := newCache(logp.NewLogger(""), exp)
+	require.NoError(t, err)
+	setup := cacheSetup{
+		query:  Query{Service: Service{Name: service}, Etag: "123"},
+		cache:  cache,
+>>>>>>> e0c9eda4 (feat: use go-freelru consistently (#16549))
 		result: defaultResult,
 	}
 	if init {
-		setup.cache.gocache.SetDefault(setup.query.id(), setup.result)
+		setup.cache.gocache.Add(setup.query.id(), setup.result)
 	}
 	return setup
 }

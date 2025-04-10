@@ -121,7 +121,7 @@ func TestKibanaFetcher(t *testing.T) {
 		fetch(0.8, 0.5)
 
 		// after key is expired, fetch from Kibana again
-		fetcher.cache.gocache.Delete(query(t.Name()).id())
+		fetcher.cache.gocache.Remove(query(t.Name()).id())
 		fetch(0.7, 0.7)
 
 	})

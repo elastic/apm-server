@@ -56,11 +56,19 @@ func NewKibanaFetcher(client *kibana.Client, cacheExpiration time.Duration, logg
 	if client == nil {
 		return nil, errors.New("client is required")
 	}
+<<<<<<< HEAD
 	logger = logger.Named("agentcfg")
+=======
+	logger := logp.NewLogger("agentcfg")
+	cache, err := newCache(logger, cacheExpiration)
+	if err != nil {
+		return nil, err
+	}
+>>>>>>> e0c9eda4 (feat: use go-freelru consistently (#16549))
 	return &KibanaFetcher{
 		client: client,
 		logger: logger,
-		cache:  newCache(logger, cacheExpiration),
+		cache:  cache,
 	}, nil
 }
 
