@@ -76,6 +76,16 @@ var (
 		},
 	})
 
+	refreshCache403 = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "refresh cache elasticsearch returned status 403"},
+		},
+	})
+	refreshCacheESConfigInvalid = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "stopping refresh cache background job: elasticsearch config is invalid"},
+		},
+	})
 	refreshCache503 = apmErrorLog(types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "refresh cache elasticsearch returned status 503"},
