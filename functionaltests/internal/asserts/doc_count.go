@@ -40,7 +40,7 @@ func CheckDocCount(
 	t.Helper()
 
 	if prevDocCount == nil {
-		prevDocCount = currDocCount
+		prevDocCount = map[string]int{}
 	}
 
 	// Check that all expected data streams appear.
