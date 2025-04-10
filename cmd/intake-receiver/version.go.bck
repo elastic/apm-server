@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package version
+package main
 
-// Version holds the APM Server version.
-const Version = "9.104.0"
+// version matches the APM Server's version
+const version = "8.19.0"
