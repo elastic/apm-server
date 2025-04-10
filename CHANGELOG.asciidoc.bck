@@ -21,7 +21,7 @@
 // end::list[]
 
 // tag::includes[]
-include::./changelogs/9.103.0.asciidoc[]
+include::./changelogs/head.asciidoc[]
 include::./changelogs/8.18.asciidoc[]
 include::./changelogs/8.17.asciidoc[]
 include::./changelogs/8.16.asciidoc[]

@@ -1,0 +1,24 @@
+[[apm-release-notes-9.103]]
+== APM version 9.103
+* <<apm-release-notes-9.103.0>>
+
+[float]
+[[apm-release-notes-9.103.0]]
+=== APM version 9.103.0
+
+https://github.com/elastic/apm-server/compare/v\...v9.103.0[View commits]
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Bug fixes
+
+[float]
+==== Deprecations
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
