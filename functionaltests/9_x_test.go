@@ -62,21 +62,12 @@ func TestUpgrade_7_17_to_8_x_to_9_x__BC_Standalone_to_Managed(t *testing.T) {
 
 func upgradeThenManaged789Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) testStepsRunner {
 	// Data streams in 8.x should be all ILM if upgraded to a stack < 8.15 and > 8.16.
-	checkILM8 := asserts.CheckDataStreamsWant{
+	checkILM := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
 		IndicesPerDS:     1,
 		IndicesManagedBy: []string{managedByILM},
-	}
-	// Data streams in 9.x should also be all ILM, but with rollover due to changes
-	// in underlying template.
-	checkILMRollover9 := asserts.CheckDataStreamsWant{
-		Quantity:         8,
-		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
-		IndicesPerDS:     2,
-		IndicesManagedBy: []string{managedByILM, managedByILM},
 	}
 
 	return testStepsRunner{
@@ -89,17 +80,17 @@ func upgradeThenManaged789Runner(fromVersion7, toVersion8, toVersion9 ecclient.S
 			ingestLegacyStep{},
 			// Upgrade to 8.x.
 			upgradeLegacyStep{NewVersion: toVersion8},
-			ingestStep{CheckDataStream: checkILM8},
+			ingestStep{CheckDataStream: checkILM},
 			// Resolve deprecations and upgrade to 9.x.
 			resolveDeprecationsStep{},
 			upgradeStep{
 				NewVersion:      toVersion9,
-				CheckDataStream: checkILM8,
+				CheckDataStream: checkILM,
 			},
-			ingestStep{CheckDataStream: checkILMRollover9},
+			ingestStep{CheckDataStream: checkILM},
 			// Migrate to managed.
 			migrateManagedStep{},
-			ingestStep{CheckDataStream: checkILMRollover9},
+			ingestStep{CheckDataStream: checkILM},
 			checkErrorLogsStep{
 				ESErrorLogsIgnored: esErrorLogs{
 					eventLoopShutdown,
