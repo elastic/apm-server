@@ -55,7 +55,33 @@ func (c *Client) APMIdxDocCountV7(ctx context.Context) (IndicesDocCount, error) 
 	if len(errs) > 0 {
 		return IndicesDocCount{}, errors.Join(errs...)
 	}
+	return count, nil
+}
 
+// APMDSDocCountV7 retrieves the document count per data stream of all APM data streams.
+func (c *Client) APMDSDocCountV7(ctx context.Context, namespace string) (DataStreamsDocCount, error) {
+	dsToCheck := []string{
+		"traces-apm-%s", "metrics-apm.internal-%s", "logs-apm.error-%s",
+		"metrics-apm.app.opbeans_python-%s", "metrics-apm.app.opbeans_node-%s",
+		"metrics-apm.app.opbeans_ruby-%s", "metrics-apm.app.opbeans_go-%s",
+	}
+	for i, ds := range dsToCheck {
+		dsToCheck[i] = fmt.Sprintf(ds, namespace)
+	}
+
+	count := DataStreamsDocCount{}
+	var errs []error
+	for _, ds := range dsToCheck {
+		dc, err := c.getDocCountV7(ctx, ds)
+		if err != nil {
+			errs = append(errs, err)
+		}
+		count[ds] = dc.Count
+	}
+
+	if len(errs) > 0 {
+		return DataStreamsDocCount{}, errors.Join(errs...)
+	}
 	return count, nil
 }
 
