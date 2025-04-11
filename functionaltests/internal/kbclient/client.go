@@ -77,6 +77,7 @@ func (c *Client) prepareRequest(method, path string, body any) (*http.Request, e
 	req.Header.Add("kbn-xsrf", "true")
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Elastic-Api-Version", c.SupportedAPIVersion)
+	req.Header.Add("X-Elastic-Internal-Origin", "Kibana")
 
 	userPass := fmt.Sprintf("%s:%s", c.superUsername, c.superPassword)
 	basicAuth := base64.StdEncoding.EncodeToString([]byte(userPass))
