@@ -21,8 +21,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 )
@@ -40,7 +38,7 @@ type basicUpgradeTestScenario struct {
 func basicUpgradeILMTestScenarios(
 	fromVersion ecclient.StackVersion,
 	toVersion ecclient.StackVersion,
-	apmErrorLogsIgnored []types.Query,
+	apmErrorLogsIgnored apmErrorLogs,
 ) []basicUpgradeTestScenario {
 	checkILM := asserts.CheckDataStreamsWant{
 		Quantity:         8,
@@ -66,7 +64,7 @@ func basicUpgradeILMTestScenarios(
 func basicUpgradeLazyRolloverILMTestScenarios(
 	fromVersion ecclient.StackVersion,
 	toVersion ecclient.StackVersion,
-	apmErrorLogsIgnored []types.Query,
+	apmErrorLogsIgnored apmErrorLogs,
 ) []basicUpgradeTestScenario {
 	// All data streams should be managed by ILM.
 	checkILM := asserts.CheckDataStreamsWant{
@@ -100,7 +98,7 @@ func basicUpgradeLazyRolloverILMTestScenarios(
 func basicUpgradeLazyRolloverDSLTestScenarios(
 	fromVersion ecclient.StackVersion,
 	toVersion ecclient.StackVersion,
-	apmErrorLogsIgnored []types.Query,
+	apmErrorLogsIgnored apmErrorLogs,
 ) []basicUpgradeTestScenario {
 	// All data streams should be managed by DSL.
 	checkDSL := asserts.CheckDataStreamsWant{
@@ -148,7 +146,7 @@ func allBasicUpgradeScenarios(
 	checkPreUpgradeAfterIngest asserts.CheckDataStreamsWant,
 	checkPostUpgradeBeforeIngest asserts.CheckDataStreamsWant,
 	checkPostUpgradeAfterIngest asserts.CheckDataStreamsWant,
-	apmErrorLogsIgnored []types.Query,
+	apmErrorLogsIgnored apmErrorLogs,
 ) []basicUpgradeTestScenario {
 	var scenarios []basicUpgradeTestScenario
 

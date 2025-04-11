@@ -19,8 +19,6 @@ package functionaltests
 
 import (
 	"testing"
-
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 // Data streams get marked for lazy rollover by ES when something
@@ -34,7 +32,7 @@ func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
 		getLatestSnapshot(t, "9.0"),
 		getLatestSnapshot(t, "9.1"),
-		[]types.Query{
+		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
@@ -55,7 +53,7 @@ func TestUpgrade_9_0_to_9_1_BC(t *testing.T) {
 	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
 		getLatestVersionOrSkip(t, "9.0"),
 		getLatestBCOrSkip(t, "9.1"),
-		[]types.Query{
+		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
@@ -76,7 +74,7 @@ func TestUpgrade_8_19_to_9_1_Snapshot(t *testing.T) {
 	scenarios := basicUpgradeILMTestScenarios(
 		getLatestSnapshot(t, "8.19"),
 		getLatestSnapshot(t, "9.1"),
-		[]types.Query{
+		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
@@ -97,7 +95,7 @@ func TestUpgrade_8_19_to_9_1_BC(t *testing.T) {
 	scenarios := basicUpgradeILMTestScenarios(
 		getLatestVersionOrSkip(t, "8.19"),
 		getLatestBCOrSkip(t, "9.1"),
-		[]types.Query{
+		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,

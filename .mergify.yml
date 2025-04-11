@@ -452,7 +452,6 @@ pull_request_rules:
           - "8.x"
           - "8.18"
           - "8.17"
-          - "8.16"
         labels:
           - "backport"
         title: "[{{ destination_branch }}](backport #{{ number }}) {{ title }}"
@@ -487,7 +486,6 @@ pull_request_rules:
           - "9.0"
           - "8.18"
           - "8.17"
-          - "8.16"
           - "8.x"
           - "7.17"
         labels:
