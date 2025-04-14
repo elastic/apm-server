@@ -17,7 +17,7 @@ jobs:
       matrix: ${{ steps.generator.outputs.matrix }}
     steps:
       - id: generator
-        uses: elastic/oblt-actions/elastic/active-branches@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+        uses: elastic/oblt-actions/elastic/active-branches@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
 
   check-docker-compose:
     needs:
@@ -44,12 +44,12 @@ jobs:
       - check-docker-compose
     steps:
       - id: check
-        uses: elastic/oblt-actions/check-dependent-jobs@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+        uses: elastic/oblt-actions/check-dependent-jobs@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
         with:
           jobs: ${{ toJSON(needs) }}
       - run: ${{ steps.check.outputs.isSuccess }}
       - if: failure()
-        uses: elastic/oblt-actions/slack/notify-result@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+        uses: elastic/oblt-actions/slack/notify-result@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"
