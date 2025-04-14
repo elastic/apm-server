@@ -20,11 +20,12 @@ package functionaltests
 import (
 	"context"
 	"fmt"
+	"maps"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -189,23 +190,51 @@ func createAPMGenerator(t *testing.T, ctx context.Context, esc *esclient.Client,
 	return g
 }
 
-// migrateStandaloneToManaged migrates the deployment to managed by enabling the integrations
-// server in the deployment.
-func migrateStandaloneToManaged(t *testing.T, ctx context.Context, kbc *kbclient.Client) {
-	t.Helper()
-	t.Log("migrate standalone to managed")
-	err := kbc.EnableIntegrationsServer(ctx)
-	require.NoError(t, err)
-	// APM Server needs some time to start serving requests again, and we don't have any
-	// visibility on when this completes.
-	// NOTE: This value comes from empirical observations.
-	time.Sleep(60 * time.Second)
+func sliceToSet[T comparable](s []T) map[T]bool {
+	m := make(map[T]bool)
+	for _, ele := range s {
+		m[ele] = true
+	}
+	return m
 }
 
-// getDocCountPerDS retrieves document count per data stream.
-func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.DataStreamsDocCount {
+// getAPMDataStreams get all APM related data streams.
+func getAPMDataStreams(t *testing.T, ctx context.Context, esc *esclient.Client, ignoreDS ...string) []types.DataStream {
+	t.Helper()
+	dataStreams, err := esc.GetDataStream(ctx, "*apm*")
+	require.NoError(t, err)
+
+	ignore := sliceToSet(ignoreDS)
+	return slices.DeleteFunc(dataStreams, func(ds types.DataStream) bool {
+		return ignore[ds.Name]
+	})
+}
+
+// getDocCountPerDS retrieves document count per data stream for versions >= 8.0.
+func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client, ignoreDS ...string) esclient.DataStreamsDocCount {
 	t.Helper()
 	count, err := esc.APMDSDocCount(ctx)
+	require.NoError(t, err)
+
+	ignore := sliceToSet(ignoreDS)
+	maps.DeleteFunc(count, func(ds string, _ int) bool {
+		return ignore[ds]
+	})
+	return count
+}
+
+// getDocCountPerDS retrieves document count per data stream for versions < 8.0.
+func getDocCountPerDSV7(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) esclient.DataStreamsDocCount {
+	t.Helper()
+	count, err := esc.APMDSDocCountV7(ctx, namespace)
+	require.NoError(t, err)
+	return count
+}
+
+// getDocCountPerIndexV7 retrieves document count per index for versions < 8.0.
+func getDocCountPerIndexV7(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.IndicesDocCount {
+	t.Helper()
+	count, err := esc.APMIdxDocCountV7(ctx)
 	require.NoError(t, err)
 	return count
 }

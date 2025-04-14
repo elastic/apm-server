@@ -58,6 +58,11 @@ This means that the test will start from `from_version`, and be upgraded to `to_
 The file that each test is in is named after the last minor version in the upgrade chain. For example, if the test name
 is `TestUpgrade_7_17_to_8_18_to_9_0_Something`, it should be written in `9_0_test.go`.
 
-### Standalone to Managed Tests
+### Standalone-to-Managed Tests
 
-TODO
+If the standalone-to-managed test includes an upgrade, simply add `Standalone_to_Managed` at the end of the test name,
+e.g. `TestUpgrade_7_17_to_8_x_Standalone_to_Managed`. Otherwise, if there is no upgrade simply omit the `Upgrade`
+prefix, e.g. `Test_7_17_Standalone_to_Managed`.
+
+The file that the standalone-to-managed test should be in follows the same idea as upgrade tests. For example, if the
+test name is `Test_7_17_Standalone_to_Managed`, it should be in `7_17_test.go`
