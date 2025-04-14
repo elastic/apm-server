@@ -36,20 +36,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: elastic/oblt-actions/updatecli/run@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+      - uses: elastic/oblt-actions/updatecli/run@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
         with:
           command: --experimental compose diff
         env:
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
 
-      - uses: elastic/oblt-actions/updatecli/run@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+      - uses: elastic/oblt-actions/updatecli/run@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
         with:
           command: --experimental compose apply
         env:
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
 
       - if: ${{ failure()  }}
-        uses: elastic/oblt-actions/slack/send@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+        uses: elastic/oblt-actions/slack/send@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
         with:
           channel-id: '#apm-server'
           message: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"
