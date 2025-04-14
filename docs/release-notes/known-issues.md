@@ -36,7 +36,7 @@ The issue occurs when creating a *new* cluster using version 8.15.1+. The issue 
 
 In 8.15.0, APM Server began using the [apm-data plugin](https://github.com/elastic/elasticsearch/tree/main/x-pack/plugin/apm-data) to manage data streams, ingest pipelines, lifecycle policies, and more. In 8.15.1, a fix was introduced to address unmanaged indices in older clusters using default ILM policies. This fix added a fallback to the default ILM policy (if it exists) and set the `prefer_ilm` configuration to `false`. This setting impacts clusters where both ILM and data stream lifecycles (DSL) are in effect—such as when configuring custom ILM policies using `@custom` component templates, under the conditions mentioned above.
 
-To override ILM policies for these new clusters using component template, set the `prefer_ilm` configuration to `true` by following the [updated guide to customize ILM](docs-content://solutions/observability/apps/index-lifecycle-management.md).
+To override ILM policies for these new clusters using component template, set the `prefer_ilm` configuration to `true` by following the [updated guide to customize ILM](docs-content://solutions/observability/apm/index-lifecycle-management.md).
 
 :::
 
@@ -94,7 +94,7 @@ Upgrading to 8.15.1 resolves the lifecycle issue for any new indices created for
     ```
 
 
-Default `<data_retention_period>` for each data stream is available in [this guide](docs-content://solutions/observability/apps/index-lifecycle-management.md).
+Default `<data_retention_period>` for each data stream is available in [this guide](docs-content://solutions/observability/apm/index-lifecycle-management.md).
 
 This issue is fixed in 8.15.1 ([elastic/elasticsearch#112432](https://github.com/elastic/elasticsearch/pull/112432)).
 
