@@ -203,6 +203,10 @@ func (m migrateManagedStep) Step(t *testing.T, ctx context.Context, e *testStepE
 	return testStepResult{DSDocCount: dsDocCount}
 }
 
+// resolveDeprecationsStep resolves critical migration deprecation warnings from Elasticsearch regarding
+// indices created in 7.x not being compatible with 9.x.
+//
+// The output of this step is the previous test step result.
 type resolveDeprecationsStep struct{}
 
 var _ testStep = resolveDeprecationsStep{}
