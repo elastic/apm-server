@@ -49,8 +49,8 @@ import (
 //					DeployVersion:     getLatestSnapshot(t, "7.17"),
 //					APMDeploymentMode: apmStandalone,
 //				},
-//				ingestLegacyStep{},
-//				upgradeLegacyStep{NewVersion: getLatestSnapshot(t, "8")},
+//				ingestV7Step{},
+//				upgradeV7Step{NewVersion: getLatestSnapshot(t, "8")},
 //				ingestStep{CheckDataStream: checkILM},
 //			},
 //		}

@@ -11,11 +11,11 @@ require (
 	github.com/elastic/apm-data v1.18.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250325090137-0c4e2d0af92c
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
-	github.com/elastic/elastic-agent-libs v0.18.12
+	github.com/elastic/elastic-agent-libs v0.19.0
 	github.com/elastic/elastic-agent-system-metrics v0.11.11
 	github.com/elastic/elastic-transport-go/v8 v8.6.1
 	github.com/elastic/gmux v0.3.2
-	github.com/elastic/go-docappender/v2 v2.8.0
+	github.com/elastic/go-docappender/v2 v2.9.0
 	github.com/elastic/go-freelru v0.16.0
 	github.com/elastic/go-sysinfo v1.15.3
 	github.com/elastic/go-ucfg v0.8.8

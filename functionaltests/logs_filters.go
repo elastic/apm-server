@@ -48,9 +48,20 @@ var (
 		},
 	})
 
+	grpcServerStopped = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "grpc: the server has been stopped"},
+		},
+	})
+
 	preconditionFailed = apmErrorLog(types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "precondition failed: context canceled"},
+		},
+	})
+	preconditionClusterInfoCtxCanceled = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "precondition failed: failed to query cluster info: context canceled"},
 		},
 	})
 
@@ -65,6 +76,16 @@ var (
 		},
 	})
 
+	refreshCache403 = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "refresh cache elasticsearch returned status 403"},
+		},
+	})
+	refreshCacheESConfigInvalid = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "stopping refresh cache background job: elasticsearch config is invalid"},
+		},
+	})
 	refreshCache503 = apmErrorLog(types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "refresh cache elasticsearch returned status 503"},
@@ -78,6 +99,43 @@ var (
 	refreshCacheCtxCanceled = apmErrorLog(types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "refresh cache error: context canceled"},
+		},
+	})
+
+	waitServerReadyCtxCanceled = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "error waiting for server to be ready: context canceled"},
+		},
+	})
+)
+
+// These vars are Elasticsearch query matchers to filter out some specific
+// log lines from Elasticsearch logs.
+// To be used to filter the Elasticsearch logs in test cases.
+type (
+	esErrorLog  types.Query
+	esErrorLogs []esErrorLog
+)
+
+func (e esErrorLogs) ToQueries() []types.Query {
+	queries := make([]types.Query, 0, len(e))
+	for _, entry := range e {
+		queries = append(queries, types.Query(entry))
+	}
+	return queries
+}
+
+var (
+	// Safe to ignore: https://github.com/elastic/elasticsearch/pull/97301.
+	eventLoopShutdown = esErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "Failed to submit a listener notification task. Event loop shut down?"},
+		},
+	})
+
+	addIndexTemplateTracesError = esErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "error adding index template [traces-apm@mappings] for [apm]"},
 		},
 	})
 )
