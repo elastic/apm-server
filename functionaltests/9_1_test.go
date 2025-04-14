@@ -37,6 +37,8 @@ func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 			esReturnedUnknown503,
 			refreshCache503,
 			populateSourcemapFetcher403,
+			refreshCache403,
+			refreshCacheESConfigInvalid,
 		},
 	)
 	for _, scenario := range scenarios {
@@ -58,6 +60,8 @@ func TestUpgrade_9_0_to_9_1_BC(t *testing.T) {
 			esReturnedUnknown503,
 			refreshCache503,
 			populateSourcemapFetcher403,
+			refreshCache403,
+			refreshCacheESConfigInvalid,
 		},
 	)
 	for _, scenario := range scenarios {
@@ -79,6 +83,8 @@ func TestUpgrade_8_19_to_9_1_Snapshot(t *testing.T) {
 			esReturnedUnknown503,
 			refreshCache503,
 			populateSourcemapFetcher403,
+			refreshCache403,
+			refreshCacheESConfigInvalid,
 		},
 	)
 	for _, scenario := range scenarios {
@@ -100,6 +106,8 @@ func TestUpgrade_8_19_to_9_1_BC(t *testing.T) {
 			esReturnedUnknown503,
 			refreshCache503,
 			populateSourcemapFetcher403,
+			refreshCache403,
+			refreshCacheESConfigInvalid,
 		},
 	)
 	for _, scenario := range scenarios {
