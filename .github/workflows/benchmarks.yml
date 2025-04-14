@@ -132,9 +132,9 @@ jobs:
           username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
           password: ${{ secrets.ELASTIC_DOCKER_PASSWORD }}
 
-      - uses: elastic/oblt-actions/google/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+      - uses: elastic/oblt-actions/google/auth@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
 
-      - uses: elastic/oblt-actions/aws/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+      - uses: elastic/oblt-actions/aws/auth@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
         with:
           role-duration-seconds: 21600 # 6 hours
 
@@ -249,7 +249,7 @@ jobs:
       # GitHub bot won't trigger any CI builds.
       # See https://github.com/peter-evans/create-pull-request/issues/48#issuecomment-537478081
       - name: Configure git user
-        uses: elastic/oblt-actions/git/setup@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+        uses: elastic/oblt-actions/git/setup@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
         with:
           github-token: ${{ steps.get_token.outputs.token }}
 
@@ -287,7 +287,7 @@ jobs:
 
       # Notify failure to Slack only on schedule (nightly run)
       - if: failure() && github.event_name == 'schedule'
-        uses: elastic/oblt-actions/slack/notify-result@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+        uses: elastic/oblt-actions/slack/notify-result@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"
