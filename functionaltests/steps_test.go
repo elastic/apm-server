@@ -24,8 +24,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
@@ -213,7 +211,7 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 //
 // The output of this step is the previous step's result.
 type checkErrorLogsStep struct {
-	APMErrorLogsIgnored []types.Query
+	APMErrorLogsIgnored apmErrorLogs
 }
 
 var _ testStep = checkErrorLogsStep{}
@@ -226,7 +224,7 @@ func (c checkErrorLogsStep) Step(t *testing.T, ctx context.Context, e *testStepE
 	asserts.ZeroESLogs(t, *resp)
 
 	t.Log("checking APM error logs")
-	resp, err = e.esc.GetAPMErrorLogs(ctx, c.APMErrorLogsIgnored...)
+	resp, err = e.esc.GetAPMErrorLogs(ctx, c.APMErrorLogsIgnored.ToQueries()...)
 	require.NoError(t, err)
 	asserts.ZeroAPMLogs(t, *resp)
 

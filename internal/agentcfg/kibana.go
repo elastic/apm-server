@@ -57,10 +57,14 @@ func NewKibanaFetcher(client *kibana.Client, cacheExpiration time.Duration) (*Ki
 		return nil, errors.New("client is required")
 	}
 	logger := logp.NewLogger("agentcfg")
+	cache, err := newCache(logger, cacheExpiration)
+	if err != nil {
+		return nil, err
+	}
 	return &KibanaFetcher{
 		client: client,
 		logger: logger,
-		cache:  newCache(logger, cacheExpiration),
+		cache:  cache,
 	}, nil
 }
 

@@ -19,8 +19,6 @@ package functionaltests
 
 import (
 	"testing"
-
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 // In 8.15, the data stream management was migrated from ILM to DSL.
@@ -37,7 +35,7 @@ func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 	scenarios := basicUpgradeLazyRolloverDSLTestScenarios(
 		getLatestSnapshot(t, "8.15"),
 		getLatestSnapshot(t, "8.16"),
-		[]types.Query{
+		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			preconditionFailed,
@@ -62,7 +60,7 @@ func TestUpgrade_8_15_to_8_16_BC(t *testing.T) {
 	scenarios := basicUpgradeLazyRolloverDSLTestScenarios(
 		getLatestVersionOrSkip(t, "8.15"),
 		getLatestBCOrSkip(t, "8.16"),
-		[]types.Query{
+		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			preconditionFailed,

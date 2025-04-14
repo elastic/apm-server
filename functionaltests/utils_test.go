@@ -205,7 +205,7 @@ func migrateStandaloneToManaged(t *testing.T, ctx context.Context, kbc *kbclient
 // getDocCountPerDS retrieves document count per data stream.
 func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.DataStreamsDocCount {
 	t.Helper()
-	count, err := esc.APMDocCount(ctx)
+	count, err := esc.APMDSDocCount(ctx)
 	require.NoError(t, err)
 	return count
 }

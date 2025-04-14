@@ -27,7 +27,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
+
+	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 )
 
 func New(kibanaURL, username, password string) (*Client, error) {
@@ -202,6 +205,37 @@ func (c *Client) UpdatePackagePolicyByID(ctx context.Context, policyID string, p
 	path := fmt.Sprintf("/api/fleet/package_policies/%s", policyID)
 	_, err := c.sendRequest(ctx, http.MethodPut, path, policy, nil)
 	return err
+}
+
+// UpdatePackagePolicyDescriptionByID updates a Package Policy description through the Fleet Kibana APIs.
+func (c *Client) UpdatePackagePolicyDescriptionByID(
+	ctx context.Context,
+	policyID string,
+	version ecclient.StackVersion,
+	description string,
+) error {
+	policy, err := c.GetPackagePolicyByID(ctx, policyID)
+	if err != nil {
+		return fmt.Errorf("cannot get elastic-cloud-apm package policy: %w", err)
+	}
+
+	// If the package policy version returned from API does not match with
+	// expected version, set it ourselves to hopefully circumvent it.
+	// Relevant issue: https://github.com/elastic/kibana/issues/215437.
+	//
+	// NOTE: We check that the version in the package policy has the same
+	// Major.Minor version as we expect (instead of whole version string),
+	// because 7.17.x somehow has package policy version of 7.17.0.
+	if !strings.HasPrefix(policy.Package.Version, version.MajorMinor()) {
+		// Set the expected version for this update.
+		policy.Package.Version = version.String()
+	}
+
+	policy.Description = description
+	if err = c.UpdatePackagePolicyByID(ctx, policyID, policy); err != nil {
+		return fmt.Errorf("cannot update elastic-cloud-apm package policy: %w", err)
+	}
+	return nil
 }
 
 type enableIntegrationsResponse struct {
