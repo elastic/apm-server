@@ -60,8 +60,7 @@ jobs:
           export TF_VAR_CREATED_DATE=$(date +%s)
           VERSION="${{ matrix.active-version }}"
           VERSION="${VERSION//./_}"
-          go test -run="_to_${VERSION}" -skip="_to_${VERSION}_to_" -v -timeout=40m -cleanup-on-failure=false -target="${{ matrix.environment }}" ./
-
+          go test -run="_to_${VERSION}" -skip="_to_${VERSION}_to_" -v -timeout=40m -target="${{ matrix.environment }}" ./
 
 #  notify:
 #    if: always()
