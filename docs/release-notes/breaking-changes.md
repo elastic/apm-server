@@ -9,7 +9,6 @@ mapped_pages:
 Breaking changes can impact your Elastic applications, potentially disrupting normal operations. Before you upgrade, carefully review the Elastic APM breaking changes and take the necessary steps to mitigate any issues. To learn how to upgrade, check [Upgrade](docs-content://deploy-manage/upgrade.md).
 
 % ## Next version [next-version]
-% **Release date:** Month day, year
 
 % ::::{dropdown} Title of breaking change
 % Description of the breaking change.
@@ -21,7 +20,6 @@ Breaking changes can impact your Elastic applications, potentially disrupting no
 % ::::
 
 ## 9.0.0 [9-0-0]
-**Release date:** April 2, 2025
 
 ::::{dropdown} Change server information endpoint "/" to only accept GET and HEAD requests
 This will surface any agent misconfiguration causing data to be sent to `/` instead of the correct endpoint (for example, `/v1/traces` for OTLP/HTTP).
