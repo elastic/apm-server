@@ -78,20 +78,20 @@ func emptyDataStreamsIngestV7(namespace string) esclient.DataStreamsDocCount {
 	}
 }
 
-// ingestLegacyStep performs ingestion to the APM Server deployed on ECH.
+// ingestV7Step performs ingestion to the APM Server deployed on ECH.
 // After ingestion, it checks if the document counts difference between
 // current and previous is expected.
 //
 // The output of this step is the indices document counts after ingestion.
 //
-// NOTE: Only works for versions >= 8.0.
-type ingestLegacyStep struct{}
+// NOTE: Only works for versions 7.x.
+type ingestV7Step struct{}
 
-var _ testStep = ingestLegacyStep{}
+var _ testStep = ingestV7Step{}
 
-func (i ingestLegacyStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
+func (i ingestV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	if e.currentVersion().Major >= 8 {
-		t.Fatal("ingest legacy step should only be used for versions < 8.0")
+		t.Fatal("ingest v7 step should only be used for versions < 8.0")
 	}
 
 	t.Log("------ ingest ------")
@@ -115,23 +115,23 @@ func (i ingestLegacyStep) Step(t *testing.T, ctx context.Context, e *testStepEnv
 	return testStepResult{DSDocCount: dsDocCount}
 }
 
-// upgradeLegacyStep upgrades the ECH deployment from its current version to
+// upgradeV7Step upgrades the ECH deployment from its current version to
 // the new version. It also adds the new version into testStepEnv. After
 // upgrade, it checks that the document counts did not change across upgrade.
 //
-// The output of this step is the indices document counts if upgrading to < 8.0,
+// The output of this step is the indices document counts if upgrading to 7.x,
 // or data streams document counts if upgrading to >= 8.0.
 //
-// NOTE: Only works from versions < 8.0.
-type upgradeLegacyStep struct {
+// NOTE: Only works from versions 7.x.
+type upgradeV7Step struct {
 	NewVersion ecclient.StackVersion
 }
 
-var _ testStep = upgradeLegacyStep{}
+var _ testStep = upgradeV7Step{}
 
-func (u upgradeLegacyStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
+func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	if e.currentVersion().Major >= 8 {
-		t.Fatal("upgrade legacy step should only be used from versions < 8.0")
+		t.Fatal("upgrade v7 step should only be used from versions < 8.0")
 	}
 
 	t.Logf("------ upgrade %s to %s ------", e.currentVersion(), u.NewVersion)
