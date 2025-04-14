@@ -1,3 +1,9 @@
+commands_restrictions:
+  backport:
+    conditions:
+      - or:
+        - sender-permission>=write
+        - sender=github-actions[bot]
 queue_rules:
   - name: default
     merge_method: squash
@@ -7,6 +13,14 @@ queue_rules:
       - check-success=system-test
       - check-success=lint
       - check-success=CLA
+defaults:
+  actions:
+    backport:
+      title: "[{{ destination_branch }}] (backport #{{ number }}) {{ title }}"
+      assignees:
+        - "{{ author }}"
+      labels:
+        - "backport"
 pull_request_rules:
   - name: ask to resolve conflict
     conditions:
@@ -431,3 +445,20 @@ pull_request_rules:
         labels:
           - "backport"
         title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+<<<<<<< HEAD
+=======
+  - name: backport patches to 9.0 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-9.0
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "9.0"
+        labels:
+          - "backport"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+>>>>>>> ffe8e7e3 (mergify: new way of backporting to active branches using gh action (#16621))
