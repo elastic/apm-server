@@ -114,6 +114,9 @@ endef
 #
 .PHONY: minor-release
 minor-release:
+	@echo "INFO: Create GitHub label backport for the version $(RELEASE_VERSION)"
+	$(MAKE) create-github-label NAME=backport-$(RELEASE_BRANCH)
+
 	@echo "INFO: Create release branch and update new version $(RELEASE_VERSION)"
 	$(MAKE) create-branch NAME=$(RELEASE_BRANCH) BASE=$(BASE_BRANCH)
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
@@ -128,7 +131,9 @@ minor-release:
 
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
 	$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH)
+ifeq ($(BASE_BRANCH),main)
 	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
+endif
 	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
 	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH)
@@ -161,7 +166,7 @@ patch-release:
 	$(MAKE) update-version-legacy VERSION=$(NEXT_RELEASE) PREVIOUS_VERSION=$(CURRENT_RELEASE)
 	$(MAKE) create-commit COMMIT_MESSAGE="$(RELEASE_BRANCH): update versions to $(RELEASE_VERSION)"
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
-	$(MAKE) create-pull-request BRANCH=$(BRANCH_PATCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_VERSION): update versions" BODY="Merge on request by the Release Manager."
+	$(MAKE) create-pull-request BRANCH=$(BRANCH_PATCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_VERSION): update versions" BODY="Merge on request by the Release Manager." BACKPORT_LABEL=backport-skip
 
 ############################################
 ## Internal make goals to bump versions
@@ -281,19 +286,33 @@ create-commit:
 	fi
 	@echo "::endgroup::"
 
+## Create a github label
+.PHONY: create-github-label
+create-github-label: NAME=$${NAME}
+create-github-label:
+	@echo "::group::create-github-label $(NAME)"
+	gh label create $(NAME) \
+		--description "Automated backport with mergify" \
+		--color 0052cc \
+		--repo $(PROJECT_OWNER)/apm-server \
+		--force
+	@echo "::endgroup::"
+
 ## @help:create-pull-request:Create pull request
 .PHONY: create-pull-request
-create-pull-request: BRANCH=$${BRANCH} TITLE=$${TITLE} TARGET_BRANCH=$${TARGET_BRANCH} BODY=$${BODY} 
+create-pull-request: BRANCH=$${BRANCH} TITLE=$${TITLE} TARGET_BRANCH=$${TARGET_BRANCH} BODY=$${BODY} BACKPORT_LABEL=$${BACKPORT_LABEL}
 
 create-pull-request:
 	@echo "::group::create-pull-request"
 	git push origin $(BRANCH)
+	echo "--label $(BACKPORT_LABEL)"
 	gh pr create \
 		--title "$(TITLE)" \
 		--body "$(BODY)" \
 		--base $(TARGET_BRANCH) \
 		--head $(BRANCH) \
 		--label 'release' \
+		--label "$(BACKPORT_LABEL)" \
 		--reviewer "$(PROJECT_REVIEWERS)" \
 		--repo $(PROJECT_OWNER)/apm-server || echo "There is no changes"
 	@echo "::endgroup::"
