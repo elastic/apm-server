@@ -252,13 +252,8 @@ update-mergify:
 		echo '      - label=backport-$(VERSION)'                                                >> .mergify.yml; \
 		echo '    actions:'                                                                     >> .mergify.yml; \
 		echo '      backport:'                                                                  >> .mergify.yml; \
-		echo '        assignees:'                                                               >> .mergify.yml; \
-		echo '          - "{{ author }}"'                                                       >> .mergify.yml; \
 		echo '        branches:'                                                                >> .mergify.yml; \
 		echo '          - "$(VERSION)"'                                                         >> .mergify.yml; \
-		echo '        labels:'                                                                  >> .mergify.yml; \
-		echo '          - "backport"'                                                           >> .mergify.yml; \
-		echo '        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"' >> .mergify.yml; \
 	else \
 		echo "::warn::Mergify already contains backport-$(VERSION)"; \
 	fi
