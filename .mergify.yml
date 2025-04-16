@@ -189,7 +189,6 @@ pull_request_rules:
           * `backport-7.17` is the label to automatically backport to the 7.17 branch.
           * `backport-8./d` is the label to automatically backport to the `8./d` branch. `/d` is the digit.
           * `backport-9./d` is the label to automatically backport to the `9./d` branch. `/d` is the digit.
-          * `backport-8.x` is the label to automatically backport to the `8.x` branch.
           * `backport-active-all` is the label that automatically backports to all active branches.
           * `backport-active-8` is the label that automatically backports to all active minor branches for the 8 major.
           * `backport-active-9` is the label that automatically backports to all active minor branches for the 9 major.
@@ -200,13 +199,6 @@ pull_request_rules:
       label:
         remove:
           - backport-skip
-  - name: remove backport-8.x label if backport-skip is present
-    conditions:
-      - label~=^backport-skip
-    actions:
-      label:
-        remove:
-          - backport-8.x
   - name: notify the backport has not been merged yet
     conditions:
       - -merged
@@ -380,20 +372,6 @@ pull_request_rules:
         labels:
           - "backport"
         title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
-  - name: backport patches to 8.x branch
-    conditions:
-      - merged
-      - base=main
-      - label=backport-8.x
-    actions:
-      backport:
-        assignees:
-          - "{{ author }}"
-        branches:
-          - "8.x"
-        labels:
-          - "backport"
-        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
   - name: backport patches to 8.16 branch
     conditions:
       - merged
@@ -436,6 +414,15 @@ pull_request_rules:
         labels:
           - "backport"
         title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+  - name: backport patches to 8.19 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-8.19
+    actions:
+      backport:
+        branches:
+          - "8.19"
   - name: backport patches to 9.0 branch
     conditions:
       - merged
