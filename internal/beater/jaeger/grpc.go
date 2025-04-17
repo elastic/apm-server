@@ -24,8 +24,8 @@ import (
 	"strconv"
 	"sync"
 
-	jaegermodel "github.com/jaegertracing/jaeger/model"
-	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
+	jaegermodel "github.com/jaegertracing/jaeger-idl/model/v1"
+	"github.com/jaegertracing/jaeger-idl/proto-gen/api_v2"
 	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/otel/metric"
