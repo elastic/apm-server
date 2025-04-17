@@ -12,8 +12,6 @@ github.com/cyphar/filepath-securejoin v0.2.4 h1:Ugdm7cg7i6ZK6x3xDF1oEu1nfkyfH53E
 github.com/cyphar/filepath-securejoin v0.2.4/go.mod h1:aPGpWjXOXUn2NCNjFvBE6aRxGGx79pTxQpKOJNYHHl4=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/elastic/apm-perf v0.0.0-20241213094810-d1d7602614f5 h1:W7I6yPe/DqVHQaQ7SL9l7jBRYJQ/gF7wDgQqA7/ihCE=
-github.com/elastic/apm-perf v0.0.0-20241213094810-d1d7602614f5/go.mod h1:Q1Tm237o37q6gJpYZ99Vpk8zlGaSenuiJmcE1uu9VLc=
 github.com/elastic/apm-perf v0.0.0-20241230130730-2ad47482b731 h1:w9a+mWNmzgAUEbll5ntXB145YMYS9YNPqpm9SPkdKDY=
 github.com/elastic/apm-perf v0.0.0-20241230130730-2ad47482b731/go.mod h1:9q0PpMw5QPD96OPD2Emay89Fog/jACbYjy6sWoSqEc4=
 github.com/elastic/elastic-transport-go/v8 v8.6.0 h1:Y2S/FBjx1LlCv5m6pWAF2kDJAHoSjSRSJCApolgfthA=

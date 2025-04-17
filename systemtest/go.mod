@@ -12,7 +12,7 @@ require (
 	github.com/elastic/go-sysinfo v1.15.0
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/jaegertracing/jaeger v1.63.0
+	github.com/jaegertracing/jaeger-idl v0.5.0
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go v0.35.0
 	github.com/tidwall/gjson v1.18.0
