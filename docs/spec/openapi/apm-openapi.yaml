@@ -1,7 +1,13 @@
 openapi: 3.1.0
 info:
   title: Observability Intake APIs
-  description: OpenAPI schema for Observability Intake APIs
+  description: |
+    ## Documentation source and versions
+
+    This documentation is derived from the `main` branch of the [apm-server](https://github.com/elastic/apm-server) repository.
+    For the unabbreviated OpenAPI document, refer to [docs/spec/openapi](https://github.com/elastic/apm-server/tree/main/docs/spec/openapi).
+
+    It is provided under license [Attribution-NonCommercial-NoDerivatives 4.0 International](https://creativecommons.org/licenses/by-nc-nd/4.0/).
   version: '0.1'
   license:
     name: Elastic License 2.0
