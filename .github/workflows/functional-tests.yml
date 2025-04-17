@@ -35,6 +35,7 @@ jobs:
           - '8.x' # Latest 8 version
           - '9.0'
           - '9.1'
+          - '9.x' # Latest 9 version
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
@@ -60,7 +61,7 @@ jobs:
           export TF_VAR_CREATED_DATE=$(date +%s)
           VERSION="${{ matrix.active-version }}"
           VERSION="${VERSION//./_}"
-          go test -run="_to_${VERSION}" -skip="_to_${VERSION}_to_" -v -timeout=40m -target="${{ matrix.environment }}" ./
+          go test -run="_to_${VERSION}" -skip="_to_${VERSION}_to_" -v -timeout=60m -target="${{ matrix.environment }}" ./
 
 #  notify:
 #    if: always()

@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -63,12 +64,18 @@ type MigrationDeprecation struct {
 	Name             string `json:"index"`
 	Type             string `json:"type"`
 	IsCritical       bool   `json:"isCritical"`
+	Level            string `json:"level"`
 	CorrectiveAction struct {
 		Type     string `json:"type"`
 		Metadata struct {
 			IndicesRequiringUpgrade []string `json:"indicesRequiringUpgrade,omitempty"`
 		}
 	} `json:"correctiveAction"`
+}
+
+func (d MigrationDeprecation) isLevelCritical() bool {
+	// Older Kibana uses "isCritical" while newer Kibana uses "level".
+	return d.IsCritical || strings.EqualFold(d.Level, "critical")
 }
 
 type esDeprecationsResponse struct {
@@ -94,7 +101,7 @@ func (c *Client) QueryCriticalESDeprecations(ctx context.Context) ([]MigrationDe
 	return slices.DeleteFunc(
 		esDeprecationsResp.MigrationDeprecations,
 		func(dep MigrationDeprecation) bool {
-			return !dep.IsCritical
+			return !dep.isLevelCritical()
 		},
 	), nil
 }
