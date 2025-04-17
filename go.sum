@@ -377,8 +377,6 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/invopop/jsonschema v0.13.0 h1:KvpoAJWEjR3uD9Kbm2HWJmqsEaHt8lBUpd0qHcIi21E=
 github.com/invopop/jsonschema v0.13.0/go.mod h1:ffZ5Km5SWWRAIN6wbDXItl95euhFz2uON45H2qjYt+0=
-github.com/jaegertracing/jaeger v1.64.0 h1:fc45qwaBZpBE2DeXwJlm8hK1q2PACrzGKXKgIcHLPMw=
-github.com/jaegertracing/jaeger v1.64.0/go.mod h1:9yVeL3z2Q9AGrW7j7TTeqohUy7Bbp9XWXgUDG3rVdO0=
 github.com/jaegertracing/jaeger-idl v0.5.0 h1:zFXR5NL3Utu7MhPg8ZorxtCBjHrL3ReM1VoB65FOFGE=
 github.com/jaegertracing/jaeger-idl v0.5.0/go.mod h1:ON90zFo9eoyXrt9F/KN8YeF3zxcnujaisMweFY/rg5k=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=
@@ -686,7 +684,6 @@ go.elastic.co/go-licence-detector v0.7.0 h1:qC31sfyfNcNx/zMYcLABU0ac3MbGHZgksCAb
 go.elastic.co/go-licence-detector v0.7.0/go.mod h1:f5ty8pjynzQD8BcS+s0qtlOGKc35/HKQxCVi8SHhV5k=
 go.opentelemetry.io/auto/sdk v1.1.0 h1:cH53jehLUN6UFLY71z+NDOiNJqDdPRaXzTel0sJySYA=
 go.opentelemetry.io/auto/sdk v1.1.0/go.mod h1:3wSPjt5PWp2RhlCcmmOial7AvC4DQqZb7a7wCow3W8A=
-go.opentelemetry.io/collector v0.115.0 h1:qUZ0bTeNBudMxNQ7FJKS//TxTjeJ7tfU/z22mcFavWU=
 go.opentelemetry.io/collector/consumer v1.30.0 h1:Nn6kFTH+EJbv13E0W+sNvWrTgbiFCRv8f6DaA2F1DQs=
 go.opentelemetry.io/collector/consumer v1.30.0/go.mod h1:edRyfk61ugdhCQ93PBLRZfYMVWjdMPpKP8z5QLyESf0=
 go.opentelemetry.io/collector/pdata v1.30.0 h1:j3jyq9um436r6WzWySzexP2nLnFdmL5uVBYAlyr9nDM=
