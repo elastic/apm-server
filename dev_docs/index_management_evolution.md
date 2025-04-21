@@ -16,18 +16,18 @@ The primary goal of this document is to create detailed timeline that captures:
 
 ## Summary
 
-1. elastic/apm-server
+1. [elastic/apm-server](https://github.com/elastic/apm-server)
     - Initially, APM Server managed its own index templates and ILM policies.
     - With Version 8.0, index management shifted to Fleet, removing them from APM Server.
     - By Version 8.15, APM Server began relying on the ES `apm-data` plugin, further decoupling index management from the server itself.
     - Leveraging the `apm-data` plugin:
         - Simplifies setup for user of APM Server binary.
         - Replaces the need for installing any Fleet integration package for Elastic APM.
-        - Simplify APM Server by removing the possibility of index templates being missing on startup.
-2. elastic/integrations
+        - Removes the possibility of index templates being missing on startup.
+2. [elastic/integrations](https://github.com/elastic/integrations)
     - Previously, the APM Integrations package was responsible for index management in Fleet for APM Server.
     - Transitioning to the `apm-data` plugin required removing templates created by the integration to prevent conflict, as these templates has higher priority and cloud override those from the plugin.
-3. elastic/elasticsearch
+3. [elastic/elasticsearch](https://github.com/elastic/elasticsearch)
     - The introduction of the `apm-data` plugin in ES "moved" index management one abstraction layer closer to the actual data layer.
     - Resulting in a more streamlined setup and reducing the dependency on external integrations for a standalone APM Server.
 
