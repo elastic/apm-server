@@ -34,11 +34,11 @@ The primary goal of this document is to create detailed timeline that captures:
 ## 8.15.0 - (Release: Aug 2, 2024)
 
 - **Jul 11, 2023**
-    - The `apm-data` plugin was introduced in ES v8.12.0 ([#97546](https://github.com/elastic/elasticsearch/pull/97546))
-- **Nov 16, 2023**
-    - For APM Server, the requirement to install the APM Integrations package was removed in v8.15.0 ([#12066](https://github.com/elastic/apm-server/pull/12066)).
+    - The APM plugin was introduced in ES v8.12.0 ([#97546](https://github.com/elastic/elasticsearch/pull/97546))
 - **May 21, 2024**
     - The APM plugin in ES was only enabled as the default in v8.15.0 ([#108860](https://github.com/elastic/elasticsearch/pull/108860)).
+- **May 22, 2024**
+    - For APM Server, the requirement to install the APM Integrations package was removed in v8.15.0 ([#12066](https://github.com/elastic/apm-server/pull/12066)).
 - **May 22, 2024**
     - PR [#108885](https://github.com/elastic/elasticsearch/pull/108885) ensures that templates installed via `apm-data` ES plugin should take precedence over the ones installed by the APM Integrations package.
 - **May 26, 2024**
@@ -46,7 +46,7 @@ The primary goal of this document is to create detailed timeline that captures:
 
 ## 8.x - (Fixes & Improvements)
 
-The switch to the ES apm plugin caused several issues for our customers.
+The switch to the ES apm plugin caused several issues for our customers, see [Elastic APM Known Issues](https://www.elastic.co/docs/release-notes/apm/known-issues).
 
 - **Sep 11, 2024**
     - Lazy rollover on a data stream is not triggered when writing a document that is rerouted to another data stream, fixed in ES [#112781](https://github.com/elastic/elasticsearch/issues/112781).
