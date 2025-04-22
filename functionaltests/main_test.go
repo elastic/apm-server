@@ -137,15 +137,15 @@ func getLatestBCOrSkip(t *testing.T, prefix string) ecclient.StackVersionInfo {
 	}
 
 	// Check that the BC version is actually latest, otherwise skip test.
-	version := getLatestVersionOrSkip(t, prefix)
-	if version.Major != candidate.Major {
+	versionInfo := getLatestVersionOrSkip(t, prefix)
+	if versionInfo.Version.Major != candidate.Version.Major {
 		t.Skipf("BC for '%s' is invalid in EC region %s, skipping test", prefix, regionFrom(*target))
-		return ecclient.StackVersion{}
+		return ecclient.StackVersionInfo{}
 	}
-	if version.Minor > candidate.Minor {
+	if versionInfo.Version.Minor > candidate.Version.Minor {
 		t.Skipf("BC for '%s' is less than latest normal version in EC region %s, skipping test",
 			prefix, regionFrom(*target))
-		return ecclient.StackVersion{}
+		return ecclient.StackVersionInfo{}
 	}
 
 	return candidate

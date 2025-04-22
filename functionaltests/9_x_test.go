@@ -25,37 +25,53 @@ import (
 )
 
 func TestUpgrade_7_17_to_8_x_to_9_x__Snapshot_Standalone_to_Managed(t *testing.T) {
-	fromVersion7 := getLatestSnapshot(t, "7.17")
-	toVersion8 := getLatestSnapshot(t, "8")
-	toVersion9 := getLatestSnapshot(t, "9")
+	from7 := getLatestSnapshot(t, "7.17")
+	to8 := getLatestSnapshot(t, "8")
+	to9 := getLatestSnapshot(t, "9")
+	if !from7.CanUpgradeTo(to8.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from7.Version, to8.Version)
+		return
+	}
+	if !to8.CanUpgradeTo(to9.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", to8.Version, to9.Version)
+		return
+	}
 
 	t.Run("UpgradeFirst", func(t *testing.T) {
 		t.Parallel()
-		runner := upgradeThenManaged789Runner(fromVersion7, toVersion8, toVersion9)
+		runner := upgradeThenManaged789Runner(from7.Version, to8.Version, to9.Version)
 		runner.Run(t)
 	})
 
 	t.Run("ManagedFirst", func(t *testing.T) {
 		t.Parallel()
-		runner := managedThenUpgrade789Runner(fromVersion7, toVersion8, toVersion9)
+		runner := managedThenUpgrade789Runner(from7.Version, to8.Version, to9.Version)
 		runner.Run(t)
 	})
 }
 
 func TestUpgrade_7_17_to_8_x_to_9_x__BC_Standalone_to_Managed(t *testing.T) {
-	fromVersion7 := getLatestVersionOrSkip(t, "7.17")
-	toVersion8 := getLatestVersionOrSkip(t, "8")
-	toVersion9 := getLatestBCOrSkip(t, "9")
+	from7 := getLatestVersionOrSkip(t, "7.17")
+	to8 := getLatestVersionOrSkip(t, "8")
+	to9 := getLatestBCOrSkip(t, "9")
+	if !from7.CanUpgradeTo(to8.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from7.Version, to8.Version)
+		return
+	}
+	if !to8.CanUpgradeTo(to9.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", to8.Version, to9.Version)
+		return
+	}
 
 	t.Run("UpgradeFirst", func(t *testing.T) {
 		t.Parallel()
-		runner := upgradeThenManaged789Runner(fromVersion7, toVersion8, toVersion9)
+		runner := upgradeThenManaged789Runner(from7.Version, to8.Version, to9.Version)
 		runner.Run(t)
 	})
 
 	t.Run("ManagedFirst", func(t *testing.T) {
 		t.Parallel()
-		runner := managedThenUpgrade789Runner(fromVersion7, toVersion8, toVersion9)
+		runner := managedThenUpgrade789Runner(from7.Version, to8.Version, to9.Version)
 		runner.Run(t)
 	})
 }
