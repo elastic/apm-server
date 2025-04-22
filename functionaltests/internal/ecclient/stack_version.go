@@ -27,41 +27,43 @@ import (
 	"strings"
 )
 
-// StackVersions is a list of StackVersion.
-type StackVersions []StackVersion
-
-func NewStackVersionsFromStrs(versionStrs []string) (StackVersions, error) {
-	vs := make(StackVersions, 0, len(versionStrs))
-	for _, s := range versionStrs {
-		v, err := NewStackVersionFromStr(s)
-		if err != nil {
-			return nil, err
-		}
-		vs = append(vs, v)
-	}
-	return vs, nil
+type StackVersionInfo struct {
+	Version      StackVersion
+	UpgradableTo []StackVersion
 }
+
+// CanUpgradeTo checks if the current stack version can upgrade to the provided `version`.
+func (info StackVersionInfo) CanUpgradeTo(version StackVersion) bool {
+	for _, upgrade := range info.UpgradableTo {
+		if upgrade == version {
+			return true
+		}
+	}
+	return false
+}
+
+type StackVersionInfos []StackVersionInfo
 
 // Sort sorts the stack versions in ascending order based on
 // major, minor, patch, suffix in order of importance.
-func (vs StackVersions) Sort() {
-	cmpFn := func(a, b StackVersion) int {
-		return a.Compare(b)
+func (infos StackVersionInfos) Sort() {
+	cmpFn := func(a, b StackVersionInfo) int {
+		return a.Version.Compare(b.Version)
 	}
 
-	if slices.IsSortedFunc(vs, cmpFn) {
+	if slices.IsSortedFunc(infos, cmpFn) {
 		return
 	}
 
-	slices.SortFunc(vs, cmpFn)
+	slices.SortFunc(infos, cmpFn)
 }
 
 // Last returns the last version in the list.
-func (vs StackVersions) Last() (StackVersion, bool) {
-	if len(vs) == 0 {
-		return StackVersion{}, false
+func (infos StackVersionInfos) Last() (StackVersionInfo, bool) {
+	if len(infos) == 0 {
+		return StackVersionInfo{}, false
 	}
-	return vs[len(vs)-1], true
+	return infos[len(infos)-1], true
 }
 
 // LatestFor retrieves the latest stack version for that prefix.
@@ -72,43 +74,43 @@ func (vs StackVersions) Last() (StackVersion, bool) {
 //
 // Invalid prefix will cause this function to panic.
 //
-// Note: This assumes that StackVersions is already sorted in ascending order.
-func (vs StackVersions) LatestFor(prefix string) (StackVersion, bool) {
+// Note: This assumes that StackVersionInfos is already sorted in ascending order.
+func (infos StackVersionInfos) LatestFor(prefix string) (StackVersionInfo, bool) {
 	lv, err := parseVersionPrefix(prefix)
 	if err != nil {
 		panic(err)
 	}
 
-	for i := len(vs) - 1; i >= 0; i-- {
-		if ok := vs[i].looseMatch(lv); ok {
-			return vs[i], true
+	for i := len(infos) - 1; i >= 0; i-- {
+		if ok := infos[i].Version.looseMatch(lv); ok {
+			return infos[i], true
 		}
 	}
-	return StackVersion{}, false
+	return StackVersionInfo{}, false
 }
 
 // LatestForMajor retrieves the latest stack version for that major.
 //
-// Note: This assumes that StackVersions is already sorted in ascending order.
-func (vs StackVersions) LatestForMajor(major uint64) (StackVersion, bool) {
-	for i := len(vs) - 1; i >= 0; i-- {
-		if vs[i].IsMajor(major) {
-			return vs[i], true
+// Note: This assumes that StackVersionInfos is already sorted in ascending order.
+func (infos StackVersionInfos) LatestForMajor(major uint64) (StackVersionInfo, bool) {
+	for i := len(infos) - 1; i >= 0; i-- {
+		if infos[i].Version.IsMajor(major) {
+			return infos[i], true
 		}
 	}
-	return StackVersion{}, false
+	return StackVersionInfo{}, false
 }
 
 // LatestForMinor retrieves the latest stack version for that minor.
 //
-// Note: This assumes that StackVersions is already sorted in ascending order.
-func (vs StackVersions) LatestForMinor(major, minor uint64) (StackVersion, bool) {
-	for i := len(vs) - 1; i >= 0; i-- {
-		if vs[i].IsMinor(major, minor) {
-			return vs[i], true
+// Note: This assumes that StackVersionInfos is already sorted in ascending order.
+func (infos StackVersionInfos) LatestForMinor(major, minor uint64) (StackVersionInfo, bool) {
+	for i := len(infos) - 1; i >= 0; i-- {
+		if infos[i].Version.IsMinor(major, minor) {
+			return infos[i], true
 		}
 	}
-	return StackVersion{}, false
+	return StackVersionInfo{}, false
 }
 
 // PreviousMinorLatest retrieves the latest stack version from the previous
@@ -116,39 +118,36 @@ func (vs StackVersions) LatestForMinor(major, minor uint64) (StackVersion, bool)
 // If the minor of `version` is 0, the latest version for previous major is
 // returned instead.
 //
-// Note: This assumes that StackVersions is already sorted in ascending order.
-func (vs StackVersions) PreviousMinorLatest(version StackVersion) (StackVersion, bool) {
+// Note: This assumes that StackVersionInfos is already sorted in ascending order.
+func (infos StackVersionInfos) PreviousMinorLatest(version StackVersion) (StackVersionInfo, bool) {
 	if version.Minor == 0 {
 		// When the minor is 0, we want the latest of the previous major
-		return vs.LatestForMajor(version.Major - 1)
+		return infos.LatestForMajor(version.Major - 1)
 	}
-	return vs.LatestForMinor(version.Major, version.Minor-1)
+	return infos.LatestForMinor(version.Major, version.Minor-1)
 }
 
-// PreviousPatch retrieves the previous patch from the provided `version`.
+// PreviousPatch retrieves the previous patch version info from the provided `version`.
 //
-// Note: This assumes that StackVersions is already sorted in ascending order.
-func (vs StackVersions) PreviousPatch(version StackVersion) (StackVersion, bool) {
+// Note: This assumes that StackVersionInfos is already sorted in ascending order.
+func (infos StackVersionInfos) PreviousPatch(version StackVersion) (StackVersionInfo, bool) {
 	if version.Patch == 0 {
 		// When the patch is 0, we want the latest of the previous minor
-		return vs.LatestForMinor(version.Major, version.Minor-1)
+		return infos.LatestForMinor(version.Major, version.Minor-1)
 	}
 	prevPatch := version
 	prevPatch.Patch = version.Patch - 1
-	if vs.contains(prevPatch) {
-		return prevPatch, true
-	}
-	return StackVersion{}, false
+	return infos.GetByVersion(prevPatch)
 }
 
-// contains checks if the provided `version` exists in the list.
-func (vs StackVersions) contains(version StackVersion) bool {
-	for i := len(vs) - 1; i >= 0; i-- {
-		if vs[i] == version {
-			return true
+// GetByVersion returns the version info if the provided `version` exists in the list.
+func (infos StackVersionInfos) GetByVersion(version StackVersion) (StackVersionInfo, bool) {
+	for i := len(infos) - 1; i >= 0; i-- {
+		if infos[i].Version == version {
+			return infos[i], true
 		}
 	}
-	return false
+	return StackVersionInfo{}, false
 }
 
 type StackVersion struct {

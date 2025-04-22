@@ -25,35 +25,43 @@ import (
 )
 
 func TestUpgrade_7_17_to_8_x_Snapshot_Standalone_to_Managed(t *testing.T) {
-	fromVersion := getLatestSnapshot(t, "7.17")
-	toVersion := getLatestSnapshot(t, "8")
+	from := getLatestSnapshot(t, "7.17")
+	to := getLatestSnapshot(t, "8")
+	if !from.CanUpgradeTo(to.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
+		return
+	}
 
 	t.Run("UpgradeFirst", func(t *testing.T) {
 		t.Parallel()
-		runner := upgradeThenManaged78Runner(fromVersion, toVersion)
+		runner := upgradeThenManaged78Runner(from.Version, to.Version)
 		runner.Run(t)
 	})
 
 	t.Run("ManagedFirst", func(t *testing.T) {
 		t.Parallel()
-		runner := managedThenUpgrade78Runner(fromVersion, toVersion)
+		runner := managedThenUpgrade78Runner(from.Version, to.Version)
 		runner.Run(t)
 	})
 }
 
 func TestUpgrade_7_17_to_8_x_BC_Standalone_to_Managed(t *testing.T) {
-	fromVersion := getLatestVersionOrSkip(t, "7.17")
-	toVersion := getLatestBCOrSkip(t, "8")
+	from := getLatestVersionOrSkip(t, "7.17")
+	to := getLatestBCOrSkip(t, "8")
+	if !from.CanUpgradeTo(to.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
+		return
+	}
 
 	t.Run("UpgradeFirst", func(t *testing.T) {
 		t.Parallel()
-		runner := upgradeThenManaged78Runner(fromVersion, toVersion)
+		runner := upgradeThenManaged78Runner(from.Version, to.Version)
 		runner.Run(t)
 	})
 
 	t.Run("ManagedFirst", func(t *testing.T) {
 		t.Parallel()
-		runner := managedThenUpgrade78Runner(fromVersion, toVersion)
+		runner := managedThenUpgrade78Runner(from.Version, to.Version)
 		runner.Run(t)
 	})
 }

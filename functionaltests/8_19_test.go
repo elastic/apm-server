@@ -28,10 +28,16 @@ import (
 
 func TestUpgrade_8_18_to_8_19_Snapshot(t *testing.T) {
 	t.Parallel()
+	from := getLatestSnapshot(t, "8.18")
+	to := getLatestSnapshot(t, "8.19")
+	if !from.CanUpgradeTo(to.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
+		return
+	}
 
 	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
-		getLatestSnapshot(t, "8.18"),
-		getLatestSnapshot(t, "8.19"),
+		from.Version,
+		to.Version,
 		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
@@ -49,10 +55,16 @@ func TestUpgrade_8_18_to_8_19_Snapshot(t *testing.T) {
 
 func TestUpgrade_8_18_to_8_19_BC(t *testing.T) {
 	t.Parallel()
+	from := getLatestVersionOrSkip(t, "8.18")
+	to := getLatestBCOrSkip(t, "8.19")
+	if !from.CanUpgradeTo(to.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
+		return
+	}
 
 	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
-		getLatestVersionOrSkip(t, "8.18"),
-		getLatestBCOrSkip(t, "8.19"),
+		from.Version,
+		to.Version,
 		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,

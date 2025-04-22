@@ -26,18 +26,30 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 )
 
-func TestStackVersions_Sort(t *testing.T) {
-	vs, err := ecclient.NewStackVersionsFromStrs([]string{"9.0.0-SNAPSHOT", "8.14.5", "7.17.28", "9.0.0"})
-	require.NoError(t, err)
-
-	expected, err := ecclient.NewStackVersionsFromStrs([]string{"7.17.28", "8.14.5", "9.0.0", "9.0.0-SNAPSHOT"})
-	require.NoError(t, err)
-
-	vs.Sort()
-	assert.EqualValues(t, expected, vs)
+func newStackVersionInfosFromStrs(strs []string) (ecclient.StackVersionInfos, error) {
+	infos := make(ecclient.StackVersionInfos, 0, len(strs))
+	for _, s := range strs {
+		v, err := ecclient.NewStackVersionFromStr(s)
+		if err != nil {
+			return nil, err
+		}
+		infos = append(infos, ecclient.StackVersionInfo{Version: v})
+	}
+	return infos, nil
 }
 
-func TestStackVersions_LatestFor(t *testing.T) {
+func TestStackVersions_Sort(t *testing.T) {
+	got, err := newStackVersionInfosFromStrs([]string{"9.0.0-SNAPSHOT", "8.14.5", "7.17.28", "9.0.0"})
+	require.NoError(t, err)
+
+	expected, err := newStackVersionInfosFromStrs([]string{"7.17.28", "8.14.5", "9.0.0", "9.0.0-SNAPSHOT"})
+	require.NoError(t, err)
+
+	got.Sort()
+	assert.EqualValues(t, expected, got)
+}
+
+func TestStackVersionInfos_LatestFor(t *testing.T) {
 	type args struct {
 		prefix string
 	}
@@ -84,16 +96,16 @@ func TestStackVersions_LatestFor(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			versions, err := ecclient.NewStackVersionsFromStrs(tt.vs)
+			versionInfos, err := newStackVersionInfosFromStrs(tt.vs)
 			require.NoError(t, err)
-			version, exist := versions.LatestFor(tt.args.prefix)
-			assert.Equal(t, tt.wantVersion, version, "LatestFor() version")
+			versionInfo, exist := versionInfos.LatestFor(tt.args.prefix)
+			assert.Equal(t, tt.wantVersion, versionInfo.Version, "LatestFor() version")
 			assert.Equal(t, tt.wantExist, exist, "LatestFor() exist")
 		})
 	}
 
 	t.Run("panic from error", func(t *testing.T) {
-		versions, err := ecclient.NewStackVersionsFromStrs([]string{"8.17.1", "8.17.2"})
+		versionInfos, err := newStackVersionInfosFromStrs([]string{"8.17.1", "8.17.2"})
 		require.NoError(t, err)
 		cases := []string{
 			"abcdef",
@@ -103,13 +115,13 @@ func TestStackVersions_LatestFor(t *testing.T) {
 		}
 		for _, c := range cases {
 			assert.Panics(t, func() {
-				_, _ = versions.LatestFor(c)
+				_, _ = versionInfos.LatestFor(c)
 			})
 		}
 	})
 }
 
-func TestStackVersions_LatestForMajor(t *testing.T) {
+func TestStackVersionInfos_LatestForMajor(t *testing.T) {
 	type args struct {
 		major uint64
 	}
@@ -142,16 +154,16 @@ func TestStackVersions_LatestForMajor(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			versions, err := ecclient.NewStackVersionsFromStrs(tt.vs)
+			versionInfos, err := newStackVersionInfosFromStrs(tt.vs)
 			require.NoError(t, err)
-			version, exist := versions.LatestForMajor(tt.args.major)
-			assert.Equal(t, tt.wantVersion, version, "LatestForMajor() version")
+			versionInfo, exist := versionInfos.LatestForMajor(tt.args.major)
+			assert.Equal(t, tt.wantVersion, versionInfo.Version, "LatestForMajor() version")
 			assert.Equal(t, tt.wantExist, exist, "LatestForMajor() exist")
 		})
 	}
 }
 
-func TestStackVersions_LatestForMinor(t *testing.T) {
+func TestStackVersionInfos_LatestForMinor(t *testing.T) {
 	type args struct {
 		major uint64
 		minor uint64
@@ -185,10 +197,10 @@ func TestStackVersions_LatestForMinor(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			versions, err := ecclient.NewStackVersionsFromStrs(tt.vs)
+			versionInfos, err := newStackVersionInfosFromStrs(tt.vs)
 			require.NoError(t, err)
-			version, exist := versions.LatestForMinor(tt.args.major, tt.args.minor)
-			assert.Equal(t, tt.wantVersion, version, "LatestForMinor() version")
+			versionInfo, exist := versionInfos.LatestForMinor(tt.args.major, tt.args.minor)
+			assert.Equal(t, tt.wantVersion, versionInfo.Version, "LatestForMinor() version")
 			assert.Equal(t, tt.wantExist, exist, "LatestForMinor() exist")
 		})
 	}
@@ -228,12 +240,12 @@ func TestStackVersions_PreviousMinorLatest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			vs, err := ecclient.NewStackVersionsFromStrs(tt.vs)
+			versionInfos, err := newStackVersionInfosFromStrs(tt.vs)
 			require.NoError(t, err)
 			v, err := ecclient.NewStackVersionFromStr(tt.args.version)
 			require.NoError(t, err)
-			version, exist := vs.PreviousMinorLatest(v)
-			assert.Equal(t, tt.wantVersion, version, "PreviousMinorLatest() version")
+			versionInfo, exist := versionInfos.PreviousMinorLatest(v)
+			assert.Equal(t, tt.wantVersion, versionInfo.Version, "PreviousMinorLatest() version")
 			assert.Equal(t, tt.wantExist, exist, "PreviousMinorLatest() exist")
 		})
 	}
@@ -273,12 +285,12 @@ func TestStackVersions_PreviousPatch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			vs, err := ecclient.NewStackVersionsFromStrs(tt.vs)
+			versionInfos, err := newStackVersionInfosFromStrs(tt.vs)
 			require.NoError(t, err)
 			v, err := ecclient.NewStackVersionFromStr(tt.args.version)
 			require.NoError(t, err)
-			version, exist := vs.PreviousPatch(v)
-			assert.Equal(t, tt.wantVersion, version, "PreviousPatch() version")
+			versionInfo, exist := versionInfos.PreviousPatch(v)
+			assert.Equal(t, tt.wantVersion, versionInfo.Version, "PreviousPatch() version")
 			assert.Equal(t, tt.wantExist, exist, "PreviousPatch() exist")
 		})
 	}
