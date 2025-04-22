@@ -105,7 +105,7 @@ func (g *Generator) runBlocking(ctx context.Context, version ecclient.StackVersi
 	}
 
 	g.logger.Info("wait for apm server to be ready")
-	if err = g.waitForAPMToBePublishReady(ctx, 20*time.Second); err != nil {
+	if err = g.waitForAPMToBePublishReady(ctx, 30*time.Second); err != nil {
 		return err
 	}
 
