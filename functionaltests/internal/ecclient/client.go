@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -151,13 +152,13 @@ func (c *Client) RestartIntegrationServer(ctx context.Context, deploymentID stri
 	}
 }
 
-func (c *Client) getVersions(
+func (c *Client) getVersionInfos(
 	ctx context.Context,
 	region string,
 	showUnusable bool,
 	preFilter func(*models.StackVersionConfig) bool, // Filter before conversion
 	postFilter func(StackVersion) bool, // Filter after conversion
-) (StackVersions, error) {
+) (StackVersionInfos, error) {
 	showDeleted := false
 	resp, err := c.ecAPI.V1API.Stack.GetVersionStacks(
 		// Add region to get the stack versions for that region only
@@ -174,7 +175,7 @@ func (c *Client) getVersions(
 		return nil, errors.New("stack versions response payload is empty")
 	}
 
-	versions := make(StackVersions, 0, len(resp.Payload.Stacks))
+	versionInfos := make(StackVersionInfos, 0, len(resp.Payload.Stacks))
 	for _, s := range resp.Payload.Stacks {
 		if preFilter != nil && !preFilter(s) {
 			continue
@@ -184,44 +185,67 @@ func (c *Client) getVersions(
 			return nil, fmt.Errorf("cannot parse stack version '%v': %w", s.Version, err)
 		}
 		if postFilter == nil || postFilter(v) {
-			versions = append(versions, v)
+			upgradableTo, err := sortedStackVersionsForStrs(s.UpgradableTo)
+			if err != nil {
+				return nil, fmt.Errorf("cannot parse upgradable to for '%v': %w", s.Version, err)
+			}
+			versionInfos = append(versionInfos, StackVersionInfo{
+				Version:      v,
+				UpgradableTo: upgradableTo,
+			})
 		}
 	}
 
-	versions.Sort()
+	versionInfos.Sort()
+	return versionInfos, nil
+}
+
+func sortedStackVersionsForStrs(strs []string) ([]StackVersion, error) {
+	versions := make([]StackVersion, 0, len(strs))
+	for _, s := range strs {
+		v, err := NewStackVersionFromStr(s)
+		if err != nil {
+			return nil, err
+		}
+		versions = append(versions, v)
+	}
+
+	slices.SortFunc(versions, func(a, b StackVersion) int {
+		return a.Compare(b)
+	})
 	return versions, nil
 }
 
-// GetVersions retrieves all stack versions without suffix.
-func (c *Client) GetVersions(ctx context.Context, region string) (StackVersions, error) {
+// GetVersionInfos retrieves all stack version infos without suffix.
+func (c *Client) GetVersionInfos(ctx context.Context, region string) (StackVersionInfos, error) {
 	postFilter := func(v StackVersion) bool {
 		// Ignore all with suffix e.g. SNAPSHOTS, BC1
 		return v.Suffix == ""
 	}
 
-	versions, err := c.getVersions(ctx, region, false, nil, postFilter)
+	versions, err := c.getVersionInfos(ctx, region, false, nil, postFilter)
 	if err != nil {
 		return nil, fmt.Errorf("get versions failed: %w", err)
 	}
 	return versions, nil
 }
 
-// GetSnapshotVersions retrieves all stack versions with the suffix "SNAPSHOT".
-func (c *Client) GetSnapshotVersions(ctx context.Context, region string) (StackVersions, error) {
+// GetSnapshotVersionInfos retrieves all stack version infos with the suffix "SNAPSHOT".
+func (c *Client) GetSnapshotVersionInfos(ctx context.Context, region string) (StackVersionInfos, error) {
 	postFilter := func(v StackVersion) bool {
 		// Only keep SNAPSHOTs
 		return v.Suffix == "SNAPSHOT"
 	}
 
-	versions, err := c.getVersions(ctx, region, true, nil, postFilter)
+	versions, err := c.getVersionInfos(ctx, region, true, nil, postFilter)
 	if err != nil {
 		return nil, fmt.Errorf("get snapshot versions failed: %w", err)
 	}
 	return versions, nil
 }
 
-// GetCandidateVersions retrieves all stack versions that are potential build / release candidates.
-func (c *Client) GetCandidateVersions(ctx context.Context, region string) (StackVersions, error) {
+// GetCandidateVersionInfos retrieves all stack version infos that are potential build / release candidates.
+func (c *Client) GetCandidateVersionInfos(ctx context.Context, region string) (StackVersionInfos, error) {
 	preFilter := func(v *models.StackVersionConfig) bool {
 		// For BCs and SNAPSHOTs, the `docker_image` will have a suffix e.g.:
 		//   docker.elastic.co/cloud-release/elasticsearch-cloud-ess:8.18.0-928cac41
@@ -237,7 +261,7 @@ func (c *Client) GetCandidateVersions(ctx context.Context, region string) (Stack
 		return v.Suffix != "SNAPSHOT"
 	}
 
-	versions, err := c.getVersions(ctx, region, false, preFilter, postFilter)
+	versions, err := c.getVersionInfos(ctx, region, false, preFilter, postFilter)
 	if err != nil {
 		return nil, fmt.Errorf("get candidate versions failed: %w", err)
 	}

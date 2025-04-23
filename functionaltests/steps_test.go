@@ -90,7 +90,7 @@ type testStepResult struct {
 // testStepEnv is the environment of the step that is run.
 type testStepEnv struct {
 	dsNamespace  string
-	versions     ecclient.StackVersions
+	versions     []ecclient.StackVersion
 	integrations bool
 	tf           *terraform.Runner
 	gen          *gen.Generator
@@ -99,11 +99,10 @@ type testStepEnv struct {
 }
 
 func (env *testStepEnv) currentVersion() ecclient.StackVersion {
-	last, ok := env.versions.Last()
-	if !ok {
+	if len(env.versions) == 0 {
 		panic("test step env current version not found")
 	}
-	return last
+	return env.versions[len(env.versions)-1]
 }
 
 type testStep interface {

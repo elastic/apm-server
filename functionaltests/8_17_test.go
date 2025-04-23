@@ -33,10 +33,16 @@ import (
 
 func TestUpgrade_8_16_to_8_17_Snapshot(t *testing.T) {
 	t.Parallel()
+	from := getLatestSnapshot(t, "8.16")
+	to := getLatestSnapshot(t, "8.17")
+	if !from.CanUpgradeTo(to.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
+		return
+	}
 
 	scenarios := allBasicUpgradeScenarios(
-		getLatestSnapshot(t, "8.16"),
-		getLatestSnapshot(t, "8.17"),
+		from.Version,
+		to.Version,
 		// Data streams managed by DSL pre-upgrade.
 		asserts.CheckDataStreamsWant{
 			Quantity:         8,
@@ -80,10 +86,16 @@ func TestUpgrade_8_16_to_8_17_Snapshot(t *testing.T) {
 
 func TestUpgrade_8_16_to_8_17_BC(t *testing.T) {
 	t.Parallel()
+	from := getLatestVersionOrSkip(t, "8.16")
+	to := getLatestBCOrSkip(t, "8.17")
+	if !from.CanUpgradeTo(to.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
+		return
+	}
 
 	scenarios := allBasicUpgradeScenarios(
-		getLatestVersionOrSkip(t, "8.16"),
-		getLatestBCOrSkip(t, "8.17"),
+		from.Version,
+		to.Version,
 		// Data streams managed by DSL pre-upgrade.
 		asserts.CheckDataStreamsWant{
 			Quantity:         8,
