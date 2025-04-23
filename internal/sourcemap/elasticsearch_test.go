@@ -33,10 +33,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/elastic-agent-libs/logp"
-
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func Test_esFetcher_fetchError(t *testing.T) {
@@ -65,7 +64,7 @@ func Test_esFetcher_fetchError(t *testing.T) {
 				client = newMockElasticsearchClient(t, tc.statusCode, tc.responseBody)
 			}
 
-			consumer, err := testESFetcher(client).Fetch(context.Background(), "abc", "1.0", "/tmp")
+			consumer, err := testESFetcher(t, client).Fetch(context.Background(), "abc", "1.0", "/tmp")
 			assert.Equal(t, tc.expectedErrMessage, err.Error())
 			assert.Empty(t, consumer)
 		})
@@ -90,7 +89,7 @@ func Test_esFetcher_fetch(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			client := newMockElasticsearchClient(t, tc.statusCode, tc.responseBody)
-			sourcemapConsumer, err := testESFetcher(client).Fetch(context.Background(), "abc", "1.0", "/tmp")
+			sourcemapConsumer, err := testESFetcher(t, client).Fetch(context.Background(), "abc", "1.0", "/tmp")
 			require.NoError(t, err)
 
 			if tc.filePath == "" {
@@ -103,8 +102,8 @@ func Test_esFetcher_fetch(t *testing.T) {
 	}
 }
 
-func testESFetcher(client *elasticsearch.Client) *esFetcher {
-	return &esFetcher{client: client, index: "apm-sourcemap", logger: logp.NewLogger(logs.Sourcemap)}
+func testESFetcher(t *testing.T, client *elasticsearch.Client) *esFetcher {
+	return &esFetcher{client: client, index: "apm-sourcemap", logger: logptest.NewTestingLogger(t, logs.Sourcemap)}
 }
 
 func sourcemapESResponseBody(found bool, s string) io.Reader {
