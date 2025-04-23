@@ -19,8 +19,6 @@ package functionaltests
 
 import (
 	"testing"
-
-	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 )
 
 // In 8.15, the data stream management was migrated from ILM to DSL.
@@ -31,48 +29,26 @@ import (
 // reverted back to ILM in 8.17. Therefore, data streams created in 8.15 and
 // 8.16 are managed by DSL instead of ILM.
 
-func TestUpgrade_8_16_to_8_17_Snapshot(t *testing.T) {
+func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 	t.Parallel()
-	from := getLatestSnapshot(t, "8.16")
-	to := getLatestSnapshot(t, "8.17")
+	from := getLatestSnapshot(t, "8.15")
+	to := getLatestSnapshot(t, "8.16")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := allBasicUpgradeScenarios(
+	scenarios := basicUpgradeLazyRolloverDSLTestScenarios(
 		from.Version,
 		to.Version,
-		// Data streams managed by DSL pre-upgrade.
-		asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByDSL},
-		},
-		// Data streams managed by ILM post-upgrade.
-		// However, the index created before upgrade is still managed by DSL.
-		asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByDSL},
-		},
-		// Verify lazy rollover happened, i.e. 2 indices.
-		asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDS:     2,
-			IndicesManagedBy: []string{managedByDSL, managedByILM},
-		},
 		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
-			refreshCache503,
+			preconditionFailed,
+			populateSourcemapServerShuttingDown,
+			refreshCacheCtxDeadline,
 			refreshCacheCtxCanceled,
+			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
 	)
@@ -84,48 +60,26 @@ func TestUpgrade_8_16_to_8_17_Snapshot(t *testing.T) {
 	}
 }
 
-func TestUpgrade_8_16_to_8_17_BC(t *testing.T) {
+func TestUpgrade_8_15_to_8_16_BC(t *testing.T) {
 	t.Parallel()
-	from := getLatestVersionOrSkip(t, "8.16")
-	to := getLatestBCOrSkip(t, "8.17")
+	from := getLatestVersionOrSkip(t, "8.15")
+	to := getLatestBCOrSkip(t, "8.16")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := allBasicUpgradeScenarios(
+	scenarios := basicUpgradeLazyRolloverDSLTestScenarios(
 		from.Version,
 		to.Version,
-		// Data streams managed by DSL pre-upgrade.
-		asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByDSL},
-		},
-		// Data streams managed by ILM post-upgrade.
-		// However, the index created before upgrade is still managed by DSL.
-		asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByDSL},
-		},
-		// Verify lazy rollover happened, i.e. 2 indices.
-		asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDS:     2,
-			IndicesManagedBy: []string{managedByDSL, managedByILM},
-		},
 		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
-			refreshCache503,
+			preconditionFailed,
+			populateSourcemapServerShuttingDown,
+			refreshCacheCtxDeadline,
 			refreshCacheCtxCanceled,
+			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
 	)
