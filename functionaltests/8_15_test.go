@@ -21,27 +21,34 @@ import (
 	"testing"
 )
 
-// Data streams get marked for lazy rollover by ES when something
-// changed in the underlying template(s), which in this case is
-// the apm-data plugin update for 8.19 and 9.1:
-// https://github.com/elastic/elasticsearch/pull/119995.
+// In 8.15, the data stream management was migrated from ILM to DSL.
+// However, a bug was introduced, causing data streams to be unmanaged.
+// See https://github.com/elastic/apm-server/issues/13898.
+//
+// It was fixed by defaulting data stream management to DSL, and eventually
+// reverted back to ILM in 8.17. Therefore, data streams created in 8.15 and
+// 8.16 are managed by DSL instead of ILM.
 
-func TestUpgrade_8_18_to_8_19_Snapshot(t *testing.T) {
+func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 	t.Parallel()
-	from := getLatestSnapshot(t, "8.18")
-	to := getLatestSnapshot(t, "8.19")
+	from := getLatestSnapshot(t, "8.15")
+	to := getLatestSnapshot(t, "8.16")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
+	scenarios := basicUpgradeLazyRolloverDSLTestScenarios(
 		from.Version,
 		to.Version,
 		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
-			refreshCache503,
+			preconditionFailed,
+			populateSourcemapServerShuttingDown,
+			refreshCacheCtxDeadline,
+			refreshCacheCtxCanceled,
+			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
 	)
@@ -53,22 +60,26 @@ func TestUpgrade_8_18_to_8_19_Snapshot(t *testing.T) {
 	}
 }
 
-func TestUpgrade_8_18_to_8_19_BC(t *testing.T) {
+func TestUpgrade_8_15_to_8_16_BC(t *testing.T) {
 	t.Parallel()
-	from := getLatestVersionOrSkip(t, "8.18")
-	to := getLatestBCOrSkip(t, "8.19")
+	from := getLatestVersionOrSkip(t, "8.15")
+	to := getLatestBCOrSkip(t, "8.16")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
+	scenarios := basicUpgradeLazyRolloverDSLTestScenarios(
 		from.Version,
 		to.Version,
 		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
-			refreshCache503,
+			preconditionFailed,
+			populateSourcemapServerShuttingDown,
+			refreshCacheCtxDeadline,
+			refreshCacheCtxCanceled,
+			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
 	)

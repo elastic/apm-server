@@ -21,24 +21,30 @@ import (
 	"testing"
 )
 
-func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
+// Data streams get marked for lazy rollover by ES when something
+// changed in the underlying template(s), which in this case is
+// the apm-data plugin update for 8.19 and 9.1:
+// https://github.com/elastic/elasticsearch/pull/119995.
+
+func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 	t.Parallel()
-	from := getLatestSnapshot(t, "8.18")
-	to := getLatestSnapshot(t, "9.0")
+	from := getLatestSnapshot(t, "9.0")
+	to := getLatestSnapshot(t, "9.1")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := basicUpgradeILMTestScenarios(
+	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
 		from.Version,
 		to.Version,
 		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
-			// TODO: remove once fixed
 			populateSourcemapFetcher403,
+			refreshCache403,
+			refreshCacheESConfigInvalid,
 		},
 	)
 	for _, scenario := range scenarios {
@@ -49,10 +55,39 @@ func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
 	}
 }
 
-func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
+func TestUpgrade_9_0_to_9_1_BC(t *testing.T) {
 	t.Parallel()
-	from := getLatestVersionOrSkip(t, "8.18")
-	to := getLatestBCOrSkip(t, "9.0")
+	from := getLatestVersionOrSkip(t, "9.0")
+	to := getLatestBCOrSkip(t, "9.1")
+	if !from.CanUpgradeTo(to.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
+		return
+	}
+
+	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
+		from.Version,
+		to.Version,
+		apmErrorLogs{
+			tlsHandshakeError,
+			esReturnedUnknown503,
+			refreshCache503,
+			populateSourcemapFetcher403,
+			refreshCache403,
+			refreshCacheESConfigInvalid,
+		},
+	)
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(t *testing.T) {
+			t.Parallel()
+			scenario.Runner.Run(t)
+		})
+	}
+}
+
+func TestUpgrade_8_19_to_9_1_Snapshot(t *testing.T) {
+	t.Parallel()
+	from := getLatestSnapshot(t, "8.19")
+	to := getLatestSnapshot(t, "9.1")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
@@ -65,8 +100,38 @@ func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
-			// TODO: remove once fixed
 			populateSourcemapFetcher403,
+			refreshCache403,
+			refreshCacheESConfigInvalid,
+		},
+	)
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(t *testing.T) {
+			t.Parallel()
+			scenario.Runner.Run(t)
+		})
+	}
+}
+
+func TestUpgrade_8_19_to_9_1_BC(t *testing.T) {
+	t.Parallel()
+	from := getLatestVersionOrSkip(t, "8.19")
+	to := getLatestBCOrSkip(t, "9.1")
+	if !from.CanUpgradeTo(to.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
+		return
+	}
+
+	scenarios := basicUpgradeILMTestScenarios(
+		from.Version,
+		to.Version,
+		apmErrorLogs{
+			tlsHandshakeError,
+			esReturnedUnknown503,
+			refreshCache503,
+			populateSourcemapFetcher403,
+			refreshCache403,
+			refreshCacheESConfigInvalid,
 		},
 	)
 	for _, scenario := range scenarios {
