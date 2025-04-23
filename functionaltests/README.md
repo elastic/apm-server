@@ -55,9 +55,6 @@ We suggest each upgrade test to be named in the format of `TestUpgrade_<from_ver
 This means that the test will start from `from_version`, and be upgraded to `to_version_1`, then subsequently to
 `to_version_2` etc. all the way to `to_version_N`.
 
-The file that each test is in is named after the last minor version in the upgrade chain. For example, if the test name
-is `TestUpgrade_7_17_to_8_18_to_9_0_Something`, it should be written in `9_0_test.go`.
-
 ### Standalone-to-Managed Tests
 
 If the standalone-to-managed test includes an upgrade, simply add `Standalone_to_Managed` at the end of the test name,
