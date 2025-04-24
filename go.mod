@@ -263,5 +263,3 @@ tool (
 	gotest.tools/gotestsum
 	honnef.co/go/tools/cmd/staticcheck
 )
-
-replace github.com/elastic/elastic-agent-libs => ../elastic-agent-libs
