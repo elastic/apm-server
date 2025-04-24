@@ -15,6 +15,7 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func newStorageManager(tb testing.TB, opts ...eventstorage.StorageManagerOptions) *eventstorage.StorageManager {
@@ -24,7 +25,7 @@ func newStorageManager(tb testing.TB, opts ...eventstorage.StorageManagerOptions
 }
 
 func newStorageManagerNoCleanup(tb testing.TB, path string, opts ...eventstorage.StorageManagerOptions) *eventstorage.StorageManager {
-	sm, err := eventstorage.NewStorageManager(path, opts...)
+	sm, err := eventstorage.NewStorageManager(path, logptest.NewTestingLogger(tb, ""), opts...)
 	if err != nil {
 		tb.Fatal(err)
 	}

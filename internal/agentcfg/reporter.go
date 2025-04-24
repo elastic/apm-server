@@ -34,13 +34,12 @@ type Reporter struct {
 	resultc  chan Result
 }
 
-func NewReporter(f Fetcher, batchProcessor modelpb.BatchProcessor, interval time.Duration) Reporter {
-	logger := logp.NewLogger("agentcfg")
+func NewReporter(f Fetcher, batchProcessor modelpb.BatchProcessor, interval time.Duration, logger *logp.Logger) Reporter {
 	return Reporter{
 		f:        f,
 		p:        batchProcessor,
 		interval: interval,
-		logger:   logger,
+		logger:   logger.Named("agentcfg"),
 		resultc:  make(chan Result),
 	}
 }

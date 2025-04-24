@@ -26,13 +26,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestNoAttacherCreatedWithoutDiscoveryRules(t *testing.T) {
 	cfg := config.JavaAttacherConfig{
 		Enabled: true,
 	}
-	_, err := New(cfg)
+	_, err := New(cfg, logptest.NewTestingLogger(t, ""))
 	require.Error(t, err)
 }
 
@@ -68,7 +69,7 @@ func TestDiscoveryRulesAllowlist(t *testing.T) {
 	f, err := os.Create(bundledJavaAttacher)
 	require.NoError(t, err)
 	defer os.Remove(f.Name())
-	javaAttacher, err := New(cfg)
+	javaAttacher, err := New(cfg, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	defer javaAttacher.cleanResources()
 	discoveryRules := javaAttacher.discoveryRules
@@ -94,7 +95,7 @@ func TestConfig(t *testing.T) {
 	f, err := os.Create(bundledJavaAttacher)
 	require.NoError(t, err)
 	defer os.Remove(f.Name())
-	javaAttacher, err := New(cfg)
+	javaAttacher, err := New(cfg, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	defer javaAttacher.cleanResources()
 	require.True(t, javaAttacher.enabled)

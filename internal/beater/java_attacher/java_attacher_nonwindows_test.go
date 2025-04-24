@@ -29,6 +29,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -39,7 +40,7 @@ func TestBuildInvalidCommand(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(f.Name())
 
-	attacher, err := New(cfg)
+	attacher, err := New(cfg, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	defer attacher.cleanResources()
 
@@ -61,7 +62,7 @@ func TestBuildCommandWithTempJar(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(f.Name())
 
-	attacher, err := New(cfg)
+	attacher, err := New(cfg, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	defer attacher.cleanResources()
 
@@ -87,7 +88,7 @@ func TestBuildCommandWithTempJar(t *testing.T) {
 	assert.Equal(t, want, cmdArgs)
 
 	cfg.Config["service_name"] = "my-cool-service"
-	attacher, err = New(cfg)
+	attacher, err = New(cfg, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	defer attacher.cleanResources()
 
@@ -103,7 +104,7 @@ func TestTempDirCreation(t *testing.T) {
 	f, err := os.Create(bundledJavaAttacher)
 	require.NoError(t, err)
 	defer os.Remove(f.Name())
-	attacher, err := New(cfg)
+	attacher, err := New(cfg, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	defer attacher.cleanResources()
 

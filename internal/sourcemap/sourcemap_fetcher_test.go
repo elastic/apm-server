@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
 )
@@ -105,7 +106,7 @@ func TestSourcemapFetcher(t *testing.T) {
 			close(mFetcher.init)
 
 			monitor := &monitoredFetcher{matchID: tc.expectedID}
-			f := NewSourcemapFetcher(&mFetcher, monitor)
+			f := NewSourcemapFetcher(&mFetcher, monitor, logptest.NewTestingLogger(t, ""))
 			_, err := f.Fetch(context.Background(), tc.fetchedID.name, tc.fetchedID.version, tc.fetchedID.path)
 			assert.NoError(t, err)
 			// make sure we are forwarding to the backend fetcher once

@@ -68,8 +68,7 @@ type JavaAttacher struct {
 	tmpAttacherLock      sync.Mutex
 }
 
-func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
-	logger := logp.NewLogger("java-attacher")
+func New(cfg config.JavaAttacherConfig, logger *logp.Logger) (*JavaAttacher, error) {
 	if _, err := os.Stat(bundledJavaAttacher); err != nil {
 		return nil, err
 	}
@@ -81,7 +80,7 @@ func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
 			"meaning no JVM can be attached to")
 	}
 	attacher := &JavaAttacher{
-		logger:               logger,
+		logger:               logger.Named("java-attacher"),
 		enabled:              cfg.Enabled,
 		agentConfigs:         cfg.Config,
 		downloadAgentVersion: cfg.DownloadAgentVersion,

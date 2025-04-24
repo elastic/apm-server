@@ -27,12 +27,12 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/elastic/apm-server/internal/logs"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestWithRateLimit(t *testing.T) {
 	core, observed := observer.New(zapcore.DebugLevel)
-	logger := logp.NewLogger("bo", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+	logger := logptest.NewTestingLogger(t, "bo", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(in, core)
 	}))
 

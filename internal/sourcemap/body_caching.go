@@ -46,8 +46,9 @@ func NewBodyCachingFetcher(
 	backend Fetcher,
 	cacheSize int,
 	invalidationChan <-chan []identifier,
+	logger *logp.Logger,
 ) (*BodyCachingFetcher, error) {
-	logger := logp.NewLogger(logs.Sourcemap)
+	logger = logger.Named(logs.Sourcemap)
 
 	lruCache, err := freelru.NewSharded[identifier, *sourcemap.Consumer](uint32(cacheSize), hashStringXXHASH)
 	if err != nil {

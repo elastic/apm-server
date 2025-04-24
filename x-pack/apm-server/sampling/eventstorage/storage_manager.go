@@ -133,11 +133,11 @@ type StorageManager struct {
 }
 
 // NewStorageManager returns a new StorageManager with pebble DB at storageDir.
-func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*StorageManager, error) {
+func NewStorageManager(storageDir string, logger *logp.Logger, opts ...StorageManagerOptions) (*StorageManager, error) {
 	sm := &StorageManager{
 		storageDir: storageDir,
 		runCh:      make(chan struct{}, 1),
-		logger:     logp.NewLogger(logs.Sampling),
+		logger:     logger.Named(logs.Sampling),
 		codec:      ProtobufCodec{},
 		getDiskUsage: func() (DiskUsage, error) {
 			usage, err := vfs.Default.GetDiskUsage(storageDir)
@@ -176,13 +176,13 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 
 // reset initializes db and storage.
 func (sm *StorageManager) reset() error {
-	eventDB, err := OpenEventPebble(sm.storageDir)
+	eventDB, err := OpenEventPebble(sm.storageDir, sm.logger)
 	if err != nil {
 		return fmt.Errorf("open event db error: %w", err)
 	}
 	sm.eventDB = eventDB
 
-	decisionDB, err := OpenDecisionPebble(sm.storageDir)
+	decisionDB, err := OpenDecisionPebble(sm.storageDir, sm.logger)
 	if err != nil {
 		return fmt.Errorf("open decision db error: %w", err)
 	}

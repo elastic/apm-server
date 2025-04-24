@@ -30,11 +30,11 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestNewSupporter(t *testing.T) {
-	supporter := NewSupporter(nil, config.MustNewConfigFrom(map[string]interface{}{}))
+	supporter := NewSupporter(logptest.NewTestingLogger(t, ""), config.MustNewConfigFrom(map[string]interface{}{}))
 
 	// The data streams supporter does not set up templates or ILM. These
 	// are expected to be set up externally, typically by Fleet.
@@ -62,7 +62,7 @@ func TestNewSupporter(t *testing.T) {
 
 func TestNewSupporterWarnings(t *testing.T) {
 	core, observed := observer.New(zapcore.DebugLevel)
-	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+	logger := logptest.NewTestingLogger(t, "", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(in, core)
 	}))
 

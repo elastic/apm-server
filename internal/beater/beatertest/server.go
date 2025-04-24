@@ -37,7 +37,7 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 // Server runs the core APM Server that, by default, listens on a system-chosen port
@@ -80,7 +80,7 @@ func NewServer(t testing.TB, opts ...option) *Server {
 // The server's Start method should be called to start the server.
 func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 	core, observedLogs := observer.New(zapcore.DebugLevel)
-	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+	logger := logptest.NewTestingLogger(t, "", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(in, core)
 	}))
 
