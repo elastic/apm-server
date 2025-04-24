@@ -22,9 +22,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestSourcemapFetcher(t *testing.T) {

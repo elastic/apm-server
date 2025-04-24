@@ -578,7 +578,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
 	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
-	
+
 	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
 		map[string]interface{}{
 			"instrumentation.enabled": true,
