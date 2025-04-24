@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 var (
@@ -41,7 +41,7 @@ type cacheSetup struct {
 }
 
 func newCacheSetup(t testing.TB, service string, exp time.Duration, init bool) cacheSetup {
-	cache, err := newCache(logp.NewLogger(""), exp)
+	cache, err := newCache(logptest.NewTestingLogger(t, ""), exp)
 	require.NoError(t, err)
 	setup := cacheSetup{
 		query:  Query{Service: Service{Name: service}, Etag: "123"},
