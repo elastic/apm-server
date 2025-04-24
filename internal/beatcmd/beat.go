@@ -170,14 +170,14 @@ func (b *Beat) init() error {
 	b.Beat.Info.Logger = logp.NewLogger("")
 
 	// log paths values to help with troubleshooting
-	b.Info.Logger.Info("%s", paths.Paths.String())
+	b.Info.Logger.Infof("%s", paths.Paths.String())
 
 	// Load the unique ID and "first start" info from meta.json.
 	metaPath := paths.Resolve(paths.Data, "meta.json")
 	if err := b.loadMeta(metaPath); err != nil {
 		return err
 	}
-	b.Info.Logger.Info("Beat ID: %v", b.Info.ID)
+	b.Info.Logger.Infof("Beat ID: %v", b.Info.ID)
 
 	// Initialize central config manager.
 	manager, err := management.NewManager(b.Config.Management, b.Registry)
@@ -187,11 +187,11 @@ func (b *Beat) init() error {
 	b.Manager = manager
 
 	if maxProcs := b.Config.MaxProcs; maxProcs > 0 {
-		b.Info.Logger.Info("Set max procs limit: %v", maxProcs)
+		b.Info.Logger.Infof("Set max procs limit: %v", maxProcs)
 		runtime.GOMAXPROCS(maxProcs)
 	}
 	if gcPercent := b.Config.GCPercent; gcPercent > 0 {
-		b.Info.Logger.Info("Set gc percentage to: %v", gcPercent)
+		b.Info.Logger.Infof("Set gc percentage to: %v", gcPercent)
 		debug.SetGCPercent(gcPercent)
 	}
 	return nil
@@ -203,7 +203,7 @@ func (b *Beat) loadMeta(metaPath string) error {
 		FirstStart time.Time `json:"first_start"`
 	}
 
-	b.Info.Logger.Debug("beat", "Beat metadata path: %v", metaPath)
+	b.Info.Logger.Debugf("beat", "Beat metadata path: %v", metaPath)
 	f, err := openRegular(metaPath)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("meta file failed to open: %w", err)
@@ -291,7 +291,7 @@ func (b *Beat) Run(ctx context.Context) error {
 			)
 		}
 	}()
-	defer b.Info.Logger.Info("%s stopped.", b.Info.Beat)
+	defer b.Info.Logger.Infof("%s stopped.", b.Info.Beat)
 
 	if runtime.GOOS == "darwin" {
 		if host, err := sysinfo.Host(); err != nil {
@@ -424,7 +424,7 @@ func (b *Beat) Run(ctx context.Context) error {
 		}
 		g.Go(func() error { return runner.Run(ctx) })
 	}
-	b.Info.Logger.Info("%s started.", b.Info.Beat)
+	b.Info.Logger.Infof("%s started.", b.Info.Beat)
 	if err := g.Wait(); err != nil && !errors.Is(err, context.Canceled) {
 		return err
 	}

@@ -337,7 +337,7 @@ func (p *Processor) Run() error {
 				return context.Canceled
 			case pos := <-subscriberPositions:
 				if err := writeSubscriberPosition(p.config.DB, pos); err != nil {
-					p.rateLimitedLogger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Warn(
+					p.rateLimitedLogger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Warnf(
 						"failed to write subscriber position: %s", err,
 					)
 				}
