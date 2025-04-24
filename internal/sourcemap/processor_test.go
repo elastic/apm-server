@@ -30,6 +30,7 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/elasticsearch"
@@ -191,7 +192,7 @@ func TestBatchProcessor(t *testing.T) {
 
 	processor := BatchProcessor{
 		Fetcher: fetcher,
-		Logger:  logp.NewLogger(logs.Stacktrace),
+		Logger:  logptest.NewTestingLogger(t, logs.Stacktrace),
 	}
 	err = processor.ProcessBatch(context.Background(), &modelpb.Batch{&transaction, &span1, &span2, &error1, &error2, &error3})
 	assert.NoError(t, err)
@@ -309,7 +310,7 @@ func TestBatchProcessorTimeout(t *testing.T) {
 	processor := BatchProcessor{
 		Fetcher: fetcher,
 		Timeout: 100 * time.Millisecond,
-		Logger:  logp.NewLogger(logs.Stacktrace),
+		Logger:  logptest.NewTestingLogger(t, logs.Stacktrace),
 	}
 	err = processor.ProcessBatch(context.Background(), &modelpb.Batch{&span})
 	assert.NoError(t, err)
