@@ -59,11 +59,11 @@ const (
 
 var (
 	// fetchedCandidates are the build-candidate stack versions prefetched from Elastic Cloud API.
-	fetchedCandidates ecclient.StackVersions
+	fetchedCandidates ecclient.StackVersionInfos
 	// fetchedSnapshots are the snapshot stack versions prefetched from Elastic Cloud API.
-	fetchedSnapshots ecclient.StackVersions
+	fetchedSnapshots ecclient.StackVersionInfos
 	// fetchedVersions are the non-snapshot stack versions prefetched from Elastic Cloud API.
-	fetchedVersions ecclient.StackVersions
+	fetchedVersions ecclient.StackVersionInfos
 )
 
 func TestMain(m *testing.M) {
@@ -89,21 +89,21 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	candidates, err := ecc.GetCandidateVersions(ctx, ecRegion)
+	candidates, err := ecc.GetCandidateVersionInfos(ctx, ecRegion)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 	fetchedCandidates = candidates
 
-	snapshots, err := ecc.GetSnapshotVersions(ctx, ecRegion)
+	snapshots, err := ecc.GetSnapshotVersionInfos(ctx, ecRegion)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 	fetchedSnapshots = snapshots
 
-	versions, err := ecc.GetVersions(ctx, ecRegion)
+	versions, err := ecc.GetVersionInfos(ctx, ecRegion)
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -116,30 +116,43 @@ func TestMain(m *testing.M) {
 
 // getLatestVersionOrSkip retrieves the latest non-snapshot version for the version prefix.
 // If the version is not found, the test is skipped via t.Skip.
-func getLatestVersionOrSkip(t *testing.T, prefix string) ecclient.StackVersion {
+func getLatestVersionOrSkip(t *testing.T, prefix string) ecclient.StackVersionInfo {
 	t.Helper()
 	version, ok := fetchedVersions.LatestFor(prefix)
 	if !ok {
 		t.Skipf("version for '%s' not found in EC region %s, skipping test", prefix, regionFrom(*target))
-		return ecclient.StackVersion{}
+		return ecclient.StackVersionInfo{}
 	}
 	return version
 }
 
 // getLatestBCOrSkip retrieves the latest build-candidate version for the version prefix.
 // If the version is not found, the test is skipped via t.Skip.
-func getLatestBCOrSkip(t *testing.T, prefix string) ecclient.StackVersion {
+func getLatestBCOrSkip(t *testing.T, prefix string) ecclient.StackVersionInfo {
 	t.Helper()
 	candidate, ok := fetchedCandidates.LatestFor(prefix)
 	if !ok {
 		t.Skipf("BC for '%s' not found in EC region %s, skipping test", prefix, regionFrom(*target))
-		return ecclient.StackVersion{}
+		return ecclient.StackVersionInfo{}
 	}
+
+	// Check that the BC version is actually latest, otherwise skip test.
+	versionInfo := getLatestVersionOrSkip(t, prefix)
+	if versionInfo.Version.Major != candidate.Version.Major {
+		t.Skipf("BC for '%s' is invalid in EC region %s, skipping test", prefix, regionFrom(*target))
+		return ecclient.StackVersionInfo{}
+	}
+	if versionInfo.Version.Minor > candidate.Version.Minor {
+		t.Skipf("BC for '%s' is less than latest normal version in EC region %s, skipping test",
+			prefix, regionFrom(*target))
+		return ecclient.StackVersionInfo{}
+	}
+
 	return candidate
 }
 
 // getLatestSnapshot retrieves the latest snapshot version for the version prefix.
-func getLatestSnapshot(t *testing.T, prefix string) ecclient.StackVersion {
+func getLatestSnapshot(t *testing.T, prefix string) ecclient.StackVersionInfo {
 	t.Helper()
 	version, ok := fetchedSnapshots.LatestFor(prefix)
 	require.True(t, ok, "snapshot for '%s' found in EC region %s", prefix, regionFrom(*target))

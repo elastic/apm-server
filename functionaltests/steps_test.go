@@ -90,7 +90,7 @@ type testStepResult struct {
 // testStepEnv is the environment of the step that is run.
 type testStepEnv struct {
 	dsNamespace  string
-	versions     ecclient.StackVersions
+	versions     []ecclient.StackVersion
 	integrations bool
 	tf           *terraform.Runner
 	gen          *gen.Generator
@@ -99,11 +99,10 @@ type testStepEnv struct {
 }
 
 func (env *testStepEnv) currentVersion() ecclient.StackVersion {
-	last, ok := env.versions.Last()
-	if !ok {
+	if len(env.versions) == 0 {
 		panic("test step env current version not found")
 	}
-	return last
+	return env.versions[len(env.versions)-1]
 }
 
 type testStep interface {
@@ -188,11 +187,11 @@ func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, prev
 		t.Fatal("ingest step should only be used for versions >= 8.0")
 	}
 
-	t.Log("------ ingest ------")
+	t.Logf("------ ingest in %s------", e.currentVersion())
 	err := e.gen.RunBlockingWait(ctx, e.currentVersion(), e.integrations)
 	require.NoError(t, err)
 
-	t.Log("------ ingest check ------")
+	t.Logf("------ ingest check in %s ------", e.currentVersion())
 	t.Log("check number of documents after ingestion")
 	ignoreDS := formatAll(i.IgnoreDataStreams, e.dsNamespace)
 	dsDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
@@ -237,6 +236,13 @@ func formatAllMap[T any](m map[string]T, s string) map[string]T {
 type upgradeStep struct {
 	NewVersion      ecclient.StackVersion
 	CheckDataStream asserts.CheckDataStreamsWant
+	// IgnoreDataStreams are the data streams to be ignored in assertions.
+	// The data stream names can contain '%s' to indicate namespace.
+	IgnoreDataStreams []string
+	// CheckIndividualDataStream is used to check the data streams individually
+	// instead of as a whole using CheckDataStream.
+	// The data stream names can contain '%s' to indicate namespace.
+	CheckIndividualDataStream map[string]asserts.CheckDataStreamIndividualWant
 }
 
 var _ testStep = upgradeStep{}
@@ -251,18 +257,24 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 	// Update the environment version to the new one.
 	e.versions = append(e.versions, u.NewVersion)
 
-	t.Log("------ upgrade check ------")
+	t.Logf("------ upgrade check in %s ------", e.currentVersion())
 	t.Log("check number of documents across upgrade")
 	// We assert that no changes happened in the number of documents after upgrade
 	// to ensure the state didn't change.
 	// We don't expect any change here unless something broke during the upgrade.
-	dsDocCount := getDocCountPerDS(t, ctx, e.esc)
+	ignoreDS := formatAll(u.IgnoreDataStreams, e.dsNamespace)
+	dsDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
 	asserts.CheckDocCount(t, dsDocCount, previousRes.DSDocCount,
 		emptyDataStreamsIngest(e.dsNamespace))
 
 	t.Log("check data streams after upgrade")
-	dataStreams := getAPMDataStreams(t, ctx, e.esc)
-	asserts.CheckDataStreams(t, u.CheckDataStream, dataStreams)
+	dataStreams := getAPMDataStreams(t, ctx, e.esc, ignoreDS...)
+	if u.CheckIndividualDataStream != nil {
+		expected := formatAllMap(u.CheckIndividualDataStream, e.dsNamespace)
+		asserts.CheckDataStreamsIndividually(t, expected, dataStreams)
+	} else {
+		asserts.CheckDataStreams(t, u.CheckDataStream, dataStreams)
+	}
 
 	return testStepResult{DSDocCount: dsDocCount}
 }
