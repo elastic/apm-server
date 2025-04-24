@@ -41,7 +41,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/opt"
 	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup"
@@ -183,7 +183,7 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 		t.Run(fmt.Sprintf("default/%vgb", c.memSize), func(t *testing.T) {
 			r := Runner{
 				elasticsearchOutputConfig: agentconfig.NewConfig(),
-				logger:                    logp.NewLogger("test"),
+				logger:                    logptest.NewTestingLogger(t, "test"),
 			}
 			docCfg, esCfg, err := r.newDocappenderConfig(nil, nil, c.memSize)
 			require.NoError(t, err)
@@ -215,7 +215,7 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 					"flush_interval": "2s",
 					"max_requests":   50,
 				}),
-				logger: logp.NewLogger("test"),
+				logger: logptest.NewTestingLogger(t, "test"),
 			}
 			docCfg, esCfg, err := r.newDocappenderConfig(nil, nil, c.memSize)
 			require.NoError(t, err)
@@ -328,7 +328,6 @@ func TestNewInstrumentationWithSampling(t *testing.T) {
 }
 
 func TestProcessMemoryLimit(t *testing.T) {
-	l := logp.NewLogger("test")
 	const gb = 1 << 30
 	for name, testCase := range map[string]struct {
 		cgroups        cgroupReader
@@ -408,7 +407,7 @@ func TestProcessMemoryLimit(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			memLimitGB := processMemoryLimit(testCase.cgroups, testCase.sys, l)
+			memLimitGB := processMemoryLimit(testCase.cgroups, testCase.sys, logptest.NewTestingLogger(t, "test"))
 			assert.Equal(t, testCase.wantMemLimitGB, memLimitGB)
 		})
 	}
