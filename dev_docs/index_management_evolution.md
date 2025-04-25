@@ -12,7 +12,7 @@ The primary goal of this document is to create detailed timeline that captures:
 
 - Sequence of changes made to index management across different releases.
 - Retionale behind these changes.
-- Impact on users and their configurations, ie bugs that was introduced and fixed.
+- Impact on users and their configurations, i.e. bugs that was introduced and fixed.
 
 ## Summary
 
@@ -22,11 +22,11 @@ The primary goal of this document is to create detailed timeline that captures:
     - By Version 8.15, APM Server began relying on the ES `apm-data` plugin, further decoupling index management from the server itself.
     - Leveraging the `apm-data` plugin:
         - Simplifies setup for user of APM Server binary.
-        - Replaces the need for installing any Fleet integration package for Elastic APM.
+        - The `apm` package is only required when configuring Elastic APM under Fleet.
         - Removes the possibility of index templates being missing on startup.
 2. [elastic/integrations](https://github.com/elastic/integrations)
     - Previously, the APM Integrations package was responsible for index management in Fleet for APM Server.
-    - Transitioning to the `apm-data` plugin required removing templates created by the integration to prevent conflict, as these templates has higher priority and cloud override those from the plugin.
+    - Transitioning to the `apm-data` plugin made the index templates in the apm package obsolete as it meant moving the index template setup to the Elasticsearch `apm-data` plugin.
 3. [elastic/elasticsearch](https://github.com/elastic/elasticsearch)
     - The introduction of the `apm-data` plugin in ES "moved" index management one abstraction layer closer to the actual data layer.
     - Resulting in a more streamlined setup and reducing the dependency on external integrations for a standalone APM Server.
@@ -34,7 +34,7 @@ The primary goal of this document is to create detailed timeline that captures:
 ## 8.15.0 - (Release: Aug 2, 2024)
 
 - **Jul 11, 2023**
-    - The APM plugin was introduced in ES v8.12.0 ([#97546](https://github.com/elastic/elasticsearch/pull/97546))
+    - The APM plugin was introduced in ES v8.12.0 ([#97546](https://github.com/elastic/elasticsearch/pull/97546)) but disabled by default.
 - **May 21, 2024**
     - The APM plugin in ES was only enabled as the default in v8.15.0 ([#108860](https://github.com/elastic/elasticsearch/pull/108860)).
 - **May 22, 2024**
