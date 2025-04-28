@@ -759,13 +759,11 @@ func TestReadSubscriberPositionFile(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			tempdirConfig := newTempdirConfig(t)
-			config := tempdirConfig.Config
-			config.Policies = []sampling.Policy{{SampleRate: 0.5}}
 
 			err := tc.setupFile(filepath.Join(tempdirConfig.tempDir, "subscriber_position.json"))
 			require.NoError(t, err)
 
-			processor, err := sampling.NewProcessor(config)
+			processor, err := sampling.NewProcessor(tempdirConfig.Config)
 			require.NoError(t, err)
 
 			ret := make(chan error)
