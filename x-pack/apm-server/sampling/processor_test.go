@@ -985,7 +985,7 @@ func TestReadSubscriberPositionFile(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			tempdirConfig, _ := newTempdirConfig(t)
+			tempdirConfig := newTempdirConfig(t)
 
 			err := tc.setupFile(filepath.Join(tempdirConfig.StorageDir, "subscriber_position.json"))
 			require.NoError(t, err)
