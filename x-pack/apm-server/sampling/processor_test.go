@@ -826,7 +826,6 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	assert.Equal(t, `{"index_name":1}`, string(data))
 }
 
-<<<<<<< HEAD
 func TestDropLoop(t *testing.T) {
 	// This test ensures that if badger is stuck at storage limit for TTL,
 	// DB is dropped and recreated.
@@ -951,7 +950,10 @@ func TestDropLoop(t *testing.T) {
 			}()
 			assert.NoError(t, config.DB.Close())
 			assert.Greater(t, len(sstFilenames(config.StorageDir)), 0)
-=======
+		})
+	}
+}
+
 func TestReadSubscriberPositionFile(t *testing.T) {
 	for _, tc := range []struct {
 		name      string
@@ -983,14 +985,12 @@ func TestReadSubscriberPositionFile(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			tempdirConfig := newTempdirConfig(t)
-			config := tempdirConfig.Config
-			config.Policies = []sampling.Policy{{SampleRate: 0.5}}
+			tempdirConfig, _ := newTempdirConfig(t)
 
-			err := tc.setupFile(filepath.Join(tempdirConfig.tempDir, "subscriber_position.json"))
+			err := tc.setupFile(filepath.Join(tempdirConfig.StorageDir, "subscriber_position.json"))
 			require.NoError(t, err)
 
-			processor, err := sampling.NewProcessor(config)
+			processor, err := sampling.NewProcessor(tempdirConfig)
 			require.NoError(t, err)
 
 			ret := make(chan error)
@@ -999,7 +999,6 @@ func TestReadSubscriberPositionFile(t *testing.T) {
 			}()
 			processor.Stop(context.Background())
 			assert.NoError(t, <-ret)
->>>>>>> 3e88e8bd (TBS: ignore subscriber position read error and proceed as if file not exist (#16736))
 		})
 	}
 }
