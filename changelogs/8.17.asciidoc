@@ -17,7 +17,7 @@ https://github.com/elastic/apm-server/compare/v8.17.4\...v8.17.5[View commits]
 [float]
 ==== Bug fixes
 
-- Fix tail sampling edge case where storage limit is exceeded but missed by drop loop {pull}16385[16385]
+- Tail-based sampling: Fix an issue with the "drop and recreate Badger DB on storage limit exceeded" mitigation introduced in 8.17.1 and 8.16.3. Previously, a bug in this mitigation caused the tail sampling storage size to remain between 90% and 100% of the configured limit indefinitely without triggering the intended mitigation after TTL time. {pull}16385[16385]
 
 [float]
 ==== Breaking Changes
