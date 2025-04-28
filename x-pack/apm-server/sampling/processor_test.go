@@ -727,6 +727,47 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	assert.Equal(t, `{"index_name":1}`, string(data))
 }
 
+func TestReadSubscriberPositionFile(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		setupFile func(dir string) error
+	}{
+		{
+			name: "invalid json",
+			setupFile: func(dir string) error {
+				subscriberPositionFile := filepath.Join(dir, "subscriber_position.json")
+				return os.WriteFile(subscriberPositionFile, []byte(`not_json`), 0644)
+			},
+		},
+		{
+			name: "bad perm",
+			setupFile: func(dir string) error {
+				subscriberPositionFile := filepath.Join(dir, "subscriber_position.json")
+				return os.WriteFile(subscriberPositionFile, []byte{}, 0000)
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			tempdirConfig := newTempdirConfig(t)
+			config := tempdirConfig.Config
+			config.Policies = []sampling.Policy{{SampleRate: 0.5}}
+
+			err := tc.setupFile(tempdirConfig.tempDir)
+			require.NoError(t, err)
+
+			processor, err := sampling.NewProcessor(config)
+			require.NoError(t, err)
+
+			ret := make(chan error)
+			go func() {
+				ret <- processor.Run()
+			}()
+			processor.Stop(context.Background())
+			assert.NoError(t, <-ret)
+		})
+	}
+}
+
 func TestGracefulShutdown(t *testing.T) {
 	config := newTempdirConfig(t).Config
 	sampleRate := 0.5
