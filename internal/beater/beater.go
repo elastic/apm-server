@@ -902,8 +902,12 @@ func newSourcemapFetcher(
 	var fetchers []sourcemap.Fetcher
 
 	// start background sync job
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, ctxCancel := context.WithCancel(context.Background())
 	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex, tracer, logger)
+	cancel := func() {
+		ctxCancel()
+		<-invalidationChan
+	}
 
 	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, sourcemapIndex, logger)
 	size := 128
