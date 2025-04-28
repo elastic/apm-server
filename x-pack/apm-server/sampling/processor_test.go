@@ -954,6 +954,55 @@ func TestDropLoop(t *testing.T) {
 	}
 }
 
+func TestReadSubscriberPositionFile(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		setupFile func(path string) error
+	}{
+		{
+			name: "file not exist",
+			setupFile: func(_ string) error {
+				return nil
+			},
+		},
+		{
+			name: "valid json",
+			setupFile: func(path string) error {
+				return os.WriteFile(path, []byte(`{}`), 0644)
+			},
+		},
+		{
+			name: "invalid json",
+			setupFile: func(path string) error {
+				return os.WriteFile(path, []byte(`not_json`), 0644)
+			},
+		},
+		{
+			name: "bad perm",
+			setupFile: func(path string) error {
+				return os.WriteFile(path, []byte{}, 0000)
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			tempdirConfig := newTempdirConfig(t)
+
+			err := tc.setupFile(filepath.Join(tempdirConfig.StorageDir, "subscriber_position.json"))
+			require.NoError(t, err)
+
+			processor, err := sampling.NewProcessor(tempdirConfig)
+			require.NoError(t, err)
+
+			ret := make(chan error)
+			go func() {
+				ret <- processor.Run()
+			}()
+			processor.Stop(context.Background())
+			assert.NoError(t, <-ret)
+		})
+	}
+}
+
 func TestGracefulShutdown(t *testing.T) {
 	config := newTempdirConfig(t)
 	sampleRate := 0.5
