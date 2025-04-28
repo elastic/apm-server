@@ -504,13 +504,13 @@ func readSubscriberPosition(logger *logp.Logger, s *eventstorage.StorageManager)
 	if errors.Is(err, os.ErrNotExist) {
 		return pos
 	} else if err != nil {
-		logger.With(logp.Error(err)).Warn("error reading subscriber position file; proceeding with empty subscriber position")
+		logger.With(logp.Error(err)).Warn("error reading subscriber position file; proceeding as empty")
 		return pos
 	}
 	err = json.Unmarshal(data, &pos)
 	if err != nil {
 		logger.With(logp.Error(err)).With(logp.ByteString("file", data)).Debug("failed to read subscriber position")
-		logger.With(logp.Error(err)).Warn("error parsing subscriber position file; proceeding with empty subscriber position")
+		logger.With(logp.Error(err)).Warn("error parsing subscriber position file; proceeding as empty")
 		return pos
 	}
 	return pos
