@@ -730,20 +730,30 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 func TestReadSubscriberPositionFile(t *testing.T) {
 	for _, tc := range []struct {
 		name      string
-		setupFile func(dir string) error
+		setupFile func(path string) error
 	}{
 		{
+			name: "file not exist",
+			setupFile: func(_ string) error {
+				return nil
+			},
+		},
+		{
+			name: "valid json",
+			setupFile: func(path string) error {
+				return os.WriteFile(path, []byte(`{}`), 0644)
+			},
+		},
+		{
 			name: "invalid json",
-			setupFile: func(dir string) error {
-				subscriberPositionFile := filepath.Join(dir, "subscriber_position.json")
-				return os.WriteFile(subscriberPositionFile, []byte(`not_json`), 0644)
+			setupFile: func(path string) error {
+				return os.WriteFile(path, []byte(`not_json`), 0644)
 			},
 		},
 		{
 			name: "bad perm",
-			setupFile: func(dir string) error {
-				subscriberPositionFile := filepath.Join(dir, "subscriber_position.json")
-				return os.WriteFile(subscriberPositionFile, []byte{}, 0000)
+			setupFile: func(path string) error {
+				return os.WriteFile(path, []byte{}, 0000)
 			},
 		},
 	} {
@@ -752,7 +762,7 @@ func TestReadSubscriberPositionFile(t *testing.T) {
 			config := tempdirConfig.Config
 			config.Policies = []sampling.Policy{{SampleRate: 0.5}}
 
-			err := tc.setupFile(tempdirConfig.tempDir)
+			err := tc.setupFile(filepath.Join(tempdirConfig.tempDir, "subscriber_position.json"))
 			require.NoError(t, err)
 
 			processor, err := sampling.NewProcessor(config)
