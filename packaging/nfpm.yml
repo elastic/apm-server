@@ -67,8 +67,3 @@ contents:
     dst: /usr/share/apm-server/.build_hash.txt
     file_info:
       mode: 0644
-
-  - src: build/java-attacher.jar
-    dst: /usr/share/apm-server/java-attacher.jar
-    file_info:
-      mode: 0644
