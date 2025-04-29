@@ -40,16 +40,10 @@ type cacheSetup struct {
 	result Result
 }
 
-<<<<<<< HEAD
-func newCacheSetup(service string, exp time.Duration, init bool) cacheSetup {
-=======
 func newCacheSetup(t testing.TB, service string, exp time.Duration, init bool) cacheSetup {
-	cache, err := newCache(logptest.NewTestingLogger(t, ""), exp)
-	require.NoError(t, err)
->>>>>>> 8f64c3ca (test: use logp test logger in tests (#16705))
 	setup := cacheSetup{
 		query:  Query{Service: Service{Name: service}, Etag: "123"},
-		cache:  newCache(logp.NewLogger(""), exp),
+		cache:  newCache(logptest.NewTestingLogger(t, ""), exp),
 		result: defaultResult,
 	}
 	if init {
