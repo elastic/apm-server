@@ -42,10 +42,11 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 	"github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-data/model/modelpb"
+
 	"github.com/elastic/apm-server/internal/publish"
 )
 
@@ -98,8 +99,6 @@ func TestPublisherStopShutdownInactive(t *testing.T) {
 }
 
 func BenchmarkPublisher(b *testing.B) {
-	require.NoError(b, logp.DevelopmentSetup(logp.ToObserverOutput()))
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
@@ -141,7 +140,7 @@ func BenchmarkPublisher(b *testing.B) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	supporter, err := idxmgmt.DefaultSupport(logp.NewLogger("beater_test"), beat.Info{}, nil)
+	supporter, err := idxmgmt.DefaultSupport(logptest.NewTestingLogger(b, "beater_test"), beat.Info{}, nil)
 	require.NoError(b, err)
 	outputGroup, err := outputs.Load(supporter, beat.Info{}, nil, "elasticsearch", config.MustNewConfigFrom(map[string]interface{}{
 		"hosts": []interface{}{srv.URL},
@@ -160,7 +159,7 @@ func BenchmarkPublisher(b *testing.B) {
 	pipeline, err := pipeline.New(
 		beat.Info{},
 		pipeline.Monitors{
-			Logger: logp.NewLogger("monitor"),
+			Logger: logptest.NewTestingLogger(b, "monitor"),
 		},
 		namespace,
 		outputGroup,

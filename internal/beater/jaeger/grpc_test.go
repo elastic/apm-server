@@ -39,7 +39,6 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
@@ -172,8 +171,6 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
-
 			conn, logs := newServer(t, nil, tc.fetcher)
 			client := api_v2.NewSamplingManagerClient(conn)
 			resp, err := client.GetSamplingStrategy(context.Background(), tc.params)

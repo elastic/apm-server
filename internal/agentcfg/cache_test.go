@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 var (
@@ -40,10 +40,10 @@ type cacheSetup struct {
 	result Result
 }
 
-func newCacheSetup(service string, exp time.Duration, init bool) cacheSetup {
+func newCacheSetup(t testing.TB, service string, exp time.Duration, init bool) cacheSetup {
 	setup := cacheSetup{
 		query:  Query{Service: Service{Name: service}, Etag: "123"},
-		cache:  newCache(logp.NewLogger(""), exp),
+		cache:  newCache(logptest.NewTestingLogger(t, ""), exp),
 		result: defaultResult,
 	}
 	if init {
@@ -67,7 +67,7 @@ func TestCache_fetchAndAdd(t *testing.T) {
 		"NilDocFromFunction":   {fetchFunc: testFnNil},
 	} {
 		t.Run(name, func(t *testing.T) {
-			setup := newCacheSetup(name, exp, testCase.init)
+			setup := newCacheSetup(t, name, exp, testCase.init)
 
 			doc, err := setup.cache.fetch(setup.query, testCase.fetchFunc)
 			assert.Equal(t, testCase.doc, doc)
@@ -85,7 +85,7 @@ func TestCache_fetchAndAdd(t *testing.T) {
 
 	t.Run("CacheKeyExpires", func(t *testing.T) {
 		exp := 100 * time.Millisecond
-		setup := newCacheSetup(t.Name(), exp, false)
+		setup := newCacheSetup(t, t.Name(), exp, false)
 		doc, err := setup.cache.fetch(setup.query, testFn)
 		require.NoError(t, err)
 		require.NotNil(t, doc)
@@ -107,7 +107,7 @@ func BenchmarkFetchAndAdd(b *testing.B) {
 		// intialize the cache and add a document to it before the benchmark,
 		// to ensure docs are only fetched from cache
 		exp := 5 * time.Minute
-		setup := newCacheSetup(b.Name(), exp, true)
+		setup := newCacheSetup(b, b.Name(), exp, true)
 		for i := 0; i < b.N; i++ {
 			setup.cache.fetch(setup.query, testFn)
 		}
@@ -117,7 +117,7 @@ func BenchmarkFetchAndAdd(b *testing.B) {
 		// intialize the cache, test adding random docs to cache
 		// to ensure a fetch and add operation per call
 		exp := 5 * time.Minute
-		setup := newCacheSetup(b.Name(), exp, false)
+		setup := newCacheSetup(b, b.Name(), exp, false)
 		q := Query{Service: Service{}}
 		for i := 0; i < b.N; i++ {
 			q.Service.Name = fmt.Sprintf("%v", b.N)

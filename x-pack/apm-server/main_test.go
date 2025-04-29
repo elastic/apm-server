@@ -21,7 +21,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/paths"
 
 	"github.com/elastic/apm-server/internal/beater"
@@ -60,7 +60,7 @@ func TestMonitoring(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		serverParams, runServer, err := wrapServer(beater.ServerParams{
 			Config:                 cfg,
-			Logger:                 logp.NewLogger(""),
+			Logger:                 logptest.NewTestingLogger(t, ""),
 			Tracer:                 apmtest.DiscardTracer,
 			MeterProvider:          mp,
 			BatchProcessor:         modelpb.ProcessBatchFunc(func(ctx context.Context, b *modelpb.Batch) error { return nil }),
