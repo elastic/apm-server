@@ -25,6 +25,7 @@ import (
 
 	"go.elastic.co/apm/module/apmotel/v2"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -52,6 +53,10 @@ type RunnerParams struct {
 	// Logger holds a logger to use for logging throughout the APM Server.
 	Logger *logp.Logger
 
+	// TracerProvider holds a trace.TracerProvider that can be used for
+	// creating traces.
+	TracerProvider trace.TracerProvider
+
 	// MeterProvider holds a metric.MeterProvider that can be used for
 	// creating metrics. The same MeterProvider is expected to be used
 	// for each instance of the Runner, to ensure counter metrics are
@@ -74,13 +79,14 @@ type Runner interface {
 
 // NewReloader returns a new Reloader which creates Runners using the provided
 // beat.Info and NewRunnerFunc.
-func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricGatherer *apmotel.Gatherer) (*Reloader, error) {
+func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricGatherer *apmotel.Gatherer, tracerProvider trace.TracerProvider) (*Reloader, error) {
 	r := &Reloader{
 		info:      info,
 		logger:    logp.NewLogger(""),
 		newRunner: newRunner,
 		stopped:   make(chan struct{}),
 
+		tracerProvider: tracerProvider,
 		meterProvider:  meterProvider,
 		metricGatherer: metricGatherer,
 	}
@@ -103,6 +109,7 @@ type Reloader struct {
 	logger    *logp.Logger
 	newRunner NewRunnerFunc
 
+	tracerProvider trace.TracerProvider
 	meterProvider  metric.MeterProvider
 	metricGatherer *apmotel.Gatherer
 
@@ -256,6 +263,7 @@ func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C)
 		Config:          mergedConfig,
 		Info:            r.info,
 		Logger:          r.logger,
+		TracerProvider:  r.tracerProvider,
 		MeterProvider:   r.meterProvider,
 		MetricsGatherer: r.metricGatherer,
 	})
