@@ -172,8 +172,6 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
-
 			conn, logs := newServer(t, nil, tc.fetcher)
 			client := api_v2.NewSamplingManagerClient(conn)
 			resp, err := client.GetSamplingStrategy(context.Background(), tc.params)
