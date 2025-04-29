@@ -26,13 +26,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 
 	"go.elastic.co/apm/v2"
 	"go.elastic.co/apm/v2/apmtest"
 
-	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/logp/configure"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-server/internal/beater/headers"
@@ -99,9 +98,15 @@ func TestLogMiddleware(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// log setup
-			configure.Logging("APM Server test",
-				agentconfig.MustNewConfigFrom(`{"ecs":true}`))
-			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
+			observedCore, observedLogs := observer.New(zapcore.DebugLevel)
+			err := logp.ConfigureWithOutputs(logp.Config{
+				Level:      logp.DebugLevel,
+				ToStderr:   false,
+				ToSyslog:   false,
+				ToFiles:    false,
+				ToEventLog: false,
+			}, observedCore)
+			require.NoError(t, err)
 
 			// prepare and record request
 			c, rec := DefaultContextWithResponseRecorder()
@@ -115,7 +120,7 @@ func TestLogMiddleware(t *testing.T) {
 
 			// check log lines
 			assert.Equal(t, tc.code, rec.Code)
-			entries := logp.ObserverLogs().TakeAll()
+			entries := observedLogs.All()
 			require.Equal(t, 1, len(entries))
 			entry := entries[0]
 			assert.Equal(t, logs.Request, entry.LoggerName)
@@ -140,8 +145,15 @@ func TestLogMiddleware(t *testing.T) {
 }
 
 func TestLogMiddlewareRequestBodyBytes(t *testing.T) {
-	configure.Logging("APM Server test", agentconfig.MustNewConfigFrom(`{"ecs":true}`))
-	require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
+	observedCore, observedLogs := observer.New(zapcore.DebugLevel)
+	err := logp.ConfigureWithOutputs(logp.Config{
+		Level:      logp.DebugLevel,
+		ToStderr:   false,
+		ToSyslog:   false,
+		ToFiles:    false,
+		ToEventLog: false,
+	}, observedCore)
+	require.NoError(t, err)
 
 	c := request.NewContext()
 	c.Reset(
@@ -150,7 +162,7 @@ func TestLogMiddlewareRequestBodyBytes(t *testing.T) {
 	)
 	Apply(LogMiddleware(), HandlerIdle)(c)
 
-	entries := logp.ObserverLogs().TakeAll()
+	entries := observedLogs.All()
 	require.Equal(t, 1, len(entries))
 	field := entries[0].ContextMap()["http.request.body.bytes"]
 	assert.Equal(t, int64(len("content")), field)
