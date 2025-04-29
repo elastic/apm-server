@@ -63,7 +63,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
-	javaattacher "github.com/elastic/apm-server/internal/beater/java_attacher"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/fips140"
@@ -254,23 +253,6 @@ func (s *Runner) Run(ctx context.Context) error {
 					s.logger.Infof("failed to upload config to kibana: %v", err)
 				}
 			}()
-		}
-	}
-
-	if s.config.JavaAttacherConfig.Enabled {
-		if !inElasticCloud {
-			go func() {
-				attacher, err := javaattacher.New(s.config.JavaAttacherConfig)
-				if err != nil {
-					s.logger.Errorf("failed to start java attacher: %v", err)
-					return
-				}
-				if err := attacher.Run(ctx); err != nil {
-					s.logger.Errorf("failed to run java attacher: %v", err)
-				}
-			}()
-		} else {
-			s.logger.Error("java attacher not supported in cloud environments")
 		}
 	}
 
