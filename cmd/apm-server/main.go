@@ -31,6 +31,7 @@ func main() {
 				Config: args.Config,
 				Logger: args.Logger,
 
+				TracerProvider:  args.TracerProvider,
 				MeterProvider:   args.MeterProvider,
 				MetricsGatherer: args.MetricsGatherer,
 			})
