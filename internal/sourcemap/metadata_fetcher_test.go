@@ -295,6 +295,9 @@ func TestInvalidation(t *testing.T) {
 					t.Fatal("timed out waiting for invalidations")
 				}
 			}
+
+			cancel()
+			<-invCh
 		})
 	}
 }
