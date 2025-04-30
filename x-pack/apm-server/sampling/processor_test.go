@@ -764,7 +764,7 @@ func TestReadSubscriberPositionFile(t *testing.T) {
 			err := tc.setupFile(filepath.Join(tempdirConfig.tempDir, "subscriber_position.json"))
 			require.NoError(t, err)
 
-			processor, err := sampling.NewProcessor(tempdirConfig.Config)
+			processor, err := sampling.NewProcessor(tempdirConfig.Config, logptest.NewTestingLogger(t, ""))
 			require.NoError(t, err)
 
 			ret := make(chan error)
