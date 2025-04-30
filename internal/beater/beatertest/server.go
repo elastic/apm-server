@@ -30,6 +30,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/noop"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -112,10 +113,11 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 	}
 
 	runner, err := beater.NewRunner(beater.RunnerParams{
-		Config:        cfg,
-		Logger:        logger,
-		WrapServer:    options.wrapServer,
-		MeterProvider: options.meterProvider,
+		Config:         cfg,
+		Logger:         logger,
+		WrapServer:     options.wrapServer,
+		TracerProvider: options.tracerProvider,
+		MeterProvider:  options.meterProvider,
 	})
 	require.NoError(t, err)
 
@@ -192,9 +194,10 @@ func (s *Server) Close() error {
 }
 
 type options struct {
-	config        []*agentconfig.C
-	wrapServer    beater.WrapServerFunc
-	meterProvider metric.MeterProvider
+	config         []*agentconfig.C
+	wrapServer     beater.WrapServerFunc
+	tracerProvider trace.TracerProvider
+	meterProvider  metric.MeterProvider
 }
 
 type option func(*options)
