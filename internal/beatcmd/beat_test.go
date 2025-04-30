@@ -360,7 +360,7 @@ func TestRunManager_Reloader(t *testing.T) {
 			stopCount.Add(1)
 			return nil
 		}), nil
-	}, nil, nil)
+	}, nil, nil, nil)
 	require.NoError(t, err)
 
 	agentInfo := &proto.AgentInfo{
@@ -486,7 +486,7 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 
 	_, err := NewReloader(beat.Info{}, registry, func(_ RunnerParams) (Runner, error) {
 		return nil, errors.New("newRunner error")
-	}, nil, nil)
+	}, nil, nil, nil)
 	require.NoError(t, err)
 
 	onObserved := func(observed *proto.CheckinObserved, currentIdx int) {
