@@ -28,13 +28,12 @@ jobs:
         environment:
           - 'pro'
         active-version:
-          - '8.16'
           - '8.17'
           - '8.18'
           - '8.19'
-          - '8.x' # Latest 8 version
           - '9.0'
           - '9.1'
+          - '8.x' # Latest 8 version
           - '9.x' # Latest 9 version
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4

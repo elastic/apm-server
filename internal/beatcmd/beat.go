@@ -38,6 +38,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/exp/zapslog"
 	"golang.org/x/sync/errgroup"
@@ -82,6 +83,7 @@ type Beat struct {
 	rawConfig *config.C
 	newRunner NewRunnerFunc
 
+	tracerProvider trace.TracerProvider
 	metricReader   *sdkmetric.ManualReader
 	meterProvider  *sdkmetric.MeterProvider
 	metricGatherer *apmotel.Gatherer
@@ -397,7 +399,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	if b.Manager.Enabled() {
-		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer)
+		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer, b.tracerProvider)
 		if err != nil {
 			return err
 		}
