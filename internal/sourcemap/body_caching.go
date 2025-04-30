@@ -58,9 +58,9 @@ func NewBodyCachingFetcher(
 		logger.Debugf("Removed id %v", key)
 	})
 
-	go func() {
-		logger.Debug("listening for invalidation...")
+	logger.Debug("listening for invalidation...")
 
+	go func() {
 		for arr := range invalidationChan {
 			for _, id := range arr {
 				logger.Debugf("Invalidating id %v", id)
