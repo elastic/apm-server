@@ -1,25 +1,22 @@
 ## Index Management Evolution
 
-Over multiple releases, APM Server has undergone several changes in how it manages indices. These changes have been implemented incrementally, making it challenging for users to track the evolution and understand the current state of index management. Index management is an aggregated term used for the following components:
+Over multiple releases, APM Server has undergone several changes in how it manages indices. These changes have been implemented incrementally, making it challenging for users to track the evolution and understand the current state of index management. Index management as an aggregated term is used for
 
-1. Index Templates
-2. Component Templates
-3. Ingest Pipelines
-4. ILM Policies
-5. Data Streams
+1. definition of assets: Index Templates, Component Templates, Ingest Pipelines, ILM Policies, Data Streams.
+2. the logic to load and update these assets in Elasticsearch and coordinate actions like lazy rollover.
 
 The primary goal of this document is to create detailed timeline that captures:
 
 - Sequence of changes made to index management across different releases.
-- Retionale behind these changes.
+- Rationale behind these changes.
 - Impact on users and their configurations, i.e. bugs that was introduced and fixed.
 
 ## Summary
 
 1. [elastic/apm-server](https://github.com/elastic/apm-server)
-    - Initially, APM Server managed its own index templates and ILM policies.
-    - With Version 8.0, index management shifted to Fleet, removing them from APM Server.
-    - By Version 8.15, APM Server began relying on the ES `apm-data` plugin, further decoupling index management from the server itself.
+    - Initially, APM Server managed was responsible for its own index management.
+    - With Version 8.0, index management assets definition shifted to the [Package Registry](https://github.com/elastic/elastic-package) and management shifted to Fleet, removing the index management from APM Server.
+    - By Version 8.15, APM Server began relying on the ES `apm-data` plugin, moving the definitions and management closer to Elasticsearch.
     - Leveraging the `apm-data` plugin:
         - Simplifies setup for user of APM Server binary.
         - The `apm` package is only required when configuring Elastic APM under Fleet.
@@ -33,8 +30,6 @@ The primary goal of this document is to create detailed timeline that captures:
 
 ## Timeline
 
-- **Jul 11, 2023 (v8.12.0)**
-    - The APM plugin was introduced in ES v8.12.0 ([#97546](https://github.com/elastic/elasticsearch/pull/97546)) but disabled by default.
 - **May 21, 2024 (v8.15.0)**
     - The APM plugin in ES was only enabled as the default in v8.15.0 ([#108860](https://github.com/elastic/elasticsearch/pull/108860)).
 - **May 22, 2024 (v8.15.0)**
@@ -52,9 +47,9 @@ The switch to the ES apm plugin caused several issues for our customers, see [El
     - Any old datastreams created before the switch would be `Unmanaged` because the datastream will never be updated with the DSL lifecycle.
     - New indices created for clusters which migrate to 8.15.0 don't have any lifecycle attached as existing datastream needs to be updated explicitly, see [Docs](https://www.elastic.co/guide/en/elasticsearch/reference/current/tutorial-manage-existing-data-stream.html).
     - PR [#112759](https://github.com/elastic/elasticsearch/pull/112759) fixes the fallback to legacy ILM policies when a datastream is updated.
-- **Nov 1, 2024 (v8.15.4, v8.16.0, v8.17.0)**
+- **Nov 1, 2024 (v8.15.4, v8.16.0)**
     - Lazy rollover on a data stream is not triggered when writing a document that is rerouted to another data stream, fixed in ES [#116031](https://github.com/elastic/elasticsearch/pull/116031).
-- **Nov 5, 2024 (v8.15.4, v8.16.0, v8.17.0)**
+- **Nov 5, 2024 (v8.15.4, v8.16.0)**
     - PR [#116219](https://github.com/elastic/elasticsearch/pull/116219) will trigger a lazy rollover of existing data streams regardless of whether the index template is being created or updated.
     - This ensures that the apm-data plugin will roll over data streams that were previously using the Fleet integration package.
 - **Nov 13, 2024 (v8.17.0)** 
