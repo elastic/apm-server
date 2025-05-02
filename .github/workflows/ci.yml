@@ -55,6 +55,7 @@ jobs:
           cache: false
       - uses: actions/cache@v4.2.3
         with:
+          enableCrossOsArchive: true
           path: |
             ~/go/pkg/mod/cache
           key: go-${{ hashFiles('go.mod') }}
