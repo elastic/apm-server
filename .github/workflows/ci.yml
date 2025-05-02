@@ -55,6 +55,15 @@ jobs:
           go-version-file: go.mod
           cache: true
       - run: go test -v -race ./...
+
+  functional-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-go@v5.4.0
+        with:
+          go-version-file: functionaltests/go.mod
+          cache: true
       - env:
           KIBANA_URL: "https://kibana.test"
           KIBANA_USERNAME: "dummy"
