@@ -36,7 +36,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/headers"
@@ -78,7 +78,7 @@ func TestContext_Reset(t *testing.T) {
 	before := time.Now()
 	c := Context{
 		Request: r1, ResponseWriter: w1,
-		Logger: logp.NewLogger(""),
+		Logger: logptest.NewTestingLogger(t, ""),
 		Result: Result{
 			StatusCode: http.StatusServiceUnavailable,
 			Err:        errors.New("foo"),
@@ -192,7 +192,7 @@ func BenchmarkContextReset(b *testing.B) {
 		r.RemoteAddr = v.remoteAddr
 		r.Header = v.header
 
-		l := logp.NewLogger("")
+		l := logptest.NewTestingLogger(b, "")
 		err := errors.New("foo")
 
 		b.Run(k, func(b *testing.B) {

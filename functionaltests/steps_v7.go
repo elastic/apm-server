@@ -94,11 +94,11 @@ func (i ingestV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv, pr
 		t.Fatal("ingest v7 step should only be used for versions < 8.0")
 	}
 
-	t.Log("------ ingest ------")
+	t.Logf("------ ingest in %s ------", e.currentVersion())
 	err := e.gen.RunBlockingWait(ctx, e.currentVersion(), e.integrations)
 	require.NoError(t, err)
 
-	t.Log("------ ingest check ------")
+	t.Logf("------ ingest check in %s ------", e.currentVersion())
 	t.Log("check number of documents after ingestion")
 	// Standalone, check indices.
 	if !e.integrations {
@@ -139,7 +139,7 @@ func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv, p
 	// Update the environment version to the new one.
 	e.versions = append(e.versions, u.NewVersion)
 
-	t.Log("------ upgrade check ------")
+	t.Logf("------ upgrade check in %s ------", e.currentVersion())
 	t.Log("check number of documents across upgrade")
 	// We assert that no changes happened in the number of documents after upgrade
 	// to ensure the state didn't change.
@@ -175,7 +175,7 @@ func (m migrateManagedStep) Step(t *testing.T, ctx context.Context, e *testStepE
 		t.Fatal("migrate managed step should only be used on standalone")
 	}
 
-	t.Log("------ migrate to managed ------")
+	t.Logf("------ migrate to managed for %s ------", e.currentVersion())
 	t.Log("enable integrations server")
 	err := e.kbc.EnableIntegrationsServer(ctx)
 	require.NoError(t, err)
@@ -201,4 +201,19 @@ func (m migrateManagedStep) Step(t *testing.T, ctx context.Context, e *testStepE
 	asserts.CheckDocCount(t, dsDocCount, previousRes.DSDocCount,
 		emptyDataStreamsIngest(e.dsNamespace))
 	return testStepResult{DSDocCount: dsDocCount}
+}
+
+// resolveDeprecationsStep resolves critical migration deprecation warnings from Elasticsearch regarding
+// indices created in 7.x not being compatible with 9.x.
+//
+// The output of this step is the previous test step result.
+type resolveDeprecationsStep struct{}
+
+var _ testStep = resolveDeprecationsStep{}
+
+func (r resolveDeprecationsStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
+	t.Logf("------ resolve migration deprecations in %s ------", e.currentVersion())
+	err := e.kbc.ResolveMigrationDeprecations(ctx)
+	require.NoError(t, err)
+	return previousRes
 }
