@@ -1,0 +1,8 @@
+{{- if (.Values.daemonset).enabled -}}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Chart.Name }}
+spec:
+  {{ include "pod_spec" . }}
+{{- end -}}
