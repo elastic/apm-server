@@ -52,9 +52,6 @@ jobs:
       - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
-<<<<<<< HEAD
-          cache: true
-=======
           cache: false
       - uses: actions/cache@v4.2.3
         with:
@@ -65,26 +62,6 @@ jobs:
           restore-keys: |
             go-
       - run: go test -v -race ./...
-
-  functional-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-go@v5.4.0
-        with:
-          go-version-file: functionaltests/go.mod
-          cache: false
-      - uses: actions/cache@v4.2.3
-        with:
-          path: |
-            ~/go/pkg/mod/cache
-          key: functionaltests-go-${{ hashFiles('functionaltests/go.mod') }}
-          restore-keys: |
-            functionaltests-go-
->>>>>>> bac9fec6 (ci: use manual caching with actions/cache (#16788))
-      - env:
-          CGO_ENABLED: "0"
-        run: go test -v ./...
 
   test-fips:
     runs-on: ubuntu-latest
