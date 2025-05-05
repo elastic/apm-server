@@ -7,10 +7,17 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/cockroachdb/pebble/v2 v2.0.2
 	github.com/dustin/go-humanize v1.0.1
+<<<<<<< HEAD
 	github.com/elastic/apm-aggregation v1.2.0
 	github.com/elastic/apm-data v1.16.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250502144115-f6f33432a0e9
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
+=======
+	github.com/elastic/apm-aggregation v1.3.0
+	github.com/elastic/apm-data v1.18.0
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250502132831-ef4bf7d20f61
+	github.com/elastic/elastic-agent-client/v7 v7.17.2
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	github.com/elastic/elastic-agent-libs v0.19.3
 	github.com/elastic/elastic-agent-system-metrics v0.11.10
 	github.com/elastic/gmux v0.3.2
@@ -154,7 +161,6 @@ require (
 	github.com/jcmturner/goidentity/v6 v6.0.1 // indirect
 	github.com/jcmturner/gokrb5/v8 v8.4.4 // indirect
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
-	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/josephspurrier/goversioninfo v1.4.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
@@ -232,8 +238,12 @@ require (
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/collector/consumer v1.28.0 // indirect
 	go.opentelemetry.io/collector/semconv v0.121.0 // indirect
+<<<<<<< HEAD
 	go.opentelemetry.io/otel/sdk v1.34.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
+=======
+	go.opentelemetry.io/otel/sdk v1.35.0 // indirect
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c // indirect

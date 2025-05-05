@@ -455,11 +455,19 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.16.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
+<<<<<<< HEAD
 Version: v7.0.0-alpha2.0.20250502144115-f6f33432a0e9
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250502144115-f6f33432a0e9/LICENSE.txt:
+=======
+Version: v7.0.0-alpha2.0.20250502132831-ef4bf7d20f61
+Licence type (autodetected): Elastic
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250502132831-ef4bf7d20f61/LICENSE.txt:
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -12503,37 +12511,6 @@ Contents of probable licence file $GOMODCACHE/github.com/jcmturner/rpc/v2@v2.0.3
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-
-
---------------------------------------------------------------------------------
-Dependency : github.com/joeshaw/multierror
-Version: v0.0.0-20140124173710-69b34d4ec901
-Licence type (autodetected): MIT
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/github.com/joeshaw/multierror@v0.0.0-20140124173710-69b34d4ec901/LICENSE:
-
-The MIT License (MIT)
-
-Copyright (c) 2014 Joe Shaw
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
 
 
 --------------------------------------------------------------------------------

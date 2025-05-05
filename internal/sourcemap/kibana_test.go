@@ -29,6 +29,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	libkibana "github.com/elastic/elastic-agent-libs/kibana"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 
 	"github.com/elastic/apm-server/internal/kibana"
 )
@@ -144,5 +145,5 @@ func newTestKibanaFetcher(t testing.TB, h http.HandlerFunc) Fetcher {
 		Host: srv.Listener.Addr().String(),
 	})
 	require.NoError(t, err)
-	return NewKibanaFetcher(kibanaClient)
+	return NewKibanaFetcher(kibanaClient, logptest.NewTestingLogger(t, ""))
 }

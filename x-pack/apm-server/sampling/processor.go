@@ -57,14 +57,14 @@ type eventMetrics struct {
 }
 
 // NewProcessor returns a new Processor, for tail-sampling trace events.
-func NewProcessor(config Config) (*Processor, error) {
+func NewProcessor(config Config, logger *logp.Logger) (*Processor, error) {
 	if err := config.Validate(); err != nil {
 		return nil, errors.Wrap(err, "invalid tail-sampling config")
 	}
 
 	meter := config.MeterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
 
-	logger := logp.NewLogger(logs.Sampling)
+	logger = logger.Named(logs.Sampling)
 	p := &Processor{
 		config:            config,
 		logger:            logger,
@@ -333,7 +333,7 @@ func (p *Processor) Run() error {
 				return context.Canceled
 			case pos := <-subscriberPositions:
 				if err := writeSubscriberPosition(p.config.DB, pos); err != nil {
-					p.rateLimitedLogger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Warn(
+					p.rateLimitedLogger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Warnf(
 						"failed to write subscriber position: %s", err,
 					)
 				}

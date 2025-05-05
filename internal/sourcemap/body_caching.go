@@ -41,8 +41,9 @@ func NewBodyCachingFetcher(
 	backend Fetcher,
 	cacheSize int,
 	invalidationChan <-chan []identifier,
+	logger *logp.Logger,
 ) (*BodyCachingFetcher, error) {
-	logger := logp.NewLogger(logs.Sourcemap)
+	logger = logger.Named(logs.Sourcemap)
 
 	lruCache, err := lru.NewWithEvict(cacheSize, func(key, value interface{}) {
 		logger.Debugf("Removed id %v", key)
@@ -52,9 +53,9 @@ func NewBodyCachingFetcher(
 		return nil, fmt.Errorf("failed to create lru cache for caching fetcher: %w", err)
 	}
 
-	go func() {
-		logger.Debug("listening for invalidation...")
+	logger.Debug("listening for invalidation...")
 
+	go func() {
 		for arr := range invalidationChan {
 			for _, id := range arr {
 				logger.Debugf("Invalidating id %v", id)

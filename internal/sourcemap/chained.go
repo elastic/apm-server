@@ -33,9 +33,8 @@ type ChainedFetcher struct {
 	logger   *logp.Logger
 }
 
-func NewChainedFetcher(fetchers []Fetcher) *ChainedFetcher {
-	logger := logp.NewLogger(logs.Sourcemap)
-	return &ChainedFetcher{logger: logger, fetchers: fetchers}
+func NewChainedFetcher(fetchers []Fetcher, logger *logp.Logger) *ChainedFetcher {
+	return &ChainedFetcher{logger: logger.Named(logs.Sourcemap), fetchers: fetchers}
 }
 
 // Fetch fetches a source map from Kibana.

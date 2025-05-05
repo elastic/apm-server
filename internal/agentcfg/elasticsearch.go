@@ -88,6 +88,7 @@ func NewElasticsearchFetcher(
 	fetcher Fetcher,
 	tracer *apm.Tracer,
 	mp metric.MeterProvider,
+	logger *logp.Logger,
 ) *ElasticsearchFetcher {
 	meter := mp.Meter("github.com/elastic/apm-server/internal/agentcfg")
 
@@ -99,7 +100,7 @@ func NewElasticsearchFetcher(
 	esCacheRefreshSuccesses, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.cache.refresh.successes")
 	esCacheRefreshFailures, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.cache.refresh.failures")
 
-	logger := logp.NewLogger("agentcfg")
+	logger = logger.Named("agentcfg")
 	return &ElasticsearchFetcher{
 		client:            client,
 		cacheDuration:     cacheDuration,
