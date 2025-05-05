@@ -26,6 +26,7 @@ import (
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestAPIKeyAgentAuth_ESConfig(t *testing.T) {
@@ -95,7 +96,7 @@ func TestAPIKeyAgentAuth_ESConfig(t *testing.T) {
 			if tc.cfg != nil {
 				input.SetChild("auth.api_key", -1, tc.cfg)
 			}
-			cfg, err := NewConfig(input, tc.esCfg)
+			cfg, err := NewConfig(input, tc.esCfg, logptest.NewTestingLogger(t, ""))
 			require.NoError(t, err)
 			assert.Equal(t, tc.expectedConfig, cfg.AgentAuth.APIKey)
 		})
@@ -153,7 +154,7 @@ func TestAnonymousAgentAuth(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			cfg, err := NewConfig(tc.cfg, nil)
+			cfg, err := NewConfig(tc.cfg, nil, logptest.NewTestingLogger(t, ""))
 			require.NoError(t, err)
 			assert.Equal(t, tc.expectedConfig, cfg.AgentAuth.Anonymous)
 		})
@@ -175,7 +176,7 @@ func TestSecretTokenAuth(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			cfg, err := NewConfig(tc.cfg, nil)
+			cfg, err := NewConfig(tc.cfg, nil, logptest.NewTestingLogger(t, ""))
 			require.NoError(t, err)
 			assert.Equal(t, tc.expected, cfg.AgentAuth.SecretToken)
 		})

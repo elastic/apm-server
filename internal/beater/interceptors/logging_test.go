@@ -30,7 +30,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestLogging(t *testing.T) {
@@ -70,10 +70,9 @@ func TestLogging(t *testing.T) {
 		},
 	} {
 		observedCore, observedLogs := observer.New(zapcore.InfoLevel)
-		wrapCore := zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+		logger := logptest.NewTestingLogger(t, "interceptor.logging.test", zap.WrapCore(func(core zapcore.Core) zapcore.Core {
 			return observedCore
-		})
-		logger := logp.NewLogger("interceptor.logging.test", wrapCore)
+		}))
 
 		i := Logging(logger)
 		_, err := i(ctx, nil, info, tc.f)

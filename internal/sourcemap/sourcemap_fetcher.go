@@ -34,11 +34,11 @@ type SourcemapFetcher struct {
 	logger   *logp.Logger
 }
 
-func NewSourcemapFetcher(metadata MetadataFetcher, backend Fetcher) *SourcemapFetcher {
+func NewSourcemapFetcher(metadata MetadataFetcher, backend Fetcher, logger *logp.Logger) *SourcemapFetcher {
 	s := &SourcemapFetcher{
 		metadata: metadata,
 		backend:  backend,
-		logger:   logp.NewLogger(logs.Sourcemap),
+		logger:   logger.Named(logs.Sourcemap),
 	}
 
 	return s

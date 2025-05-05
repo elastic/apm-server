@@ -24,6 +24,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	"github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/testing"
 
 	beaterconfig "github.com/elastic/apm-server/internal/beater/config"
@@ -54,7 +55,7 @@ var testConfigCommand = &cobra.Command{
 		if cfg.Output.Name() == "elasticsearch" {
 			esOutputConfig = cfg.Output.Config()
 		}
-		if _, err := beaterconfig.NewConfig(cfg.APMServer, esOutputConfig); err != nil {
+		if _, err := beaterconfig.NewConfig(cfg.APMServer, esOutputConfig, logp.NewLogger("")); err != nil {
 			return err
 		}
 
@@ -72,7 +73,7 @@ func newTestOutputCommand(beatParams BeatParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			indexSupporter := idxmgmt.NewSupporter(nil, beat.rawConfig)
+			indexSupporter := idxmgmt.NewSupporter(beat.Info.Logger, beat.rawConfig)
 			output, err := outputs.Load(
 				indexSupporter, beat.Info, nil, beat.Config.Output.Name(), beat.Config.Output.Config(),
 			)

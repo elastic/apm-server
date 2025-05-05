@@ -33,13 +33,8 @@ import (
 // to data streams. The given root config will be checked for deprecated/removed
 // configuration, and if any are present warnings will be logged.
 func NewSupporter(log *logp.Logger, configRoot *config.C) idxmgmt.Supporter {
-	if log == nil {
-		log = logp.NewLogger(logs.IndexManagement)
-	} else {
-		log = log.Named(logs.IndexManagement)
-	}
 	if configRoot != nil {
-		logWarnings(log, configRoot)
+		logWarnings(log.Named(logs.IndexManagement), configRoot)
 	}
 	return dataStreamsSupporter{}
 }
