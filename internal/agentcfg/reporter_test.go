@@ -30,6 +30,7 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestReportFetch(t *testing.T) {
@@ -37,7 +38,7 @@ func TestReportFetch(t *testing.T) {
 	receivedc := make(chan struct{})
 	defer close(receivedc)
 	bp := &batchProcessor{receivedc: receivedc}
-	r := NewReporter(fauxFetcher{}, bp, interval)
+	r := NewReporter(fauxFetcher{}, bp, interval, logptest.NewTestingLogger(t, ""))
 
 	var g errgroup.Group
 	ctx, cancel := context.WithCancel(context.Background())

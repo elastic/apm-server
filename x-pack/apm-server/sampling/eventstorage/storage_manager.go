@@ -53,12 +53,29 @@ type StorageManager struct {
 	runCh chan struct{}
 }
 
+<<<<<<< HEAD
 // NewStorageManager returns a new StorageManager with badger DB at storageDir.
 func NewStorageManager(storageDir string) (*StorageManager, error) {
 	sm := &StorageManager{
 		storageDir: storageDir,
 		runCh:      make(chan struct{}, 1),
 		logger:     logp.NewLogger(logs.Sampling),
+=======
+// NewStorageManager returns a new StorageManager with pebble DB at storageDir.
+func NewStorageManager(storageDir string, logger *logp.Logger, opts ...StorageManagerOptions) (*StorageManager, error) {
+	sm := &StorageManager{
+		storageDir: storageDir,
+		runCh:      make(chan struct{}, 1),
+		logger:     logger.Named(logs.Sampling),
+		codec:      ProtobufCodec{},
+		getDiskUsage: func() (DiskUsage, error) {
+			usage, err := vfs.Default.GetDiskUsage(storageDir)
+			return DiskUsage{
+				UsedBytes:  usage.UsedBytes,
+				TotalBytes: usage.TotalBytes,
+			}, err
+		},
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	}
 	err := sm.reset()
 	if err != nil {
@@ -67,15 +84,51 @@ func NewStorageManager(storageDir string) (*StorageManager, error) {
 	return sm, nil
 }
 
+<<<<<<< HEAD
 // reset initializes db, storage, and rw.
 func (s *StorageManager) reset() error {
 	db, err := OpenBadger(s.storageDir, -1)
+=======
+// reset initializes db and storage.
+func (sm *StorageManager) reset() error {
+	eventDB, err := OpenEventPebble(sm.storageDir, sm.logger)
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	if err != nil {
 		return err
 	}
+<<<<<<< HEAD
 	s.db = db
 	s.storage = New(s, ProtobufCodec{})
 	s.rw = s.storage.NewShardedReadWriter()
+=======
+	sm.eventDB = eventDB
+
+	decisionDB, err := OpenDecisionPebble(sm.storageDir, sm.logger)
+	if err != nil {
+		return fmt.Errorf("open decision db error: %w", err)
+	}
+	sm.decisionDB = decisionDB
+
+	// Only recreate partitioner on initial create
+	if sm.partitioner == nil {
+		var currentPID int
+		if currentPID, err = sm.loadPartitionID(); err != nil {
+			sm.logger.With(logp.Error(err)).Warn("failed to load partition ID, using 0 instead")
+		}
+		// We need to keep an extra partition as buffer to respect the TTL,
+		// as the moving window needs to cover at least TTL at all times,
+		// where the moving window is defined as:
+		// all active partitions excluding current partition + duration since the start of current partition
+		activePartitions := partitionsPerTTL + 1
+		sm.partitioner = NewPartitioner(activePartitions, currentPID)
+	}
+
+	sm.eventStorage = New(sm.eventDB, sm.partitioner, sm.codec)
+	sm.decisionStorage = New(sm.decisionDB, sm.partitioner, sm.codec)
+
+	sm.updateDiskUsage()
+
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	return nil
 }
 

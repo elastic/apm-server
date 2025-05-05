@@ -29,6 +29,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2/apmtest"
 	"go.elastic.co/apm/v2/transport/transporttest"
+<<<<<<< HEAD
+=======
+
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -126,7 +131,7 @@ func TestMetadataFetcher(t *testing.T) {
 			defer cancel()
 
 			tracer, recorder := transporttest.NewRecorderTracer()
-			fetcher, _ := NewMetadataFetcher(ctx, esClient, ".apm-source-map", tracer)
+			fetcher, _ := NewMetadataFetcher(ctx, esClient, ".apm-source-map", tracer, logptest.NewTestingLogger(t, ""))
 
 			<-fetcher.ready()
 			if tc.expectErr {
@@ -215,6 +220,7 @@ func TestInvalidation(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+<<<<<<< HEAD
 			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 			t.Cleanup(func() {
 				if t.Failed() {
@@ -223,6 +229,8 @@ func TestInvalidation(t *testing.T) {
 					}
 				}
 			})
+=======
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 			c := make(chan struct{})
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -263,7 +271,7 @@ func TestInvalidation(t *testing.T) {
 			defer cancel()
 
 			rt := apmtest.NewRecordingTracer()
-			fetcher, invalidationChan := NewMetadataFetcher(ctx, esClient, ".apm-source-map", rt.Tracer)
+			fetcher, invalidationChan := NewMetadataFetcher(ctx, esClient, ".apm-source-map", rt.Tracer, logptest.NewTestingLogger(t, ""))
 
 			invCh := make(chan struct{})
 			go func() {
@@ -302,6 +310,9 @@ func TestInvalidation(t *testing.T) {
 					t.Fatal("timed out waiting for invalidations")
 				}
 			}
+
+			cancel()
+			<-invCh
 		})
 	}
 }

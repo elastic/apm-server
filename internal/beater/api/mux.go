@@ -89,9 +89,14 @@ func NewMux(
 	sourcemapFetcher sourcemap.Fetcher,
 	publishReady func() bool,
 	semaphore input.Semaphore,
+<<<<<<< HEAD
+=======
+	meterProvider metric.MeterProvider,
+	logger *logp.Logger,
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 ) (*mux.Router, error) {
 	pool := request.NewContextPool()
-	logger := logp.NewLogger(logs.Handler)
+	logger = logger.Named(logs.Handler)
 	router := mux.NewRouter()
 	router.NotFoundHandler = pool.HTTPHandler(notFoundHandler)
 
@@ -102,6 +107,7 @@ func NewMux(
 		ratelimitStore:   ratelimitStore,
 		sourcemapFetcher: sourcemapFetcher,
 		intakeSemaphore:  semaphore,
+		logger:           logger,
 	}
 
 	zapLogger := zap.New(logger.Core(), zap.WithCaller(true))
@@ -168,11 +174,20 @@ type routeBuilder struct {
 	sourcemapFetcher sourcemap.Fetcher
 	intakeProcessor  *elasticapm.Processor
 	intakeSemaphore  input.Semaphore
+	logger           *logp.Logger
 }
 
+<<<<<<< HEAD
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
 	h := intake.Handler(r.intakeProcessor, backendRequestMetadataFunc(r.cfg), r.batchProcessor)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
+=======
+func (r *routeBuilder) backendIntakeHandler(metricsPrefix string, mp metric.MeterProvider) func() (request.Handler, error) {
+	return func() (request.Handler, error) {
+		h := intake.Handler(mp, r.intakeProcessor, backendRequestMetadataFunc(r.cfg), r.batchProcessor)
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp, r.logger)...)
+	}
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 }
 
 func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, monitoringMap map[request.ResultID]*monitoring.Int) func() (request.Handler, error) {
@@ -180,7 +195,11 @@ func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, monitoringMap map[r
 		h := func(c *request.Context) {
 			handler(c.ResponseWriter, c.Request)
 		}
+<<<<<<< HEAD
 		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, monitoringMap)...)
+=======
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp, r.logger)...)
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	}
 }
 
@@ -193,7 +212,7 @@ func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
 			batchProcessors = append(batchProcessors, sourcemap.BatchProcessor{
 				Fetcher: r.sourcemapFetcher,
 				Timeout: r.cfg.RumConfig.SourceMapping.Timeout,
-				Logger:  logp.NewLogger(logs.Stacktrace),
+				Logger:  r.logger.Named(logs.Stacktrace),
 			})
 		}
 		if r.cfg.RumConfig.LibraryPattern != "" {
@@ -214,8 +233,13 @@ func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
 			batchProcessors = append(batchProcessors, modelprocessor.SetCulprit{})
 		}
 		batchProcessors = append(batchProcessors, r.batchProcessor) // r.batchProcessor always goes last
+<<<<<<< HEAD
 		h := intake.Handler(r.intakeProcessor, rumRequestMetadataFunc(r.cfg), batchProcessors)
 		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
+=======
+		h := intake.Handler(mp, r.intakeProcessor, rumRequestMetadataFunc(r.cfg), batchProcessors)
+		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, "apm-server.server.", mp, r.logger)...)
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	}
 }
 
@@ -225,23 +249,39 @@ func (r *routeBuilder) rootHandler(publishReady func() bool) func() (request.Han
 			Version:      version.VersionWithQualifier(),
 			PublishReady: publishReady,
 		})
+<<<<<<< HEAD
 		return middleware.Wrap(h, rootMiddleware(r.cfg, r.authenticator)...)
+=======
+		return middleware.Wrap(h, rootMiddleware(r.cfg, r.authenticator, mp, r.logger)...)
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	}
 }
 
 func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
+<<<<<<< HEAD
 		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, backendMiddleware, f)
+=======
+		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, backendMiddleware, f, mp, r.logger)
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	}
 }
 
 func (r *routeBuilder) rumAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
+<<<<<<< HEAD
 		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, rumMiddleware, f)
 	}
 }
 
 type middlewareFunc func(*config.Config, *auth.Authenticator, *ratelimit.Store, map[request.ResultID]*monitoring.Int) []middleware.Middleware
+=======
+		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, rumMiddleware, f, mp, r.logger)
+	}
+}
+
+type middlewareFunc func(*config.Config, *auth.Authenticator, *ratelimit.Store, string, metric.MeterProvider, *logp.Logger) []middleware.Middleware
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 
 func agentConfigHandler(
 	cfg *config.Config,
@@ -249,22 +289,38 @@ func agentConfigHandler(
 	ratelimitStore *ratelimit.Store,
 	middlewareFunc middlewareFunc,
 	f agentcfg.Fetcher,
+<<<<<<< HEAD
 ) (request.Handler, error) {
 	mw := middlewareFunc(cfg, authenticator, ratelimitStore, agent.MonitoringMap)
+=======
+	mp metric.MeterProvider,
+	logger *logp.Logger,
+) (request.Handler, error) {
+	mw := middlewareFunc(cfg, authenticator, ratelimitStore, "apm-server.acm.", mp, logger)
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	h := agent.NewHandler(f, cfg.AgentConfig.Cache.Expiration, cfg.DefaultServiceEnvironment, cfg.AgentAuth.Anonymous.AllowAgent)
 	return middleware.Wrap(h, mw...)
 }
 
+<<<<<<< HEAD
 func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+=======
+func apmMiddleware(mp metric.MeterProvider, metricsPrefix string, logger *logp.Logger) []middleware.Middleware {
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	return []middleware.Middleware{
-		middleware.LogMiddleware(),
+		middleware.LogMiddleware(logger),
 		middleware.RecoverPanicMiddleware(),
 		middleware.MonitoringMiddleware(m, nil),
 	}
 }
 
+<<<<<<< HEAD
 func backendMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
 	backendMiddleware := append(apmMiddleware(m),
+=======
+func backendMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, metricsPrefix string, mp metric.MeterProvider, logger *logp.Logger) []middleware.Middleware {
+	backendMiddleware := append(apmMiddleware(mp, metricsPrefix, logger),
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.AuthMiddleware(authenticator, true),
 		middleware.AnonymousRateLimitMiddleware(ratelimitStore),
@@ -272,11 +328,19 @@ func backendMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ra
 	return backendMiddleware
 }
 
+<<<<<<< HEAD
 func rumMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
 	msg := "RUM endpoint is disabled. " +
 		"Configure the `apm-server.rum` section in apm-server.yml to enable ingestion of RUM events. " +
 		"If you are not using the RUM agent, you can safely ignore this error."
 	rumMiddleware := append(apmMiddleware(m),
+=======
+func rumMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, metricsPrefix string, mp metric.MeterProvider, logger *logp.Logger) []middleware.Middleware {
+	msg := "RUM endpoint is disabled. " +
+		"Configure the `apm-server.rum` section in apm-server.yml to enable ingestion of RUM events. " +
+		"If you are not using the RUM agent, you can safely ignore this error."
+	rumMiddleware := append(apmMiddleware(mp, metricsPrefix, logger),
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.ResponseHeadersMiddleware(cfg.RumConfig.ResponseHeaders),
 		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins, cfg.RumConfig.AllowHeaders),
@@ -286,8 +350,13 @@ func rumMiddleware(cfg *config.Config, authenticator *auth.Authenticator, rateli
 	return append(rumMiddleware, middleware.KillSwitchMiddleware(cfg.RumConfig.Enabled, msg))
 }
 
+<<<<<<< HEAD
 func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator) []middleware.Middleware {
 	return append(apmMiddleware(root.MonitoringMap),
+=======
+func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator, mp metric.MeterProvider, logger *logp.Logger) []middleware.Middleware {
+	return append(apmMiddleware(mp, "apm-server.root.", logger),
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.AuthMiddleware(authenticator, false),
 	)

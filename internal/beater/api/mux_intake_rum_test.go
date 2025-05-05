@@ -33,6 +33,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/middleware"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestOPTIONS(t *testing.T) {
@@ -49,7 +50,11 @@ func TestOPTIONS(t *testing.T) {
 			requestTaken <- struct{}{}
 			<-done
 		},
+<<<<<<< HEAD
 		rumMiddleware(cfg, authenticator, ratelimitStore, intake.MonitoringMap)...)
+=======
+		rumMiddleware(cfg, authenticator, ratelimitStore, "", noop.NewMeterProvider(), logptest.NewTestingLogger(t, ""))...)
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 
 	// use this to block the single allowed concurrent requests
 	go func() {
@@ -73,14 +78,14 @@ func TestOPTIONS(t *testing.T) {
 func TestRUMHandler_NoAuthorizationRequired(t *testing.T) {
 	cfg := cfgEnabledRUM()
 	cfg.AgentAuth.SecretToken = "1234"
-	rec, err := requestToMuxerWithPattern(cfg, IntakeRUMPath)
+	rec, err := requestToMuxerWithPattern(t, cfg, IntakeRUMPath)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusAccepted, rec.Code)
 }
 
 func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
 	t.Run("OffRum", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(config.DefaultConfig(), IntakeRUMPath)
+		rec, err := requestToMuxerWithPattern(t, config.DefaultConfig(), IntakeRUMPath)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusForbidden, rec.Code)
 
@@ -90,7 +95,7 @@ func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
 	})
 
 	t.Run("On", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(cfgEnabledRUM(), IntakeRUMPath)
+		rec, err := requestToMuxerWithPattern(t, cfgEnabledRUM(), IntakeRUMPath)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusAccepted, rec.Code)
 	})

@@ -29,11 +29,19 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub/pubsubtest"
+<<<<<<< HEAD
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestProcessUnsampled(t *testing.T) {
 	processor, err := sampling.NewProcessor(newTempdirConfig(t))
+=======
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
+)
+
+func TestProcessUnsampled(t *testing.T) {
+	processor, err := sampling.NewProcessor(newTempdirConfig(t).Config, logptest.NewTestingLogger(t, ""))
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -84,7 +92,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// writer shards that can list all the events committed so far.
 	require.NoError(t, config.Storage.Flush())
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -173,7 +181,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			published := make(chan string)
 			config.Elasticsearch = pubsubtest.Client(pubsubtest.PublisherChan(published), nil)
 
-			processor, err := sampling.NewProcessor(config)
+			processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 			require.NoError(t, err)
 
 			trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
@@ -291,7 +299,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	config := newTempdirConfig(t)
 	config.FlushInterval = time.Minute
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -359,7 +367,7 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 	published := make(chan string)
 	config.Elasticsearch = pubsubtest.Client(pubsubtest.PublisherChan(published), nil)
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	// Send transactions which would match either policy defined above.
@@ -434,7 +442,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 		}
 	})
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -546,7 +554,7 @@ func TestProcessDiscardOnWriteFailure(t *testing.T) {
 			config := newTempdirConfig(t)
 			config.DiscardOnWriteFailure = discard
 			config.Storage = errorRW{err: errors.New("boom")}
-			processor, err := sampling.NewProcessor(config)
+			processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 			require.NoError(t, err)
 			go processor.Run()
 			defer processor.Stop(context.Background())
@@ -581,7 +589,7 @@ func TestGroupsMonitoring(t *testing.T) {
 	config.FlushInterval = time.Minute
 	config.Policies[0].SampleRate = 0.99
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -614,7 +622,7 @@ func TestGroupsMonitoring(t *testing.T) {
 func TestStorageMonitoring(t *testing.T) {
 	config := newTempdirConfig(t)
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -736,7 +744,7 @@ func TestStorageLimit(t *testing.T) {
 	}
 
 	writeBatch := func(n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
-		processor, err := sampling.NewProcessor(c)
+		processor, err := sampling.NewProcessor(c, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		go processor.Run()
 		defer processor.Stop(context.Background())
@@ -811,7 +819,7 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	subscriber := pubsubtest.SubscriberChan(subscriberChan)
 	config.Elasticsearch = pubsubtest.Client(nil, subscriber)
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -990,7 +998,11 @@ func TestReadSubscriberPositionFile(t *testing.T) {
 			err := tc.setupFile(filepath.Join(tempdirConfig.StorageDir, "subscriber_position.json"))
 			require.NoError(t, err)
 
+<<<<<<< HEAD
 			processor, err := sampling.NewProcessor(tempdirConfig)
+=======
+			processor, err := sampling.NewProcessor(tempdirConfig.Config, logptest.NewTestingLogger(t, ""))
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 			require.NoError(t, err)
 
 			ret := make(chan error)
@@ -1009,7 +1021,7 @@ func TestGracefulShutdown(t *testing.T) {
 	config.Policies = []sampling.Policy{{SampleRate: sampleRate}}
 	config.FlushInterval = time.Minute // disable finalize
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 
@@ -1050,7 +1062,18 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 	require.NoError(tb, err)
 	tb.Cleanup(func() { os.RemoveAll(tempdir) })
 
+<<<<<<< HEAD
 	badgerDB, err := eventstorage.NewStorageManager(tempdir)
+=======
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+
+	db, err := eventstorage.NewStorageManager(tempdir, logptest.NewTestingLogger(tb, ""), eventstorage.WithMeterProvider(mp))
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	require.NoError(tb, err)
 	tb.Cleanup(func() { badgerDB.Close() })
 

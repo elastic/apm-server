@@ -51,6 +51,11 @@ func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Log
 		nil,                         // no sourcemap store
 		func() bool { return true }, // ready for publishing
 		semaphore,
+<<<<<<< HEAD
+=======
+		noop.NewMeterProvider(),
+		logger,
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	)
 	if err != nil {
 		return nil, err

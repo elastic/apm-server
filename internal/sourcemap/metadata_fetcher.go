@@ -53,6 +53,7 @@ func NewMetadataFetcher(
 	esClient *elasticsearch.Client,
 	index string,
 	tracer *apm.Tracer,
+	logger *logp.Logger,
 ) (MetadataFetcher, <-chan []identifier) {
 	invalidationCh := make(chan []identifier)
 
@@ -61,7 +62,7 @@ func NewMetadataFetcher(
 		index:            index,
 		set:              make(map[identifier]string),
 		alias:            make(map[identifier]*identifier),
-		logger:           logp.NewLogger(logs.Sourcemap),
+		logger:           logger.Named(logs.Sourcemap),
 		init:             make(chan struct{}),
 		invalidationChan: invalidationCh,
 		tracer:           tracer,

@@ -61,9 +61,8 @@ type esGetSourcemapResponse struct {
 }
 
 // NewElasticsearchFetcher returns a Fetcher for fetching source maps stored in Elasticsearch.
-func NewElasticsearchFetcher(c *elasticsearch.Client, index string) Fetcher {
-	logger := logp.NewLogger(logs.Sourcemap)
-	return &esFetcher{c, index, logger}
+func NewElasticsearchFetcher(c *elasticsearch.Client, index string, logger *logp.Logger) Fetcher {
+	return &esFetcher{c, index, logger.Named(logs.Sourcemap)}
 }
 
 // Fetch fetches a source map from Elasticsearch.

@@ -13,14 +13,19 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
+<<<<<<< HEAD
 	"github.com/elastic/go-elasticsearch/v8"
+=======
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 )
 
 func TestNewProcessorConfigInvalid(t *testing.T) {
 	var config sampling.Config
 	assertInvalidConfigError := func(expectedError string) {
 		t.Helper()
-		agg, err := sampling.NewProcessor(config)
+		agg, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 		require.Error(t, err)
 		require.Nil(t, agg)
 		assert.EqualError(t, err, "invalid tail-sampling config: "+expectedError)
