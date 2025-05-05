@@ -39,6 +39,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/sourcemap"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
@@ -168,6 +169,7 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 		m.SourcemapFetcher,
 		func() bool { return true },
 		semaphore.NewWeighted(1),
+		logp.NewLogger(""),
 	)
 }
 

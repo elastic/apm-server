@@ -183,6 +183,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		args.SourcemapFetcher,
 		publishReady,
 		args.Semaphore,
+		args.Logger,
 	)
 	if err != nil {
 		return server{}, err

@@ -215,7 +215,6 @@ func TestInvalidation(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 			t.Cleanup(func() {
 				if t.Failed() {
 					for _, le := range logp.ObserverLogs().All() {
