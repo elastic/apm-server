@@ -23,15 +23,16 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/configure"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestLogging(t *testing.T) {
@@ -74,12 +75,14 @@ func TestLogging(t *testing.T) {
 			"APM Server test",
 			agentconfig.MustNewConfigFrom(`{"ecs":true}`),
 		)
-		require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
-		logger := logp.NewLogger("interceptor.logging.test")
+		observedCore, observedLogs := observer.New(zapcore.InfoLevel)
+		logger := logptest.NewTestingLogger(t, "interceptor.logging.test", zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+			return observedCore
+		}))
 
 		i := Logging(logger)
 		_, err := i(ctx, nil, info, tc.f)
-		entries := logp.ObserverLogs().TakeAll()
+		entries := observedLogs.TakeAll()
 		assert.Len(t, entries, 1)
 		entry := entries[0]
 

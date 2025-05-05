@@ -32,10 +32,11 @@ import (
 )
 
 // LogMiddleware returns a middleware taking care of logging processing a request in the middleware and the request handler
-func LogMiddleware() Middleware {
+func LogMiddleware(logger *logp.Logger) Middleware {
+	logger = logger.Named(logs.Request)
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			c.Logger = loggerWithRequestContext(c)
+			c.Logger = loggerWithRequestContext(logger, c)
 			var err error
 			if c.Logger, err = loggerWithTraceContext(c); err != nil {
 				id := request.IDResponseErrorsInternal
@@ -64,8 +65,8 @@ func LogMiddleware() Middleware {
 	}
 }
 
-func loggerWithRequestContext(c *request.Context) *logp.Logger {
-	logger := logp.NewLogger(logs.Request).With(
+func loggerWithRequestContext(logger *logp.Logger, c *request.Context) *logp.Logger {
+	logger = logger.With(
 		"url.original", c.Request.URL.String(),
 		"http.request.method", c.Request.Method,
 		"user_agent.original", c.Request.Header.Get(headers.UserAgent),

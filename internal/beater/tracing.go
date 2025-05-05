@@ -51,6 +51,7 @@ func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Log
 		nil,                         // no sourcemap store
 		func() bool { return true }, // ready for publishing
 		semaphore,
+		logger,
 	)
 	if err != nil {
 		return nil, err

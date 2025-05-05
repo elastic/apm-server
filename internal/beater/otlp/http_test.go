@@ -41,6 +41,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
@@ -195,6 +196,7 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) string {
 		nil,
 		func() bool { return true },
 		semaphore.NewWeighted(1),
+		logp.NewLogger(""),
 	)
 	require.NoError(t, err)
 	srv := http.Server{Handler: router}

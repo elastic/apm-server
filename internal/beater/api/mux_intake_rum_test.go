@@ -33,6 +33,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/middleware"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestOPTIONS(t *testing.T) {
@@ -49,7 +50,7 @@ func TestOPTIONS(t *testing.T) {
 			requestTaken <- struct{}{}
 			<-done
 		},
-		rumMiddleware(cfg, authenticator, ratelimitStore, intake.MonitoringMap)...)
+		rumMiddleware(cfg, authenticator, ratelimitStore, intake.MonitoringMap, logptest.NewTestingLogger(t, ""))...)
 
 	// use this to block the single allowed concurrent requests
 	go func() {
