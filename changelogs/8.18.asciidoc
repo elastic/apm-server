@@ -1,6 +1,31 @@
 [[apm-release-notes-8.18]]
 == APM version 8.18
+
+* <<apm-release-notes-8.18.1>>
 * <<apm-release-notes-8.18.0>>
+
+[float]
+[[apm-release-notes-8.18.1]]
+=== APM version 8.18.1
+
+https://github.com/elastic/apm-server/compare/v8.18.0\...v8.18.1[View commits]
+
+[float]
+==== Bug fixes
+
+- Tail-based sampling: Fix an issue with corrupted subscriber position files by handling file read error {pull}16736[16736]
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Deprecations
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
 
 [float]
 [[apm-release-notes-8.18.0]]
