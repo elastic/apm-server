@@ -29,9 +29,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+<<<<<<< HEAD
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/configure"
+=======
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 )
 
 func TestLogging(t *testing.T) {
@@ -70,12 +74,19 @@ func TestLogging(t *testing.T) {
 			},
 		},
 	} {
+<<<<<<< HEAD
 		configure.Logging(
 			"APM Server test",
 			agentconfig.MustNewConfigFrom(`{"ecs":true}`),
 		)
 		require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 		logger := logp.NewLogger("interceptor.logging.test")
+=======
+		observedCore, observedLogs := observer.New(zapcore.InfoLevel)
+		logger := logptest.NewTestingLogger(t, "interceptor.logging.test", zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+			return observedCore
+		}))
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 
 		i := Logging(logger)
 		_, err := i(ctx, nil, info, tc.f)

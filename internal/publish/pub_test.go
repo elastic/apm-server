@@ -141,7 +141,11 @@ func BenchmarkPublisher(b *testing.B) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
+<<<<<<< HEAD
 	supporter, err := idxmgmt.DefaultSupport(logp.NewLogger("beater_test"), beat.Info{}, nil)
+=======
+	supporter, err := idxmgmt.DefaultSupport(beat.Info{}, nil)
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	require.NoError(b, err)
 	outputGroup, err := outputs.Load(supporter, beat.Info{}, nil, "elasticsearch", config.MustNewConfigFrom(map[string]interface{}{
 		"hosts": []interface{}{srv.URL},
@@ -158,7 +162,9 @@ func BenchmarkPublisher(b *testing.B) {
 	require.NoError(b, err)
 
 	pipeline, err := pipeline.New(
-		beat.Info{},
+		beat.Info{
+			Logger: logptest.NewTestingLogger(b, "beat"),
+		},
 		pipeline.Monitors{
 			Logger: logp.NewLogger("monitor"),
 		},
@@ -212,7 +218,9 @@ func newBlockingPipeline(t testing.TB) (*pipeline.Pipeline, *mockClient) {
 	require.NoError(t, err)
 
 	pipeline, err := pipeline.New(
-		beat.Info{},
+		beat.Info{
+			Logger: logptest.NewTestingLogger(t, "beat"),
+		},
 		pipeline.Monitors{},
 		namespace,
 		outputs.Group{Clients: []outputs.Client{client}},

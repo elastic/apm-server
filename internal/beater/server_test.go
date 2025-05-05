@@ -51,8 +51,11 @@ import (
 	_ "github.com/elastic/beats/v7/libbeat/outputs/console"
 	_ "github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
+<<<<<<< HEAD
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
+=======
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater"
@@ -605,8 +608,13 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	reqCtx, reqCancel := context.WithCancel(context.Background())
 
 	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
+<<<<<<< HEAD
 	_ = logp.DevelopmentSetup(logp.ToObserverOutput())
 	srv := beatertest.NewServer(t, beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
+=======
+
+	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 		map[string]interface{}{
 			"instrumentation.enabled": true,
 		})), beatertest.WithWrapServer(
@@ -655,7 +663,11 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	// Assert that logs contain expected values:
 	// - Original error with the status code.
 	// - Request timeout is logged separately with the the original error status code.
+<<<<<<< HEAD
 	logs := logp.ObserverLogs().Filter(func(l observer.LoggedEntry) bool {
+=======
+	logs := srv.Logs.Filter(func(l observer.LoggedEntry) bool {
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 		return l.Level == zapcore.ErrorLevel
 	}).AllUntimed()
 	assert.Len(t, logs, 1)

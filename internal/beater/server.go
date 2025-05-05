@@ -181,6 +181,11 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		args.SourcemapFetcher,
 		publishReady,
 		args.Semaphore,
+<<<<<<< HEAD
+=======
+		args.MeterProvider,
+		args.Logger,
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	)
 	if err != nil {
 		return server{}, err
@@ -240,6 +245,11 @@ func newAgentConfigFetcher(
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
 	tracer *apm.Tracer,
+<<<<<<< HEAD
+=======
+	mp metric.MeterProvider,
+	logger *logp.Logger,
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 ) (agentcfg.Fetcher, func(context.Context) error, error) {
 	// Always use ElasticsearchFetcher, and as a fallback, use:
 	// 1. no fallback if Elasticsearch is explicitly configured
@@ -256,7 +266,7 @@ func newAgentConfigFetcher(
 		fallbackFetcher = agentcfg.NewDirectFetcher(agentConfigurations)
 	case kibanaClient != nil:
 		var err error
-		fallbackFetcher, err = agentcfg.NewKibanaFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
+		fallbackFetcher, err = agentcfg.NewKibanaFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration, logger)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -268,8 +278,12 @@ func newAgentConfigFetcher(
 	if err != nil {
 		return nil, nil, err
 	}
+<<<<<<< HEAD
 	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tracer)
 	agentcfgMonitoringRegistry.Remove("elasticsearch")
 	monitoring.NewFunc(agentcfgMonitoringRegistry, "elasticsearch", esFetcher.CollectMonitoring, monitoring.Report)
+=======
+	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tracer, mp, logger)
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	return agentcfg.SanitizingFetcher{Fetcher: esFetcher}, esFetcher.Run, nil
 }

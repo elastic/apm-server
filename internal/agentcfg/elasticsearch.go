@@ -86,8 +86,25 @@ func NewElasticsearchFetcher(
 	cacheDuration time.Duration,
 	fetcher Fetcher,
 	tracer *apm.Tracer,
+<<<<<<< HEAD
 ) *ElasticsearchFetcher {
 	logger := logp.NewLogger("agentcfg")
+=======
+	mp metric.MeterProvider,
+	logger *logp.Logger,
+) *ElasticsearchFetcher {
+	meter := mp.Meter("github.com/elastic/apm-server/internal/agentcfg")
+
+	esCacheEntriesCount, _ := meter.Int64Gauge("apm-server.agentcfg.elasticsearch.cache.entries.count")
+	esFetchCount, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.es")
+	esFetchFallbackCount, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.fallback")
+	esFetchUnavailableCount, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.unavailable")
+	esFetchInvalidCount, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.invalid")
+	esCacheRefreshSuccesses, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.cache.refresh.successes")
+	esCacheRefreshFailures, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.cache.refresh.failures")
+
+	logger = logger.Named("agentcfg")
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	return &ElasticsearchFetcher{
 		client:            client,
 		cacheDuration:     cacheDuration,

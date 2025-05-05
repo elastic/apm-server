@@ -32,6 +32,7 @@ import (
 	"go.elastic.co/apm/v2/apmtest"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 var sampleHits = []map[string]interface{}{
@@ -104,7 +105,11 @@ func newElasticsearchFetcher(
 		w.WriteHeader(200)
 		w.Write(b)
 		i += searchSize
+<<<<<<< HEAD
 	}), time.Second, nil, rt)
+=======
+	}), time.Second, nil, rt, noop.NewMeterProvider(), logptest.NewTestingLogger(t, ""))
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	fetcher.searchSize = searchSize
 	return fetcher
 }
@@ -193,6 +198,11 @@ func TestFetchUseFallback(t *testing.T) {
 		time.Second,
 		fallbackFetcher,
 		apmtest.NewRecordingTracer().Tracer,
+<<<<<<< HEAD
+=======
+		noop.NewMeterProvider(),
+		logptest.NewTestingLogger(t, ""),
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	)
 
 	fetcher.refreshCache(context.Background())
@@ -208,6 +218,11 @@ func TestFetchNoFallbackInvalidESCfg(t *testing.T) {
 		time.Second,
 		nil,
 		apmtest.NewRecordingTracer().Tracer,
+<<<<<<< HEAD
+=======
+		noop.NewMeterProvider(),
+		logptest.NewTestingLogger(t, ""),
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	)
 
 	err := fetcher.refreshCache(context.Background())
@@ -224,6 +239,11 @@ func TestFetchNoFallback(t *testing.T) {
 		time.Second,
 		nil,
 		apmtest.NewRecordingTracer().Tracer,
+<<<<<<< HEAD
+=======
+		noop.NewMeterProvider(),
+		logptest.NewTestingLogger(t, ""),
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	)
 
 	err := fetcher.refreshCache(context.Background())

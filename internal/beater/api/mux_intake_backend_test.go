@@ -35,7 +35,7 @@ func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 	t.Run("Unauthorized", func(t *testing.T) {
 		cfg := config.DefaultConfig()
 		cfg.AgentAuth.SecretToken = "1234"
-		rec, err := requestToMuxerWithPattern(cfg, IntakePath)
+		rec, err := requestToMuxerWithPattern(t, cfg, IntakePath)
 		require.NoError(t, err)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
@@ -49,7 +49,7 @@ func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 		cfg := config.DefaultConfig()
 		cfg.AgentAuth.SecretToken = "1234"
 		h := map[string]string{headers.Authorization: "Bearer 1234"}
-		rec, err := requestToMuxerWithHeader(cfg, IntakePath, http.MethodGet, h)
+		rec, err := requestToMuxerWithHeader(t, cfg, IntakePath, http.MethodGet, h)
 		require.NoError(t, err)
 
 		require.NotEqual(t, http.StatusUnauthorized, rec.Code)

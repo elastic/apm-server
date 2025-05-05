@@ -39,7 +39,12 @@ import (
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/sourcemap"
+<<<<<<< HEAD
 	"github.com/elastic/elastic-agent-libs/monitoring"
+=======
+	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 )
 
 func TestBackendRequestMetadata(t *testing.T) {
@@ -75,14 +80,14 @@ func TestRUMRequestMetadata(t *testing.T) {
 	assert.Equal(t, &modelpb.UserAgent{Original: c.UserAgent}, event.UserAgent)
 }
 
-func requestToMuxerWithPattern(cfg *config.Config, pattern string) (*httptest.ResponseRecorder, error) {
+func requestToMuxerWithPattern(t *testing.T, cfg *config.Config, pattern string) (*httptest.ResponseRecorder, error) {
 	r := httptest.NewRequest(http.MethodPost, pattern, nil)
-	return requestToMuxer(cfg, r)
+	return requestToMuxer(t, cfg, r)
 }
 
-func requestToMuxerWithHeader(cfg *config.Config, pattern string, method string, header map[string]string) (*httptest.ResponseRecorder, error) {
+func requestToMuxerWithHeader(t *testing.T, cfg *config.Config, pattern string, method string, header map[string]string) (*httptest.ResponseRecorder, error) {
 	r := httptest.NewRequest(method, pattern, nil)
-	return requestToMuxer(cfg, requestWithHeader(r, header))
+	return requestToMuxer(t, cfg, requestWithHeader(r, header))
 }
 
 func requestWithHeader(r *http.Request, header map[string]string) *http.Request {
@@ -102,6 +107,7 @@ func requestWithQueryString(r *http.Request, queryString map[string]string) *htt
 }
 
 func requestToMuxerWithHeaderAndQueryString(
+	t *testing.T,
 	cfg *config.Config,
 	pattern, method string,
 	header, queryString map[string]string,
@@ -109,11 +115,18 @@ func requestToMuxerWithHeaderAndQueryString(
 	r := httptest.NewRequest(method, pattern, nil)
 	r = requestWithQueryString(r, queryString)
 	r = requestWithHeader(r, header)
-	return requestToMuxer(cfg, r)
+	return requestToMuxer(t, cfg, r)
 }
 
+<<<<<<< HEAD
 func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseRecorder, error) {
 	mux, err := muxBuilder{}.build(cfg)
+=======
+func requestToMuxer(t *testing.T, cfg *config.Config, r *http.Request) (*httptest.ResponseRecorder, error) {
+	_, mux, err := muxBuilder{
+		Logger: logptest.NewTestingLogger(t, ""),
+	}.build(cfg)
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	if err != nil {
 		return nil, err
 	}
@@ -144,8 +157,15 @@ func testMonitoringMiddleware(t *testing.T, urlPath string, monitoringMap map[re
 	assert.True(t, equal, result)
 }
 
+<<<<<<< HEAD
 func newTestMux(t *testing.T, cfg *config.Config) http.Handler {
 	mux, err := muxBuilder{}.build(cfg)
+=======
+func newTestMux(t *testing.T, cfg *config.Config) (http.Handler, sdkmetric.Reader) {
+	reader, mux, err := muxBuilder{
+		Logger: logptest.NewTestingLogger(t, ""),
+	}.build(cfg)
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	require.NoError(t, err)
 	return mux
 }
@@ -153,6 +173,7 @@ func newTestMux(t *testing.T, cfg *config.Config) http.Handler {
 type muxBuilder struct {
 	SourcemapFetcher sourcemap.Fetcher
 	Managed          bool
+	Logger           *logp.Logger
 }
 
 func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
@@ -168,6 +189,11 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 		m.SourcemapFetcher,
 		func() bool { return true },
 		semaphore.NewWeighted(1),
+<<<<<<< HEAD
+=======
+		mp,
+		m.Logger,
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	)
 }
 

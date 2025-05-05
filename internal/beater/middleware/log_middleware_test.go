@@ -25,14 +25,19 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	"go.elastic.co/apm/v2"
 	"go.elastic.co/apm/v2/apmtest"
 
+<<<<<<< HEAD
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/configure"
+=======
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-server/internal/beater/headers"
@@ -99,9 +104,16 @@ func TestLogMiddleware(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// log setup
+<<<<<<< HEAD
 			configure.Logging("APM Server test",
 				agentconfig.MustNewConfigFrom(`{"ecs":true}`))
 			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
+=======
+			core, observedLogs := observer.New(zapcore.DebugLevel)
+			logger := logptest.NewTestingLogger(t, "", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+				return zapcore.NewTee(in, core)
+			}))
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 
 			// prepare and record request
 			c, rec := DefaultContextWithResponseRecorder()
@@ -111,7 +123,7 @@ func TestLogMiddleware(t *testing.T) {
 				c.Request = c.Request.WithContext(apm.ContextWithTransaction(c.Request.Context(), tx))
 				defer tx.End()
 			}
-			Apply(LogMiddleware(), tc.handler)(c)
+			Apply(LogMiddleware(logger), tc.handler)(c)
 
 			// check log lines
 			assert.Equal(t, tc.code, rec.Code)
@@ -140,15 +152,22 @@ func TestLogMiddleware(t *testing.T) {
 }
 
 func TestLogMiddlewareRequestBodyBytes(t *testing.T) {
+<<<<<<< HEAD
 	configure.Logging("APM Server test", agentconfig.MustNewConfigFrom(`{"ecs":true}`))
 	require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
+=======
+	core, observedLogs := observer.New(zapcore.DebugLevel)
+	logger := logptest.NewTestingLogger(t, "", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+		return zapcore.NewTee(in, core)
+	}))
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 
 	c := request.NewContext()
 	c.Reset(
 		httptest.NewRecorder(),
 		httptest.NewRequest(http.MethodGet, "/", strings.NewReader("content")),
 	)
-	Apply(LogMiddleware(), HandlerIdle)(c)
+	Apply(LogMiddleware(logger), HandlerIdle)(c)
 
 	entries := logp.ObserverLogs().TakeAll()
 	require.Equal(t, 1, len(entries))

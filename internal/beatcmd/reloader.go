@@ -63,7 +63,7 @@ type Runner interface {
 func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc) (*Reloader, error) {
 	r := &Reloader{
 		info:      info,
-		logger:    logp.NewLogger(""),
+		logger:    info.Logger,
 		newRunner: newRunner,
 		stopped:   make(chan struct{}),
 	}
