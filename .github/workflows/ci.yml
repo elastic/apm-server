@@ -31,10 +31,21 @@ jobs:
       - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
+<<<<<<< HEAD
           cache: true
           cache-dependency-path: |
             go.sum
             tools/go.sum
+=======
+          cache: false
+      - uses: actions/cache@v4.2.3
+        with:
+          path: |
+            ~/go/pkg/mod/cache
+          key: go-${{ hashFiles('go.mod') }}
+          restore-keys: |
+            go-
+>>>>>>> bac9fec6 (ci: use manual caching with actions/cache (#16788))
       - run: make check-full
       - name: Ensure .go-version is up to date
         run: make update-go-version
@@ -47,10 +58,64 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+<<<<<<< HEAD
+=======
       - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
-          cache: true
+          cache: false
+      - uses: actions/cache@v4.2.3
+        with:
+          enableCrossOsArchive: true
+          path: |
+            ~/go/pkg/mod/cache
+          key: go-${{ hashFiles('go.mod') }}
+          restore-keys: |
+            go-
+      - run: go test -v -race ./...
+
+  functional-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-go@v5.4.0
+        with:
+          go-version-file: functionaltests/go.mod
+          cache: false
+      - uses: actions/cache@v4.2.3
+        with:
+          path: |
+            ~/go/pkg/mod/cache
+          key: functionaltests-go-${{ hashFiles('functionaltests/go.mod') }}
+          restore-keys: |
+            functionaltests-go-
+      - env:
+          KIBANA_URL: "https://kibana.test"
+          KIBANA_USERNAME: "dummy"
+          KIBANA_PASSWORD: "dummy"
+          EC_URL: "https://elastic-cloud.test"
+          EC_API_KEY: "dummy"
+          EC_REGION: "gcp-us-west2"
+        # run functionaltests internal tests
+        # functionaltests themselves are run in the functional-tests pipeline
+        run: cd ./functionaltests && go test -v -race ./internal/...
+
+  test-fips:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+>>>>>>> bac9fec6 (ci: use manual caching with actions/cache (#16788))
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: actions/cache@v4.2.3
+        with:
+          path: |
+            ~/go/pkg/mod/cache
+          key: go-${{ hashFiles('go.mod') }}
+          restore-keys: |
+            go-
       - env:
           CGO_ENABLED: "0"
         run: go test -v ./...
@@ -62,8 +127,19 @@ jobs:
       - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: systemtest/go.mod
+<<<<<<< HEAD
           cache: true
+=======
+          cache: false
+>>>>>>> bac9fec6 (ci: use manual caching with actions/cache (#16788))
       - run: docker compose up -d
+      - uses: actions/cache@v4.2.3
+        with:
+          path: |
+            ~/go/pkg/mod/cache
+          key: systemtest-go-${{ hashFiles('systemtest/go.mod', 'go.mod') }}
+          restore-keys: |
+            systemtest-go-
       - env:
           GOTESTFLAGS: "-v -json"
           OUTPUT_JSON_FILE: "build/TEST-go-system_tests.out.json"
@@ -76,8 +152,27 @@ jobs:
       - uses: actions/upload-artifact@v4  # upload test results
         if: ${{ always() }} # run this step even if previous step failed
         with:
+<<<<<<< HEAD
           name: test-results
           path: 'build/*.xml'
+=======
+          go-version-file: systemtest/go.mod
+          cache: false
+      - run: docker compose up -d
+      - uses: actions/cache@v4.2.3
+        with:
+          path: |
+            ~/go/pkg/mod/cache
+          key: systemtest-go-${{ hashFiles('systemtest/go.mod', 'go.mod') }}
+          restore-keys: |
+            systemtest-go-
+      - env:
+          GOTESTFLAGS: "-v -tags=requirefips"
+          GOFIPS140: "latest"
+          GODEBUG: "fips140=only"
+          GH_TOKEN: ${{ github.token }}
+        run: make system-test
+>>>>>>> bac9fec6 (ci: use manual caching with actions/cache (#16788))
 
   test-package:
     runs-on: ubuntu-latest
