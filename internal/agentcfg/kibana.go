@@ -56,15 +56,7 @@ func NewKibanaFetcher(client *kibana.Client, cacheExpiration time.Duration, logg
 	if client == nil {
 		return nil, errors.New("client is required")
 	}
-<<<<<<< HEAD
-	logger := logp.NewLogger("agentcfg")
-=======
 	logger = logger.Named("agentcfg")
-	cache, err := newCache(logger, cacheExpiration)
-	if err != nil {
-		return nil, err
-	}
->>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	return &KibanaFetcher{
 		client: client,
 		logger: logger,

@@ -257,7 +257,6 @@ func (s *Runner) Run(ctx context.Context) error {
 		}
 	}
 
-<<<<<<< HEAD
 	if s.config.JavaAttacherConfig.Enabled {
 		if !inElasticCloud {
 			go func() {
@@ -275,10 +274,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		}
 	}
 
-	instrumentation, err := newInstrumentation(s.rawConfig)
-=======
 	instrumentation, err := newInstrumentation(s.rawConfig, s.logger)
->>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	if err != nil {
 		return err
 	}
