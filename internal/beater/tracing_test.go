@@ -100,6 +100,10 @@ func TestServerTracingEnabled(t *testing.T) {
 			if !enabled {
 				assert.False(t, traced)
 			}
+
+			// also close the server to be extra sure leftover request goroutine do not leak after the
+			// test is over
+			srv.Close()
 		})
 	}
 }

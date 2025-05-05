@@ -51,9 +51,8 @@ type kibanaSourceMapArtifact struct {
 }
 
 // NewKibanaFetcher returns a Fetcher that fetches source maps stored by Kibana.
-func NewKibanaFetcher(c *kibana.Client) Fetcher {
-	logger := logp.NewLogger(logs.Sourcemap)
-	return &kibanaFetcher{c, logger}
+func NewKibanaFetcher(c *kibana.Client, logger *logp.Logger) Fetcher {
+	return &kibanaFetcher{c, logger.Named(logs.Sourcemap)}
 }
 
 // Fetch fetches a source map from Kibana.

@@ -55,6 +55,7 @@ func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Log
 		func() bool { return true }, // ready for publishing
 		semaphore,
 		noop.NewMeterProvider(),
+		logger,
 	)
 	if err != nil {
 		return nil, err

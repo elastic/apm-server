@@ -17,11 +17,16 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func BenchmarkProcess(b *testing.B) {
+<<<<<<< HEAD
 	cfg, _ := newTempdirConfig(b)
 	processor, err := sampling.NewProcessor(cfg)
+=======
+	processor, err := sampling.NewProcessor(newTempdirConfig(b).Config, logptest.NewTestingLogger(b, ""))
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	require.NoError(b, err)
 	go processor.Run()
 	b.Cleanup(func() { processor.Stop(context.Background()) })

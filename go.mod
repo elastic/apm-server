@@ -9,9 +9,15 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.2.0
 	github.com/elastic/apm-data v1.18.0
+<<<<<<< HEAD
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250430160505-6979356b57f7
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
 	github.com/elastic/elastic-agent-libs v0.19.2
+=======
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250502132831-ef4bf7d20f61
+	github.com/elastic/elastic-agent-client/v7 v7.17.2
+	github.com/elastic/elastic-agent-libs v0.19.3
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	github.com/elastic/elastic-agent-system-metrics v0.11.11
 	github.com/elastic/elastic-transport-go/v8 v8.6.1
 	github.com/elastic/gmux v0.3.2
@@ -236,7 +242,12 @@ require (
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.7.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
+<<<<<<< HEAD
 	go.opentelemetry.io/collector/semconv v0.124.0 // indirect
+=======
+	go.opentelemetry.io/collector/consumer v1.28.0 // indirect
+	go.opentelemetry.io/collector/semconv v0.121.0 // indirect
+>>>>>>> 042491db (feat: bump beats and replace global loggers (#16717))
 	go.opentelemetry.io/otel/sdk v1.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
