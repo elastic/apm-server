@@ -36,6 +36,7 @@ jobs:
       - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: 'functionaltests/go.mod'
+          cache: false
 
       - uses: elastic/oblt-actions/google/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
 
