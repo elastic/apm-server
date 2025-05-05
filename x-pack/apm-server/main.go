@@ -108,7 +108,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	}
 
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
-	db, err := getDB(storageDir, args.MeterProvider)
+	db, err := getDB(storageDir, args.MeterProvider, args.Logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tail-sampling database: %w", err)
 	}
@@ -151,10 +151,10 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			TTL:                   tailSamplingConfig.TTL,
 			DiscardOnWriteFailure: tailSamplingConfig.DiscardOnWriteFailure,
 		},
-	})
+	}, args.Logger)
 }
 
-func getDB(storageDir string, mp metric.MeterProvider) (*eventstorage.StorageManager, error) {
+func getDB(storageDir string, mp metric.MeterProvider, logger *logp.Logger) (*eventstorage.StorageManager, error) {
 	dbMu.Lock()
 	defer dbMu.Unlock()
 	if db == nil {
@@ -162,7 +162,7 @@ func getDB(storageDir string, mp metric.MeterProvider) (*eventstorage.StorageMan
 		if mp != nil {
 			opts = append(opts, eventstorage.WithMeterProvider(mp))
 		}
-		sm, err := eventstorage.NewStorageManager(storageDir, opts...)
+		sm, err := eventstorage.NewStorageManager(storageDir, logger, opts...)
 		if err != nil {
 			return nil, err
 		}
@@ -257,6 +257,7 @@ func Main() error {
 				Logger:     args.Logger,
 				WrapServer: wrapServer,
 
+				TracerProvider:  args.TracerProvider,
 				MeterProvider:   args.MeterProvider,
 				MetricsGatherer: args.MetricsGatherer,
 			})

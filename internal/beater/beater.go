@@ -37,6 +37,7 @@ import (
 	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
@@ -63,7 +64,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
-	javaattacher "github.com/elastic/apm-server/internal/beater/java_attacher"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/fips140"
@@ -86,6 +86,7 @@ type Runner struct {
 	outputConfig              agentconfig.Namespace
 	elasticsearchOutputConfig *agentconfig.C
 
+	tracerProvider trace.TracerProvider
 	meterProvider  metric.MeterProvider
 	metricGatherer *apmotel.Gatherer
 	listener       net.Listener
@@ -99,6 +100,10 @@ type RunnerParams struct {
 
 	// Logger holds a logger to use for logging throughout the APM Server.
 	Logger *logp.Logger
+
+	// TracerProvider holds a trace.TracerProvider that can be used for
+	// creating traces.
+	TracerProvider trace.TracerProvider
 
 	// MeterProvider holds a metric.MeterProvider that can be used for
 	// creating metrics.
@@ -133,7 +138,7 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 	if unpackedConfig.Output.Name() == "elasticsearch" {
 		elasticsearchOutputConfig = unpackedConfig.Output.Config()
 	}
-	cfg, err := config.NewConfig(unpackedConfig.APMServer, elasticsearchOutputConfig)
+	cfg, err := config.NewConfig(unpackedConfig.APMServer, elasticsearchOutputConfig, args.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -157,6 +162,7 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		outputConfig:              unpackedConfig.Output,
 		elasticsearchOutputConfig: elasticsearchOutputConfig,
 
+		tracerProvider: args.TracerProvider,
 		meterProvider:  args.MeterProvider,
 		metricGatherer: args.MetricsGatherer,
 		listener:       listener,
@@ -257,24 +263,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		}
 	}
 
-	if s.config.JavaAttacherConfig.Enabled {
-		if !inElasticCloud {
-			go func() {
-				attacher, err := javaattacher.New(s.config.JavaAttacherConfig)
-				if err != nil {
-					s.logger.Errorf("failed to start java attacher: %v", err)
-					return
-				}
-				if err := attacher.Run(ctx); err != nil {
-					s.logger.Errorf("failed to run java attacher: %v", err)
-				}
-			}()
-		} else {
-			s.logger.Error("java attacher not supported in cloud environments")
-		}
-	}
-
-	instrumentation, err := newInstrumentation(s.rawConfig)
+	instrumentation, err := newInstrumentation(s.rawConfig, s.logger)
 	if err != nil {
 		return err
 	}
@@ -290,6 +279,8 @@ func (s *Runner) Run(ctx context.Context) error {
 		return err
 	}
 	otel.SetTracerProvider(tracerProvider)
+
+	s.tracerProvider = tracerProvider
 
 	tracer.RegisterMetricsGatherer(s.metricGatherer)
 
@@ -341,6 +332,7 @@ func (s *Runner) Run(ctx context.Context) error {
 			s.config.RumConfig.SourceMapping,
 			kibanaClient, newElasticsearchClient,
 			tracer,
+			s.logger,
 		)
 		if err != nil {
 			return err
@@ -382,7 +374,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the BatchProcessor chain that is used to process all events,
 	// including the metrics aggregated by APM Server.
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
-		tracer, newElasticsearchClient, memLimitGB,
+		tracer, newElasticsearchClient, memLimitGB, s.logger,
 	)
 	if err != nil {
 		return err
@@ -418,6 +410,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		newElasticsearchClient,
 		tracer,
 		s.meterProvider,
+		s.logger,
 	)
 	if err != nil {
 		return err
@@ -431,6 +424,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	agentConfigReporter := agentcfg.NewReporter(
 		agentConfigFetcher,
 		batchProcessor, 30*time.Second,
+		s.logger,
 	)
 	g.Go(func() error {
 		return agentConfigReporter.Run(ctx)
@@ -443,6 +437,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		Namespace:              s.config.DataStreams.Namespace,
 		Logger:                 s.logger,
 		Tracer:                 tracer,
+		TracerProvider:         s.tracerProvider,
 		MeterProvider:          s.meterProvider,
 		Authenticator:          authenticator,
 		RateLimitStore:         ratelimitStore,
@@ -523,7 +518,7 @@ func (s *Runner) Run(ctx context.Context) error {
 
 // newInstrumentation is a thin wrapper around libbeat instrumentation that
 // sets missing tracer configuration from elastic agent.
-func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentation, error) {
+func newInstrumentation(rawConfig *agentconfig.C, logger *logp.Logger) (instrumentation.Instrumentation, error) {
 	// This config struct contains missing fields from elastic agent APMConfig
 	// https://github.com/elastic/elastic-agent/blob/main/internal/pkg/core/monitoring/config/config.go#L127
 	// that are not directly handled by libbeat instrumentation below.
@@ -545,7 +540,7 @@ func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentati
 	cfg, err := rawConfig.Child("instrumentation", -1)
 	if err != nil || !cfg.Enabled() {
 		// Fallback to instrumentation.New if the configs are not present or disabled.
-		return instrumentation.New(rawConfig, "apm-server", version.VersionWithQualifier())
+		return instrumentation.New(rawConfig, "apm-server", version.VersionWithQualifier(), logger)
 	}
 	if err := cfg.Unpack(&apmCfg); err != nil {
 		return nil, err
@@ -588,7 +583,7 @@ func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentati
 		os.Setenv(envSamplingRate, strconv.FormatFloat(float64(r), 'f', -1, 32))
 		defer os.Unsetenv(envSamplingRate)
 	}
-	return instrumentation.New(rawConfig, "apm-server", version.VersionWithQualifier())
+	return instrumentation.New(rawConfig, "apm-server", version.VersionWithQualifier(), logger)
 }
 
 func maxConcurrentDecoders(memLimitGB float64) uint {
@@ -686,11 +681,12 @@ func (s *Runner) newFinalBatchProcessor(
 	tracer *apm.Tracer,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
 	memLimit float64,
+	logger *logp.Logger,
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
 	if s.elasticsearchOutputConfig == nil {
 		monitoring.Default.Remove("libbeat")
 		libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
-		return s.newLibbeatFinalBatchProcessor(tracer, libbeatMonitoringRegistry)
+		return s.newLibbeatFinalBatchProcessor(tracer, libbeatMonitoringRegistry, logger)
 	}
 
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
@@ -703,7 +699,7 @@ func (s *Runner) newFinalBatchProcessor(
 	monitoring.NewString(outputRegistry, "name").Set("elasticsearch")
 
 	// Create the docappender and Elasticsearch config
-	appenderCfg, esCfg, err := s.newDocappenderConfig(tracer, s.meterProvider, memLimit)
+	appenderCfg, esCfg, err := s.newDocappenderConfig(s.tracerProvider, s.meterProvider, memLimit)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -719,7 +715,7 @@ func (s *Runner) newFinalBatchProcessor(
 	return newDocappenderBatchProcessor(appender), appender.Close, nil
 }
 
-func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, mp metric.MeterProvider, memLimit float64) (
+func (s *Runner) newDocappenderConfig(tp trace.TracerProvider, mp metric.MeterProvider, memLimit float64) (
 	docappender.Config, *elasticsearch.Config, error,
 ) {
 	esConfig := struct {
@@ -763,7 +759,7 @@ func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, mp metric.MeterProvide
 		CompressionLevel:     esConfig.CompressionLevel,
 		FlushBytes:           flushBytes,
 		FlushInterval:        esConfig.FlushInterval,
-		Tracer:               tracer,
+		TracerProvider:       tp,
 		MeterProvider:        mp,
 		MaxRequests:          esConfig.MaxRequests,
 		Scaling:              scalingCfg,
@@ -817,6 +813,7 @@ func docappenderConfig(
 func (s *Runner) newLibbeatFinalBatchProcessor(
 	tracer *apm.Tracer,
 	libbeatMonitoringRegistry *monitoring.Registry,
+	logger *logp.Logger,
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
 	// When the publisher stops cleanly it will close its pipeline client,
 	// calling the acker's Close method and unblock Wait.
@@ -830,6 +827,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		Version:     version.VersionWithQualifier(),
 		Hostname:    hostname,
 		Name:        hostname,
+		Logger:      logger,
 	}
 
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
@@ -837,14 +835,14 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 	monitors := pipeline.Monitors{
 		Metrics:   libbeatMonitoringRegistry,
 		Telemetry: stateRegistry,
-		Logger:    logp.L().Named("publisher"),
+		Logger:    logger.Named("publisher"),
 		Tracer:    tracer,
 	}
 	outputFactory := func(stats outputs.Observer) (string, outputs.Group, error) {
 		if !s.outputConfig.IsSet() {
 			return "", outputs.Group{}, nil
 		}
-		indexSupporter := idxmgmt.NewSupporter(nil, s.rawConfig)
+		indexSupporter := idxmgmt.NewSupporter(logger, s.rawConfig)
 		outputName := s.outputConfig.Name()
 		output, err := outputs.Load(indexSupporter, beatInfo, stats, outputName, s.outputConfig.Config())
 		return outputName, output, err
@@ -886,6 +884,7 @@ func newSourcemapFetcher(
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
 	tracer *apm.Tracer,
+	logger *logp.Logger,
 ) (sourcemap.Fetcher, context.CancelFunc, error) {
 	esClient, err := newElasticsearchClient(cfg.ESConfig)
 	if err != nil {
@@ -895,25 +894,29 @@ func newSourcemapFetcher(
 	var fetchers []sourcemap.Fetcher
 
 	// start background sync job
-	ctx, cancel := context.WithCancel(context.Background())
-	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex, tracer)
+	ctx, ctxCancel := context.WithCancel(context.Background())
+	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex, tracer, logger)
+	cancel := func() {
+		ctxCancel()
+		<-invalidationChan
+	}
 
-	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, sourcemapIndex)
+	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, sourcemapIndex, logger)
 	size := 128
-	cachingFetcher, err := sourcemap.NewBodyCachingFetcher(esFetcher, size, invalidationChan)
+	cachingFetcher, err := sourcemap.NewBodyCachingFetcher(esFetcher, size, invalidationChan, logger)
 	if err != nil {
 		cancel()
 		return nil, nil, err
 	}
-	sourcemapFetcher := sourcemap.NewSourcemapFetcher(metadataFetcher, cachingFetcher)
+	sourcemapFetcher := sourcemap.NewSourcemapFetcher(metadataFetcher, cachingFetcher, logger)
 
 	fetchers = append(fetchers, sourcemapFetcher)
 
 	if kibanaClient != nil {
-		fetchers = append(fetchers, sourcemap.NewKibanaFetcher(kibanaClient))
+		fetchers = append(fetchers, sourcemap.NewKibanaFetcher(kibanaClient, logger))
 	}
 
-	chained := sourcemap.NewChainedFetcher(fetchers)
+	chained := sourcemap.NewChainedFetcher(fetchers, logger)
 
 	return chained, cancel, nil
 }

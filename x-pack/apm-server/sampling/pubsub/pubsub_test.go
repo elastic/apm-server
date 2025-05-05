@@ -24,6 +24,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 )
 
@@ -306,6 +307,7 @@ func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval
 		ServerID:       serverID,
 		FlushInterval:  flushInterval,
 		SearchInterval: searchInterval,
+		Logger:         logptest.NewTestingLogger(t, ""),
 	})
 	require.NoError(t, err)
 	return sub

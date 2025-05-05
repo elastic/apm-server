@@ -25,6 +25,7 @@ import (
 	"go.elastic.co/apm/module/apmgorilla/v2"
 	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -80,6 +81,9 @@ type ServerParams struct {
 	// Tracer is an apm.Tracer that the APM Server may use
 	// for self-instrumentation.
 	Tracer *apm.Tracer
+
+	// TracerProvider is the TracerProvider
+	TracerProvider trace.TracerProvider
 
 	// MeterProvider is the MeterProvider
 	MeterProvider metric.MeterProvider
@@ -180,6 +184,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		publishReady,
 		args.Semaphore,
 		args.MeterProvider,
+		args.Logger,
 	)
 	if err != nil {
 		return server{}, err
@@ -239,6 +244,7 @@ func newAgentConfigFetcher(
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
 	tracer *apm.Tracer,
 	mp metric.MeterProvider,
+	logger *logp.Logger,
 ) (agentcfg.Fetcher, func(context.Context) error, error) {
 	// Always use ElasticsearchFetcher, and as a fallback, use:
 	// 1. no fallback if Elasticsearch is explicitly configured
@@ -251,7 +257,7 @@ func newAgentConfigFetcher(
 		// Disable fallback because agent config Elasticsearch is explicitly configured.
 	case kibanaClient != nil:
 		var err error
-		fallbackFetcher, err = agentcfg.NewKibanaFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
+		fallbackFetcher, err = agentcfg.NewKibanaFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration, logger)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -263,6 +269,6 @@ func newAgentConfigFetcher(
 	if err != nil {
 		return nil, nil, err
 	}
-	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tracer, mp)
+	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tracer, mp, logger)
 	return agentcfg.SanitizingFetcher{Fetcher: esFetcher}, esFetcher.Run, nil
 }

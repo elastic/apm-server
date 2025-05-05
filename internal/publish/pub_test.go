@@ -42,7 +42,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 	"github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -140,7 +140,7 @@ func BenchmarkPublisher(b *testing.B) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	supporter, err := idxmgmt.DefaultSupport(logp.NewLogger("beater_test"), beat.Info{}, nil)
+	supporter, err := idxmgmt.DefaultSupport(beat.Info{}, nil)
 	require.NoError(b, err)
 	outputGroup, err := outputs.Load(supporter, beat.Info{}, nil, "elasticsearch", config.MustNewConfigFrom(map[string]interface{}{
 		"hosts": []interface{}{srv.URL},
@@ -157,9 +157,11 @@ func BenchmarkPublisher(b *testing.B) {
 	require.NoError(b, err)
 
 	pipeline, err := pipeline.New(
-		beat.Info{},
+		beat.Info{
+			Logger: logptest.NewTestingLogger(b, "beat"),
+		},
 		pipeline.Monitors{
-			Logger: logp.NewLogger("monitor"),
+			Logger: logptest.NewTestingLogger(b, "monitor"),
 		},
 		namespace,
 		outputGroup,
@@ -211,7 +213,9 @@ func newBlockingPipeline(t testing.TB) (*pipeline.Pipeline, *mockClient) {
 	require.NoError(t, err)
 
 	pipeline, err := pipeline.New(
-		beat.Info{},
+		beat.Info{
+			Logger: logptest.NewTestingLogger(t, "beat"),
+		},
 		pipeline.Monitors{},
 		namespace,
 		outputs.Group{Clients: []outputs.Client{client}},

@@ -63,7 +63,6 @@ type Config struct {
 	Sampling                  SamplingConfig          `config:"sampling"`
 	DataStreams               DataStreamsConfig       `config:"data_streams"`
 	DefaultServiceEnvironment string                  `config:"default_service_environment"`
-	JavaAttacherConfig        JavaAttacherConfig      `config:"java_attacher"`
 
 	// WaitReadyInterval holds the interval for checks when waiting for
 	// the integration package to be installed, and for checking the
@@ -80,8 +79,8 @@ type Config struct {
 }
 
 // NewConfig creates a Config struct based on the default config and the given input params
-func NewConfig(ucfg *config.C, outputESCfg *config.C) (*Config, error) {
-	logger := logp.NewLogger(logs.Config)
+func NewConfig(ucfg *config.C, outputESCfg *config.C, logger *logp.Logger) (*Config, error) {
+	logger = logger.Named(logs.Config)
 	c := DefaultConfig()
 	if err := ucfg.Unpack(c); err != nil {
 		return nil, errors.Wrap(err, "Error processing configuration")
@@ -107,11 +106,6 @@ func NewConfig(ucfg *config.C, outputESCfg *config.C) (*Config, error) {
 		return nil, err
 	}
 
-	if err := c.JavaAttacherConfig.setup(); err != nil {
-		logger.Warnf("failed to setup java-attacher: %v", err)
-		c.JavaAttacherConfig = defaultJavaAttacherConfig()
-	}
-
 	return c, nil
 }
 
@@ -131,15 +125,14 @@ func DefaultConfig() *Config {
 			Enabled: false,
 			URL:     "/debug/vars",
 		},
-		Pprof:              PprofConfig{Enabled: false},
-		RumConfig:          defaultRum(),
-		Kibana:             defaultKibanaConfig(),
-		AgentConfig:        defaultAgentConfig(),
-		Aggregation:        defaultAggregationConfig(),
-		Sampling:           defaultSamplingConfig(),
-		DataStreams:        defaultDataStreamsConfig(),
-		AgentAuth:          defaultAgentAuth(),
-		JavaAttacherConfig: defaultJavaAttacherConfig(),
-		WaitReadyInterval:  5 * time.Second,
+		Pprof:             PprofConfig{Enabled: false},
+		RumConfig:         defaultRum(),
+		Kibana:            defaultKibanaConfig(),
+		AgentConfig:       defaultAgentConfig(),
+		Aggregation:       defaultAggregationConfig(),
+		Sampling:          defaultSamplingConfig(),
+		DataStreams:       defaultDataStreamsConfig(),
+		AgentAuth:         defaultAgentAuth(),
+		WaitReadyInterval: 5 * time.Second,
 	}
 }

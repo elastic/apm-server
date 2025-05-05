@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
@@ -54,6 +55,7 @@ func TestElasticsearchIntegration_PublishSampledTraceIDs(t *testing.T) {
 		ServerID:       localServerID,
 		FlushInterval:  100 * time.Millisecond,
 		SearchInterval: time.Minute,
+		Logger:         logptest.NewTestingLogger(t, ""),
 	})
 	require.NoError(t, err)
 
@@ -147,6 +149,7 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 		ServerID:       localServerID,
 		FlushInterval:  time.Minute,
 		SearchInterval: 100 * time.Millisecond,
+		Logger:         logptest.NewTestingLogger(t, ""),
 	})
 	require.NoError(t, err)
 

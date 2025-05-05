@@ -105,7 +105,7 @@ func TestAPMServerRequestLoggingValid(t *testing.T) {
 
 	srv.Close()
 	for _, entry := range srv.Logs.All() {
-		if entry.Logger == "request" && entry.Fields["url.original"] == "/intake/v2/events" {
+		if entry.Logger == "beater.handler.request" && entry.Fields["url.original"] == "/intake/v2/events" {
 			statusCode, _ := entry.Fields["http.response.status_code"].(float64)
 			logEntries = append(logEntries, entry)
 			requestEntries = append(requestEntries, requestEntry{

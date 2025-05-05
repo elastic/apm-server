@@ -33,7 +33,7 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
@@ -44,8 +44,8 @@ func TestBatchProcessor(t *testing.T) {
 	close(ch)
 
 	client := newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, validSourcemap))
-	esFetcher := NewElasticsearchFetcher(client, "index")
-	fetcher, err := NewBodyCachingFetcher(esFetcher, 100, ch)
+	esFetcher := NewElasticsearchFetcher(client, "index", logptest.NewTestingLogger(t, ""))
+	fetcher, err := NewBodyCachingFetcher(esFetcher, 100, ch, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	originalLinenoWithFilename := uint32(1)
@@ -194,7 +194,7 @@ func TestBatchProcessor(t *testing.T) {
 
 	processor := BatchProcessor{
 		Fetcher: fetcher,
-		Logger:  logp.NewLogger(logs.Stacktrace),
+		Logger:  logptest.NewTestingLogger(t, logs.Stacktrace),
 	}
 	err = processor.ProcessBatch(context.Background(), &modelpb.Batch{&transaction, &span1, &span2, &error1, &error2, &error3})
 	assert.NoError(t, err)
@@ -231,7 +231,7 @@ func TestBatchProcessor(t *testing.T) {
 
 func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	client := newUnavailableElasticsearchClient(t)
-	fetcher := NewElasticsearchFetcher(client, "index")
+	fetcher := NewElasticsearchFetcher(client, "index", logptest.NewTestingLogger(t, ""))
 
 	nonMatchingFrame := modelpb.StacktraceFrame{
 		AbsPath:  "bundle.js",
@@ -254,14 +254,13 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	}
 
 	observedCore, observedLogs := observer.New(zapcore.DebugLevel)
-	wrapCore := zap.WrapCore(func(core zapcore.Core) zapcore.Core {
-		return observedCore
-	})
 
 	for i := 0; i < 2; i++ {
 		processor := BatchProcessor{
 			Fetcher: fetcher,
-			Logger:  logp.NewLogger(logs.Stacktrace, wrapCore),
+			Logger: logptest.NewTestingLogger(t, logs.Stacktrace, zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+				return observedCore
+			})),
 		}
 		err := processor.ProcessBatch(context.Background(), &modelpb.Batch{&span, &span})
 		assert.NoError(t, err)
@@ -292,7 +291,7 @@ func TestBatchProcessorTimeout(t *testing.T) {
 		Transport: transport,
 	})
 	require.NoError(t, err)
-	fetcher := NewElasticsearchFetcher(client, "index")
+	fetcher := NewElasticsearchFetcher(client, "index", logptest.NewTestingLogger(t, ""))
 
 	frame := modelpb.StacktraceFrame{
 		AbsPath:  "bundle.js",
@@ -314,7 +313,7 @@ func TestBatchProcessorTimeout(t *testing.T) {
 	processor := BatchProcessor{
 		Fetcher: fetcher,
 		Timeout: 100 * time.Millisecond,
-		Logger:  logp.NewLogger(logs.Stacktrace),
+		Logger:  logptest.NewTestingLogger(t, logs.Stacktrace),
 	}
 	err = processor.ProcessBatch(context.Background(), &modelpb.Batch{&span})
 	assert.NoError(t, err)

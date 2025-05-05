@@ -48,7 +48,7 @@ jobs:
       contents: write
     steps:
 
-      - uses: elastic/oblt-actions/slack/send@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1.25.0
+      - uses: elastic/oblt-actions/slack/send@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1.27.0
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
@@ -78,7 +78,7 @@ jobs:
       # GitHub bot won't trigger any CI builds.
       # See https://github.com/peter-evans/create-pull-request/issues/48#issuecomment-537478081
       - name: Configure git user
-        uses: elastic/oblt-actions/git/setup@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+        uses: elastic/oblt-actions/git/setup@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
         with:
           github-token: ${{ steps.get_token.outputs.token }}
 
@@ -95,7 +95,7 @@ jobs:
           GH_TOKEN: ${{ steps.get_token.outputs.token }}
 
       - if: success()
-        uses: elastic/oblt-actions/slack/send@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1.25.0
+        uses: elastic/oblt-actions/slack/send@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1.27.0
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
@@ -105,7 +105,7 @@ jobs:
           thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
 
       - if: failure()
-        uses: elastic/oblt-actions/slack/send@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1.25.0
+        uses: elastic/oblt-actions/slack/send@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1.27.0
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}

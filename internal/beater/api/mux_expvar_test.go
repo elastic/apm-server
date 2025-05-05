@@ -30,7 +30,7 @@ import (
 
 func TestExpvarDefaultDisabled(t *testing.T) {
 	cfg := config.DefaultConfig()
-	recorder, err := requestToMuxerWithPattern(cfg, "/debug/vars")
+	recorder, err := requestToMuxerWithPattern(t, cfg, "/debug/vars")
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, recorder.Code)
 	assert.Equal(t, `{"error":"404 page not found"}`+"\n", recorder.Body.String())
@@ -39,7 +39,7 @@ func TestExpvarDefaultDisabled(t *testing.T) {
 func TestExpvarEnabled(t *testing.T) {
 	cfg := config.DefaultConfig()
 	cfg.Expvar.Enabled = true
-	recorder, err := requestToMuxerWithPattern(cfg, "/debug/vars")
+	recorder, err := requestToMuxerWithPattern(t, cfg, "/debug/vars")
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, recorder.Code)
 

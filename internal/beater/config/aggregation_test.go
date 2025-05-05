@@ -24,10 +24,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestAggregationConfigDefault(t *testing.T) {
-	cfg, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{}), nil)
+	cfg, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{}), nil, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	assert.Equal(t, defaultAggregationConfig(), cfg.Aggregation)
 }
