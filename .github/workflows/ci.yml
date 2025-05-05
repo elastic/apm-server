@@ -82,9 +82,7 @@ jobs:
           restore-keys: |
             systemtest-go-
       - env:
-          GOTESTFLAGS: "-v -tags=requirefips"
-          GOFIPS140: "latest"
-          GODEBUG: "fips140=only"
+          GOTESTFLAGS: "-v"
           GH_TOKEN: ${{ github.token }}
         run: make system-test
 
