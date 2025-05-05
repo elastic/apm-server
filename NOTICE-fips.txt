@@ -11,11 +11,11 @@ Third party libraries used by the Elastic APM Server project:
 
 --------------------------------------------------------------------------------
 Dependency : github.com/KimMachineGun/automemlimit
-Version: v0.7.1
+Version: v0.7.2
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/!kim!machine!gun/automemlimit@v0.7.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/!kim!machine!gun/automemlimit@v0.7.2/LICENSE:
 
 MIT License
 
@@ -5371,11 +5371,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sync
-Version: v0.13.0
+Version: v0.14.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.13.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.14.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
