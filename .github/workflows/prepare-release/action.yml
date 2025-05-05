@@ -109,7 +109,7 @@ runs:
         TAG: 'refs/tags/v${{ steps.generate.outputs.release-version }}'
 
     - if: failure()
-      uses: elastic/oblt-actions/slack/send@main
+      uses: elastic/oblt-actions/slack/send@v1
       with:
         bot-token: ${{ inputs.slack-bot-token }}
         channel-id: ${{ env.SLACK_CHANNEL }}
