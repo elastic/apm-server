@@ -25,38 +25,39 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 // TestAgentConfig tests server configuration the Elasticsearch-based or legacy Kibana-based agent config implementation.
 func TestAgentConfig(t *testing.T) {
 	t.Run("InvalidValueTooSmall", func(t *testing.T) {
-		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}), nil)
+		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}), nil, logptest.NewTestingLogger(t, ""))
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("InvalidUnit", func(t *testing.T) {
-		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}), nil)
+		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}), nil, logptest.NewTestingLogger(t, ""))
 		require.Error(t, err)
 		assert.Nil(t, cfg)
 	})
 
 	t.Run("Valid", func(t *testing.T) {
-		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}), nil)
+		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}), nil, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		assert.Equal(t, time.Second*123, cfg.AgentConfig.Cache.Expiration)
 	})
 }
 
 func TestAgentConfigs(t *testing.T) {
-	cfg, err := NewConfig(config.MustNewConfigFrom(`{"agent_config":[{"service.environment":"production","config":{"transaction_sample_rate":0.5}}]}`), nil)
+	cfg, err := NewConfig(config.MustNewConfigFrom(`{"agent_config":[{"service.environment":"production","config":{"transaction_sample_rate":0.5}}]}`), nil, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	assert.NotNil(t, cfg)
 	assert.Len(t, cfg.FleetAgentConfigs, 1)
 	assert.NotEmpty(t, cfg.FleetAgentConfigs[0].Etag)
 
 	// The "config" attribute may come through as `null` when no config attributes are defined.
-	cfg, err = NewConfig(config.MustNewConfigFrom(`{"agent_config":[{"service.environment":"production","config":null}]}`), nil)
+	cfg, err = NewConfig(config.MustNewConfigFrom(`{"agent_config":[{"service.environment":"production","config":null}]}`), nil, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	assert.NotNil(t, cfg)
 	assert.Len(t, cfg.FleetAgentConfigs, 1)

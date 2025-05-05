@@ -83,7 +83,7 @@ func TestMonitoring(t *testing.T) {
 func TestStorageMonitoring(t *testing.T) {
 	config, reader := newTempdirConfig(t)
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())

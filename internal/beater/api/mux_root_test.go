@@ -36,7 +36,7 @@ func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
 	cfg.AgentAuth.SecretToken = "1234"
 
 	t.Run("No auth", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(cfg, RootPath)
+		rec, err := requestToMuxerWithHeader(t, cfg, RootPath, http.MethodGet, nil)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Empty(t, rec.Body.String())
@@ -44,7 +44,7 @@ func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
 
 	t.Run("Authorized", func(t *testing.T) {
 		h := map[string]string{headers.Authorization: "Bearer 1234"}
-		rec, err := requestToMuxerWithHeader(cfg, RootPath, http.MethodGet, h)
+		rec, err := requestToMuxerWithHeader(t, cfg, RootPath, http.MethodGet, h)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Contains(t, rec.Body.String(), "build_date")

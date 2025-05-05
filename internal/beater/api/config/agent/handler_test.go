@@ -38,6 +38,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/kibana"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 var (
@@ -419,7 +420,7 @@ func newSanitizingKibanaFetcher(t testing.TB, h http.HandlerFunc) agentcfg.Fetch
 	t.Cleanup(srv.Close)
 	client, err := kibana.NewClient(kibana.ClientConfig{Host: srv.URL})
 	require.NoError(t, err)
-	kf, err := agentcfg.NewKibanaFetcher(client, time.Nanosecond)
+	kf, err := agentcfg.NewKibanaFetcher(client, time.Nanosecond, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	return agentcfg.SanitizingFetcher{Fetcher: kf}
 }

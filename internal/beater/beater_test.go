@@ -82,6 +82,7 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 		cfg.RumConfig.SourceMapping,
 		nil, elasticsearch.NewClient,
 		apmtest.NewRecordingTracer().Tracer,
+		logptest.NewTestingLogger(t, ""),
 	)
 	require.NoError(t, err)
 	defer cancel()
@@ -261,7 +262,7 @@ func TestAgentConfigFetcherDeprecation(t *testing.T) {
 				AgentName: "foo",
 			},
 		},
-	}, nil, func(c *elasticsearch.Config) (*elasticsearch.Client, error) { return nil, nil }, nil, logger, noop.NewMeterProvider())
+	}, nil, func(c *elasticsearch.Config) (*elasticsearch.Client, error) { return nil, nil }, nil, noop.NewMeterProvider(), logger)
 	require.NoError(t, err)
 
 	all := observed.All()
@@ -307,7 +308,7 @@ func TestNewInstrumentation(t *testing.T) {
 			"globallabels": "k1=val,k2=new val",
 		},
 	})
-	i, err := newInstrumentation(cfg)
+	i, err := newInstrumentation(cfg, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	tracer := i.Tracer()
 	tracer.StartTransaction("name", "type").End()
@@ -317,7 +318,7 @@ func TestNewInstrumentation(t *testing.T) {
 }
 
 func TestNewInstrumentationWithSampling(t *testing.T) {
-	runSampled := func(rate float32) {
+	runSampled := func(t *testing.T, rate float32) {
 		var events int
 		s := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/intake/v2/events" {
@@ -339,7 +340,7 @@ func TestNewInstrumentationWithSampling(t *testing.T) {
 				"samplingrate": fmt.Sprintf("%f", rate),
 			},
 		})
-		i, err := newInstrumentation(cfg)
+		i, err := newInstrumentation(cfg, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		tracer := i.Tracer()
 		tr := tracer.StartTransaction("name", "type")
@@ -349,10 +350,10 @@ func TestNewInstrumentationWithSampling(t *testing.T) {
 		assert.Equal(t, int(rate), events)
 	}
 	t.Run("100% sampling", func(t *testing.T) {
-		runSampled(1.0)
+		runSampled(t, 1.0)
 	})
 	t.Run("0% sampling", func(t *testing.T) {
-		runSampled(0.0)
+		runSampled(t, 0.0)
 	})
 }
 

@@ -162,7 +162,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			TTL:                   tailSamplingConfig.TTL,
 			DiscardOnWriteFailure: tailSamplingConfig.DiscardOnWriteFailure,
 		},
-	})
+	}, args.Logger)
 }
 
 func getBadgerDB(storageDir string, mp metric.MeterProvider) (*eventstorage.StorageManager, error) {

@@ -46,6 +46,7 @@ import (
 	"github.com/elastic/elastic-agent-client/v7/pkg/proto"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/go-docappender/v2"
@@ -351,7 +352,9 @@ func TestRunManager_Reloader(t *testing.T) {
 
 	registry := reload.NewRegistry()
 
-	reloader, err := NewReloader(beat.Info{}, registry, func(p RunnerParams) (Runner, error) {
+	reloader, err := NewReloader(beat.Info{
+		Logger: logptest.NewTestingLogger(t, ""),
+	}, registry, func(p RunnerParams) (Runner, error) {
 		return runnerFunc(func(ctx context.Context) error {
 			revision, err := p.Config.Int("revision", -1)
 			require.NoError(t, err)
@@ -492,7 +495,9 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 
 	registry := reload.NewRegistry()
 
-	_, err := NewReloader(beat.Info{}, registry, func(_ RunnerParams) (Runner, error) {
+	_, err := NewReloader(beat.Info{
+		Logger: logptest.NewTestingLogger(t, ""),
+	}, registry, func(_ RunnerParams) (Runner, error) {
 		return nil, errors.New("newRunner error")
 	}, nil, nil, nil)
 	require.NoError(t, err)

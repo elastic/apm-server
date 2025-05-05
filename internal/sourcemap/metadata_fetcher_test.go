@@ -29,10 +29,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2/apmtest"
 	"go.elastic.co/apm/v2/transport/transporttest"
-	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
 
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 )
@@ -129,7 +127,7 @@ func TestMetadataFetcher(t *testing.T) {
 			defer cancel()
 
 			tracer, recorder := transporttest.NewRecorderTracer()
-			fetcher, _ := NewMetadataFetcher(ctx, esClient, ".apm-source-map", tracer)
+			fetcher, _ := NewMetadataFetcher(ctx, esClient, ".apm-source-map", tracer, logptest.NewTestingLogger(t, ""))
 
 			<-fetcher.ready()
 			if tc.expectErr {
@@ -218,23 +216,6 @@ func TestInvalidation(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			observedCore, observedLogs := observer.New(zapcore.DebugLevel)
-			err := logp.ConfigureWithOutputs(logp.Config{
-				Level:      logp.DebugLevel,
-				ToStderr:   false,
-				ToSyslog:   false,
-				ToFiles:    false,
-				ToEventLog: false,
-			}, observedCore)
-			require.NoError(t, err)
-
-			t.Cleanup(func() {
-				if t.Failed() {
-					for _, le := range observedLogs.All() {
-						t.Log(le)
-					}
-				}
-			})
 			c := make(chan struct{})
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -275,7 +256,7 @@ func TestInvalidation(t *testing.T) {
 			defer cancel()
 
 			rt := apmtest.NewRecordingTracer()
-			fetcher, invalidationChan := NewMetadataFetcher(ctx, esClient, ".apm-source-map", rt.Tracer)
+			fetcher, invalidationChan := NewMetadataFetcher(ctx, esClient, ".apm-source-map", rt.Tracer, logptest.NewTestingLogger(t, ""))
 
 			invCh := make(chan struct{})
 			go func() {
