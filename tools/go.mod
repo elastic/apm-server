@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server/tools
 
-go 1.23.7
+go 1.23.8
 
 require (
 	github.com/elastic/apm-perf v0.0.0-20240925232339-499ba2a27fd4
