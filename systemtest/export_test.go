@@ -49,10 +49,10 @@ func TestExportConfigDefaults(t *testing.T) {
 
 	expectedConfig := strings.ReplaceAll(`
 path:
-    config: /home/apm-server
-    data: /home/apm-server/data
-    home: /home/apm-server
-    logs: /home/apm-server/logs
+  config: /home/apm-server
+  data: /home/apm-server/data
+  home: /home/apm-server
+  logs: /home/apm-server/logs
 `[1:], "/home/apm-server", tempdir)
 	assert.Equal(t, expectedConfig, string(out))
 }
@@ -67,15 +67,15 @@ func TestExportConfigOverrideDefaults(t *testing.T) {
 
 	expectedConfig := strings.ReplaceAll(`
 logging:
-    metrics:
-        enabled: true
-path:
-    config: /home/apm-server
-    data: /home/apm-server/data
-    home: /home/apm-server
-    logs: /home/apm-server/logs
-seccomp:
+  metrics:
     enabled: true
+path:
+  config: /home/apm-server
+  data: /home/apm-server/data
+  home: /home/apm-server
+  logs: /home/apm-server/logs
+seccomp:
+  enabled: true
 `[1:], "/home/apm-server", tempdir)
 	assert.Equal(t, expectedConfig, string(out))
 }
