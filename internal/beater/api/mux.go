@@ -92,7 +92,6 @@ func NewMux(
 	logger *logp.Logger,
 ) (*mux.Router, error) {
 	pool := request.NewContextPool()
-	logger = logger.Named(logs.Handler)
 	router := mux.NewRouter()
 	router.NotFoundHandler = pool.HTTPHandler(notFoundHandler)
 
@@ -106,6 +105,7 @@ func NewMux(
 		logger:           logger,
 	}
 
+	logger = logger.Named(logs.Handler)
 	zapLogger := zap.New(logger.Core(), zap.WithCaller(true))
 	builder.intakeProcessor = elasticapm.NewProcessor(elasticapm.Config{
 		MaxEventSize: beaterConfig.MaxEventSize,
