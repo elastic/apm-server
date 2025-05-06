@@ -13,7 +13,7 @@ https://github.com/elastic/apm-server/compare/v8.18.0\...v8.18.1[View commits]
 [float]
 ==== Bug fixes
 
-- Tail-based sampling: Fix an issue with corrupted subscriber position files by handling file read error {pull}16736[16736]
+- Tail-based sampling: ignore subscriber position read error and proceed as if file does not exist to avoid crash looping {pull}16736[16736]
 
 [float]
 ==== Breaking Changes
