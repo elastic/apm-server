@@ -32,9 +32,14 @@ jobs:
       - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
-          cache: true
-          cache-dependency-path: |
-            go.sum
+          cache: false
+      - uses: actions/cache@v4.2.3
+        with:
+          path: |
+            ~/go/pkg/mod/cache
+          key: go-${{ hashFiles('go.mod') }}
+          restore-keys: |
+            go-
       - run: make check-full
 
   test:
@@ -44,17 +49,35 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: antontroshin/setup-go@bda02de8887c9946189f81e7e59512914aeb9ea4 # bda02de8887c9946189f81e7e59512914aeb9ea4
-        if: runner.os == 'Windows'
-        with:
-          go-version-file: go.mod
-          cache: true
       - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
-        if: runner.os != 'Windows'
         with:
           go-version-file: go.mod
-          cache: true
+          cache: false
+      - uses: actions/cache@v4.2.3
+        with:
+          enableCrossOsArchive: true
+          path: |
+            ~/go/pkg/mod/cache
+          key: go-${{ hashFiles('go.mod') }}
+          restore-keys: |
+            go-
       - run: go test -v -race ./...
+
+  functional-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-go@v5.4.0
+        with:
+          go-version-file: functionaltests/go.mod
+          cache: false
+      - uses: actions/cache@v4.2.3
+        with:
+          path: |
+            ~/go/pkg/mod/cache
+          key: functionaltests-go-${{ hashFiles('functionaltests/go.mod') }}
+          restore-keys: |
+            functionaltests-go-
       - env:
           KIBANA_URL: "https://kibana.test"
           KIBANA_USERNAME: "dummy"
@@ -73,7 +96,14 @@ jobs:
       - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
-          cache: true
+          cache: false
+      - uses: actions/cache@v4.2.3
+        with:
+          path: |
+            ~/go/pkg/mod/cache
+          key: go-${{ hashFiles('go.mod') }}
+          restore-keys: |
+            go-
       - env:
           GOFIPS140: "latest"
           GODEBUG: "fips140=only"
@@ -86,11 +116,15 @@ jobs:
       - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: systemtest/go.mod
-          cache: true
-          cache-dependency-path: |
-            go.sum
-            systemtest/go.sum
+          cache: false
       - run: docker compose up -d
+      - uses: actions/cache@v4.2.3
+        with:
+          path: |
+            ~/go/pkg/mod/cache
+          key: systemtest-go-${{ hashFiles('systemtest/go.mod', 'go.mod') }}
+          restore-keys: |
+            systemtest-go-
       - env:
           GOTESTFLAGS: "-v"
           GH_TOKEN: ${{ github.token }}
@@ -103,11 +137,15 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: systemtest/go.mod
-          cache: true
-          cache-dependency-path: |
-            go.sum
-            systemtest/go.sum
+          cache: false
       - run: docker compose up -d
+      - uses: actions/cache@v4.2.3
+        with:
+          path: |
+            ~/go/pkg/mod/cache
+          key: systemtest-go-${{ hashFiles('systemtest/go.mod', 'go.mod') }}
+          restore-keys: |
+            systemtest-go-
       - env:
           GOTESTFLAGS: "-v -tags=requirefips"
           GOFIPS140: "latest"
@@ -123,8 +161,6 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
-          cache-dependency-path: |
-            go.sum
       - run: make package-snapshot
         env:
           GH_TOKEN: ${{ github.token }}
@@ -141,8 +177,6 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
-          cache-dependency-path: |
-            go.sum
       - name: Log in to the Elastic Container registry
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:

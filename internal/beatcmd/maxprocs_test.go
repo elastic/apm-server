@@ -29,7 +29,7 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestAdjustMaxProcs(t *testing.T) {
@@ -39,7 +39,7 @@ func TestAdjustMaxProcs(t *testing.T) {
 	defer cancel()
 
 	core, observedLogs := observer.New(zapcore.DebugLevel)
-	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+	logger := logptest.NewTestingLogger(t, "", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(in, core)
 	}))
 

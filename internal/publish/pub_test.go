@@ -140,7 +140,7 @@ func BenchmarkPublisher(b *testing.B) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	supporter, err := idxmgmt.DefaultSupport(logptest.NewTestingLogger(b, "beater_test"), beat.Info{}, nil)
+	supporter, err := idxmgmt.DefaultSupport(beat.Info{}, nil)
 	require.NoError(b, err)
 	outputGroup, err := outputs.Load(supporter, beat.Info{}, nil, "elasticsearch", config.MustNewConfigFrom(map[string]interface{}{
 		"hosts": []interface{}{srv.URL},
@@ -157,7 +157,9 @@ func BenchmarkPublisher(b *testing.B) {
 	require.NoError(b, err)
 
 	pipeline, err := pipeline.New(
-		beat.Info{},
+		beat.Info{
+			Logger: logptest.NewTestingLogger(b, "beat"),
+		},
 		pipeline.Monitors{
 			Logger: logptest.NewTestingLogger(b, "monitor"),
 		},
@@ -211,7 +213,9 @@ func newBlockingPipeline(t testing.TB) (*pipeline.Pipeline, *mockClient) {
 	require.NoError(t, err)
 
 	pipeline, err := pipeline.New(
-		beat.Info{},
+		beat.Info{
+			Logger: logptest.NewTestingLogger(t, "beat"),
+		},
 		pipeline.Monitors{},
 		namespace,
 		outputs.Group{Clients: []outputs.Client{client}},

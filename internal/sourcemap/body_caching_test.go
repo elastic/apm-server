@@ -27,6 +27,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 var unsupportedVersionSourcemap = `{
@@ -45,10 +46,10 @@ func Test_NewCachingFetcher(t *testing.T) {
 	ch := make(chan []identifier)
 	close(ch)
 
-	_, err := NewBodyCachingFetcher(nil, -1, ch)
+	_, err := NewBodyCachingFetcher(nil, -1, ch, logptest.NewTestingLogger(t, ""))
 	require.Error(t, err)
 
-	f, err := NewBodyCachingFetcher(nil, 100, ch)
+	f, err := NewBodyCachingFetcher(nil, 100, ch, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	assert.NotNil(t, f.cache)
 }
@@ -160,8 +161,8 @@ func testCachingFetcher(t *testing.T, client *elasticsearch.Client) *BodyCaching
 	ch := make(chan []identifier)
 	close(ch)
 
-	esFetcher := NewElasticsearchFetcher(client, "apm-*sourcemap*")
-	cachingFetcher, err := NewBodyCachingFetcher(esFetcher, 100, ch)
+	esFetcher := NewElasticsearchFetcher(client, "apm-*sourcemap*", logptest.NewTestingLogger(t, ""))
+	cachingFetcher, err := NewBodyCachingFetcher(esFetcher, 100, ch, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	return cachingFetcher
 }
