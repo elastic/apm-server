@@ -2,7 +2,7 @@
 name: run-patch-release
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       version:
         description: 'The current version to be released, normally the `FF version` (semver format: major.minor.patch)'
