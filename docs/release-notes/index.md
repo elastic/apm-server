@@ -20,6 +20,12 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 % ### Fixes [elastic-apm-next-fixes]
 
+## 9.0.1 [9-0-1]
+
+### Fixes [9-0-1-fixes]
+
+* Tail-based sampling: ignore subscriber position read error and proceed as if file does not exist to avoid crash looping ([#16736](https://github.com/elastic/apm-server/pull/16736))
+
 ## 9.0.0 [9-0-0]
 
 ### Features and enhancements [9-0-0-features-enhancements]
