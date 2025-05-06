@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.23.6
+go 1.24.2
 
 require (
 	github.com/DataDog/zstd v1.4.4 // indirect
