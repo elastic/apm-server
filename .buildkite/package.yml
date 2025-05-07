@@ -5,6 +5,7 @@ notify:
     if: "build.state != 'passed'"
 
 env:
+  PLATFORMS: "+all linux/amd64 windows/amd64 darwin/amd64"
   IMAGE_UBUNTU_X86_64: "family/core-ubuntu-2004"
   IMAGE_UBUNTU_ARM_64: "core-ubuntu-2004-aarch64"
   BEAT_DOC_BRANCH: "7.x"
