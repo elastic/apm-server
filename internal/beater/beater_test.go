@@ -291,6 +291,7 @@ func TestNewInstrumentation(t *testing.T) {
 	assert.NoError(t, err)
 	err = pem.Encode(f, &pem.Block{Type: "CERTIFICATE", Bytes: s.Certificate().Raw})
 	assert.NoError(t, err)
+	require.NoError(t, f.Close())
 	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"instrumentation": map[string]interface{}{
 			"enabled":     true,
