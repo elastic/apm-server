@@ -14,7 +14,6 @@ PLATFORMS=''
 PACKAGES=''
 if [[ ${PLATFORM_TYPE} == "arm" || ${PLATFORM_TYPE} == "aarch64" ]]; then
   PLATFORMS='linux/arm64'
-  PACKAGES='docker'
 fi
 
 MAKE_GOAL=release-manager-snapshot
