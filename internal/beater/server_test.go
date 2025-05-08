@@ -606,9 +606,8 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	require.ErrorIs(t, err, context.Canceled)
 	require.Nil(t, resp)
 
-	ch := time.After(1 * time.Second)
 	select {
-	case <-ch:
+	case <-time.After(1 * time.Second):
 		t.Fatal(t, "timeout waiting for trace doc")
 	case doc := <-docs:
 		var out struct {
