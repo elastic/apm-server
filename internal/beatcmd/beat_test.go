@@ -386,6 +386,9 @@ func TestRunManager_Reloader(t *testing.T) {
 	finish := make(chan struct{})
 	runCount := atomic.Int64{}
 	stopCount := atomic.Int64{}
+	expectedRun := 2
+	expectedStop := 2
+	success := make(chan struct{})
 
 	registry := reload.NewRegistry()
 
@@ -396,9 +399,12 @@ func TestRunManager_Reloader(t *testing.T) {
 			if revision == 2 {
 				close(finish)
 			}
-			runCount.Add(1)
+			newRun := runCount.Add(1)
 			<-ctx.Done()
-			stopCount.Add(1)
+			newStop := stopCount.Add(1)
+			if newRun == int64(expectedRun) && newStop == int64(expectedStop) {
+				close(success)
+			}
 			return nil
 		}), nil
 	}, nil, nil, nil)
@@ -485,7 +491,7 @@ func TestRunManager_Reloader(t *testing.T) {
 		},
 	},
 		nil,
-		500*time.Millisecond,
+		10*time.Millisecond,
 	)
 	require.NoError(t, srv.Start())
 	defer srv.Stop()
@@ -497,7 +503,7 @@ func TestRunManager_Reloader(t *testing.T) {
 		client.WithGRPCDialOptions(grpc.WithTransportCredentials(insecure.NewCredentials())))
 	manager, err := xpacklbmanagement.NewV2AgentManagerWithClient(&xpacklbmanagement.Config{
 		Enabled: true,
-	}, registry, client)
+	}, registry, client, xpacklbmanagement.WithChangeDebounce(0))
 	require.NoError(t, err)
 
 	err = manager.Start()
@@ -512,9 +518,11 @@ func TestRunManager_Reloader(t *testing.T) {
 	err = reloader.Run(ctx)
 	require.NoError(t, err)
 
-	assert.Eventually(t, func() bool {
-		return runCount.Load() == 2 && stopCount.Load() == 2
-	}, 2*time.Second, 50*time.Millisecond)
+	select {
+	case <-success:
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for success")
+	}
 }
 
 func TestRunManager_Reloader_newRunnerError(t *testing.T) {
@@ -596,7 +604,7 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 		client.WithGRPCDialOptions(grpc.WithTransportCredentials(insecure.NewCredentials())))
 	manager, err := xpacklbmanagement.NewV2AgentManagerWithClient(&xpacklbmanagement.Config{
 		Enabled: true,
-	}, registry, client)
+	}, registry, client, xpacklbmanagement.WithChangeDebounce(0))
 	require.NoError(t, err)
 
 	err = manager.Start()
