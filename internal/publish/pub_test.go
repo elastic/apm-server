@@ -140,18 +140,34 @@ func BenchmarkPublisher(b *testing.B) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	supporter, err := idxmgmt.DefaultSupport(beat.Info{}, nil)
+	supporter, err := idxmgmt.DefaultSupport(
+		beat.Info{
+			Logger: logptest.NewTestingLogger(b, "support"),
+		},
+		nil,
+	)
 	require.NoError(b, err)
-	outputGroup, err := outputs.Load(supporter, beat.Info{}, nil, "elasticsearch", config.MustNewConfigFrom(map[string]interface{}{
-		"hosts": []interface{}{srv.URL},
-	}))
+
+	outputGroup, err := outputs.Load(
+		supporter,
+		beat.Info{
+			Logger: logptest.NewTestingLogger(b, "output"),
+		},
+		nil,
+		"elasticsearch",
+		config.MustNewConfigFrom(map[string]interface{}{
+			"hosts": []interface{}{srv.URL},
+		}),
+	)
 	require.NoError(b, err)
+
 	conf, err := config.NewConfigFrom(map[string]interface{}{
 		"mem.events":           4096,
 		"mem.flush.min_events": 2048,
 		"mem.flush.timeout":    "1s",
 	})
 	require.NoError(b, err)
+
 	namespace := config.Namespace{}
 	err = conf.Unpack(&namespace)
 	require.NoError(b, err)
