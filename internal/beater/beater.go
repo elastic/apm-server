@@ -37,6 +37,7 @@ import (
 	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
@@ -86,6 +87,7 @@ type Runner struct {
 	outputConfig              agentconfig.Namespace
 	elasticsearchOutputConfig *agentconfig.C
 
+	tracerProvider trace.TracerProvider
 	meterProvider  metric.MeterProvider
 	metricGatherer *apmotel.Gatherer
 	listener       net.Listener
@@ -99,6 +101,10 @@ type RunnerParams struct {
 
 	// Logger holds a logger to use for logging throughout the APM Server.
 	Logger *logp.Logger
+
+	// TracerProvider holds a trace.TracerProvider that can be used for
+	// creating traces.
+	TracerProvider trace.TracerProvider
 
 	// MeterProvider holds a metric.MeterProvider that can be used for
 	// creating metrics.
@@ -157,6 +163,7 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		outputConfig:              unpackedConfig.Output,
 		elasticsearchOutputConfig: elasticsearchOutputConfig,
 
+		tracerProvider: args.TracerProvider,
 		meterProvider:  args.MeterProvider,
 		metricGatherer: args.MetricsGatherer,
 		listener:       listener,
@@ -290,6 +297,8 @@ func (s *Runner) Run(ctx context.Context) error {
 		return err
 	}
 	otel.SetTracerProvider(tracerProvider)
+
+	s.tracerProvider = tracerProvider
 
 	tracer.RegisterMetricsGatherer(s.metricGatherer)
 
@@ -443,6 +452,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		Namespace:              s.config.DataStreams.Namespace,
 		Logger:                 s.logger,
 		Tracer:                 tracer,
+		TracerProvider:         s.tracerProvider,
 		MeterProvider:          s.meterProvider,
 		Authenticator:          authenticator,
 		RateLimitStore:         ratelimitStore,
@@ -703,7 +713,7 @@ func (s *Runner) newFinalBatchProcessor(
 	monitoring.NewString(outputRegistry, "name").Set("elasticsearch")
 
 	// Create the docappender and Elasticsearch config
-	appenderCfg, esCfg, err := s.newDocappenderConfig(tracer, s.meterProvider, memLimit)
+	appenderCfg, esCfg, err := s.newDocappenderConfig(s.tracerProvider, s.meterProvider, memLimit)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -719,7 +729,7 @@ func (s *Runner) newFinalBatchProcessor(
 	return newDocappenderBatchProcessor(appender), appender.Close, nil
 }
 
-func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, mp metric.MeterProvider, memLimit float64) (
+func (s *Runner) newDocappenderConfig(tp trace.TracerProvider, mp metric.MeterProvider, memLimit float64) (
 	docappender.Config, *elasticsearch.Config, error,
 ) {
 	esConfig := struct {
@@ -760,6 +770,7 @@ func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, mp metric.MeterProvide
 		scalingCfg.Disabled = !*enabled
 	}
 	cfg := docappenderConfig(docappender.Config{
+<<<<<<< HEAD
 		CompressionLevel:  esConfig.CompressionLevel,
 		FlushBytes:        flushBytes,
 		FlushInterval:     esConfig.FlushInterval,
@@ -769,6 +780,18 @@ func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, mp metric.MeterProvide
 		Scaling:           scalingCfg,
 		Logger:            zap.New(s.logger.Core(), zap.WithCaller(true)),
 		RequireDataStream: true,
+=======
+		CompressionLevel:     esConfig.CompressionLevel,
+		FlushBytes:           flushBytes,
+		FlushInterval:        esConfig.FlushInterval,
+		TracerProvider:       tp,
+		MeterProvider:        mp,
+		MaxRequests:          esConfig.MaxRequests,
+		Scaling:              scalingCfg,
+		Logger:               zap.New(s.logger.Core(), zap.WithCaller(true)),
+		RequireDataStream:    true,
+		IncludeSourceOnError: docappender.False,
+>>>>>>> 8a931572 (feat: set and propagate tracer provider (#16758) (#16865))
 		// Use the output's max_retries to configure the go-docappender's
 		// document level retries.
 		MaxDocumentRetries:    esConfig.MaxRetries,
