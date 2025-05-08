@@ -19,16 +19,12 @@ package beatertest
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/outputs"
-	"github.com/elastic/beats/v7/libbeat/publisher"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 
 	"github.com/elastic/go-docappender/v2/docappendertest"
@@ -73,38 +69,4 @@ func ElasticsearchOutputConfig(t testing.TB) (*agentconfig.C, <-chan []byte) {
 		},
 	})
 	return cfg, out
-}
-
-type nullOutput struct {
-	observer outputs.Observer
-}
-
-func init() {
-	outputs.RegisterType("null", makeNullOutput)
-}
-
-func makeNullOutput(
-	_ outputs.IndexManager,
-	_ beat.Info,
-	observer outputs.Observer,
-	_ *agentconfig.C,
-) (outputs.Group, error) {
-	client := nullOutput{observer: observer}
-	return outputs.Success(agentconfig.Namespace{}, 1, 0, nil, client)
-}
-
-func (nullOutput) String() string {
-	return "null"
-}
-
-func (nullOutput) Close() error {
-	return nil
-}
-
-func (o nullOutput) Publish(_ context.Context, batch publisher.Batch) error {
-	events := batch.Events()
-	o.observer.NewBatch(len(events))
-	o.observer.AckedEvents(len(events))
-	batch.ACK()
-	return nil
 }
