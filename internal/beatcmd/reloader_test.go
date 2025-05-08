@@ -72,7 +72,7 @@ func TestReloader(t *testing.T) {
 			<-ctx.Done()
 			return nil
 		}), nil
-	}, nil, nil)
+	}, nil, nil, nil)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -156,7 +156,7 @@ func TestReloaderNewRunnerParams(t *testing.T) {
 			<-ctx.Done()
 			return nil
 		}), nil
-	}, nil, nil)
+	}, nil, nil, nil)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
