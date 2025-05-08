@@ -5,7 +5,6 @@ notify:
     if: "build.state != 'passed'"
 
 env:
-  PLATFORMS: "darwin/amd64 linux/386 linux/amd64 windows/386 windows/amd64"
   IMAGE_UBUNTU_X86_64: "family/core-ubuntu-2004"
   IMAGE_UBUNTU_ARM_64: "core-ubuntu-2004-aarch64"
   BEAT_DOC_BRANCH: "7.x"
@@ -17,6 +16,13 @@ steps:
       - label: "Package Ubuntu-20 x86_64"
         key: "package-x86-64"
         command: ".buildkite/scripts/package.sh {{matrix.type}}"
+        env:
+          # The PLATFORMS variable is used to determine which platforms to build for.
+          # See https://github.com/elastic/beats/blob/a156701b0302ca0e4e8676d2de96ebf2c1b7879d/dev-tools/mage/platforms.go#L28
+          # We need to be explicit about the platforms we are building for, as the default
+          # is to build for all platforms. This is a workaround for the fact that the
+          # default ARM platforms are not supported on AMD64 machines in the golang-crossbuild.
+          PLATFORMS: "darwin/amd64 linux/386 linux/amd64 windows/386 windows/amd64"
         agents:
           provider: "gcp"
           image: "${IMAGE_UBUNTU_X86_64}"
@@ -36,6 +42,10 @@ steps:
       - label: "Package Ubuntu-20 aarch64"
         key: "package-arm"
         command: ".buildkite/scripts/package.sh {{matrix.type}}"
+        env:
+          # The PLATFORMS variable is used to determine which platforms to build for.
+          # See https://github.com/elastic/beats/blob/a156701b0302ca0e4e8676d2de96ebf2c1b7879d/dev-tools/mage/platforms.go#L28
+          PLATFORMS: 'linux/arm64'
         agents:
           provider: "aws"
           imagePrefix: "${IMAGE_UBUNTU_ARM_64}"
