@@ -608,7 +608,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 
 	select {
 	case <-time.After(time.Second):
-		t.Fatal(t, "timeout waiting for trace doc")
+		assert.Fail(t, "timeout waiting for trace doc")
 	case doc := <-docs:
 		var out struct {
 			Transaction struct {
