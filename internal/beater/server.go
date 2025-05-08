@@ -25,6 +25,7 @@ import (
 	"go.elastic.co/apm/module/apmgorilla/v2"
 	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -85,6 +86,9 @@ type ServerParams struct {
 	// Tracer is an apm.Tracer that the APM Server may use
 	// for self-instrumentation.
 	Tracer *apm.Tracer
+
+	// TracerProvider is the TracerProvider
+	TracerProvider trace.TracerProvider
 
 	// MeterProvider is the MeterProvider
 	MeterProvider metric.MeterProvider

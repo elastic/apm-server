@@ -288,6 +288,7 @@ func Main() error {
 				Logger:     args.Logger,
 				WrapServer: wrapServer,
 
+				TracerProvider:  args.TracerProvider,
 				MeterProvider:   args.MeterProvider,
 				MetricsGatherer: args.MetricsGatherer,
 			})
