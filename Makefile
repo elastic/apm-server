@@ -110,7 +110,11 @@ apm-server apm-server-fips: PKG=./x-pack/apm-server
 apm-server-fips: CGO_ENABLED=1
 apm-server apm-server-oss: CGO_ENABLED=0
 
+<<<<<<< HEAD
 apm-server-fips: GOTAGS=-tags=requirefips
+=======
+apm-server-fips: GOTAGS=requirefips,ms_tls13kdf
+>>>>>>> 4e83d2cb (feat: add ms_tls13kdf tag to fips builds (#16852))
 
 apm-server-oss: SUFFIX=-oss
 apm-server-fips: SUFFIX=-fips
