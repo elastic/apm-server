@@ -106,10 +106,8 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 	err = cfg.Unpack(&outputConfig)
 	require.NoError(t, err)
 	if !outputConfig.Output.IsSet() {
-		err = cfg.Merge(map[string]any{
-			"output.null":                map[string]any{},
-			"queue.mem.flush.min_events": 0,
-		})
+		esCfg, _ := ElasticsearchOutputConfig(t)
+		err = cfg.Merge(esCfg)
 		require.NoError(t, err)
 	}
 
