@@ -567,7 +567,6 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 
 	// Enable self instrumentation, simulate a client disconnecting when sending intakev2 request
 	// Check that tracer records the correct http status code
-	found := make(chan struct{})
 	reqCtx, reqCancel := context.WithCancel(context.Background())
 
 	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
@@ -577,7 +576,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
-	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
+	escfg, docs := beatertest.ElasticsearchOutputConfig(t)
 
 	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
 		map[string]interface{}{
@@ -594,14 +593,6 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 					assert.ErrorIs(t, ctx.Err(), context.Canceled)
 					return errors.New("foobar")
 				}
-				for _, i := range *batch {
-					// Perform assertions on the event sent by the apmgorilla tracer
-					if i.Transaction.Id != "" && i.Transaction.Name == "POST /intake/v2/events" {
-						assert.Equal(t, "HTTP 5xx", i.Transaction.Result)
-						assert.Equal(t, http.StatusServiceUnavailable, int(i.Http.Response.StatusCode))
-						close(found)
-					}
-				}
 				return nil
 			})
 			return args, runServer, nil
@@ -615,12 +606,29 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	require.ErrorIs(t, err, context.Canceled)
 	require.Nil(t, resp)
 
+	ch := time.After(1 * time.Second)
 	select {
-	case <-time.After(time.Second): // go apm agent takes time to send trace events
-		assert.Fail(t, "timeout waiting for trace doc")
-	case <-found:
-		// Have to wait a bit here to avoid racing on the order of metrics middleware and the batch processor from above.
-		time.Sleep(10 * time.Millisecond)
+	case <-ch:
+		t.Fatal(t, "timeout waiting for trace doc")
+	case doc := <-docs:
+		var out struct {
+			Transaction struct {
+				Id     string
+				Name   string
+				Result string
+			}
+			Http struct {
+				Response struct {
+					StatusCode int
+				}
+			}
+		}
+		require.NoError(t, json.Unmarshal(doc, &out))
+		if out.Transaction.Id != "" && out.Transaction.Name == "POST /intake/v2/events" {
+			assert.Equal(t, "HTTP 5xx", out.Transaction.Result)
+			assert.Equal(t, http.StatusServiceUnavailable, out.Http.Response.StatusCode)
+			break
+		}
 	}
 
 	// Assert that logs contain expected values:
