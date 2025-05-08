@@ -770,17 +770,6 @@ func (s *Runner) newDocappenderConfig(tp trace.TracerProvider, mp metric.MeterPr
 		scalingCfg.Disabled = !*enabled
 	}
 	cfg := docappenderConfig(docappender.Config{
-<<<<<<< HEAD
-		CompressionLevel:  esConfig.CompressionLevel,
-		FlushBytes:        flushBytes,
-		FlushInterval:     esConfig.FlushInterval,
-		Tracer:            tracer,
-		MeterProvider:     mp,
-		MaxRequests:       esConfig.MaxRequests,
-		Scaling:           scalingCfg,
-		Logger:            zap.New(s.logger.Core(), zap.WithCaller(true)),
-		RequireDataStream: true,
-=======
 		CompressionLevel:     esConfig.CompressionLevel,
 		FlushBytes:           flushBytes,
 		FlushInterval:        esConfig.FlushInterval,
@@ -791,7 +780,6 @@ func (s *Runner) newDocappenderConfig(tp trace.TracerProvider, mp metric.MeterPr
 		Logger:               zap.New(s.logger.Core(), zap.WithCaller(true)),
 		RequireDataStream:    true,
 		IncludeSourceOnError: docappender.False,
->>>>>>> a374e32b (feat: set and propagate tracer provider (#16758))
 		// Use the output's max_retries to configure the go-docappender's
 		// document level retries.
 		MaxDocumentRetries:    esConfig.MaxRetries,
