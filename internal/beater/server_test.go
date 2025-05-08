@@ -613,20 +613,20 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	case doc := <-docs:
 		var out struct {
 			Transaction struct {
-				Id     string
+				ID     string
 				Name   string
 				Result string
 			}
-			Http struct {
+			HTTP struct {
 				Response struct {
 					StatusCode int
 				}
 			}
 		}
 		require.NoError(t, json.Unmarshal(doc, &out))
-		if out.Transaction.Id != "" && out.Transaction.Name == "POST /intake/v2/events" {
+		if out.Transaction.ID != "" && out.Transaction.Name == "POST /intake/v2/events" {
 			assert.Equal(t, "HTTP 5xx", out.Transaction.Result)
-			assert.Equal(t, http.StatusServiceUnavailable, out.Http.Response.StatusCode)
+			assert.Equal(t, http.StatusServiceUnavailable, out.HTTP.Response.StatusCode)
 			break
 		}
 	}
