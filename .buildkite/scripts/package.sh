@@ -8,14 +8,7 @@
 set -eo pipefail
 
 TYPE="$1"
-PLATFORM_TYPE=$(uname -m)
 
-PLATFORMS=''
-PACKAGES=''
-if [[ ${PLATFORM_TYPE} == "arm" || ${PLATFORM_TYPE} == "aarch64" ]]; then
-  PLATFORMS='linux/arm64'
-  PACKAGES='docker'
-fi
 
 MAKE_GOAL=release-manager-snapshot
 if [[ ${TYPE} == "staging" ]]; then
