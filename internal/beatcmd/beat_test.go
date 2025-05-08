@@ -51,7 +51,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-docappender/v2/docappendertest"
-	"github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 // TestRunMaxProcs ensures Beat.Run calls the GOMAXPROCS adjustment code by looking for log messages.
@@ -165,10 +164,10 @@ func TestLibbeatMetrics(t *testing.T) {
 		switch requestIndex.Add(1) {
 		case 2:
 			result.HasErrors = true
-			result.Items[0]["create"] = esutil.BulkIndexerResponseItem{Status: 400}
+			result.Items[0]["create"] = docappendertest.BulkIndexerResponseItem{Status: 400}
 		case 4:
 			result.HasErrors = true
-			result.Items[0]["create"] = esutil.BulkIndexerResponseItem{Status: 429}
+			result.Items[0]["create"] = docappendertest.BulkIndexerResponseItem{Status: 429}
 		default:
 			// success
 		}
@@ -408,7 +407,7 @@ func TestRunManager_Reloader(t *testing.T) {
 			}
 			return nil
 		}), nil
-	}, nil, nil)
+	}, nil, nil, nil)
 	require.NoError(t, err)
 
 	agentInfo := &proto.AgentInfo{
@@ -536,7 +535,7 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 
 	_, err := NewReloader(beat.Info{}, registry, func(_ RunnerParams) (Runner, error) {
 		return nil, errors.New("newRunner error")
-	}, nil, nil)
+	}, nil, nil, nil)
 	require.NoError(t, err)
 
 	onObserved := func(observed *proto.CheckinObserved, currentIdx int) {
