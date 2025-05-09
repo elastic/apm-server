@@ -455,11 +455,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.18.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20250505142450-af0a5dad0d45
+Version: v7.0.0-alpha2.0.20250508120109-11713f01ac21
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250505142450-af0a5dad0d45/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250508120109-11713f01ac21/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -711,11 +711,11 @@ SOFTWARE
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-libs
-Version: v0.19.3
+Version: v0.19.4
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.19.3/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.19.4/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4159,11 +4159,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/v2@v2.6.3/LICENS
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/fastjson
-Version: v1.5.0
+Version: v1.5.1
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/fastjson@v1.5.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/fastjson@v1.5.1/LICENSE:
 
 Copyright 2018 Elasticsearch BV
 
