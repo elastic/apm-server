@@ -21,9 +21,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"maps"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -59,111 +57,17 @@ var (
 )
 
 const (
-	// managedByDSL is the constant string used by Elasticsearch to specify that an Index is managed by Data Stream Lifecycle management.
+	// managedByDSL is the constant string used by Elasticsearch to specify that
+	// an index is managed by Data Stream Lifecycle management.
 	managedByDSL = "Data stream lifecycle"
-	// managedByILM is the constant string used by Elasticsearch to specify that an Index is managed by Index Lifecycle Management.
+	// managedByILM is the constant string used by Elasticsearch to specify that
+	// an index is managed by Index Lifecycle Management.
 	managedByILM = "Index Lifecycle Management"
 )
 
-var (
-	// fetchedCandidates are the build-candidate stack versions prefetched from Elastic Cloud API.
-	fetchedCandidates ecclient.StackVersionInfos
-	// fetchedSnapshots are the snapshot stack versions prefetched from Elastic Cloud API.
-	fetchedSnapshots ecclient.StackVersionInfos
-	// fetchedVersions are the non-snapshot stack versions prefetched from Elastic Cloud API.
-	fetchedVersions ecclient.StackVersionInfos
-)
-
-// getLatestVersionOrSkip retrieves the latest non-snapshot version for the version prefix.
-// If the version is not found, the test is skipped via t.Skip.
-func getLatestVersionOrSkip(t *testing.T, prefix string) ecclient.StackVersionInfo {
-	t.Helper()
-	version, ok := fetchedVersions.LatestFor(prefix)
-	if !ok {
-		t.Skipf("version for '%s' not found in EC region %s, skipping test", prefix, regionFrom(*target))
-		return ecclient.StackVersionInfo{}
-	}
-	return version
-}
-
-// getLatestBCOrSkip retrieves the latest build-candidate version for the version prefix.
-// If the version is not found, the test is skipped via t.Skip.
-func getLatestBCOrSkip(t *testing.T, prefix string) ecclient.StackVersionInfo {
-	t.Helper()
-	candidate, ok := fetchedCandidates.LatestFor(prefix)
-	if !ok {
-		t.Skipf("BC for '%s' not found in EC region %s, skipping test", prefix, regionFrom(*target))
-		return ecclient.StackVersionInfo{}
-	}
-
-	// Check that the BC version is actually latest, otherwise skip test.
-	versionInfo := getLatestVersionOrSkip(t, prefix)
-	if versionInfo.Version.Major != candidate.Version.Major {
-		t.Skipf("BC for '%s' is invalid in EC region %s, skipping test", prefix, regionFrom(*target))
-		return ecclient.StackVersionInfo{}
-	}
-	if versionInfo.Version.Minor > candidate.Version.Minor {
-		t.Skipf("BC for '%s' is less than latest normal version in EC region %s, skipping test",
-			prefix, regionFrom(*target))
-		return ecclient.StackVersionInfo{}
-	}
-
-	return candidate
-}
-
-// getLatestSnapshot retrieves the latest snapshot version for the version prefix.
-func getLatestSnapshot(t *testing.T, prefix string) ecclient.StackVersionInfo {
-	t.Helper()
-	version, ok := fetchedSnapshots.LatestFor(prefix)
-	require.True(t, ok, "snapshot for '%s' found in EC region %s", prefix, regionFrom(*target))
-	return version
-}
-
-// expectedDataStreamsIngest represent the expected number of ingested document
-// after a single run of ingest.
-//
-// NOTE: The aggregation data streams have negative counts, because they are
-// expected to appear but the document counts should not be asserted.
-func expectedDataStreamsIngest(namespace string) esclient.DataStreamsDocCount {
-	return map[string]int{
-		fmt.Sprintf("traces-apm-%s", namespace):                     15013,
-		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 1437,
-		fmt.Sprintf("metrics-apm.internal-%s", namespace):           1351,
-		fmt.Sprintf("logs-apm.error-%s", namespace):                 364,
-		// Ignore aggregation data streams.
-		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace): -1,
-		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace): -1,
-		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace):     -1,
-		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace):         -1,
-	}
-}
-
-// emptyDataStreamsIngest represent an empty ingestion.
-// It is useful for asserting that the document count did not change after an operation.
-//
-// NOTE: The aggregation data streams have negative counts, because they
-// are expected to appear but the document counts should not be asserted.
-func emptyDataStreamsIngest(namespace string) esclient.DataStreamsDocCount {
-	return map[string]int{
-		fmt.Sprintf("traces-apm-%s", namespace):                     0,
-		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 0,
-		fmt.Sprintf("metrics-apm.internal-%s", namespace):           0,
-		fmt.Sprintf("logs-apm.error-%s", namespace):                 0,
-		// Ignore aggregation data streams.
-		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace): -1,
-		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace): -1,
-		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace):     -1,
-		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace):         -1,
-	}
-}
-
-func allDataStreams(namespace string) []string {
-	return slices.Collect(maps.Keys(expectedDataStreamsIngest(namespace)))
-}
-
 const (
 	targetQA = "qa"
-	// we use 'pro' because is the target passed by the Buildkite pipeline running
+	// we use 'pro' because it is the target passed by the Buildkite pipeline running
 	// these tests.
 	targetProd = "pro"
 )
@@ -352,79 +256,4 @@ func createAPMGenerator(t *testing.T, ctx context.Context, esc *esclient.Client,
 	logger := zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
 	g := gen.New(deployInfo.APMServerURL, apiKey, kbc, logger)
 	return g
-}
-
-func sliceToSet[T comparable](s []T) map[T]bool {
-	m := make(map[T]bool)
-	for _, ele := range s {
-		m[ele] = true
-	}
-	return m
-}
-
-// getAPMDataStreams get all APM related data streams.
-func getAPMDataStreams(t *testing.T, ctx context.Context, esc *esclient.Client, ignoreDS ...string) []types.DataStream {
-	t.Helper()
-	dataStreams, err := esc.GetDataStream(ctx, "*apm*")
-	require.NoError(t, err)
-
-	ignore := sliceToSet(ignoreDS)
-	return slices.DeleteFunc(dataStreams, func(ds types.DataStream) bool {
-		return ignore[ds.Name]
-	})
-}
-
-// getDocCountPerDS retrieves document count per data stream for versions >= 8.0.
-func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client, ignoreDS ...string) esclient.DataStreamsDocCount {
-	t.Helper()
-	count, err := esc.APMDSDocCount(ctx)
-	require.NoError(t, err)
-
-	ignore := sliceToSet(ignoreDS)
-	maps.DeleteFunc(count, func(ds string, _ int) bool {
-		return ignore[ds]
-	})
-	return count
-}
-
-// getDocCountPerDS retrieves document count per data stream for versions < 8.0.
-func getDocCountPerDSV7(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) esclient.DataStreamsDocCount {
-	t.Helper()
-	count, err := esc.APMDSDocCountV7(ctx, namespace)
-	require.NoError(t, err)
-	return count
-}
-
-// getDocCountPerIndexV7 retrieves document count per index for versions < 8.0.
-func getDocCountPerIndexV7(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.IndicesDocCount {
-	t.Helper()
-	count, err := esc.APMIdxDocCountV7(ctx)
-	require.NoError(t, err)
-	return count
-}
-
-// createRerouteIngestPipeline creates custom pipelines to reroute logs, metrics and traces to different
-// data streams specified by namespace.
-func createRerouteIngestPipeline(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) {
-	t.Helper()
-	for _, pipeline := range []string{"logs@custom", "metrics@custom", "traces@custom"} {
-		err := esc.CreateIngestPipeline(ctx, pipeline, []types.ProcessorContainer{
-			{
-				Reroute: &types.RerouteProcessor{
-					Namespace: []string{namespace},
-				},
-			},
-		})
-		require.NoError(t, err)
-	}
-}
-
-// performManualRollovers rollover all logs, metrics and traces data streams to new indices.
-func performManualRollovers(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) {
-	t.Helper()
-
-	for _, ds := range allDataStreams(namespace) {
-		err := esc.PerformManualRollover(ctx, ds)
-		require.NoError(t, err)
-	}
 }

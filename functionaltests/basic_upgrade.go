@@ -21,8 +21,13 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
+	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 )
 
 type basicUpgradeTestScenario struct {
@@ -44,7 +49,6 @@ func basicUpgradeILMTestScenarios(
 		Quantity:         8,
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
-		IndicesPerDS:     1,
 		IndicesManagedBy: []string{managedByILM},
 	}
 
@@ -71,7 +75,6 @@ func basicUpgradeLazyRolloverILMTestScenarios(
 		Quantity:         8,
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
-		IndicesPerDS:     1,
 		IndicesManagedBy: []string{managedByILM},
 	}
 	// Verify lazy rollover happened, i.e. 2 indices per data stream.
@@ -79,7 +82,6 @@ func basicUpgradeLazyRolloverILMTestScenarios(
 		Quantity:         8,
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
-		IndicesPerDS:     2,
 		IndicesManagedBy: []string{managedByILM, managedByILM},
 	}
 
@@ -105,7 +107,6 @@ func basicUpgradeLazyRolloverDSLTestScenarios(
 		Quantity:         8,
 		PreferIlm:        false,
 		DSManagedBy:      managedByDSL,
-		IndicesPerDS:     1,
 		IndicesManagedBy: []string{managedByDSL},
 	}
 	// Verify lazy rollover happened, i.e. 2 indices per data stream.
@@ -113,7 +114,6 @@ func basicUpgradeLazyRolloverDSLTestScenarios(
 		Quantity:         8,
 		PreferIlm:        false,
 		DSManagedBy:      managedByDSL,
-		IndicesPerDS:     2,
 		IndicesManagedBy: []string{managedByDSL, managedByDSL},
 	}
 
@@ -187,4 +187,30 @@ func allBasicUpgradeScenarios(
 	})
 
 	return scenarios
+}
+
+// createRerouteIngestPipeline creates custom pipelines to reroute logs, metrics and traces to different
+// data streams specified by namespace.
+func createRerouteIngestPipeline(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) {
+	t.Helper()
+	for _, pipeline := range []string{"logs@custom", "metrics@custom", "traces@custom"} {
+		err := esc.CreateIngestPipeline(ctx, pipeline, []types.ProcessorContainer{
+			{
+				Reroute: &types.RerouteProcessor{
+					Namespace: []string{namespace},
+				},
+			},
+		})
+		require.NoError(t, err)
+	}
+}
+
+// performManualRollovers rollover all logs, metrics and traces data streams to new indices.
+func performManualRollovers(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) {
+	t.Helper()
+
+	for _, ds := range allDataStreams(namespace) {
+		err := esc.PerformManualRollover(ctx, ds)
+		require.NoError(t, err)
+	}
 }

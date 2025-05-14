@@ -48,7 +48,6 @@ func TestUpgrade_8_16_to_8_17_Snapshot(t *testing.T) {
 			Quantity:         8,
 			PreferIlm:        false,
 			DSManagedBy:      managedByDSL,
-			IndicesPerDS:     1,
 			IndicesManagedBy: []string{managedByDSL},
 		},
 		// Data streams managed by ILM post-upgrade.
@@ -57,7 +56,6 @@ func TestUpgrade_8_16_to_8_17_Snapshot(t *testing.T) {
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
-			IndicesPerDS:     1,
 			IndicesManagedBy: []string{managedByDSL},
 		},
 		// Verify lazy rollover happened, i.e. 2 indices.
@@ -65,7 +63,6 @@ func TestUpgrade_8_16_to_8_17_Snapshot(t *testing.T) {
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
-			IndicesPerDS:     2,
 			IndicesManagedBy: []string{managedByDSL, managedByILM},
 		},
 		apmErrorLogs{
@@ -101,7 +98,6 @@ func TestUpgrade_8_16_to_8_17_BC(t *testing.T) {
 			Quantity:         8,
 			PreferIlm:        false,
 			DSManagedBy:      managedByDSL,
-			IndicesPerDS:     1,
 			IndicesManagedBy: []string{managedByDSL},
 		},
 		// Data streams managed by ILM post-upgrade.
@@ -110,7 +106,6 @@ func TestUpgrade_8_16_to_8_17_BC(t *testing.T) {
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
-			IndicesPerDS:     1,
 			IndicesManagedBy: []string{managedByDSL},
 		},
 		// Verify lazy rollover happened, i.e. 2 indices.
@@ -118,7 +113,6 @@ func TestUpgrade_8_16_to_8_17_BC(t *testing.T) {
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
-			IndicesPerDS:     2,
 			IndicesManagedBy: []string{managedByDSL, managedByILM},
 		},
 		apmErrorLogs{

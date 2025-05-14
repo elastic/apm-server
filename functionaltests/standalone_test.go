@@ -181,7 +181,6 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 		Quantity:         8,
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
-		IndicesPerDS:     1,
 		IndicesManagedBy: []string{managedByILM},
 	}
 	checkILM := asserts.CheckDataStreamIndividualWant{
@@ -259,7 +258,6 @@ func managed9Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 		Quantity:         8,
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
-		IndicesPerDS:     1,
 		IndicesManagedBy: []string{managedByILM},
 	}
 

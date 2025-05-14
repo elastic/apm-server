@@ -21,47 +21,47 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
+
+type CheckDataStreamsOption func(opts *checkDSOpts)
+
+func SkipIndices(b bool) CheckDataStreamsOption {
+	return func(opts *checkDSOpts) {
+		opts.skipIndices = b
+	}
+}
+
+type checkDSOpts struct {
+	skipIndices bool
+}
 
 type CheckDataStreamsWant struct {
 	Quantity         int
 	DSManagedBy      string
 	PreferIlm        bool
-	IndicesPerDS     int
 	IndicesManagedBy []string
 }
 
-// CheckDataStreams asserts expected values on specific data streams.
-func CheckDataStreams(t *testing.T, expected CheckDataStreamsWant, actual []types.DataStream) {
+// CheckDataStreams asserts that all data streams have expected values.
+func CheckDataStreams(t *testing.T, expected CheckDataStreamsWant, actual []types.DataStream, options ...CheckDataStreamsOption) {
 	t.Helper()
 
+	opts := &checkDSOpts{}
+	for _, option := range options {
+		option(opts)
+	}
+
 	// Preliminarily check that these two are matching, to avoid panic later.
-	require.Len(t, expected.IndicesManagedBy, expected.IndicesPerDS,
-		"length of IndicesManagedBy should be equal to IndicesPerDS")
 	assert.Len(t, actual, expected.Quantity, "number of APM data streams differs from expectations")
 
 	for _, v := range actual {
-		if expected.PreferIlm {
-			assert.True(t, v.PreferIlm, "data stream %s should prefer ILM", v.Name)
-		} else {
-			assert.False(t, v.PreferIlm, "data stream %s should not prefer ILM", v.Name)
-		}
-
-		assert.Equal(t, expected.DSManagedBy, v.NextGenerationManagedBy.Name,
-			`data stream %s should be managed by "%s"`, v.Name, expected.DSManagedBy,
-		)
-		assert.Len(t, v.Indices, expected.IndicesPerDS,
-			"data stream %s should have %d indices", v.Name, expected.IndicesPerDS,
-		)
-		for i, index := range v.Indices {
-			assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name,
-				`index %s should be managed by "%s"`, index.IndexName,
-				expected.IndicesManagedBy[i],
-			)
-		}
+		checkSingleDataStream(t, CheckDataStreamIndividualWant{
+			DSManagedBy:      expected.DSManagedBy,
+			PreferIlm:        expected.PreferIlm,
+			IndicesManagedBy: expected.IndicesManagedBy,
+		}, v, opts)
 	}
 }
 
@@ -71,8 +71,14 @@ type CheckDataStreamIndividualWant struct {
 	IndicesManagedBy []string
 }
 
-func CheckDataStreamsIndividually(t *testing.T, expected map[string]CheckDataStreamIndividualWant, actual []types.DataStream) {
+// CheckDataStreamsIndividually asserts that each data stream have expected values individually.
+func CheckDataStreamsIndividually(t *testing.T, expected map[string]CheckDataStreamIndividualWant, actual []types.DataStream, options ...CheckDataStreamsOption) {
 	t.Helper()
+
+	opts := &checkDSOpts{}
+	for _, option := range options {
+		option(opts)
+	}
 
 	assert.Len(t, actual, len(expected), "number of APM data streams differs from expectations")
 
@@ -83,22 +89,29 @@ func CheckDataStreamsIndividually(t *testing.T, expected map[string]CheckDataStr
 			continue
 		}
 
-		if e.PreferIlm {
-			assert.True(t, v.PreferIlm, "data stream %s should prefer ILM", v.Name)
-		} else {
-			assert.False(t, v.PreferIlm, "data stream %s should not prefer ILM", v.Name)
-		}
+		checkSingleDataStream(t, e, v, opts)
+	}
+}
 
-		assert.Equal(t, e.DSManagedBy, v.NextGenerationManagedBy.Name,
-			`data stream %s should be managed by "%s"`, v.Name, e.DSManagedBy,
+func checkSingleDataStream(t *testing.T, expected CheckDataStreamIndividualWant, actual types.DataStream, opts *checkDSOpts) {
+	if expected.PreferIlm {
+		assert.True(t, actual.PreferIlm, "data stream %s should prefer ILM", actual.Name)
+	} else {
+		assert.False(t, actual.PreferIlm, "data stream %s should not prefer ILM", actual.Name)
+	}
+
+	assert.Equal(t, expected.DSManagedBy, actual.NextGenerationManagedBy.Name,
+		`data stream %s should be managed by "%s"`, actual.Name, expected.DSManagedBy,
+	)
+
+	if !opts.skipIndices {
+		assert.Len(t, actual.Indices, len(expected.IndicesManagedBy),
+			"data stream %s should have %d indices", actual.Name, len(expected.IndicesManagedBy),
 		)
-		assert.Len(t, v.Indices, len(e.IndicesManagedBy),
-			"data stream %s should have %d indices", v.Name, len(e.IndicesManagedBy),
-		)
-		for i, index := range v.Indices {
-			assert.Equal(t, e.IndicesManagedBy[i], index.ManagedBy.Name,
+		for i, index := range actual.Indices {
+			assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name,
 				`index %s should be managed by "%s"`, index.IndexName,
-				e.IndicesManagedBy[i],
+				expected.IndicesManagedBy[i],
 			)
 		}
 	}

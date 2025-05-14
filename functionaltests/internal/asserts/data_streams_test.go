@@ -40,7 +40,6 @@ func TestCheckDataStreams(t *testing.T) {
 				Quantity:         2,
 				DSManagedBy:      "Index Lifecycle Management",
 				PreferIlm:        true,
-				IndicesPerDS:     2,
 				IndicesManagedBy: []string{"Data Stream Lifecycle", "Index Lifecycle Management"},
 			},
 			dss: []types.DataStream{
