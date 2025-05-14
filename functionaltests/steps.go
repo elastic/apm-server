@@ -159,8 +159,6 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ te
 	return testStepResult{DSDocCount: getDocCountPerDS(t, ctx, e.esc)}
 }
 
-var _ testStep = ingestStep{}
-
 // ingestStep performs ingestion to the APM Server deployed on ECH. After
 // ingestion, it checks if the document counts difference between current
 // and previous is expected, and if the data streams are in an expected
@@ -179,8 +177,6 @@ type ingestStep struct {
 	// The data stream names can contain '%s' to indicate namespace.
 	CheckIndividualDataStream map[string]asserts.CheckDataStreamIndividualWant
 }
-
-var _ testStep = ingestStep{}
 
 func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	if e.currentVersion().Major < 8 {
@@ -245,8 +241,6 @@ type upgradeStep struct {
 	CheckIndividualDataStream map[string]asserts.CheckDataStreamIndividualWant
 }
 
-var _ testStep = upgradeStep{}
-
 func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	if e.currentVersion().Major < 8 {
 		t.Fatal("upgrade step should only be used from versions >= 8.0")
@@ -289,8 +283,6 @@ type checkErrorLogsStep struct {
 	APMErrorLogsIgnored apmErrorLogs
 }
 
-var _ testStep = checkErrorLogsStep{}
-
 func (c checkErrorLogsStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	t.Log("------ check ES and APM error logs ------")
 	t.Log("checking ES error logs")
@@ -313,8 +305,6 @@ type stepFunc func(t *testing.T, ctx context.Context, e *testStepEnv, previousRe
 type customStep struct {
 	Func stepFunc
 }
-
-var _ testStep = customStep{}
 
 func (c customStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	return c.Func(t, ctx, e, previousRes)
