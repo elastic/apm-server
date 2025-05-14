@@ -72,7 +72,6 @@ func upgradeThenManaged78Runner(fromVersion, toVersion ecclient.StackVersion) te
 		Quantity:         8,
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
-		IndicesPerDS:     1,
 		IndicesManagedBy: []string{managedByILM},
 	}
 
@@ -229,7 +228,6 @@ func upgradeThenManaged789Runner(fromVersion7, toVersion8, toVersion9 ecclient.S
 		Quantity:         8,
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
-		IndicesPerDS:     1,
 		IndicesManagedBy: []string{managedByILM},
 	}
 

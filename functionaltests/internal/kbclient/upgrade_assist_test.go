@@ -39,7 +39,6 @@ import (
 //			Quantity:         8,
 //			PreferIlm:        true,
 //			DSManagedBy:      managedByILM,
-//			IndicesPerDS:     1,
 //			IndicesManagedBy: []string{managedByILM},
 //		}
 //
