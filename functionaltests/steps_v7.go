@@ -87,8 +87,6 @@ func emptyDataStreamsIngestV7(namespace string) esclient.DataStreamsDocCount {
 // NOTE: Only works for versions 7.x.
 type ingestV7Step struct{}
 
-var _ testStep = ingestV7Step{}
-
 func (i ingestV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	if e.currentVersion().Major >= 8 {
 		t.Fatal("ingest v7 step should only be used for versions < 8.0")
@@ -126,8 +124,6 @@ func (i ingestV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv, pr
 type upgradeV7Step struct {
 	NewVersion ecclient.StackVersion
 }
-
-var _ testStep = upgradeV7Step{}
 
 func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	if e.currentVersion().Major >= 8 {
@@ -168,8 +164,6 @@ func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv, p
 // or data streams document counts if version >= 8.0.
 type migrateManagedStep struct{}
 
-var _ testStep = migrateManagedStep{}
-
 func (m migrateManagedStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	if e.integrations {
 		t.Fatal("migrate managed step should only be used on standalone")
@@ -208,8 +202,6 @@ func (m migrateManagedStep) Step(t *testing.T, ctx context.Context, e *testStepE
 //
 // The output of this step is the previous test step result.
 type resolveDeprecationsStep struct{}
-
-var _ testStep = resolveDeprecationsStep{}
 
 func (r resolveDeprecationsStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	t.Logf("------ resolve migration deprecations in %s ------", e.currentVersion())
