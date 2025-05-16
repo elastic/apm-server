@@ -47,7 +47,7 @@ func TestUpgrade_7_17_to_8_x_to_9_x_Snapshot_Standalone_to_Managed(t *testing.T)
 
 	t.Run("Managed8", func(t *testing.T) {
 		t.Parallel()
-		runner := managed8Runner(from7.Version, to9.Version, to9.Version)
+		runner := managed8Runner(from7.Version, to8.Version, to9.Version)
 		runner.Run(t)
 	})
 
@@ -81,7 +81,7 @@ func TestUpgrade_7_17_to_8_x_to_9_x_BC_Standalone_to_Managed(t *testing.T) {
 
 	t.Run("Managed in 8", func(t *testing.T) {
 		t.Parallel()
-		runner := managed8Runner(from7.Version, to9.Version, to9.Version)
+		runner := managed8Runner(from7.Version, to8.Version, to9.Version)
 		runner.Run(t)
 	})
 
