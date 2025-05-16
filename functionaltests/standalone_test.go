@@ -189,21 +189,14 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 		DSManagedBy:      managedByILM,
 		IndicesManagedBy: []string{managedByILM},
 	}
-	checkILMRollover := asserts.CheckDataStreamIndividualWant{
-		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
-		IndicesManagedBy: []string{managedByILM, managedByILM},
-	}
 
 	check := map[string]asserts.CheckDataStreamIndividualWant{
-		// These data streams are created in 7.x as well, so when we ingest
-		// again in 8.x, they will be rolled-over.
-		"traces-apm-%s":                     checkILMRollover,
-		"metrics-apm.app.opbeans_python-%s": checkILMRollover,
-		"metrics-apm.internal-%s":           checkILMRollover,
-		"logs-apm.error-%s":                 checkILMRollover,
-		// These data streams are only created in 8.x, so they will only have
-		// 1 index.
+		// These data streams are created in 7.x.
+		"traces-apm-%s":                     checkILM,
+		"metrics-apm.app.opbeans_python-%s": checkILM,
+		"metrics-apm.internal-%s":           checkILM,
+		"logs-apm.error-%s":                 checkILM,
+		// These data streams are created in 8.x.
 		"metrics-apm.service_destination.1m-%s": checkILM,
 		"metrics-apm.service_transaction.1m-%s": checkILM,
 		"metrics-apm.service_summary.1m-%s":     checkILM,
