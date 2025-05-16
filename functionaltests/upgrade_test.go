@@ -11,19 +11,19 @@ import (
 )
 
 var (
-	upgradeVersions = flag.String(
-		"upgrade-versions",
+	upgradePath = flag.String(
+		"upgrade-path",
 		"",
-		"String for versions to be used in TestUpgrade_Provided_Versions_Snapshot, separated by commas",
+		"Versions to be used in TestUpgrade_Provided_Versions_*, separated by commas",
 	)
 )
 
 func TestUpgrade_Provided_Versions_Snapshot(t *testing.T) {
 	// The versions are separated by commas.
-	if strings.TrimSpace(*upgradeVersions) == "" {
+	if strings.TrimSpace(*upgradePath) == "" {
 		t.Fatal("no upgrade versions specified")
 	}
-	splits := strings.Split(*upgradeVersions, ",")
+	splits := strings.Split(*upgradePath, ",")
 	if len(splits) < 2 {
 		t.Fatal("need to specify at least 2 upgrade versions")
 	}
