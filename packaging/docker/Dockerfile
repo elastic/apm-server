@@ -6,7 +6,7 @@ ARG GOLANG_VERSION
 # Build the apm-server binary. The golang image version is kept
 # up to date with go.mod by Makefile.
 ################################################################################
-FROM golang:${GOLANG_VERSION} as builder
+FROM golang:${GOLANG_VERSION} AS builder
 WORKDIR /src
 COPY go.mod go.sum /src/
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
@@ -20,6 +20,8 @@ COPY script /src/script
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     make apm-server
+
+FROM cgr.dev/chainguard/static:latest@sha256:8d1a96321dca0e8e7848b7db2d431191f15e7e302faa1428100bbab351d42c7a AS builder-certs
 
 ################################################################################
 # Build stage 1
@@ -64,7 +66,7 @@ LABEL \
   org.opencontainers.image.created=${BUILD_DATE} \
   version=${VERSION}
 
-ENV ELASTIC_CONTAINER "true"
+ENV ELASTIC_CONTAINER="true"
 ENV PATH=/usr/share/apm-server:$PATH
 
 # When running under Docker, we must ensure libbeat monitoring pulls cgroup
@@ -77,8 +79,9 @@ ENV LIBBEAT_MONITORING_CGROUPS_HIERARCHY_OVERRIDE=/
 ENV BEAT_STRICT_PERMS=false
 
 COPY --chmod=0755 packaging/docker/docker-entrypoint /usr/local/bin/docker-entrypoint
-COPY --chmod=0644 licenses/ELASTIC-LICENSE-2.0.txt NOTICE.txt /licenses/
-COPY --chmod=0644 packaging/docker/cacert.pem /etc/pki/tls/certs/ca-bundle.crt
+COPY --chmod=0755 licenses/ELASTIC-LICENSE-2.0.txt NOTICE.txt /licenses/
+COPY --from=builder-certs /etc/pki /etc/pki
+COPY --from=builder-certs /etc/ssl /etc/ssl
 
 # Copy files world-readable, and create the data directory world-writeable,
 # to permit running the container with arbitrary UIDs and GIDs.
