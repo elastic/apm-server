@@ -25,6 +25,8 @@ COPY --chmod=0644 apm-server.yml ./apm-server.yml
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 
+FROM cgr.dev/chainguard/static:latest@sha256:8d1a96321dca0e8e7848b7db2d431191f15e7e302faa1428100bbab351d42c7a AS builder-certs
+
 ################################################################################
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
@@ -76,7 +78,9 @@ ENV LIBBEAT_MONITORING_CGROUPS_HIERARCHY_OVERRIDE=/
 # running in Docker.
 ENV BEAT_STRICT_PERMS=false
 
-COPY --chmod=0644 licenses/ELASTIC-LICENSE-2.0.txt NOTICE.txt /licenses/
+COPY --chmod=0755 licenses/ELASTIC-LICENSE-2.0.txt NOTICE.txt /licenses/
+COPY --from=builder-certs /etc/pki /etc/pki
+COPY --from=builder-certs /etc/ssl /etc/ssl
 
 WORKDIR /usr/share/apm-server
 
