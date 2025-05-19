@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server/systemtest
 
-go 1.24.2
+go 1.24.3
 
 require (
 	github.com/docker/docker v28.1.1+incompatible
@@ -16,7 +16,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.37.0
 	github.com/tidwall/gjson v1.18.0
 	go.elastic.co/apm/v2 v2.7.0
-	go.elastic.co/fastjson v1.5.0
+	go.elastic.co/fastjson v1.5.1
 	go.opentelemetry.io/collector/pdata v1.31.0
 	go.opentelemetry.io/collector/semconv v0.125.0
 	go.opentelemetry.io/otel v1.35.0
