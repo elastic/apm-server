@@ -32,7 +32,7 @@ runs:
   steps:
     - name: Send slack message when started
       id: slack-thread
-      uses: elastic/oblt-actions/slack/send@8e520e6084fd20336dba88cd5b386775aa8d3ad3 # v1
+      uses: elastic/oblt-actions/slack/send@v1
       with:
         bot-token: ${{ inputs.slack-bot-token }}
         channel-id: ${{ env.SLACK_CHANNEL }}
