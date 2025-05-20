@@ -15,10 +15,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package functionaltests
+package deep
 
 import (
 	"testing"
+
+	"github.com/elastic/apm-server/functionaltests"
+	"github.com/elastic/apm-server/functionaltests/internal/steps"
 )
 
 // Data streams get marked for lazy rollover by ES when something
@@ -28,23 +31,23 @@ import (
 
 func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 	t.Parallel()
-	from := getLatestSnapshot(t, "9.0")
-	to := getLatestSnapshot(t, "9.1")
+	from := versionsCache.GetLatestSnapshot(t, "9.0")
+	to := versionsCache.GetLatestSnapshot(t, "9.1")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
+	scenarios := deepUpgradeLazyRolloverILMTestScenarios(
 		from.Version,
 		to.Version,
-		apmErrorLogs{
-			tlsHandshakeError,
-			esReturnedUnknown503,
-			refreshCache503,
-			populateSourcemapFetcher403,
-			refreshCache403,
-			refreshCacheESConfigInvalid,
+		steps.APMErrorLogs{
+			functionaltests.TLSHandshakeError,
+			functionaltests.ESReturnedUnknown503,
+			functionaltests.RefreshCache503,
+			functionaltests.PopulateSourcemapFetcher403,
+			functionaltests.RefreshCache403,
+			functionaltests.RefreshCacheESConfigInvalid,
 		},
 	)
 	for _, scenario := range scenarios {
@@ -57,23 +60,23 @@ func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 
 func TestUpgrade_9_0_to_9_1_BC(t *testing.T) {
 	t.Parallel()
-	from := getLatestVersionOrSkip(t, "9.0")
-	to := getLatestBCOrSkip(t, "9.1")
+	from := versionsCache.GetLatestVersionOrSkip(t, "9.0")
+	to := versionsCache.GetLatestBCOrSkip(t, "9.1")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := basicUpgradeLazyRolloverILMTestScenarios(
+	scenarios := deepUpgradeLazyRolloverILMTestScenarios(
 		from.Version,
 		to.Version,
-		apmErrorLogs{
-			tlsHandshakeError,
-			esReturnedUnknown503,
-			refreshCache503,
-			populateSourcemapFetcher403,
-			refreshCache403,
-			refreshCacheESConfigInvalid,
+		steps.APMErrorLogs{
+			functionaltests.TLSHandshakeError,
+			functionaltests.ESReturnedUnknown503,
+			functionaltests.RefreshCache503,
+			functionaltests.PopulateSourcemapFetcher403,
+			functionaltests.RefreshCache403,
+			functionaltests.RefreshCacheESConfigInvalid,
 		},
 	)
 	for _, scenario := range scenarios {
@@ -86,23 +89,23 @@ func TestUpgrade_9_0_to_9_1_BC(t *testing.T) {
 
 func TestUpgrade_8_19_to_9_1_Snapshot(t *testing.T) {
 	t.Parallel()
-	from := getLatestSnapshot(t, "8.19")
-	to := getLatestSnapshot(t, "9.1")
+	from := versionsCache.GetLatestSnapshot(t, "8.19")
+	to := versionsCache.GetLatestSnapshot(t, "9.1")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := basicUpgradeILMTestScenarios(
+	scenarios := deepUpgradeILMTestScenarios(
 		from.Version,
 		to.Version,
-		apmErrorLogs{
-			tlsHandshakeError,
-			esReturnedUnknown503,
-			refreshCache503,
-			populateSourcemapFetcher403,
-			refreshCache403,
-			refreshCacheESConfigInvalid,
+		steps.APMErrorLogs{
+			functionaltests.TLSHandshakeError,
+			functionaltests.ESReturnedUnknown503,
+			functionaltests.RefreshCache503,
+			functionaltests.PopulateSourcemapFetcher403,
+			functionaltests.RefreshCache403,
+			functionaltests.RefreshCacheESConfigInvalid,
 		},
 	)
 	for _, scenario := range scenarios {
@@ -115,23 +118,23 @@ func TestUpgrade_8_19_to_9_1_Snapshot(t *testing.T) {
 
 func TestUpgrade_8_19_to_9_1_BC(t *testing.T) {
 	t.Parallel()
-	from := getLatestVersionOrSkip(t, "8.19")
-	to := getLatestBCOrSkip(t, "9.1")
+	from := versionsCache.GetLatestVersionOrSkip(t, "8.19")
+	to := versionsCache.GetLatestBCOrSkip(t, "9.1")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := basicUpgradeILMTestScenarios(
+	scenarios := deepUpgradeILMTestScenarios(
 		from.Version,
 		to.Version,
-		apmErrorLogs{
-			tlsHandshakeError,
-			esReturnedUnknown503,
-			refreshCache503,
-			populateSourcemapFetcher403,
-			refreshCache403,
-			refreshCacheESConfigInvalid,
+		steps.APMErrorLogs{
+			functionaltests.TLSHandshakeError,
+			functionaltests.ESReturnedUnknown503,
+			functionaltests.RefreshCache503,
+			functionaltests.PopulateSourcemapFetcher403,
+			functionaltests.RefreshCache403,
+			functionaltests.RefreshCacheESConfigInvalid,
 		},
 	)
 	for _, scenario := range scenarios {

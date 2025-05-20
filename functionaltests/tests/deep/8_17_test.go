@@ -15,12 +15,14 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package functionaltests
+package deep
 
 import (
 	"testing"
 
+	"github.com/elastic/apm-server/functionaltests"
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
+	"github.com/elastic/apm-server/functionaltests/internal/steps"
 )
 
 // In 8.15, the data stream management was migrated from ILM to DSL.
@@ -33,47 +35,47 @@ import (
 
 func TestUpgrade_8_16_to_8_17_Snapshot(t *testing.T) {
 	t.Parallel()
-	from := getLatestSnapshot(t, "8.16")
-	to := getLatestSnapshot(t, "8.17")
+	from := versionsCache.GetLatestSnapshot(t, "8.16")
+	to := versionsCache.GetLatestSnapshot(t, "8.17")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := allBasicUpgradeScenarios(
+	scenarios := allDeepUpgradeScenarios(
 		from.Version,
 		to.Version,
 		// Data streams managed by DSL pre-upgrade.
 		asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
+			DSManagedBy:      functionaltests.ManagedByDSL,
 			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByDSL},
+			IndicesManagedBy: []string{functionaltests.ManagedByDSL},
 		},
 		// Data streams managed by ILM post-upgrade.
 		// However, the index created before upgrade is still managed by DSL.
 		asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
+			DSManagedBy:      functionaltests.ManagedByILM,
 			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByDSL},
+			IndicesManagedBy: []string{functionaltests.ManagedByDSL},
 		},
 		// Verify lazy rollover happened, i.e. 2 indices.
 		asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
+			DSManagedBy:      functionaltests.ManagedByILM,
 			IndicesPerDS:     2,
-			IndicesManagedBy: []string{managedByDSL, managedByILM},
+			IndicesManagedBy: []string{functionaltests.ManagedByDSL, functionaltests.ManagedByILM},
 		},
-		apmErrorLogs{
-			tlsHandshakeError,
-			esReturnedUnknown503,
-			refreshCache503,
-			refreshCacheCtxCanceled,
-			populateSourcemapFetcher403,
+		steps.APMErrorLogs{
+			functionaltests.TLSHandshakeError,
+			functionaltests.ESReturnedUnknown503,
+			functionaltests.RefreshCache503,
+			functionaltests.RefreshCacheCtxCanceled,
+			functionaltests.PopulateSourcemapFetcher403,
 		},
 	)
 	for _, scenario := range scenarios {
@@ -86,47 +88,47 @@ func TestUpgrade_8_16_to_8_17_Snapshot(t *testing.T) {
 
 func TestUpgrade_8_16_to_8_17_BC(t *testing.T) {
 	t.Parallel()
-	from := getLatestVersionOrSkip(t, "8.16")
-	to := getLatestBCOrSkip(t, "8.17")
+	from := versionsCache.GetLatestVersionOrSkip(t, "8.16")
+	to := versionsCache.GetLatestBCOrSkip(t, "8.17")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := allBasicUpgradeScenarios(
+	scenarios := allDeepUpgradeScenarios(
 		from.Version,
 		to.Version,
 		// Data streams managed by DSL pre-upgrade.
 		asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
+			DSManagedBy:      functionaltests.ManagedByDSL,
 			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByDSL},
+			IndicesManagedBy: []string{functionaltests.ManagedByDSL},
 		},
 		// Data streams managed by ILM post-upgrade.
 		// However, the index created before upgrade is still managed by DSL.
 		asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
+			DSManagedBy:      functionaltests.ManagedByILM,
 			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByDSL},
+			IndicesManagedBy: []string{functionaltests.ManagedByDSL},
 		},
 		// Verify lazy rollover happened, i.e. 2 indices.
 		asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
+			DSManagedBy:      functionaltests.ManagedByILM,
 			IndicesPerDS:     2,
-			IndicesManagedBy: []string{managedByDSL, managedByILM},
+			IndicesManagedBy: []string{functionaltests.ManagedByDSL, functionaltests.ManagedByILM},
 		},
-		apmErrorLogs{
-			tlsHandshakeError,
-			esReturnedUnknown503,
-			refreshCache503,
-			refreshCacheCtxCanceled,
-			populateSourcemapFetcher403,
+		steps.APMErrorLogs{
+			functionaltests.TLSHandshakeError,
+			functionaltests.ESReturnedUnknown503,
+			functionaltests.RefreshCache503,
+			functionaltests.RefreshCacheCtxCanceled,
+			functionaltests.PopulateSourcemapFetcher403,
 		},
 	)
 	for _, scenario := range scenarios {

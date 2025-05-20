@@ -15,116 +15,115 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package functionaltests
+package deep
 
 import (
-	"context"
-	"testing"
-
+	"github.com/elastic/apm-server/functionaltests"
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
+	"github.com/elastic/apm-server/functionaltests/internal/steps"
 )
 
-type basicUpgradeTestScenario struct {
+type deepUpgradeTestScenario struct {
 	Name   string
-	Runner testStepsRunner
+	Runner steps.Runner
 }
 
-// basicUpgradeILMTestScenarios returns all scenarios for basic upgrade test
+// deepUpgradeILMTestScenarios returns all scenarios for deep upgrade test
 // from `fromVersion` to `toVersion`. The test assumes that all data streams
 // (before and after upgrade) are using Index Lifecycle Management (ILM)
 // instead of Data Stream Lifecycle Management (DSL), which should be the case
 // for most recent APM data streams.
-func basicUpgradeILMTestScenarios(
+func deepUpgradeILMTestScenarios(
 	fromVersion ecclient.StackVersion,
 	toVersion ecclient.StackVersion,
-	apmErrorLogsIgnored apmErrorLogs,
-) []basicUpgradeTestScenario {
+	apmErrorLogsIgnored steps.APMErrorLogs,
+) []deepUpgradeTestScenario {
 	checkILM := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
+		DSManagedBy:      functionaltests.ManagedByILM,
 		IndicesPerDS:     1,
-		IndicesManagedBy: []string{managedByILM},
+		IndicesManagedBy: []string{functionaltests.ManagedByILM},
 	}
 
-	return allBasicUpgradeScenarios(
+	return allDeepUpgradeScenarios(
 		fromVersion, toVersion,
 		checkILM, checkILM, checkILM,
 		apmErrorLogsIgnored,
 	)
 }
 
-// basicUpgradeLazyRolloverILMTestScenarios returns all scenarios for basic
+// deepUpgradeLazyRolloverILMTestScenarios returns all scenarios for deep
 // upgrade test from `fromVersion` to `toVersion`. The test assumes that all
 // data streams (before and after upgrade) are using Index Lifecycle Management
 // (ILM) instead of Data Stream Lifecycle Management (DSL), which should be the
 // case for most recent APM data streams. It will also verify that lazy
 // rollover happened on post-upgrade ingestion.
-func basicUpgradeLazyRolloverILMTestScenarios(
+func deepUpgradeLazyRolloverILMTestScenarios(
 	fromVersion ecclient.StackVersion,
 	toVersion ecclient.StackVersion,
-	apmErrorLogsIgnored apmErrorLogs,
-) []basicUpgradeTestScenario {
+	apmErrorLogsIgnored steps.APMErrorLogs,
+) []deepUpgradeTestScenario {
 	// All data streams should be managed by ILM.
 	checkILM := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
+		DSManagedBy:      functionaltests.ManagedByILM,
 		IndicesPerDS:     1,
-		IndicesManagedBy: []string{managedByILM},
+		IndicesManagedBy: []string{functionaltests.ManagedByILM},
 	}
 	// Verify lazy rollover happened, i.e. 2 indices per data stream.
 	checkILMRollover := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
+		DSManagedBy:      functionaltests.ManagedByILM,
 		IndicesPerDS:     2,
-		IndicesManagedBy: []string{managedByILM, managedByILM},
+		IndicesManagedBy: []string{functionaltests.ManagedByILM, functionaltests.ManagedByILM},
 	}
 
-	return allBasicUpgradeScenarios(
+	return allDeepUpgradeScenarios(
 		fromVersion, toVersion,
 		checkILM, checkILM, checkILMRollover,
 		apmErrorLogsIgnored,
 	)
 }
 
-// basicUpgradeLazyRolloverDSLTestScenarios returns all scenarios for basic
+// deepUpgradeLazyRolloverDSLTestScenarios returns all scenarios for deep
 // upgrade test from `fromVersion` to `toVersion`. The test assumes that all
 // data streams (before and after upgrade) are using Data Stream Lifecycle
 // Management (DSL) instead of Index Lifecycle Management (ILM). It will also
 // verify that lazy rollover happened on post-upgrade ingestion.
-func basicUpgradeLazyRolloverDSLTestScenarios(
+func deepUpgradeLazyRolloverDSLTestScenarios(
 	fromVersion ecclient.StackVersion,
 	toVersion ecclient.StackVersion,
-	apmErrorLogsIgnored apmErrorLogs,
-) []basicUpgradeTestScenario {
+	apmErrorLogsIgnored steps.APMErrorLogs,
+) []deepUpgradeTestScenario {
 	// All data streams should be managed by DSL.
 	checkDSL := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        false,
-		DSManagedBy:      managedByDSL,
+		DSManagedBy:      functionaltests.ManagedByDSL,
 		IndicesPerDS:     1,
-		IndicesManagedBy: []string{managedByDSL},
+		IndicesManagedBy: []string{functionaltests.ManagedByDSL},
 	}
 	// Verify lazy rollover happened, i.e. 2 indices per data stream.
 	checkDSLRollover := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        false,
-		DSManagedBy:      managedByDSL,
+		DSManagedBy:      functionaltests.ManagedByDSL,
 		IndicesPerDS:     2,
-		IndicesManagedBy: []string{managedByDSL, managedByDSL},
+		IndicesManagedBy: []string{functionaltests.ManagedByDSL, functionaltests.ManagedByDSL},
 	}
 
-	return allBasicUpgradeScenarios(
+	return allDeepUpgradeScenarios(
 		fromVersion, toVersion,
 		checkDSL, checkDSL, checkDSLRollover,
 		apmErrorLogsIgnored,
 	)
 }
 
-// allBasicUpgradeScenarios returns all basic upgrade test scenarios.
+// allDeepUpgradeScenarios returns all deep upgrade test scenarios.
 // The scenarios involved are:
 //
 //   - Default: The cluster is created, some data is ingested and the first
@@ -140,48 +139,41 @@ func basicUpgradeLazyRolloverDSLTestScenarios(
 //     a new namespace. This test is to ensure that APM data streams rerouting
 //     still works as expected across ingestion and upgrade.
 //     See https://github.com/elastic/apm-server/issues/14060 for motivation.
-func allBasicUpgradeScenarios(
+func allDeepUpgradeScenarios(
 	fromVersion ecclient.StackVersion,
 	toVersion ecclient.StackVersion,
 	checkPreUpgradeAfterIngest asserts.CheckDataStreamsWant,
 	checkPostUpgradeBeforeIngest asserts.CheckDataStreamsWant,
 	checkPostUpgradeAfterIngest asserts.CheckDataStreamsWant,
-	apmErrorLogsIgnored apmErrorLogs,
-) []basicUpgradeTestScenario {
-	var scenarios []basicUpgradeTestScenario
+	apmErrorLogsIgnored steps.APMErrorLogs,
+) []deepUpgradeTestScenario {
+	var scenarios []deepUpgradeTestScenario
 
 	// Default
-	scenarios = append(scenarios, basicUpgradeTestScenario{
+	scenarios = append(scenarios, deepUpgradeTestScenario{
 		Name: "Default",
-		Runner: testStepsRunner{
-			Steps: []testStep{
-				createStep{DeployVersion: fromVersion},
-				ingestStep{CheckDataStream: checkPreUpgradeAfterIngest},
-				upgradeStep{NewVersion: toVersion, CheckDataStream: checkPostUpgradeBeforeIngest},
-				ingestStep{CheckDataStream: checkPostUpgradeAfterIngest},
-				checkErrorLogsStep{APMErrorLogsIgnored: apmErrorLogsIgnored},
+		Runner: steps.Runner{
+			Steps: []steps.Step{
+				steps.CreateStep{DeployVersion: fromVersion},
+				steps.IngestStep{CheckDataStream: checkPreUpgradeAfterIngest},
+				steps.UpgradeStep{NewVersion: toVersion, CheckDataStream: checkPostUpgradeBeforeIngest},
+				steps.IngestStep{CheckDataStream: checkPostUpgradeAfterIngest},
+				steps.CheckErrorLogsStep{APMErrorLogsIgnored: apmErrorLogsIgnored},
 			},
 		},
 	})
 
 	// Reroute
-	rerouteNamespace := "rerouted"
-	setupFn := stepFunc(func(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
-		t.Log("create reroute processors")
-		createRerouteIngestPipeline(t, ctx, e.esc, rerouteNamespace)
-		return previousRes
-	})
-	scenarios = append(scenarios, basicUpgradeTestScenario{
+	scenarios = append(scenarios, deepUpgradeTestScenario{
 		Name: "Reroute",
-		Runner: testStepsRunner{
-			DataStreamNamespace: rerouteNamespace,
-			Steps: []testStep{
-				createStep{DeployVersion: fromVersion},
-				customStep{Func: setupFn},
-				ingestStep{CheckDataStream: checkPreUpgradeAfterIngest},
-				upgradeStep{NewVersion: toVersion, CheckDataStream: checkPostUpgradeBeforeIngest},
-				ingestStep{CheckDataStream: checkPostUpgradeAfterIngest},
-				checkErrorLogsStep{APMErrorLogsIgnored: apmErrorLogsIgnored},
+		Runner: steps.Runner{
+			Steps: []steps.Step{
+				steps.CreateStep{DeployVersion: fromVersion},
+				steps.CreateReroutePipelinesStep{RerouteNamespace: "rerouted"},
+				steps.IngestStep{CheckDataStream: checkPreUpgradeAfterIngest},
+				steps.UpgradeStep{NewVersion: toVersion, CheckDataStream: checkPostUpgradeBeforeIngest},
+				steps.IngestStep{CheckDataStream: checkPostUpgradeAfterIngest},
+				steps.CheckErrorLogsStep{APMErrorLogsIgnored: apmErrorLogsIgnored},
 			},
 		},
 	})

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package functionaltests
+package standalone
 
 import (
 	"context"
@@ -24,7 +24,29 @@ import (
 	"os"
 	"testing"
 
+	"github.com/elastic/apm-server/functionaltests"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
+)
+
+var (
+	// cleanupOnFailure determines whether the created resources should be cleaned up on test failure.
+	cleanupOnFailure = flag.Bool(
+		"cleanup-on-failure",
+		true,
+		"Whether to run cleanup even if the test failed.",
+	)
+
+	// target is the Elastic Cloud environment to target with these test.
+	// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
+	target = flag.String(
+		"target",
+		"pro",
+		"The target environment where to run tests againts. Valid values are: qa, pro.",
+	)
+)
+
+var (
+	versionsCache *functionaltests.Cache
 )
 
 func TestMain(m *testing.M) {
@@ -43,33 +65,18 @@ func TestMain(m *testing.M) {
 	}
 
 	ctx := context.Background()
-	ecRegion := regionFrom(*target)
-	ecc, err := ecclient.New(endpointFrom(*target), ecAPIKey)
+	ecRegion := functionaltests.RegionFrom(*target)
+	ecc, err := ecclient.New(functionaltests.EndpointFrom(*target), ecAPIKey)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	candidates, err := ecc.GetCandidateVersionInfos(ctx, ecRegion)
+	versionsCache, err = functionaltests.NewVersionsCache(ctx, ecc, ecRegion)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-	fetchedCandidates = candidates
-
-	snapshots, err := ecc.GetSnapshotVersionInfos(ctx, ecRegion)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	fetchedSnapshots = snapshots
-
-	versions, err := ecc.GetVersionInfos(ctx, ecRegion)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	fetchedVersions = versions
 
 	code := m.Run()
 	os.Exit(code)

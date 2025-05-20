@@ -134,7 +134,7 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ecclient.StackV
 	}
 
 	// With standalone, we don't have Fleet, so simply just wait for some arbitrary time.
-	time.Sleep(60 * time.Second)
+	time.Sleep(90 * time.Second)
 	return nil
 }
 

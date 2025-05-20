@@ -15,29 +15,32 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package functionaltests
+package deep
 
 import (
 	"testing"
+
+	"github.com/elastic/apm-server/functionaltests"
+	"github.com/elastic/apm-server/functionaltests/internal/steps"
 )
 
 func TestUpgrade_8_17_to_8_18_Snapshot(t *testing.T) {
 	t.Parallel()
-	from := getLatestSnapshot(t, "8.17")
-	to := getLatestSnapshot(t, "8.18")
+	from := versionsCache.GetLatestSnapshot(t, "8.17")
+	to := versionsCache.GetLatestSnapshot(t, "8.18")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := basicUpgradeILMTestScenarios(
+	scenarios := deepUpgradeILMTestScenarios(
 		from.Version,
 		to.Version,
-		apmErrorLogs{
-			tlsHandshakeError,
-			esReturnedUnknown503,
-			refreshCache503,
-			populateSourcemapFetcher403,
+		steps.APMErrorLogs{
+			functionaltests.TLSHandshakeError,
+			functionaltests.ESReturnedUnknown503,
+			functionaltests.RefreshCache503,
+			functionaltests.PopulateSourcemapFetcher403,
 		},
 	)
 	for _, scenario := range scenarios {
@@ -50,21 +53,21 @@ func TestUpgrade_8_17_to_8_18_Snapshot(t *testing.T) {
 
 func TestUpgrade_8_17_to_8_18_BC(t *testing.T) {
 	t.Parallel()
-	from := getLatestVersionOrSkip(t, "8.17")
-	to := getLatestBCOrSkip(t, "8.18")
+	from := versionsCache.GetLatestVersionOrSkip(t, "8.17")
+	to := versionsCache.GetLatestBCOrSkip(t, "8.18")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := basicUpgradeILMTestScenarios(
+	scenarios := deepUpgradeILMTestScenarios(
 		from.Version,
 		to.Version,
-		apmErrorLogs{
-			tlsHandshakeError,
-			esReturnedUnknown503,
-			refreshCache503,
-			populateSourcemapFetcher403,
+		steps.APMErrorLogs{
+			functionaltests.TLSHandshakeError,
+			functionaltests.ESReturnedUnknown503,
+			functionaltests.RefreshCache503,
+			functionaltests.PopulateSourcemapFetcher403,
 		},
 	)
 	for _, scenario := range scenarios {

@@ -15,21 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package functionaltests
+package standalone
 
 import (
 	"testing"
 
+	"github.com/elastic/apm-server/functionaltests"
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
+	"github.com/elastic/apm-server/functionaltests/internal/steps"
 )
 
 func TestUpgrade_7_17_to_8_x_to_9_x_Snapshot_Standalone_to_Managed(t *testing.T) {
 	t.Parallel()
 
-	from7 := getLatestSnapshot(t, "7.17")
-	to8 := getLatestSnapshot(t, "8")
-	to9 := getLatestSnapshot(t, "9")
+	from7 := versionsCache.GetLatestSnapshot(t, "7.17")
+	to8 := versionsCache.GetLatestSnapshot(t, "8")
+	to9 := versionsCache.GetLatestSnapshot(t, "9")
 	if !from7.CanUpgradeTo(to8.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from7.Version, to8.Version)
 		return
@@ -61,9 +63,9 @@ func TestUpgrade_7_17_to_8_x_to_9_x_Snapshot_Standalone_to_Managed(t *testing.T)
 func TestUpgrade_7_17_to_8_x_to_9_x_BC_Standalone_to_Managed(t *testing.T) {
 	t.Parallel()
 
-	from7 := getLatestVersionOrSkip(t, "7.17")
-	to8 := getLatestVersionOrSkip(t, "8")
-	to9 := getLatestBCOrSkip(t, "9")
+	from7 := versionsCache.GetLatestVersionOrSkip(t, "7.17")
+	to8 := versionsCache.GetLatestVersionOrSkip(t, "8")
+	to9 := versionsCache.GetLatestBCOrSkip(t, "9")
 	if !from7.CanUpgradeTo(to8.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from7.Version, to8.Version)
 		return
@@ -92,16 +94,16 @@ func TestUpgrade_7_17_to_8_x_to_9_x_BC_Standalone_to_Managed(t *testing.T) {
 	})
 }
 
-func managed7Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) testStepsRunner {
+func managed7Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) steps.Runner {
 	checkILM := asserts.CheckDataStreamIndividualWant{
 		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
-		IndicesManagedBy: []string{managedByILM},
+		DSManagedBy:      functionaltests.ManagedByILM,
+		IndicesManagedBy: []string{functionaltests.ManagedByILM},
 	}
 	checkILMRollover := asserts.CheckDataStreamIndividualWant{
 		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
-		IndicesManagedBy: []string{managedByILM, managedByILM},
+		DSManagedBy:      functionaltests.ManagedByILM,
+		IndicesManagedBy: []string{functionaltests.ManagedByILM, functionaltests.ManagedByILM},
 	}
 
 	check := map[string]asserts.CheckDataStreamIndividualWant{
@@ -127,67 +129,71 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 		"metrics-apm.app.opbeans_go-%s",
 	}
 
-	return testStepsRunner{
-		Steps: []testStep{
+	return steps.Runner{
+		CloudEnvironment:        *target,
+		CloudRegion:             functionaltests.RegionFrom(*target),
+		CloudDeploymentTemplate: functionaltests.DeploymentTemplateFrom(functionaltests.RegionFrom(*target)),
+		CleanupOnFailure:        *cleanupOnFailure,
+		Steps: []steps.Step{
 			// Start from 7.x.
-			createStep{
+			steps.CreateStep{
 				DeployVersion:     fromVersion7,
-				APMDeploymentMode: apmStandalone,
+				APMDeploymentMode: steps.APMStandalone,
 			},
-			ingestV7Step{},
+			steps.IngestV7Step{},
 			// Migrate to managed.
-			migrateManagedStep{},
-			ingestV7Step{},
+			steps.MigrateManagedStep{},
+			steps.IngestV7Step{},
 			// Upgrade to 8.x.
-			upgradeV7Step{NewVersion: toVersion8},
-			ingestStep{
+			steps.UpgradeV7Step{NewVersion: toVersion8},
+			steps.IngestStep{
 				IgnoreDataStreams:         ignoredDataStreams,
 				CheckIndividualDataStream: check,
 			},
 			// Resolve deprecations and upgrade to 9.x.
-			resolveDeprecationsStep{},
-			upgradeStep{
+			steps.ResolveDeprecationsStep{},
+			steps.UpgradeStep{
 				NewVersion:                toVersion9,
 				IgnoreDataStreams:         ignoredDataStreams,
 				CheckIndividualDataStream: check,
 			},
-			ingestStep{
+			steps.IngestStep{
 				IgnoreDataStreams:         ignoredDataStreams,
 				CheckIndividualDataStream: check,
 			},
-			checkErrorLogsStep{
-				ESErrorLogsIgnored: esErrorLogs{
-					eventLoopShutdown,
-					addIndexTemplateTracesError,
+			steps.CheckErrorLogsStep{
+				ESErrorLogsIgnored: steps.ESErrorLogs{
+					functionaltests.EventLoopShutdown,
+					functionaltests.AddIndexTemplateTracesError,
 				},
-				APMErrorLogsIgnored: apmErrorLogs{
-					tlsHandshakeError,
-					esReturnedUnknown503,
-					refreshCache503,
-					preconditionClusterInfoCtxCanceled,
-					waitServerReadyCtxCanceled,
-					grpcServerStopped,
-					populateSourcemapFetcher403,
-					refreshCache403,
-					refreshCacheESConfigInvalid,
+				APMErrorLogsIgnored: steps.APMErrorLogs{
+					functionaltests.TLSHandshakeError,
+					functionaltests.ESReturnedUnknown503,
+					functionaltests.RefreshCache503,
+					functionaltests.PreconditionClusterInfoCtxCanceled,
+					functionaltests.WaitServerReadyCtxCanceled,
+					functionaltests.GRPCServerStopped,
+					functionaltests.PopulateSourcemapFetcher403,
+					functionaltests.RefreshCache403,
+					functionaltests.RefreshCacheESConfigInvalid,
 				},
 			},
 		},
 	}
 }
 
-func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) testStepsRunner {
+func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) steps.Runner {
 	checkILMAll := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
+		DSManagedBy:      functionaltests.ManagedByILM,
 		IndicesPerDS:     1,
-		IndicesManagedBy: []string{managedByILM},
+		IndicesManagedBy: []string{functionaltests.ManagedByILM},
 	}
 	checkILM := asserts.CheckDataStreamIndividualWant{
 		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
-		IndicesManagedBy: []string{managedByILM},
+		DSManagedBy:      functionaltests.ManagedByILM,
+		IndicesManagedBy: []string{functionaltests.ManagedByILM},
 	}
 
 	check := map[string]asserts.CheckDataStreamIndividualWant{
@@ -211,90 +217,98 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 		"metrics-apm.app.opbeans_go-%s",
 	}
 
-	return testStepsRunner{
-		Steps: []testStep{
+	return steps.Runner{
+		CloudEnvironment:        *target,
+		CloudRegion:             functionaltests.RegionFrom(*target),
+		CloudDeploymentTemplate: functionaltests.DeploymentTemplateFrom(functionaltests.RegionFrom(*target)),
+		CleanupOnFailure:        *cleanupOnFailure,
+		Steps: []steps.Step{
 			// Start from 7.x.
-			createStep{
+			steps.CreateStep{
 				DeployVersion:     fromVersion7,
-				APMDeploymentMode: apmStandalone,
+				APMDeploymentMode: steps.APMStandalone,
 			},
-			ingestV7Step{},
+			steps.IngestV7Step{},
 			// Upgrade to 8.x.
-			upgradeV7Step{NewVersion: toVersion8},
-			ingestStep{CheckDataStream: checkILMAll},
+			steps.UpgradeV7Step{NewVersion: toVersion8},
+			steps.IngestStep{CheckDataStream: checkILMAll},
 			// Migrate to managed
-			migrateManagedStep{},
-			ingestStep{CheckDataStream: checkILMAll},
+			steps.MigrateManagedStep{},
+			steps.IngestStep{CheckDataStream: checkILMAll},
 			// Resolve deprecations and upgrade to 9.x.
-			resolveDeprecationsStep{},
-			upgradeStep{
+			steps.ResolveDeprecationsStep{},
+			steps.UpgradeStep{
 				NewVersion:                toVersion9,
 				IgnoreDataStreams:         ignoredDataStreams,
 				CheckIndividualDataStream: check,
 			},
-			ingestStep{
+			steps.IngestStep{
 				IgnoreDataStreams:         ignoredDataStreams,
 				CheckIndividualDataStream: check,
 			},
-			checkErrorLogsStep{
-				ESErrorLogsIgnored: esErrorLogs{
-					eventLoopShutdown,
+			steps.CheckErrorLogsStep{
+				ESErrorLogsIgnored: steps.ESErrorLogs{
+					functionaltests.EventLoopShutdown,
 				},
-				APMErrorLogsIgnored: apmErrorLogs{
-					tlsHandshakeError,
-					esReturnedUnknown503,
-					refreshCache503,
-					populateSourcemapFetcher403,
-					refreshCache403,
-					refreshCacheESConfigInvalid,
+				APMErrorLogsIgnored: steps.APMErrorLogs{
+					functionaltests.TLSHandshakeError,
+					functionaltests.ESReturnedUnknown503,
+					functionaltests.RefreshCache503,
+					functionaltests.PopulateSourcemapFetcher403,
+					functionaltests.RefreshCache403,
+					functionaltests.RefreshCacheESConfigInvalid,
 				},
 			},
 		},
 	}
 }
 
-func managed9Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) testStepsRunner {
+func managed9Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) steps.Runner {
 	// Data streams in 8.x should be all ILM if upgraded to a stack < 8.15 and > 8.16.
 	checkILMAll := asserts.CheckDataStreamsWant{
 		Quantity:         8,
 		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
+		DSManagedBy:      functionaltests.ManagedByILM,
 		IndicesPerDS:     1,
-		IndicesManagedBy: []string{managedByILM},
+		IndicesManagedBy: []string{functionaltests.ManagedByILM},
 	}
 
-	return testStepsRunner{
-		Steps: []testStep{
+	return steps.Runner{
+		CloudEnvironment:        *target,
+		CloudRegion:             functionaltests.RegionFrom(*target),
+		CloudDeploymentTemplate: functionaltests.DeploymentTemplateFrom(functionaltests.RegionFrom(*target)),
+		CleanupOnFailure:        *cleanupOnFailure,
+		Steps: []steps.Step{
 			// Start from 7.x.
-			createStep{
+			steps.CreateStep{
 				DeployVersion:     fromVersion7,
-				APMDeploymentMode: apmStandalone,
+				APMDeploymentMode: steps.APMStandalone,
 			},
-			ingestV7Step{},
+			steps.IngestV7Step{},
 			// Upgrade to 8.x.
-			upgradeV7Step{NewVersion: toVersion8},
-			ingestStep{CheckDataStream: checkILMAll},
+			steps.UpgradeV7Step{NewVersion: toVersion8},
+			steps.IngestStep{CheckDataStream: checkILMAll},
 			// Resolve deprecations and upgrade to 9.x.
-			resolveDeprecationsStep{},
-			upgradeStep{
+			steps.ResolveDeprecationsStep{},
+			steps.UpgradeStep{
 				NewVersion:      toVersion9,
 				CheckDataStream: checkILMAll,
 			},
-			ingestStep{CheckDataStream: checkILMAll},
+			steps.IngestStep{CheckDataStream: checkILMAll},
 			// Migrate to managed.
-			migrateManagedStep{},
-			ingestStep{CheckDataStream: checkILMAll},
-			checkErrorLogsStep{
-				ESErrorLogsIgnored: esErrorLogs{
-					eventLoopShutdown,
+			steps.MigrateManagedStep{},
+			steps.IngestStep{CheckDataStream: checkILMAll},
+			steps.CheckErrorLogsStep{
+				ESErrorLogsIgnored: steps.ESErrorLogs{
+					functionaltests.EventLoopShutdown,
 				},
-				APMErrorLogsIgnored: apmErrorLogs{
-					tlsHandshakeError,
-					esReturnedUnknown503,
-					refreshCache503,
-					populateSourcemapFetcher403,
-					refreshCache403,
-					refreshCacheESConfigInvalid,
+				APMErrorLogsIgnored: steps.APMErrorLogs{
+					functionaltests.TLSHandshakeError,
+					functionaltests.ESReturnedUnknown503,
+					functionaltests.RefreshCache503,
+					functionaltests.PopulateSourcemapFetcher403,
+					functionaltests.RefreshCache403,
+					functionaltests.RefreshCacheESConfigInvalid,
 				},
 			},
 		},
