@@ -36,32 +36,40 @@ The following is the simplified directory structure of functional tests.
 - functionaltests/
    |- infra/
    |- internal/
-   |- main_test.go
-   |- x_y_test.go
+   |- tests/
+       |- standalone/
+       |- deep/
 ```
 
-All the functional tests are written in the current directory.
+All the functional tests are written in the `tests/` directory. The functional tests are separated in two different types
+of tests, deep upgrade tests in `tests/deep/` and standalone-to-managed tests in `tests/standalone/`.
 
 The `internal/` directory contains helper packages used in the tests, e.g. Elasticsearch, Kibana client wrapper etc.
 
 The `infra/` directory contains infrastructure related code. In our case, we use Terraform for deploying the stack in
-Elastic Cloud. The Terraform files are located in `infra/terraform`, and are copied into `tf-<test_name>/` e.g.
-`tf-TestUpgrade_8_19_to_9_0/`, at the start of each test (since Terraform saves state in the directory it is initialized
-in).
+Elastic Cloud. The Terraform files are located in `infra/terraform`, and are copied into `tf-<test_name>/` in the working 
+directory e.g. `tests/deep/tf-TestUpgrade_8_19_to_9_0/`, at the start of each test (since Terraform saves state in the directory 
+it is initialized in).
 
-### Upgrade Tests
+### Deep Upgrade Tests
 
-We suggest each upgrade test to be named in the format of `TestUpgrade_<from_version>_to_<to_version_1>[_to_<to_version_N>]*[_<suffix>]?`.
+Deep upgrade tests checks that APM Server works properly across upgrade in specific circumstances. These include checking
+for document counts, data stream / indices lifecycle etc.
+
+We suggest each deep upgrade test to be named in the format of `TestUpgrade_<from_version>_to_<to_version_1>[_to_<to_version_N>]*[_<suffix>]?`.
 This means that the test will start from `from_version`, and be upgraded to `to_version_1`, then subsequently to
 `to_version_2` etc. all the way to `to_version_N`.
 
-The upgrade tests are implemented in each version test file. The test file is named after the last version of the upgrade
-chain. For example, `TestUpgrade_8_15_to_8_16` will be in `8_16_test.go`.
+The upgrade tests are implemented in each version test file. The test file is named after the first version of the upgrade
+chain. For example, `TestUpgrade_8_15_to_8_16` will be in `8_15_test.go`.
 
 ### Standalone-to-Managed Tests
 
-If the standalone-to-managed test includes an upgrade, simply add `Standalone_to_Managed` at the end of the test name,
-e.g. `TestUpgrade_7_17_to_8_x_Standalone_to_Managed`. Otherwise, if there is no upgrade simply omit the `Upgrade`
-prefix, e.g. `Test_7_17_Standalone_to_Managed`.
+Standalone-to-managed tests checks that APM Server works properly after being converted from standalone to Fleet managed.
+
+The 3 tests are:
+1. 7.x standalone -> 8.x standalone -> 8.x managed -> 9.x managed
+2. 7.x standalone -> 8.x standalone -> 9.x standalone -> 9.x managed
+3. 7.x standalone -> 7.x managed -> 8.x managed -> 9.x managed
 
 The standalone-to-managed tests are implemented in `standalone_test.go`.

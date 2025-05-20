@@ -24,27 +24,34 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/steps"
 )
 
-// Data streams get marked for lazy rollover by ES when something
-// changed in the underlying template(s), which in this case is
-// the apm-data plugin update for 8.19 and 9.1:
-// https://github.com/elastic/elasticsearch/pull/119995.
+// In 8.15, the data stream management was migrated from ILM to DSL.
+// However, a bug was introduced, causing data streams to be unmanaged.
+// See https://github.com/elastic/apm-server/issues/13898.
+//
+// It was fixed by defaulting data stream management to DSL, and eventually
+// reverted back to ILM in 8.17. Therefore, data streams created in 8.15 and
+// 8.16 are managed by DSL instead of ILM.
 
-func TestUpgrade_8_18_to_8_19_Snapshot(t *testing.T) {
+func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 	t.Parallel()
-	from := versionsCache.GetLatestSnapshot(t, "8.18")
-	to := versionsCache.GetLatestSnapshot(t, "8.19")
+	from := versionsCache.GetLatestSnapshot(t, "8.15")
+	to := versionsCache.GetLatestSnapshot(t, "8.16")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := deepUpgradeLazyRolloverILMTestScenarios(
+	scenarios := deepUpgradeLazyRolloverDSLTestScenarios(
 		from.Version,
 		to.Version,
 		steps.APMErrorLogs{
 			functionaltests.TLSHandshakeError,
 			functionaltests.ESReturnedUnknown503,
-			functionaltests.RefreshCache503,
+			functionaltests.PreconditionFailed,
+			functionaltests.PopulateSourcemapServerShuttingDown,
+			functionaltests.RefreshCacheCtxDeadline,
+			functionaltests.RefreshCacheCtxCanceled,
+			// TODO: remove once fixed
 			functionaltests.PopulateSourcemapFetcher403,
 		},
 	)
@@ -56,22 +63,26 @@ func TestUpgrade_8_18_to_8_19_Snapshot(t *testing.T) {
 	}
 }
 
-func TestUpgrade_8_18_to_8_19_BC(t *testing.T) {
+func TestUpgrade_8_15_to_8_16_BC(t *testing.T) {
 	t.Parallel()
-	from := versionsCache.GetLatestVersionOrSkip(t, "8.18")
-	to := versionsCache.GetLatestBCOrSkip(t, "8.19")
+	from := versionsCache.GetLatestVersionOrSkip(t, "8.15")
+	to := versionsCache.GetLatestBCOrSkip(t, "8.16")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := deepUpgradeLazyRolloverILMTestScenarios(
+	scenarios := deepUpgradeLazyRolloverDSLTestScenarios(
 		from.Version,
 		to.Version,
 		steps.APMErrorLogs{
 			functionaltests.TLSHandshakeError,
 			functionaltests.ESReturnedUnknown503,
-			functionaltests.RefreshCache503,
+			functionaltests.PreconditionFailed,
+			functionaltests.PopulateSourcemapServerShuttingDown,
+			functionaltests.RefreshCacheCtxDeadline,
+			functionaltests.RefreshCacheCtxCanceled,
+			// TODO: remove once fixed
 			functionaltests.PopulateSourcemapFetcher403,
 		},
 	)

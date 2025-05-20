@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/functionaltests"
+	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/steps"
 )
 
@@ -32,26 +33,48 @@ import (
 // reverted back to ILM in 8.17. Therefore, data streams created in 8.15 and
 // 8.16 are managed by DSL instead of ILM.
 
-func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
+func TestUpgrade_8_16_to_8_17_Snapshot(t *testing.T) {
 	t.Parallel()
-	from := versionsCache.GetLatestSnapshot(t, "8.15")
-	to := versionsCache.GetLatestSnapshot(t, "8.16")
+	from := versionsCache.GetLatestSnapshot(t, "8.16")
+	to := versionsCache.GetLatestSnapshot(t, "8.17")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := deepUpgradeLazyRolloverDSLTestScenarios(
+	scenarios := allDeepUpgradeScenarios(
 		from.Version,
 		to.Version,
+		// Data streams managed by DSL pre-upgrade.
+		asserts.CheckDataStreamsWant{
+			Quantity:         8,
+			PreferIlm:        false,
+			DSManagedBy:      functionaltests.ManagedByDSL,
+			IndicesPerDS:     1,
+			IndicesManagedBy: []string{functionaltests.ManagedByDSL},
+		},
+		// Data streams managed by ILM post-upgrade.
+		// However, the index created before upgrade is still managed by DSL.
+		asserts.CheckDataStreamsWant{
+			Quantity:         8,
+			PreferIlm:        true,
+			DSManagedBy:      functionaltests.ManagedByILM,
+			IndicesPerDS:     1,
+			IndicesManagedBy: []string{functionaltests.ManagedByDSL},
+		},
+		// Verify lazy rollover happened, i.e. 2 indices.
+		asserts.CheckDataStreamsWant{
+			Quantity:         8,
+			PreferIlm:        true,
+			DSManagedBy:      functionaltests.ManagedByILM,
+			IndicesPerDS:     2,
+			IndicesManagedBy: []string{functionaltests.ManagedByDSL, functionaltests.ManagedByILM},
+		},
 		steps.APMErrorLogs{
 			functionaltests.TLSHandshakeError,
 			functionaltests.ESReturnedUnknown503,
-			functionaltests.PreconditionFailed,
-			functionaltests.PopulateSourcemapServerShuttingDown,
-			functionaltests.RefreshCacheCtxDeadline,
+			functionaltests.RefreshCache503,
 			functionaltests.RefreshCacheCtxCanceled,
-			// TODO: remove once fixed
 			functionaltests.PopulateSourcemapFetcher403,
 		},
 	)
@@ -63,26 +86,48 @@ func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 	}
 }
 
-func TestUpgrade_8_15_to_8_16_BC(t *testing.T) {
+func TestUpgrade_8_16_to_8_17_BC(t *testing.T) {
 	t.Parallel()
-	from := versionsCache.GetLatestVersionOrSkip(t, "8.15")
-	to := versionsCache.GetLatestBCOrSkip(t, "8.16")
+	from := versionsCache.GetLatestVersionOrSkip(t, "8.16")
+	to := versionsCache.GetLatestBCOrSkip(t, "8.17")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := deepUpgradeLazyRolloverDSLTestScenarios(
+	scenarios := allDeepUpgradeScenarios(
 		from.Version,
 		to.Version,
+		// Data streams managed by DSL pre-upgrade.
+		asserts.CheckDataStreamsWant{
+			Quantity:         8,
+			PreferIlm:        false,
+			DSManagedBy:      functionaltests.ManagedByDSL,
+			IndicesPerDS:     1,
+			IndicesManagedBy: []string{functionaltests.ManagedByDSL},
+		},
+		// Data streams managed by ILM post-upgrade.
+		// However, the index created before upgrade is still managed by DSL.
+		asserts.CheckDataStreamsWant{
+			Quantity:         8,
+			PreferIlm:        true,
+			DSManagedBy:      functionaltests.ManagedByILM,
+			IndicesPerDS:     1,
+			IndicesManagedBy: []string{functionaltests.ManagedByDSL},
+		},
+		// Verify lazy rollover happened, i.e. 2 indices.
+		asserts.CheckDataStreamsWant{
+			Quantity:         8,
+			PreferIlm:        true,
+			DSManagedBy:      functionaltests.ManagedByILM,
+			IndicesPerDS:     2,
+			IndicesManagedBy: []string{functionaltests.ManagedByDSL, functionaltests.ManagedByILM},
+		},
 		steps.APMErrorLogs{
 			functionaltests.TLSHandshakeError,
 			functionaltests.ESReturnedUnknown503,
-			functionaltests.PreconditionFailed,
-			functionaltests.PopulateSourcemapServerShuttingDown,
-			functionaltests.RefreshCacheCtxDeadline,
+			functionaltests.RefreshCache503,
 			functionaltests.RefreshCacheCtxCanceled,
-			// TODO: remove once fixed
 			functionaltests.PopulateSourcemapFetcher403,
 		},
 	)

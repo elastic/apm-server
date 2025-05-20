@@ -152,22 +152,22 @@ func allDeepUpgradeScenarios(
 	// Default
 	scenarios = append(scenarios, deepUpgradeTestScenario{
 		Name: "Default",
-		Runner: steps.Runner{
-			Steps: []steps.Step{
+		Runner: functionaltests.TestStepsRunner(*target, *cleanupOnFailure,
+			[]steps.Step{
 				steps.CreateStep{DeployVersion: fromVersion},
 				steps.IngestStep{CheckDataStream: checkPreUpgradeAfterIngest},
 				steps.UpgradeStep{NewVersion: toVersion, CheckDataStream: checkPostUpgradeBeforeIngest},
 				steps.IngestStep{CheckDataStream: checkPostUpgradeAfterIngest},
 				steps.CheckErrorLogsStep{APMErrorLogsIgnored: apmErrorLogsIgnored},
 			},
-		},
+		),
 	})
 
 	// Reroute
 	scenarios = append(scenarios, deepUpgradeTestScenario{
 		Name: "Reroute",
-		Runner: steps.Runner{
-			Steps: []steps.Step{
+		Runner: functionaltests.TestStepsRunner(*target, *cleanupOnFailure,
+			[]steps.Step{
 				steps.CreateStep{DeployVersion: fromVersion},
 				steps.CreateReroutePipelinesStep{RerouteNamespace: "rerouted"},
 				steps.IngestStep{CheckDataStream: checkPreUpgradeAfterIngest},
@@ -175,7 +175,7 @@ func allDeepUpgradeScenarios(
 				steps.IngestStep{CheckDataStream: checkPostUpgradeAfterIngest},
 				steps.CheckErrorLogsStep{APMErrorLogsIgnored: apmErrorLogsIgnored},
 			},
-		},
+		),
 	})
 
 	return scenarios

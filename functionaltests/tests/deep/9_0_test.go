@@ -24,24 +24,30 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/steps"
 )
 
-func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
+// Data streams get marked for lazy rollover by ES when something
+// changed in the underlying template(s), which in this case is
+// the apm-data plugin update for 8.19 and 9.1:
+// https://github.com/elastic/elasticsearch/pull/119995.
+
+func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 	t.Parallel()
-	from := versionsCache.GetLatestSnapshot(t, "8.18")
-	to := versionsCache.GetLatestSnapshot(t, "9.0")
+	from := versionsCache.GetLatestSnapshot(t, "9.0")
+	to := versionsCache.GetLatestSnapshot(t, "9.1")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
 	}
 
-	scenarios := deepUpgradeILMTestScenarios(
+	scenarios := deepUpgradeLazyRolloverILMTestScenarios(
 		from.Version,
 		to.Version,
 		steps.APMErrorLogs{
 			functionaltests.TLSHandshakeError,
 			functionaltests.ESReturnedUnknown503,
 			functionaltests.RefreshCache503,
-			// TODO: remove once fixed
 			functionaltests.PopulateSourcemapFetcher403,
+			functionaltests.RefreshCache403,
+			functionaltests.RefreshCacheESConfigInvalid,
 		},
 	)
 	for _, scenario := range scenarios {
@@ -52,10 +58,39 @@ func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
 	}
 }
 
-func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
+func TestUpgrade_9_0_to_9_1_BC(t *testing.T) {
 	t.Parallel()
-	from := versionsCache.GetLatestVersionOrSkip(t, "8.18")
-	to := versionsCache.GetLatestBCOrSkip(t, "9.0")
+	from := versionsCache.GetLatestVersionOrSkip(t, "9.0")
+	to := versionsCache.GetLatestBCOrSkip(t, "9.1")
+	if !from.CanUpgradeTo(to.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
+		return
+	}
+
+	scenarios := deepUpgradeLazyRolloverILMTestScenarios(
+		from.Version,
+		to.Version,
+		steps.APMErrorLogs{
+			functionaltests.TLSHandshakeError,
+			functionaltests.ESReturnedUnknown503,
+			functionaltests.RefreshCache503,
+			functionaltests.PopulateSourcemapFetcher403,
+			functionaltests.RefreshCache403,
+			functionaltests.RefreshCacheESConfigInvalid,
+		},
+	)
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(t *testing.T) {
+			t.Parallel()
+			scenario.Runner.Run(t)
+		})
+	}
+}
+
+func TestUpgrade_8_19_to_9_1_Snapshot(t *testing.T) {
+	t.Parallel()
+	from := versionsCache.GetLatestSnapshot(t, "8.19")
+	to := versionsCache.GetLatestSnapshot(t, "9.1")
 	if !from.CanUpgradeTo(to.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
 		return
@@ -68,8 +103,38 @@ func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
 			functionaltests.TLSHandshakeError,
 			functionaltests.ESReturnedUnknown503,
 			functionaltests.RefreshCache503,
-			// TODO: remove once fixed
 			functionaltests.PopulateSourcemapFetcher403,
+			functionaltests.RefreshCache403,
+			functionaltests.RefreshCacheESConfigInvalid,
+		},
+	)
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(t *testing.T) {
+			t.Parallel()
+			scenario.Runner.Run(t)
+		})
+	}
+}
+
+func TestUpgrade_8_19_to_9_1_BC(t *testing.T) {
+	t.Parallel()
+	from := versionsCache.GetLatestVersionOrSkip(t, "8.19")
+	to := versionsCache.GetLatestBCOrSkip(t, "9.1")
+	if !from.CanUpgradeTo(to.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
+		return
+	}
+
+	scenarios := deepUpgradeILMTestScenarios(
+		from.Version,
+		to.Version,
+		steps.APMErrorLogs{
+			functionaltests.TLSHandshakeError,
+			functionaltests.ESReturnedUnknown503,
+			functionaltests.RefreshCache503,
+			functionaltests.PopulateSourcemapFetcher403,
+			functionaltests.RefreshCache403,
+			functionaltests.RefreshCacheESConfigInvalid,
 		},
 	)
 	for _, scenario := range scenarios {

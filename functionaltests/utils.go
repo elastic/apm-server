@@ -17,6 +17,10 @@
 
 package functionaltests
 
+import (
+	"github.com/elastic/apm-server/functionaltests/internal/steps"
+)
+
 const (
 	TargetQA   = "qa"
 	TargetProd = "pro"
@@ -68,3 +72,13 @@ const (
 	// ManagedByILM is the constant string used by Elasticsearch to specify that an Index is managed by Index Lifecycle Management.
 	ManagedByILM = "Index Lifecycle Management"
 )
+
+func TestStepsRunner(target string, cleanupOnFailure bool, s []steps.Step) steps.Runner {
+	return steps.Runner{
+		CloudEnvironment:        target,
+		CloudRegion:             RegionFrom(target),
+		CloudDeploymentTemplate: DeploymentTemplateFrom(RegionFrom(target)),
+		CleanupOnFailure:        cleanupOnFailure,
+		Steps:                   s,
+	}
+}

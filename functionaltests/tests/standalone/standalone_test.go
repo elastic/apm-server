@@ -129,12 +129,8 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 		"metrics-apm.app.opbeans_go-%s",
 	}
 
-	return steps.Runner{
-		CloudEnvironment:        *target,
-		CloudRegion:             functionaltests.RegionFrom(*target),
-		CloudDeploymentTemplate: functionaltests.DeploymentTemplateFrom(functionaltests.RegionFrom(*target)),
-		CleanupOnFailure:        *cleanupOnFailure,
-		Steps: []steps.Step{
+	return functionaltests.TestStepsRunner(*target, *cleanupOnFailure,
+		[]steps.Step{
 			// Start from 7.x.
 			steps.CreateStep{
 				DeployVersion:     fromVersion7,
@@ -179,7 +175,7 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 				},
 			},
 		},
-	}
+	)
 }
 
 func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) steps.Runner {
@@ -217,12 +213,8 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 		"metrics-apm.app.opbeans_go-%s",
 	}
 
-	return steps.Runner{
-		CloudEnvironment:        *target,
-		CloudRegion:             functionaltests.RegionFrom(*target),
-		CloudDeploymentTemplate: functionaltests.DeploymentTemplateFrom(functionaltests.RegionFrom(*target)),
-		CleanupOnFailure:        *cleanupOnFailure,
-		Steps: []steps.Step{
+	return functionaltests.TestStepsRunner(*target, *cleanupOnFailure,
+		[]steps.Step{
 			// Start from 7.x.
 			steps.CreateStep{
 				DeployVersion:     fromVersion7,
@@ -260,7 +252,7 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 				},
 			},
 		},
-	}
+	)
 }
 
 func managed9Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) steps.Runner {
@@ -273,12 +265,8 @@ func managed9Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 		IndicesManagedBy: []string{functionaltests.ManagedByILM},
 	}
 
-	return steps.Runner{
-		CloudEnvironment:        *target,
-		CloudRegion:             functionaltests.RegionFrom(*target),
-		CloudDeploymentTemplate: functionaltests.DeploymentTemplateFrom(functionaltests.RegionFrom(*target)),
-		CleanupOnFailure:        *cleanupOnFailure,
-		Steps: []steps.Step{
+	return functionaltests.TestStepsRunner(*target, *cleanupOnFailure,
+		[]steps.Step{
 			// Start from 7.x.
 			steps.CreateStep{
 				DeployVersion:     fromVersion7,
@@ -312,5 +300,5 @@ func managed9Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 				},
 			},
 		},
-	}
+	)
 }
