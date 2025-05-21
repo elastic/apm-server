@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.24.2
+go 1.24.3
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.2
@@ -9,10 +9,10 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.3.0
 	github.com/elastic/apm-data v1.18.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250508120109-11713f01ac21
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250520132053-6ae2eae52f76
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
-	github.com/elastic/elastic-agent-libs v0.19.4
-	github.com/elastic/elastic-agent-system-metrics v0.11.11
+	github.com/elastic/elastic-agent-libs v0.19.5
+	github.com/elastic/elastic-agent-system-metrics v0.11.12
 	github.com/elastic/elastic-transport-go/v8 v8.7.0
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.9.0
@@ -38,7 +38,7 @@ require (
 	go.elastic.co/apm/module/apmotel/v2 v2.6.3
 	go.elastic.co/apm/v2 v2.6.3
 	go.elastic.co/fastjson v1.5.1
-	go.opentelemetry.io/collector/pdata v1.31.0
+	go.opentelemetry.io/collector/pdata v1.32.0
 	go.opentelemetry.io/otel v1.35.0
 	go.opentelemetry.io/otel/metric v1.35.0
 	go.opentelemetry.io/otel/sdk/metric v1.35.0
@@ -50,7 +50,7 @@ require (
 	golang.org/x/sync v0.14.0
 	golang.org/x/term v0.32.0
 	golang.org/x/time v0.11.0
-	google.golang.org/grpc v1.72.0
+	google.golang.org/grpc v1.72.1
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -109,7 +109,7 @@ require (
 	github.com/elastic/sarama v1.19.1-0.20250304185506-df6449b5c996 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
-	github.com/fsnotify/fsnotify v1.8.0 // indirect
+	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/getsentry/sentry-go v0.29.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.6.1 // indirect
@@ -185,7 +185,7 @@ require (
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20220216144756-c35f1ee13d7c // indirect
-	github.com/prometheus/client_golang v1.20.5 // indirect
+	github.com/prometheus/client_golang v1.22.0 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
@@ -231,9 +231,9 @@ require (
 	go.opentelemetry.io/otel/sdk v1.35.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.38.0 // indirect
-	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c // indirect
+	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
-	golang.org/x/mod v0.23.0 // indirect
+	golang.org/x/mod v0.24.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/tools v0.30.0 // indirect

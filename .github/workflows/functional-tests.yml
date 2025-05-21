@@ -20,7 +20,8 @@ env:
   TERRAFORM_VERSION: 1.10.2
 
 jobs:
-  run:
+  run-deep:
+    name: Deep upgrade tests
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -37,31 +38,55 @@ jobs:
           - '9.x' # Latest 9 version
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
         with:
           terraform_version: "${{ env.TERRAFORM_VERSION }}"
-
       - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: 'functionaltests/go.mod'
           cache: false
-
       - uses: elastic/oblt-actions/google/auth@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
-
       - uses: google-github-actions/get-secretmanager-secrets@a8440875e1c2892062aef9061228d4f1af8f919b # v2.2.3
         with:
           export_to_environment: true
           secrets: |-
             EC_API_KEY:elastic-observability/elastic-cloud-observability-team-${{ matrix.environment }}-api-key
-
-      - name: "Run functional tests"
+      - name: "Run deep upgrade tests"
         working-directory: ${{ github.workspace }}/functionaltests
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
           VERSION="${{ matrix.active-version }}"
           VERSION="${VERSION//./_}"
-          go test -run="_to_${VERSION}" -skip="_to_${VERSION}_to_" -v -timeout=60m -target="${{ matrix.environment }}" ./
+          go test -run="_to_${VERSION}" -skip="_to_${VERSION}_to_|Standalone_to_Managed" -v -timeout=30m -target="${{ matrix.environment }}" ./
+
+  run-standalone:
+    name: Standalone-to-managed tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - 'pro'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: "${{ env.TERRAFORM_VERSION }}"
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+        with:
+          go-version-file: 'functionaltests/go.mod'
+          cache: false
+      - uses: elastic/oblt-actions/google/auth@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
+      - uses: google-github-actions/get-secretmanager-secrets@a8440875e1c2892062aef9061228d4f1af8f919b # v2.2.3
+        with:
+          export_to_environment: true
+          secrets: |-
+            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-${{ matrix.environment }}-api-key
+      - name: "Run standalone-to-managed tests"
+        working-directory: ${{ github.workspace }}/functionaltests
+        run: |
+          export TF_VAR_CREATED_DATE=$(date +%s)
+          go test -run="Standalone_to_Managed" -v -timeout=60m -target="${{ matrix.environment }}" ./
 
 #  notify:
 #    if: always()

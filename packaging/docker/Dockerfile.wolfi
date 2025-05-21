@@ -28,7 +28,7 @@ RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM cgr.dev/chainguard/static:latest@sha256:2e3db1641bb4fe4e85d2210f4aadb79252e90d5fa745f53a3ffed6a1aab4f73b
+FROM cgr.dev/chainguard/static:latest@sha256:8d1a96321dca0e8e7848b7db2d431191f15e7e302faa1428100bbab351d42c7a
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION
