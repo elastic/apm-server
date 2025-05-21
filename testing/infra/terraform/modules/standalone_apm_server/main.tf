@@ -202,6 +202,10 @@ resource "aws_instance" "apm" {
     private_key = file("${var.aws_provisioner_key_name}")
   }
 
+  timeouts {
+    create = "20m"
+  }
+
   // For instance types with 'd.' e.g. c6id.2xlarge, use the NVMe ssd as data disk.
   provisioner "remote-exec" {
     inline = length(regexall("d[.]", self.instance_type)) > 0 ? [
