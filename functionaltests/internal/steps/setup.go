@@ -192,11 +192,3 @@ func createAPMGenerator(t *testing.T, ctx context.Context, esc *esclient.Client,
 	g := gen.New(deployInfo.APMServerURL, apiKey, kbc, logger)
 	return g
 }
-
-func sliceToSet[T comparable](s []T) map[T]bool {
-	m := make(map[T]bool)
-	for _, ele := range s {
-		m[ele] = true
-	}
-	return m
-}

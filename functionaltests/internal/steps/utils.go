@@ -103,6 +103,10 @@ func getDocCountPerIndexV7(t *testing.T, ctx context.Context, esc *esclient.Clie
 	return count
 }
 
-func allDataStreams(namespace string) []string {
-	return slices.Collect(maps.Keys(expectedDataStreamsIngest(namespace)))
+func sliceToSet[T comparable](s []T) map[T]bool {
+	m := make(map[T]bool)
+	for _, ele := range s {
+		m[ele] = true
+	}
+	return m
 }

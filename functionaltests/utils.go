@@ -22,6 +22,13 @@ import (
 )
 
 const (
+	// ManagedByDSL is the constant string used by Elasticsearch to specify that an Index is managed by Data Stream Lifecycle management.
+	ManagedByDSL = "Data stream lifecycle"
+	// ManagedByILM is the constant string used by Elasticsearch to specify that an Index is managed by Index Lifecycle Management.
+	ManagedByILM = "Index Lifecycle Management"
+)
+
+const (
 	TargetQA   = "qa"
 	TargetProd = "pro"
 )
@@ -65,13 +72,6 @@ func DeploymentTemplateFrom(region string) string {
 		panic("region value is not accepted")
 	}
 }
-
-const (
-	// ManagedByDSL is the constant string used by Elasticsearch to specify that an Index is managed by Data Stream Lifecycle management.
-	ManagedByDSL = "Data stream lifecycle"
-	// ManagedByILM is the constant string used by Elasticsearch to specify that an Index is managed by Index Lifecycle Management.
-	ManagedByILM = "Index Lifecycle Management"
-)
 
 func TestStepsRunner(target string, cleanupOnFailure bool, s []steps.Step) steps.Runner {
 	return steps.Runner{
