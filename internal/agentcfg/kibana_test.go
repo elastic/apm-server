@@ -29,6 +29,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/internal/kibana"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func query(name string) Query {
@@ -63,7 +64,7 @@ func TestKibanaFetcher(t *testing.T) {
 		statusCode = http.StatusExpectationFailed
 		response = map[string]interface{}{"error": "an error"}
 
-		kf, err := NewKibanaFetcher(client, testExpiration)
+		kf, err := NewKibanaFetcher(client, testExpiration, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		_, err = kf.Fetch(context.Background(), query(t.Name()))
 		require.Error(t, err)
@@ -74,7 +75,7 @@ func TestKibanaFetcher(t *testing.T) {
 		statusCode = http.StatusNotFound
 		response = map[string]interface{}{}
 
-		kf, err := NewKibanaFetcher(client, testExpiration)
+		kf, err := NewKibanaFetcher(client, testExpiration, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		result, err := kf.Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
@@ -88,7 +89,7 @@ func TestKibanaFetcher(t *testing.T) {
 		b, err := json.Marshal(response)
 		expectedResult, err := newResult(b, err)
 		require.NoError(t, err)
-		kf, err := NewKibanaFetcher(client, testExpiration)
+		kf, err := NewKibanaFetcher(client, testExpiration, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		result, err := kf.Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
@@ -97,7 +98,7 @@ func TestKibanaFetcher(t *testing.T) {
 
 	t.Run("FetchFromCache", func(t *testing.T) {
 
-		fetcher, err := NewKibanaFetcher(client, time.Minute)
+		fetcher, err := NewKibanaFetcher(client, time.Minute, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		fetch := func(kibanaSamplingRate, expectedSamplingRate float64) {
 			statusCode = http.StatusOK
@@ -120,7 +121,7 @@ func TestKibanaFetcher(t *testing.T) {
 		fetch(0.8, 0.5)
 
 		// after key is expired, fetch from Kibana again
-		fetcher.cache.gocache.Delete(query(t.Name()).id())
+		fetcher.cache.gocache.Remove(query(t.Name()).id())
 		fetch(0.7, 0.7)
 
 	})

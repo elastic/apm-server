@@ -41,7 +41,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/opt"
 	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup"
@@ -78,6 +78,7 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 		cfg.RumConfig.SourceMapping,
 		nil, elasticsearch.NewClient,
 		apmtest.NewRecordingTracer().Tracer,
+		logptest.NewTestingLogger(t, ""),
 	)
 	require.NoError(t, err)
 	defer cancel()
@@ -183,7 +184,7 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 		t.Run(fmt.Sprintf("default/%vgb", c.memSize), func(t *testing.T) {
 			r := Runner{
 				elasticsearchOutputConfig: agentconfig.NewConfig(),
-				logger:                    logp.NewLogger("test"),
+				logger:                    logptest.NewTestingLogger(t, "test"),
 			}
 			docCfg, esCfg, err := r.newDocappenderConfig(nil, nil, c.memSize)
 			require.NoError(t, err)
@@ -216,7 +217,7 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 					"flush_interval": "2s",
 					"max_requests":   50,
 				}),
-				logger: logp.NewLogger("test"),
+				logger: logptest.NewTestingLogger(t, "test"),
 			}
 			docCfg, esCfg, err := r.newDocappenderConfig(nil, nil, c.memSize)
 			require.NoError(t, err)
@@ -269,6 +270,7 @@ func TestNewInstrumentation(t *testing.T) {
 	assert.NoError(t, err)
 	err = pem.Encode(f, &pem.Block{Type: "CERTIFICATE", Bytes: s.Certificate().Raw})
 	assert.NoError(t, err)
+	require.NoError(t, f.Close())
 	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"instrumentation": map[string]interface{}{
 			"enabled":     true,
@@ -280,7 +282,7 @@ func TestNewInstrumentation(t *testing.T) {
 			"globallabels": "k1=val,k2=new val",
 		},
 	})
-	i, err := newInstrumentation(cfg)
+	i, err := newInstrumentation(cfg, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	tracer := i.Tracer()
 	tracer.StartTransaction("name", "type").End()
@@ -290,7 +292,7 @@ func TestNewInstrumentation(t *testing.T) {
 }
 
 func TestNewInstrumentationWithSampling(t *testing.T) {
-	runSampled := func(rate float32) {
+	runSampled := func(t *testing.T, rate float32) {
 		var events int
 		s := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/intake/v2/events" {
@@ -312,7 +314,7 @@ func TestNewInstrumentationWithSampling(t *testing.T) {
 				"samplingrate": fmt.Sprintf("%f", rate),
 			},
 		})
-		i, err := newInstrumentation(cfg)
+		i, err := newInstrumentation(cfg, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		tracer := i.Tracer()
 		tr := tracer.StartTransaction("name", "type")
@@ -322,15 +324,14 @@ func TestNewInstrumentationWithSampling(t *testing.T) {
 		assert.Equal(t, int(rate), events)
 	}
 	t.Run("100% sampling", func(t *testing.T) {
-		runSampled(1.0)
+		runSampled(t, 1.0)
 	})
 	t.Run("0% sampling", func(t *testing.T) {
-		runSampled(0.0)
+		runSampled(t, 0.0)
 	})
 }
 
 func TestProcessMemoryLimit(t *testing.T) {
-	l := logp.NewLogger("test")
 	const gb = 1 << 30
 	for name, testCase := range map[string]struct {
 		cgroups        cgroupReader
@@ -410,7 +411,7 @@ func TestProcessMemoryLimit(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			memLimitGB := processMemoryLimit(testCase.cgroups, testCase.sys, l)
+			memLimitGB := processMemoryLimit(testCase.cgroups, testCase.sys, logptest.NewTestingLogger(t, "test"))
 			assert.Equal(t, testCase.wantMemLimitGB, memLimitGB)
 		})
 	}

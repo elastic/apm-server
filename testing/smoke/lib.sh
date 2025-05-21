@@ -155,7 +155,7 @@ send_events() {
     curl_fail --data-binary @${INTAKE_DATA} -H "${APM_AUTH_HEADER}" -H "${INTAKE_HEADER}" ${APM_SERVER_INTAKE}
 
     # TODO(marclop). It would be best to query Elasticsearch until at least X documents have been ingested.
-    sleep 10
+    sleep 20
 }
 
 delete_all() {

@@ -44,7 +44,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/interceptors"
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/otlp"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestConsumeTracesGRPC(t *testing.T) {
@@ -190,7 +190,7 @@ func TestConsumeLogsGRPC(t *testing.T) {
 func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor, mp metric.MeterProvider) *grpc.ClientConn {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
-	logger := logp.NewLogger("otlp.grpc.test")
+	logger := logptest.NewTestingLogger(t, "otlp.grpc.test")
 	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Metrics(logger, mp)))
 	semaphore := semaphore.NewWeighted(1)
 	otlp.RegisterGRPCServices(srv, zap.NewNop(), batchProcessor, semaphore, mp)

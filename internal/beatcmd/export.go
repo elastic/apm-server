@@ -22,7 +22,7 @@ import (
 	"io"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 
 	"github.com/elastic/beats/v7/libbeat/common/cli"
 )

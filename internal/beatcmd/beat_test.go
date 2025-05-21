@@ -47,6 +47,7 @@ import (
 	"github.com/elastic/elastic-agent-client/v7/pkg/proto"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/go-docappender/v2"
@@ -386,22 +387,30 @@ func TestRunManager_Reloader(t *testing.T) {
 	finish := make(chan struct{})
 	runCount := atomic.Int64{}
 	stopCount := atomic.Int64{}
+	expectedRun := 2
+	expectedStop := 2
+	success := make(chan struct{})
 
 	registry := reload.NewRegistry()
 
-	reloader, err := NewReloader(beat.Info{}, registry, func(p RunnerParams) (Runner, error) {
+	reloader, err := NewReloader(beat.Info{
+		Logger: logptest.NewTestingLogger(t, ""),
+	}, registry, func(p RunnerParams) (Runner, error) {
 		return runnerFunc(func(ctx context.Context) error {
 			revision, err := p.Config.Int("revision", -1)
 			require.NoError(t, err)
 			if revision == 2 {
 				close(finish)
 			}
-			runCount.Add(1)
+			newRun := runCount.Add(1)
 			<-ctx.Done()
-			stopCount.Add(1)
+			newStop := stopCount.Add(1)
+			if newRun == int64(expectedRun) && newStop == int64(expectedStop) {
+				close(success)
+			}
 			return nil
 		}), nil
-	}, nil, nil)
+	}, nil, nil, nil)
 	require.NoError(t, err)
 
 	agentInfo := &proto.AgentInfo{
@@ -485,7 +494,7 @@ func TestRunManager_Reloader(t *testing.T) {
 		},
 	},
 		nil,
-		500*time.Millisecond,
+		10*time.Millisecond,
 	)
 	require.NoError(t, srv.Start())
 	defer srv.Stop()
@@ -497,7 +506,7 @@ func TestRunManager_Reloader(t *testing.T) {
 		client.WithGRPCDialOptions(grpc.WithTransportCredentials(insecure.NewCredentials())))
 	manager, err := xpacklbmanagement.NewV2AgentManagerWithClient(&xpacklbmanagement.Config{
 		Enabled: true,
-	}, registry, client)
+	}, registry, client, xpacklbmanagement.WithChangeDebounce(0))
 	require.NoError(t, err)
 
 	err = manager.Start()
@@ -512,9 +521,11 @@ func TestRunManager_Reloader(t *testing.T) {
 	err = reloader.Run(ctx)
 	require.NoError(t, err)
 
-	assert.Eventually(t, func() bool {
-		return runCount.Load() == 2 && stopCount.Load() == 2
-	}, 2*time.Second, 50*time.Millisecond)
+	select {
+	case <-success:
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for success")
+	}
 }
 
 func TestRunManager_Reloader_newRunnerError(t *testing.T) {
@@ -525,9 +536,11 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 
 	registry := reload.NewRegistry()
 
-	_, err := NewReloader(beat.Info{}, registry, func(_ RunnerParams) (Runner, error) {
+	_, err := NewReloader(beat.Info{
+		Logger: logptest.NewTestingLogger(t, ""),
+	}, registry, func(_ RunnerParams) (Runner, error) {
 		return nil, errors.New("newRunner error")
-	}, nil, nil)
+	}, nil, nil, nil)
 	require.NoError(t, err)
 
 	onObserved := func(observed *proto.CheckinObserved, currentIdx int) {
@@ -596,7 +609,7 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 		client.WithGRPCDialOptions(grpc.WithTransportCredentials(insecure.NewCredentials())))
 	manager, err := xpacklbmanagement.NewV2AgentManagerWithClient(&xpacklbmanagement.Config{
 		Enabled: true,
-	}, registry, client)
+	}, registry, client, xpacklbmanagement.WithChangeDebounce(0))
 	require.NoError(t, err)
 
 	err = manager.Start()

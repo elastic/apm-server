@@ -30,6 +30,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestReloader(t *testing.T) {
@@ -57,7 +58,9 @@ func TestReloader(t *testing.T) {
 
 	registry := reload.NewRegistry()
 
-	reloader, err := NewReloader(beat.Info{}, registry, func(args RunnerParams) (Runner, error) {
+	reloader, err := NewReloader(beat.Info{
+		Logger: logptest.NewTestingLogger(t, ""),
+	}, registry, func(args RunnerParams) (Runner, error) {
 		if shouldError, _ := args.Config.Bool("error", -1); shouldError {
 			return nil, errors.New("no runner for you")
 		}
@@ -72,7 +75,7 @@ func TestReloader(t *testing.T) {
 			<-ctx.Done()
 			return nil
 		}), nil
-	}, nil, nil)
+	}, nil, nil, nil)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -149,14 +152,18 @@ func TestReloaderNewRunnerParams(t *testing.T) {
 	registry := reload.NewRegistry()
 
 	calls := make(chan RunnerParams, 1)
-	info := beat.Info{Beat: "not-apm-server", Version: "0.0.1"}
+	info := beat.Info{
+		Beat:    "not-apm-server",
+		Version: "0.0.1",
+		Logger:  logptest.NewTestingLogger(t, ""),
+	}
 	reloader, err := NewReloader(info, registry, func(args RunnerParams) (Runner, error) {
 		calls <- args
 		return runnerFunc(func(ctx context.Context) error {
 			<-ctx.Done()
 			return nil
 		}), nil
-	}, nil, nil)
+	}, nil, nil, nil)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())

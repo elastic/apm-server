@@ -34,46 +34,18 @@ type docCountV7 struct {
 // for indices.
 type IndicesDocCount map[string]int
 
-// APMDocCountV7 retrieves the document count per index of all APM indices.
-func (c *Client) APMDocCountV7(ctx context.Context) (IndicesDocCount, error) {
+// APMIdxDocCountV7 retrieves the document count per index of all APM indices.
+func (c *Client) APMIdxDocCountV7(ctx context.Context) (IndicesDocCount, error) {
 	indicesToCheck := []string{
 		"apm-*-transaction-*", "apm-*-span-*", "apm-*-error-*", "apm-*-metric-*",
 		"apm-*-profile-*",
 		"apm-*-onboarding-*",
 	}
 
-	getIndexCount := func(index string) (docCountV7, error) {
-		resp, err := c.es.
-			Count().
-			Index(index).
-			FilterPath("count").
-			Perform(ctx)
-		if err != nil {
-			return docCountV7{}, fmt.Errorf("cannot get count for %s: %w", indicesToCheck[0], err)
-		}
-
-		if resp.StatusCode > http.StatusOK {
-			return docCountV7{}, fmt.Errorf("count request for %s returned unexpected status code: %d", indicesToCheck[0], resp.StatusCode)
-		}
-
-		b, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return docCountV7{}, fmt.Errorf("cannot read response body for %s: %w", resp.Request.URL.Path, err)
-		}
-		defer resp.Body.Close()
-
-		var dc docCountV7
-		err = json.Unmarshal(b, &dc)
-		if err != nil {
-			return docCountV7{}, fmt.Errorf("cannot unmarshal JSON response for %s: %w", resp.Request.URL.Path, err)
-		}
-		return dc, nil
-	}
-
 	count := IndicesDocCount{}
 	var errs []error
 	for _, idx := range indicesToCheck {
-		dc, err := getIndexCount(idx)
+		dc, err := c.getDocCountV7(ctx, idx)
 		if err != nil {
 			errs = append(errs, err)
 		}
@@ -83,6 +55,69 @@ func (c *Client) APMDocCountV7(ctx context.Context) (IndicesDocCount, error) {
 	if len(errs) > 0 {
 		return IndicesDocCount{}, errors.Join(errs...)
 	}
-
 	return count, nil
+}
+
+// APMDSDocCountV7 retrieves the document count per data stream of all APM data streams.
+func (c *Client) APMDSDocCountV7(ctx context.Context, namespace string) (DataStreamsDocCount, error) {
+	dsToCheck := []string{
+		"traces-apm-%s", "metrics-apm.internal-%s", "logs-apm.error-%s",
+		"metrics-apm.app.opbeans_python-%s", "metrics-apm.app.opbeans_node-%s",
+		"metrics-apm.app.opbeans_ruby-%s", "metrics-apm.app.opbeans_go-%s",
+	}
+	for i, ds := range dsToCheck {
+		dsToCheck[i] = fmt.Sprintf(ds, namespace)
+	}
+
+	count := DataStreamsDocCount{}
+	var errs []error
+	for _, ds := range dsToCheck {
+		dc, err := c.getDocCountV7(ctx, ds)
+		if err != nil {
+			errs = append(errs, err)
+		}
+		count[ds] = dc.Count
+	}
+
+	if len(errs) > 0 {
+		return DataStreamsDocCount{}, errors.Join(errs...)
+	}
+	return count, nil
+}
+
+func (c *Client) getDocCountV7(ctx context.Context, name string) (docCountV7, error) {
+	resp, err := c.es.
+		Count().
+		Index(name).
+		FilterPath("count").
+		Perform(ctx)
+	if err != nil {
+		return docCountV7{}, fmt.Errorf("cannot get count for %s: %w", name, err)
+	}
+
+	if resp.StatusCode > http.StatusOK {
+		return docCountV7{}, fmt.Errorf(
+			"count request for %s returned unexpected status code: %d",
+			name, resp.StatusCode,
+		)
+	}
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return docCountV7{}, fmt.Errorf(
+			"cannot read response body for %s: %w",
+			resp.Request.URL.Path, err,
+		)
+	}
+	defer resp.Body.Close()
+
+	var dc docCountV7
+	err = json.Unmarshal(b, &dc)
+	if err != nil {
+		return docCountV7{}, fmt.Errorf(
+			"cannot unmarshal JSON response for %s: %w",
+			resp.Request.URL.Path, err,
+		)
+	}
+	return dc, nil
 }

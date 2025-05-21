@@ -1,0 +1,1234 @@
+---
+version: 1
+interactions:
+- request:
+    body: "null"
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/system_indices_migration
+    method: GET
+  response:
+    body: '{"features":[{"feature_name":"fleet","minimum_index_version":"7.17.29-8.0.0","migration_status":"MIGRATION_NEEDED","indices":[{"index":".fleet-agents-7","version":"7.17.29-8.0.0"},{"index":".fleet-enrollment-api-keys-7","version":"7.17.29-8.0.0"},{"index":".fleet-policies-7","version":"7.17.29-8.0.0"},{"index":".fleet-policies-leader-7","version":"7.17.29-8.0.0"},{"index":".fleet-servers-7","version":"7.17.29-8.0.0"}]},{"feature_name":"geoip","minimum_index_version":"7.17.29-8.0.0","migration_status":"MIGRATION_NEEDED","indices":[{"index":".geoip_databases","version":"7.17.29-8.0.0"}]},{"feature_name":"kibana","minimum_index_version":"7.17.29-8.0.0","migration_status":"MIGRATION_NEEDED","indices":[{"index":".apm-agent-configuration","version":"7.17.29-8.0.0"},{"index":".apm-custom-link","version":"7.17.29-8.0.0"},{"index":".kibana_7.17.29_001","version":"7.17.29-8.0.0"},{"index":".kibana_8.19.0_001","version":"8.19.0"},{"index":".kibana_alerting_cases_8.19.0_001","version":"8.19.0"},{"index":".kibana_analytics_8.19.0_001","version":"8.19.0"},{"index":".kibana_entities-definitions-1","version":"8.19.0"},{"index":".kibana_ingest_8.19.0_001","version":"8.19.0"},{"index":".kibana_security_session_1","version":"7.17.29-8.0.0"},{"index":".kibana_security_solution_8.19.0_001","version":"8.19.0"},{"index":".kibana_task_manager_7.17.29_001","version":"7.17.29-8.0.0"},{"index":".kibana_usage_counters_8.19.0_001","version":"8.19.0"}]},{"feature_name":"security","minimum_index_version":"7.17.29-8.0.0","migration_status":"MIGRATION_NEEDED","indices":[{"index":".security-7","version":"7.17.29-8.0.0"}]}],"migration_status":"MIGRATION_NEEDED"}'
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Content-Type:
+      - application/json; charset=utf-8
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:40 GMT
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Vary:
+      - accept-encoding
+      X-Cloud-Request-Id:
+      - oImVLiFgR9uiJNtuL0xBdA
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: "null"
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/es_deprecations
+    method: GET
+  response:
+    body: '{"totalCriticalDeprecations":15,"migrationsDeprecations":[{"index":".monitoring-kibana-7-mb-2025.04.08","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":112939}},{"index":"apm-7.17.29-transaction-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":2466586}},{"index":".monitoring-es-7-mb-2025.04.08","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":1327908}},{"index":"apm-7.17.29-onboarding-2025.04.08","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":8746}},{"index":".kibana-event-log-7.17.29-snapshot-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":13235}},{"index":"apm-7.17.29-metric-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":808130}},{"index":"apm-7.17.29-profile-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":249}},{"index":"metricbeat-7.17.29-2025.04.08-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":460424}},{"index":"apm-7.17.29-span-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":4024070}},{"index":".monitoring-beats-7-mb-2025.04.08","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":546110}},{"index":"apm-7.17.29-error-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":1209273}},{"index":"elastic-cloud-logs-7-2025.04.08-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":1166230}},{"index":"ilm-history-5","type":"data_streams","details":"This
+      data stream has backing indices that were created before Elasticsearch 8.0.0","message":"Old
+      data stream with a compatibility version < 8.0","url":"https://www.elastic.co/guide/en/elasticsearch/reference/current/migrating-8.0.html#breaking-changes-8.0","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"dataStream","metadata":{"ignoredIndicesRequiringUpgrade":[],"ignoredIndicesRequiringUpgradeCount":0,"totalBackingIndices":1,"indicesRequiringUpgradeCount":1,"indicesRequiringUpgrade":[".ds-ilm-history-5-2025.04.08-000001"],"reindexRequired":true,"excludedActions":[]}}},{"index":".logs-deprecation.elasticsearch-default","type":"data_streams","details":"This
+      data stream has backing indices that were created before Elasticsearch 8.0.0","message":"Old
+      data stream with a compatibility version < 8.0","url":"https://www.elastic.co/guide/en/elasticsearch/reference/current/migrating-8.0.html#breaking-changes-8.0","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"dataStream","metadata":{"ignoredIndicesRequiringUpgrade":[],"ignoredIndicesRequiringUpgradeCount":0,"totalBackingIndices":1,"indicesRequiringUpgradeCount":1,"indicesRequiringUpgrade":[".ds-.logs-deprecation.elasticsearch-default-2025.04.08-000001"],"reindexRequired":true,"excludedActions":[]}}},{"index":".slm-history-5","type":"data_streams","details":"This
+      data stream has backing indices that were created before Elasticsearch 8.0.0","message":"Old
+      data stream with a compatibility version < 8.0","url":"https://www.elastic.co/guide/en/elasticsearch/reference/current/migrating-8.0.html#breaking-changes-8.0","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"dataStream","metadata":{"ignoredIndicesRequiringUpgrade":[],"ignoredIndicesRequiringUpgradeCount":0,"totalBackingIndices":1,"indicesRequiringUpgradeCount":1,"indicesRequiringUpgrade":[".ds-.slm-history-5-2025.04.08-000001"],"reindexRequired":true,"excludedActions":[]}}}],"totalCriticalHealthIssues":0,"enrichedHealthIndicators":[]}'
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Content-Type:
+      - application/json; charset=utf-8
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:40 GMT
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Vary:
+      - accept-encoding
+      X-Cloud-Request-Id:
+      - 6PPHCfXDSDK5WLovmx0Mug
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: "null"
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/system_indices_migration
+    method: GET
+  response:
+    body: '{"features":[{"feature_name":"fleet","minimum_index_version":"7.17.29-8.0.0","migration_status":"MIGRATION_NEEDED","indices":[{"index":".fleet-agents-7","version":"7.17.29-8.0.0"},{"index":".fleet-enrollment-api-keys-7","version":"7.17.29-8.0.0"},{"index":".fleet-policies-7","version":"7.17.29-8.0.0"},{"index":".fleet-policies-leader-7","version":"7.17.29-8.0.0"},{"index":".fleet-servers-7","version":"7.17.29-8.0.0"}]},{"feature_name":"geoip","minimum_index_version":"7.17.29-8.0.0","migration_status":"MIGRATION_NEEDED","indices":[{"index":".geoip_databases","version":"7.17.29-8.0.0"}]},{"feature_name":"kibana","minimum_index_version":"7.17.29-8.0.0","migration_status":"MIGRATION_NEEDED","indices":[{"index":".apm-agent-configuration","version":"7.17.29-8.0.0"},{"index":".apm-custom-link","version":"7.17.29-8.0.0"},{"index":".kibana_7.17.29_001","version":"7.17.29-8.0.0"},{"index":".kibana_8.19.0_001","version":"8.19.0"},{"index":".kibana_alerting_cases_8.19.0_001","version":"8.19.0"},{"index":".kibana_analytics_8.19.0_001","version":"8.19.0"},{"index":".kibana_entities-definitions-1","version":"8.19.0"},{"index":".kibana_ingest_8.19.0_001","version":"8.19.0"},{"index":".kibana_security_session_1","version":"7.17.29-8.0.0"},{"index":".kibana_security_solution_8.19.0_001","version":"8.19.0"},{"index":".kibana_task_manager_7.17.29_001","version":"7.17.29-8.0.0"},{"index":".kibana_usage_counters_8.19.0_001","version":"8.19.0"}]},{"feature_name":"security","minimum_index_version":"7.17.29-8.0.0","migration_status":"MIGRATION_NEEDED","indices":[{"index":".security-7","version":"7.17.29-8.0.0"}]}],"migration_status":"MIGRATION_NEEDED"}'
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Content-Type:
+      - application/json; charset=utf-8
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:41 GMT
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Vary:
+      - accept-encoding
+      X-Cloud-Request-Id:
+      - 37Dsj-fDTVi2K1eTt1y6zQ
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: "null"
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/system_indices_migration
+    method: POST
+  response:
+    body: '{"accepted":true,"features":[{"feature_name":"fleet"},{"feature_name":"geoip"},{"feature_name":"kibana"},{"feature_name":"security"}]}'
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "134"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Content-Type:
+      - application/json; charset=utf-8
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:41 GMT
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - 6Ry7poDHSvOCPc64xH0XZQ
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: "null"
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/system_indices_migration
+    method: GET
+  response:
+    body: '{"features":[{"feature_name":"fleet","minimum_index_version":"7.17.29-8.0.0","migration_status":"IN_PROGRESS","indices":[{"index":".fleet-agents-7","version":"7.17.29-8.0.0"},{"index":".fleet-agents-7-reindexed-for-9","version":"8.19.0"},{"index":".fleet-enrollment-api-keys-7","version":"7.17.29-8.0.0"},{"index":".fleet-policies-7","version":"7.17.29-8.0.0"},{"index":".fleet-policies-leader-7","version":"7.17.29-8.0.0"},{"index":".fleet-servers-7","version":"7.17.29-8.0.0"}]},{"feature_name":"geoip","minimum_index_version":"7.17.29-8.0.0","migration_status":"MIGRATION_NEEDED","indices":[{"index":".geoip_databases","version":"7.17.29-8.0.0"}]},{"feature_name":"kibana","minimum_index_version":"7.17.29-8.0.0","migration_status":"MIGRATION_NEEDED","indices":[{"index":".apm-agent-configuration","version":"7.17.29-8.0.0"},{"index":".apm-custom-link","version":"7.17.29-8.0.0"},{"index":".kibana_7.17.29_001","version":"7.17.29-8.0.0"},{"index":".kibana_8.19.0_001","version":"8.19.0"},{"index":".kibana_alerting_cases_8.19.0_001","version":"8.19.0"},{"index":".kibana_analytics_8.19.0_001","version":"8.19.0"},{"index":".kibana_entities-definitions-1","version":"8.19.0"},{"index":".kibana_ingest_8.19.0_001","version":"8.19.0"},{"index":".kibana_security_session_1","version":"7.17.29-8.0.0"},{"index":".kibana_security_solution_8.19.0_001","version":"8.19.0"},{"index":".kibana_task_manager_7.17.29_001","version":"7.17.29-8.0.0"},{"index":".kibana_usage_counters_8.19.0_001","version":"8.19.0"}]},{"feature_name":"security","minimum_index_version":"7.17.29-8.0.0","migration_status":"MIGRATION_NEEDED","indices":[{"index":".security-7","version":"7.17.29-8.0.0"}]}],"migration_status":"IN_PROGRESS"}'
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Content-Type:
+      - application/json; charset=utf-8
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:41 GMT
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Vary:
+      - accept-encoding
+      X-Cloud-Request-Id:
+      - RF04bEZeR_Okctz9BD220g
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: "null"
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/system_indices_migration
+    method: GET
+  response:
+    body: '{"features":[],"migration_status":"NO_MIGRATION_NEEDED"}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "56"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Content-Type:
+      - application/json; charset=utf-8
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:46 GMT
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - zKY16qbTROqMWfPreZ9VzQ
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: "null"
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/es_deprecations
+    method: GET
+  response:
+    body: '{"totalCriticalDeprecations":15,"migrationsDeprecations":[{"index":".monitoring-kibana-7-mb-2025.04.08","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":112939}},{"index":"apm-7.17.29-transaction-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":2466586}},{"index":".monitoring-es-7-mb-2025.04.08","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":1327908}},{"index":"apm-7.17.29-onboarding-2025.04.08","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":8746}},{"index":".kibana-event-log-7.17.29-snapshot-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":13235}},{"index":"apm-7.17.29-metric-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":808130}},{"index":"apm-7.17.29-profile-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":249}},{"index":"metricbeat-7.17.29-2025.04.08-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":460424}},{"index":"apm-7.17.29-span-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":4024070}},{"index":".monitoring-beats-7-mb-2025.04.08","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":546110}},{"index":"apm-7.17.29-error-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":1209273}},{"index":"elastic-cloud-logs-7-2025.04.08-000001","type":"index_settings","details":"This
+      index has version: 7.17.29-8.0.0","message":"Old index with a compatibility
+      version < 8.0","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":1166230}},{"index":"ilm-history-5","type":"data_streams","details":"This
+      data stream has backing indices that were created before Elasticsearch 8.0.0","message":"Old
+      data stream with a compatibility version < 8.0","url":"https://www.elastic.co/guide/en/elasticsearch/reference/current/migrating-8.0.html#breaking-changes-8.0","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"dataStream","metadata":{"ignoredIndicesRequiringUpgrade":[],"ignoredIndicesRequiringUpgradeCount":0,"totalBackingIndices":1,"indicesRequiringUpgradeCount":1,"indicesRequiringUpgrade":[".ds-ilm-history-5-2025.04.08-000001"],"reindexRequired":true,"excludedActions":[]}}},{"index":".logs-deprecation.elasticsearch-default","type":"data_streams","details":"This
+      data stream has backing indices that were created before Elasticsearch 8.0.0","message":"Old
+      data stream with a compatibility version < 8.0","url":"https://www.elastic.co/guide/en/elasticsearch/reference/current/migrating-8.0.html#breaking-changes-8.0","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"dataStream","metadata":{"ignoredIndicesRequiringUpgrade":[],"ignoredIndicesRequiringUpgradeCount":0,"totalBackingIndices":1,"indicesRequiringUpgradeCount":1,"indicesRequiringUpgrade":[".ds-.logs-deprecation.elasticsearch-default-2025.04.08-000001"],"reindexRequired":true,"excludedActions":[]}}},{"index":".slm-history-5","type":"data_streams","details":"This
+      data stream has backing indices that were created before Elasticsearch 8.0.0","message":"Old
+      data stream with a compatibility version < 8.0","url":"https://www.elastic.co/guide/en/elasticsearch/reference/current/migrating-8.0.html#breaking-changes-8.0","isCritical":true,"resolveDuringUpgrade":false,"correctiveAction":{"type":"dataStream","metadata":{"ignoredIndicesRequiringUpgrade":[],"ignoredIndicesRequiringUpgradeCount":0,"totalBackingIndices":1,"indicesRequiringUpgradeCount":1,"indicesRequiringUpgrade":[".ds-.slm-history-5-2025.04.08-000001"],"reindexRequired":true,"excludedActions":[]}}}],"totalCriticalHealthIssues":0,"enrichedHealthIndicators":[]}'
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Content-Type:
+      - application/json; charset=utf-8
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:47 GMT
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Vary:
+      - accept-encoding
+      X-Cloud-Request-Id:
+      - zIhHqjNtQCOT0T2X4iMJIQ
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"operations":["blockWrite","unfreeze"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/update_index/.monitoring-kibana-7-mb-2025.04.08
+    method: POST
+  response:
+    body: ""
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "0"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:47 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - 9flZEcKNSfKlbqq0b754Lw
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"operations":["blockWrite","unfreeze"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/update_index/apm-7.17.29-transaction-000001
+    method: POST
+  response:
+    body: ""
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "0"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:47 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - 8P33bRs2T_e-naL11pQ0Yg
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"operations":["blockWrite","unfreeze"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/update_index/.monitoring-es-7-mb-2025.04.08
+    method: POST
+  response:
+    body: ""
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "0"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:47 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - fqjdWHgGT7mcycZsiLYdtg
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"operations":["blockWrite","unfreeze"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/update_index/apm-7.17.29-onboarding-2025.04.08
+    method: POST
+  response:
+    body: ""
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "0"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:48 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - NksLSz9kS8OJed6xDcRmUA
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"operations":["blockWrite","unfreeze"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/update_index/.kibana-event-log-7.17.29-snapshot-000001
+    method: POST
+  response:
+    body: ""
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "0"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:48 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - feihelvQRi6bLl3n4hla4w
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"operations":["blockWrite","unfreeze"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/update_index/apm-7.17.29-metric-000001
+    method: POST
+  response:
+    body: ""
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "0"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:49 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - OWudiBDJSCSGAfRUrrHOtQ
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"operations":["blockWrite","unfreeze"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/update_index/apm-7.17.29-profile-000001
+    method: POST
+  response:
+    body: ""
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "0"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:49 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - 8TtelysQSWKhkSomq1O4IA
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"operations":["blockWrite","unfreeze"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/update_index/metricbeat-7.17.29-2025.04.08-000001
+    method: POST
+  response:
+    body: ""
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "0"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:49 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - sHDGiwDiTuWhiZ6M2XqpBQ
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"operations":["blockWrite","unfreeze"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/update_index/apm-7.17.29-span-000001
+    method: POST
+  response:
+    body: ""
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "0"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:49 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - yhYQQHRkSoS7YFZI1IY7_w
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"operations":["blockWrite","unfreeze"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/update_index/.monitoring-beats-7-mb-2025.04.08
+    method: POST
+  response:
+    body: ""
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "0"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:49 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - cs4-ae8hQtaiOB1dkl-dbA
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"operations":["blockWrite","unfreeze"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/update_index/apm-7.17.29-error-000001
+    method: POST
+  response:
+    body: ""
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "0"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:50 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - 4QA6x4WsQL2i5yK97g6Orw
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"operations":["blockWrite","unfreeze"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/update_index/elastic-cloud-logs-7-2025.04.08-000001
+    method: POST
+  response:
+    body: ""
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "0"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:50 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - H01W6IugQhSUmuGKZqeJAA
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"indices":[".ds-ilm-history-5-2025.04.08-000001"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/migrate_data_stream/ilm-history-5/readonly
+    method: POST
+  response:
+    body: '{"acknowledged":true}'
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "21"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Content-Type:
+      - application/json; charset=utf-8
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:50 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - J_kr5fuRSeuzMVbL7B1Q2w
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"indices":[".ds-.logs-deprecation.elasticsearch-default-2025.04.08-000001"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/migrate_data_stream/.logs-deprecation.elasticsearch-default/readonly
+    method: POST
+  response:
+    body: '{"acknowledged":true}'
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "21"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Content-Type:
+      - application/json; charset=utf-8
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:51 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - HOq-zPjeSdu8LZuDIaVZEg
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: '{"indices":[".ds-.slm-history-5-2025.04.08-000001"]}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/migrate_data_stream/.slm-history-5/readonly
+    method: POST
+  response:
+    body: '{"acknowledged":true}'
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "21"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Content-Type:
+      - application/json; charset=utf-8
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:51 GMT
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - Bh_xXHZ4Q22uezc9s1AtCA
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: "null"
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/system_indices_migration
+    method: GET
+  response:
+    body: '{"features":[],"migration_status":"NO_MIGRATION_NEEDED"}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Length:
+      - "56"
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Content-Type:
+      - application/json; charset=utf-8
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:51 GMT
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      X-Cloud-Request-Id:
+      - JAGnHvPsRg-Uwd1J3QlgJg
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: "null"
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+      Elastic-Api-Version:
+      - "2023-10-31"
+      Kbn-Xsrf:
+      - "true"
+    url: https://test/api/upgrade_assistant/es_deprecations
+    method: GET
+  response:
+    body: '{"totalCriticalDeprecations":0,"migrationsDeprecations":[{"index":".monitoring-kibana-7-mb-2025.04.08","type":"index_settings","details":"This
+      read-only index has version: 7.17.29-8.0.0 and will be supported as read-only
+      in 9.0","message":"Old index with a compatibility version < 8.0 has been ignored","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":false,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":112939}},{"index":"apm-7.17.29-transaction-000001","type":"index_settings","details":"This
+      read-only index has version: 7.17.29-8.0.0 and will be supported as read-only
+      in 9.0","message":"Old index with a compatibility version < 8.0 has been ignored","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":false,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":2466586}},{"index":".monitoring-es-7-mb-2025.04.08","type":"index_settings","details":"This
+      read-only index has version: 7.17.29-8.0.0 and will be supported as read-only
+      in 9.0","message":"Old index with a compatibility version < 8.0 has been ignored","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":false,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":1327908}},{"index":"apm-7.17.29-onboarding-2025.04.08","type":"index_settings","details":"This
+      read-only index has version: 7.17.29-8.0.0 and will be supported as read-only
+      in 9.0","message":"Old index with a compatibility version < 8.0 has been ignored","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":false,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":8746}},{"index":".kibana-event-log-7.17.29-snapshot-000001","type":"index_settings","details":"This
+      read-only index has version: 7.17.29-8.0.0 and will be supported as read-only
+      in 9.0","message":"Old index with a compatibility version < 8.0 has been ignored","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":false,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":13235}},{"index":"apm-7.17.29-metric-000001","type":"index_settings","details":"This
+      read-only index has version: 7.17.29-8.0.0 and will be supported as read-only
+      in 9.0","message":"Old index with a compatibility version < 8.0 has been ignored","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":false,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":808130}},{"index":"apm-7.17.29-profile-000001","type":"index_settings","details":"This
+      read-only index has version: 7.17.29-8.0.0 and will be supported as read-only
+      in 9.0","message":"Old index with a compatibility version < 8.0 has been ignored","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":false,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":249}},{"index":"metricbeat-7.17.29-2025.04.08-000001","type":"index_settings","details":"This
+      read-only index has version: 7.17.29-8.0.0 and will be supported as read-only
+      in 9.0","message":"Old index with a compatibility version < 8.0 has been ignored","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":false,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":460425}},{"index":"apm-7.17.29-span-000001","type":"index_settings","details":"This
+      read-only index has version: 7.17.29-8.0.0 and will be supported as read-only
+      in 9.0","message":"Old index with a compatibility version < 8.0 has been ignored","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":false,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":4024070}},{"index":".monitoring-beats-7-mb-2025.04.08","type":"index_settings","details":"This
+      read-only index has version: 7.17.29-8.0.0 and will be supported as read-only
+      in 9.0","message":"Old index with a compatibility version < 8.0 has been ignored","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":false,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":546111}},{"index":"apm-7.17.29-error-000001","type":"index_settings","details":"This
+      read-only index has version: 7.17.29-8.0.0 and will be supported as read-only
+      in 9.0","message":"Old index with a compatibility version < 8.0 has been ignored","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":false,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":1209273}},{"index":"elastic-cloud-logs-7-2025.04.08-000001","type":"index_settings","details":"This
+      read-only index has version: 7.17.29-8.0.0 and will be supported as read-only
+      in 9.0","message":"Old index with a compatibility version < 8.0 has been ignored","url":"https://www.elastic.co/guide/en/elastic-stack/9.0/upgrading-elastic-stack.html","isCritical":false,"resolveDuringUpgrade":false,"correctiveAction":{"type":"reindex","metadata":{"isClosedIndex":false,"isFrozenIndex":false,"isInDataStream":false},"excludedActions":[],"indexSizeInBytes":1166321}},{"index":"ilm-history-5","type":"data_streams","details":"This
+      data stream has read only backing indices that were created before Elasticsearch
+      8.0.0 and have been marked as OK to remain read-only after upgrade","message":"Old
+      data stream with a compatibility version < 8.0 Have Been Ignored","url":"https://www.elastic.co/guide/en/elasticsearch/reference/current/migrating-8.0.html#breaking-changes-8.0","isCritical":false,"resolveDuringUpgrade":false},{"index":".logs-deprecation.elasticsearch-default","type":"data_streams","details":"This
+      data stream has read only backing indices that were created before Elasticsearch
+      8.0.0 and have been marked as OK to remain read-only after upgrade","message":"Old
+      data stream with a compatibility version < 8.0 Have Been Ignored","url":"https://www.elastic.co/guide/en/elasticsearch/reference/current/migrating-8.0.html#breaking-changes-8.0","isCritical":false,"resolveDuringUpgrade":false},{"index":".slm-history-5","type":"data_streams","details":"This
+      data stream has read only backing indices that were created before Elasticsearch
+      8.0.0 and have been marked as OK to remain read-only after upgrade","message":"Old
+      data stream with a compatibility version < 8.0 Have Been Ignored","url":"https://www.elastic.co/guide/en/elasticsearch/reference/current/migrating-8.0.html#breaking-changes-8.0","isCritical":false,"resolveDuringUpgrade":false}],"totalCriticalHealthIssues":0,"enrichedHealthIndicators":[]}'
+    headers:
+      Cache-Control:
+      - private, no-cache, no-store, must-revalidate
+      Content-Security-Policy:
+      - script-src 'report-sample' 'self'; worker-src 'report-sample' 'self' blob:;
+        style-src 'report-sample' 'self' 'unsafe-inline'; report-to violations-endpoint
+      Content-Security-Policy-Report-Only:
+      - form-action 'report-sample' 'self'; object-src 'report-sample' 'none'; report-to
+        violations-endpoint
+      Content-Type:
+      - application/json; charset=utf-8
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Tue, 08 Apr 2025 09:28:52 GMT
+      Kbn-Name:
+      - instance-0000000000
+      Permissions-Policy:
+      - camera=(), display-capture=(), fullscreen=(self), geolocation=(), microphone=(),
+        web-share=();report-to=violations-endpoint
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Vary:
+      - accept-encoding
+      X-Cloud-Request-Id:
+      - DWtKt11DQFazfydOieEoZA
+      X-Content-Type-Options:
+      - nosniff
+      X-Found-Handling-Instance:
+      - instance-0000000000
+    status: 200 OK
+    code: 200
+    duration: ""

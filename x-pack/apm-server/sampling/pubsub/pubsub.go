@@ -52,9 +52,7 @@ func New(config Config) (*Pubsub, error) {
 	if err := config.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid pubsub config: %w", err)
 	}
-	if config.Logger == nil {
-		config.Logger = logp.NewLogger(logs.Sampling)
-	}
+	config.Logger = config.Logger.Named(logs.Sampling)
 	return &Pubsub{config: config}, nil
 }
 

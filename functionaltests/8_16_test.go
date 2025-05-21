@@ -19,8 +19,6 @@ package functionaltests
 
 import (
 	"testing"
-
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 // In 8.15, the data stream management was migrated from ILM to DSL.
@@ -33,11 +31,17 @@ import (
 
 func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 	t.Parallel()
+	from := getLatestSnapshot(t, "8.15")
+	to := getLatestSnapshot(t, "8.16")
+	if !from.CanUpgradeTo(to.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
+		return
+	}
 
 	scenarios := basicUpgradeLazyRolloverDSLTestScenarios(
-		getLatestSnapshot(t, "8.15"),
-		getLatestSnapshot(t, "8.16"),
-		[]types.Query{
+		from.Version,
+		to.Version,
+		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			preconditionFailed,
@@ -58,11 +62,17 @@ func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 
 func TestUpgrade_8_15_to_8_16_BC(t *testing.T) {
 	t.Parallel()
+	from := getLatestVersionOrSkip(t, "8.15")
+	to := getLatestBCOrSkip(t, "8.16")
+	if !from.CanUpgradeTo(to.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
+		return
+	}
 
 	scenarios := basicUpgradeLazyRolloverDSLTestScenarios(
-		getLatestVersionOrSkip(t, "8.15"),
-		getLatestBCOrSkip(t, "8.16"),
-		[]types.Query{
+		from.Version,
+		to.Version,
+		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			preconditionFailed,

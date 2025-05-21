@@ -19,17 +19,21 @@ package functionaltests
 
 import (
 	"testing"
-
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
 	t.Parallel()
+	from := getLatestSnapshot(t, "8.18")
+	to := getLatestSnapshot(t, "9.0")
+	if !from.CanUpgradeTo(to.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
+		return
+	}
 
 	scenarios := basicUpgradeILMTestScenarios(
-		getLatestSnapshot(t, "8.18"),
-		getLatestSnapshot(t, "9.0"),
-		[]types.Query{
+		from.Version,
+		to.Version,
+		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
@@ -47,11 +51,17 @@ func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
 
 func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
 	t.Parallel()
+	from := getLatestVersionOrSkip(t, "8.18")
+	to := getLatestBCOrSkip(t, "9.0")
+	if !from.CanUpgradeTo(to.Version) {
+		t.Skipf("upgrade from %s to %s is not allowed", from.Version, to.Version)
+		return
+	}
 
 	scenarios := basicUpgradeILMTestScenarios(
-		getLatestVersionOrSkip(t, "8.18"),
-		getLatestBCOrSkip(t, "9.0"),
-		[]types.Query{
+		from.Version,
+		to.Version,
+		apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,

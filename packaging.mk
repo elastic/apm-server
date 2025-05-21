@@ -81,30 +81,6 @@ $(DISTDIR)/%-$(DOCKER_IMAGE_SUFFIX): build/docker/%.txt
 	docker save $(shell cat $<) | gzip -c > $@
 
 ##############################################################################
-# Java agent attacher. Fetched from Maven and verified with the committed key.
-##############################################################################
-
-JAVA_ATTACHER_VERSION:=1.50.0
-JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION)-slim.jar
-JAVA_ATTACHER_SIG:=$(JAVA_ATTACHER_JAR).asc
-JAVA_ATTACHER_BASE_URL:=https://repo1.maven.org/maven2/co/elastic/apm/apm-agent-attach-cli
-JAVA_ATTACHER_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_JAR)
-JAVA_ATTACHER_SIG_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_SIG)
-APM_AGENT_JAVA_PUB_KEY:=packaging/apm-agent-java-public-key.asc
-
-build/.imported-java-agent-pubkey:
-	@gpg --import $(APM_AGENT_JAVA_PUB_KEY)
-	@touch $@
-
-build/$(JAVA_ATTACHER_SIG):
-	curl -sSL $(JAVA_ATTACHER_SIG_URL) > $@
-
-build/java-attacher.jar: build/$(JAVA_ATTACHER_SIG) build/.imported-java-agent-pubkey
-	curl -sSL $(JAVA_ATTACHER_URL) > build/$(JAVA_ATTACHER_JAR)
-	gpg --verify $< build/$(JAVA_ATTACHER_JAR)
-	cp build/$(JAVA_ATTACHER_JAR) build/java-attacher.jar
-
-##############################################################################
 # Packaging:
 #  - Tarballs (Linux, macOS)
 #  - Zip (Windows)
@@ -121,7 +97,6 @@ build/java-attacher.jar: build/$(JAVA_ATTACHER_SIG) build/.imported-java-agent-p
 COMMON_PACKAGE_FILES := \
 	build/.build_hash.txt \
 	build/LICENSE.txt \
-	build/java-attacher.jar \
 	NOTICE.txt \
 	apm-server.yml
 
@@ -202,7 +177,7 @@ $(ARCHIVE_FIPS_PREFIX)-%:
 	install -m 644 $(filter-out build/apm-server-fips-%, $^) $@
 # the apm-server.yml can only be writable by the owner; let's avoid the issues with umask
 	install -m 600 apm-server.yml $@
-	cp $(filter build/apm-server-fips-%, $^) $@/apm-server-fips$(suffix $(filter build/apm-server-fips-%, $^))
+	cp $(filter build/apm-server-fips-%, $^) $@/apm-server$(suffix $(filter build/apm-server-fips-%, $^))
 
 $(DISTDIR)/%.tar.gz: $(ARCHIVES_DIR)/%
 	@mkdir -p $(DISTDIR) && rm -f $@
