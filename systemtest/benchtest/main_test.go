@@ -111,7 +111,7 @@ func Test_warmup(t *testing.T) {
 			}))
 
 			t.Cleanup(srv.Close)
-			err := warmup(c.agents, c.duration, srv.URL, "")
+			err := warmup(c.agents, c.duration, srv.URL, "", "")
 			assert.NoError(t, err)
 			assert.Greater(t, received.Load(), uint64(c.agents))
 		})
