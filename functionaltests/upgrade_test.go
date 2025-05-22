@@ -185,6 +185,7 @@ type upgradeTestConfig struct {
 	LazyRolloverWithExceptions map[string][]string    `yaml:"lazy-rollover-with-exceptions"`
 }
 
+// ExpectedLifecycle returns the lifecycle management that is expected of the provided version.
 func (cfg upgradeTestConfig) ExpectedLifecycle(version ecclient.StackVersion) string {
 	lifecycle, ok := cfg.DataStreamLifecycle[version.MajorMinor()]
 	if !ok {
