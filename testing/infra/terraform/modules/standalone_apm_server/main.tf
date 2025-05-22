@@ -200,10 +200,7 @@ resource "aws_instance" "apm" {
     user        = local.image_ssh_users[var.aws_os]
     host        = self.public_ip
     private_key = file("${var.aws_provisioner_key_name}")
-  }
-
-  timeouts {
-    create = "20m"
+    timeout = "10m"
   }
 
   // For instance types with 'd.' e.g. c6id.2xlarge, use the NVMe ssd as data disk.
