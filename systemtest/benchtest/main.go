@@ -20,9 +20,11 @@ package benchtest
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -272,6 +274,13 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 
+	for ready := false; !ready; {
+		ready, err = checkReady(ctx, url)
+		if err != nil {
+			return fmt.Errorf("error while waiting for server to be ready: %w", err)
+		}
+	}
+
 	var wg sync.WaitGroup
 	wg.Add(agents)
 	for i := 0; i < agents; i++ {
@@ -292,4 +301,35 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 		return fmt.Errorf("received error waiting for server inactive: %w", err)
 	}
 	return nil
+}
+
+func checkReady(ctx context.Context, url string) (bool, error) {
+	select {
+	case <-ctx.Done():
+		return false, ctx.Err()
+	default:
+	}
+	req, err := http.NewRequestWithContext(ctx, "GET", url+"/", nil)
+	if err != nil {
+		return false, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return false, nil
+	}
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false, err
+	}
+	var r struct {
+		PublishReady bool `json:"publish_ready"`
+	}
+	if err := json.Unmarshal(b, &r); err != nil {
+		return false, err
+	}
+	return r.PublishReady, nil
 }
