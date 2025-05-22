@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.24.2
+go 1.24.3
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.0
@@ -9,12 +9,12 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.2.0
 	github.com/elastic/apm-data v1.16.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250521101903-9ba3d8d44522
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250521192339-465c5efd3ada
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
 	github.com/elastic/elastic-agent-libs v0.19.3
 	github.com/elastic/elastic-agent-system-metrics v0.11.11
 	github.com/elastic/gmux v0.3.2
-	github.com/elastic/go-docappender/v2 v2.4.0
+	github.com/elastic/go-docappender/v2 v2.6.0
 	github.com/elastic/go-elasticsearch/v8 v8.17.0
 	github.com/elastic/go-sysinfo v1.15.0
 	github.com/elastic/go-ucfg v0.8.8
@@ -105,7 +105,7 @@ require (
 	github.com/eapache/go-resiliency v1.7.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/ebitengine/purego v0.8.1 // indirect
+	github.com/ebitengine/purego v0.9.0-alpha.3.0.20250507171635-5047c08daa38 // indirect
 	github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 // indirect
 	github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.6.1 // indirect
