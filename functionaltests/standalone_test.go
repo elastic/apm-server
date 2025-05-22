@@ -24,12 +24,12 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 )
 
-func TestUpgrade_7_17_to_8_x_to_9_x_Snapshot_Standalone_to_Managed(t *testing.T) {
+func TestStandaloneManaged_7_17_to_8_x_to_9_x_Snapshot(t *testing.T) {
 	t.Parallel()
 
-	from7 := getLatestSnapshot(t, "7.17")
-	to8 := getLatestSnapshot(t, "8")
-	to9 := getLatestSnapshot(t, "9")
+	from7 := vsCache.GetLatestSnapshot(t, "7.17")
+	to8 := vsCache.GetLatestSnapshot(t, "8")
+	to9 := vsCache.GetLatestSnapshot(t, "9")
 	if !from7.CanUpgradeTo(to8.Version) {
 		t.Skipf("upgrade from %s to %s is not allowed", from7.Version, to8.Version)
 		return
@@ -52,40 +52,6 @@ func TestUpgrade_7_17_to_8_x_to_9_x_Snapshot_Standalone_to_Managed(t *testing.T)
 	})
 
 	t.Run("Managed9", func(t *testing.T) {
-		t.Parallel()
-		runner := managed9Runner(from7.Version, to8.Version, to9.Version)
-		runner.Run(t)
-	})
-}
-
-func TestUpgrade_7_17_to_8_x_to_9_x_BC_Standalone_to_Managed(t *testing.T) {
-	t.Parallel()
-
-	from7 := getLatestVersionOrSkip(t, "7.17")
-	to8 := getLatestVersionOrSkip(t, "8")
-	to9 := getLatestBCOrSkip(t, "9")
-	if !from7.CanUpgradeTo(to8.Version) {
-		t.Skipf("upgrade from %s to %s is not allowed", from7.Version, to8.Version)
-		return
-	}
-	if !to8.CanUpgradeTo(to9.Version) {
-		t.Skipf("upgrade from %s to %s is not allowed", to8.Version, to9.Version)
-		return
-	}
-
-	t.Run("Managed in 7", func(t *testing.T) {
-		t.Parallel()
-		runner := managed7Runner(from7.Version, to8.Version, to9.Version)
-		runner.Run(t)
-	})
-
-	t.Run("Managed in 8", func(t *testing.T) {
-		t.Parallel()
-		runner := managed8Runner(from7.Version, to8.Version, to9.Version)
-		runner.Run(t)
-	})
-
-	t.Run("Managed in 9", func(t *testing.T) {
 		t.Parallel()
 		runner := managed9Runner(from7.Version, to8.Version, to9.Version)
 		runner.Run(t)
@@ -128,6 +94,7 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 	}
 
 	return testStepsRunner{
+		Target: *target,
 		Steps: []testStep{
 			// Start from 7.x.
 			createStep{
@@ -211,11 +178,13 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 	}
 
 	return testStepsRunner{
+		Target: *target,
 		Steps: []testStep{
 			// Start from 7.x.
 			createStep{
 				DeployVersion:     fromVersion7,
 				APMDeploymentMode: apmStandalone,
+				CleanupOnFailure:  *cleanupOnFailure,
 			},
 			ingestV7Step{},
 			// Upgrade to 8.x.
@@ -262,11 +231,13 @@ func managed9Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 	}
 
 	return testStepsRunner{
+		Target: *target,
 		Steps: []testStep{
 			// Start from 7.x.
 			createStep{
 				DeployVersion:     fromVersion7,
 				APMDeploymentMode: apmStandalone,
+				CleanupOnFailure:  *cleanupOnFailure,
 			},
 			ingestV7Step{},
 			// Upgrade to 8.x.

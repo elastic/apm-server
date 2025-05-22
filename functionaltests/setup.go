@@ -19,7 +19,6 @@ package functionaltests
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"os"
 	"strconv"
@@ -37,23 +36,6 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
-)
-
-var (
-	// cleanupOnFailure determines whether the created resources should be cleaned up on test failure.
-	cleanupOnFailure = flag.Bool(
-		"cleanup-on-failure",
-		true,
-		"Whether to run cleanup even if the test failed.",
-	)
-
-	// target is the Elastic Cloud environment to target with these test.
-	// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
-	target = flag.String(
-		"target",
-		"pro",
-		"The target environment where to run tests againts. Valid values are: qa, pro.",
-	)
 )
 
 const (
@@ -166,6 +148,7 @@ func createCluster(
 	target string,
 	fromVersion ecclient.StackVersion,
 	enableIntegrations bool,
+	cleanupOnFailure bool,
 ) deploymentInfo {
 	t.Helper()
 
@@ -181,7 +164,7 @@ func createCluster(
 	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, integrations, name))
 
 	t.Cleanup(func() {
-		if !t.Failed() || (t.Failed() && *cleanupOnFailure) {
+		if !t.Failed() || (t.Failed() && cleanupOnFailure) {
 			t.Log("cleanup terraform resources")
 			require.NoError(t, tf.Destroy(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, version))
 		} else {

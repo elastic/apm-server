@@ -18,10 +18,13 @@
 package functionaltests
 
 import (
-	"context"
 	"flag"
+	"fmt"
+	"os"
 	"strings"
 	"testing"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
@@ -31,11 +34,15 @@ var (
 	upgradePath = flag.String(
 		"upgrade-path",
 		"",
-		"Versions to be used in TestUpgrade_Provided_Versions_*, separated by commas",
+		"Versions to be used in TestUpgrade_UpgradePath_Snapshot, separated by commas",
 	)
 )
 
-func TestUpgrade_Provided_Versions_Snapshot(t *testing.T) {
+const (
+	numExpectedDataStreams = 8
+)
+
+func TestUpgrade_UpgradePath_Snapshot(t *testing.T) {
 	// The versions are separated by commas.
 	if strings.TrimSpace(*upgradePath) == "" {
 		t.Fatal("no upgrade versions specified")
@@ -48,7 +55,7 @@ func TestUpgrade_Provided_Versions_Snapshot(t *testing.T) {
 	// Get all snapshot versions based on input.
 	var versionInfos []ecclient.StackVersionInfo
 	for i, s := range splits {
-		versionInfo := getLatestSnapshot(t, strings.TrimSpace(s))
+		versionInfo := vsCache.GetLatestSnapshot(t, strings.TrimSpace(s))
 		if i != 0 {
 			prevVersionInfo := versionInfos[len(versionInfos)-1]
 			if !prevVersionInfo.CanUpgradeTo(versionInfo.Version) {
@@ -58,88 +65,161 @@ func TestUpgrade_Provided_Versions_Snapshot(t *testing.T) {
 		versionInfos = append(versionInfos, versionInfo)
 	}
 
-	checkILM := asserts.CheckDataStreamsWant{
-		Quantity:    8,
-		PreferIlm:   true,
-		DSManagedBy: managedByILM,
+	config, err := parseConfig("upgrade-config.yaml")
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	// Build upgrade-and-ingest steps, omitting the first one since that will
-	// be the starting version.
-	upgradeIngestSteps := make([]testStep, 0, len(versionInfos)-1)
-	for _, versionInfo := range versionInfos[1:] {
-		// Upgrade to version.
-		upgradeIngestSteps = append(upgradeIngestSteps, upgradeStep{
-			NewVersion:      versionInfo.Version,
-			CheckDataStream: checkILM,
-			SkipIndices:     true,
-		})
-		// Perform ingestion on that version.
-		upgradeIngestSteps = append(upgradeIngestSteps, ingestStep{
-			CheckDataStream: checkILM,
-			SkipIndices:     true,
-		})
-	}
-
-	// Run default upgrade scenario.
 	t.Run("Default", func(t *testing.T) {
 		t.Parallel()
-
-		// Create deployment using first version and perform ingestion.
-		steps := []testStep{
-			createStep{DeployVersion: versionInfos[0].Version},
-			ingestStep{CheckDataStream: checkILM, SkipIndices: true},
+		steps := buildTestSteps(t, versionInfos, config, false)
+		runner := testStepsRunner{
+			Target: *target,
+			Steps:  steps,
 		}
-		// Upgrade and ingest in subsequent versions.
-		steps = append(steps, upgradeIngestSteps...)
-		// Check error logs.
-		steps = append(steps, checkErrorLogsStep{
-			APMErrorLogsIgnored: apmErrorLogs{
-				tlsHandshakeError,
-				esReturnedUnknown503,
-				refreshCache503,
-				populateSourcemapFetcher403,
-			},
-		})
-
-		runner := testStepsRunner{Steps: steps}
 		runner.Run(t)
 	})
 
-	// Run reroute upgrade scenario.
 	t.Run("Reroute", func(t *testing.T) {
 		t.Parallel()
-
-		rerouteNamespace := "rerouted"
-		setupFn := stepFunc(
-			func(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
-				t.Log("create reroute processors")
-				createRerouteIngestPipeline(t, ctx, e.esc, rerouteNamespace)
-				return previousRes
-			},
-		)
-		// Create deployment using first version, add reroute, and perform ingestion.
-		steps := []testStep{
-			createStep{DeployVersion: versionInfos[0].Version},
-			customStep{Func: setupFn},
-			ingestStep{CheckDataStream: checkILM, SkipIndices: true},
-		}
-		// Upgrade and ingest in subsequent versions.
-		steps = append(steps, upgradeIngestSteps...)
-		// Check error logs.
-		steps = append(steps, checkErrorLogsStep{
-			APMErrorLogsIgnored: apmErrorLogs{
-				tlsHandshakeError,
-				esReturnedUnknown503,
-				refreshCache503,
-				populateSourcemapFetcher403,
-			},
-		})
-
+		steps := buildTestSteps(t, versionInfos, config, true)
 		runner := testStepsRunner{
-			DataStreamNamespace: rerouteNamespace,
-			Steps:               steps,
+			Target: *target,
+			Steps:  steps,
 		}
 		runner.Run(t)
 	})
+}
+
+func buildTestSteps(t *testing.T, versionInfos ecclient.StackVersionInfos, config upgradeTestConfig, reroute bool) []testStep {
+	t.Helper()
+
+	var steps []testStep
+	var indicesManagedBy []string
+
+	for i, info := range versionInfos {
+		lifecycle := config.ExpectedLifecycle(info.Version)
+		// Create deployment using first version, create reroute (if enabled) and ingest.
+		if i == 0 {
+			indicesManagedBy = append(indicesManagedBy, lifecycle)
+			steps = append(steps, createStep{
+				DeployVersion:    info.Version,
+				CleanupOnFailure: *cleanupOnFailure,
+			})
+			if reroute {
+				steps = append(steps, createReroutePipelineStep{DataStreamNamespace: "reroute"})
+			}
+			steps = append(steps, ingestStep{
+				CheckDataStream: asserts.CheckDataStreamsWant{
+					Quantity:         numExpectedDataStreams,
+					PreferIlm:        lifecycle == managedByILM,
+					DSManagedBy:      lifecycle,
+					IndicesManagedBy: indicesManagedBy,
+				},
+			})
+			continue
+		}
+
+		// Upgrade deployment to new version and ingest.
+		prev := versionInfos[i-1].Version
+		oldIndicesManagedBy := copySlice(indicesManagedBy)
+		if config.HasLazyRollover(prev, info.Version) {
+			indicesManagedBy = append(indicesManagedBy, lifecycle)
+		}
+		steps = append(steps,
+			upgradeStep{
+				NewVersion: info.Version,
+				CheckDataStream: asserts.CheckDataStreamsWant{
+					Quantity:    numExpectedDataStreams,
+					PreferIlm:   lifecycle == managedByILM,
+					DSManagedBy: lifecycle,
+					// After upgrade, the indices should still be managed by
+					// the same lifecycle management.
+					IndicesManagedBy: oldIndicesManagedBy,
+				},
+			},
+			ingestStep{
+				CheckDataStream: asserts.CheckDataStreamsWant{
+					Quantity:    numExpectedDataStreams,
+					PreferIlm:   lifecycle == managedByILM,
+					DSManagedBy: lifecycle,
+					// After ingestion, lazy rollover should kick in if applicable.
+					IndicesManagedBy: indicesManagedBy,
+				},
+			},
+		)
+	}
+
+	// Check error logs, ignoring some that are due to intermittent issues
+	// unrelated to our test.
+	steps = append(steps, checkErrorLogsStep{
+		APMErrorLogsIgnored: apmErrorLogs{
+			tlsHandshakeError,
+			esReturnedUnknown503,
+			refreshCache503,
+			refreshCacheCtxCanceled,
+			refreshCacheCtxDeadline,
+			refreshCacheESConfigInvalid,
+			preconditionFailed,
+			populateSourcemapFetcher403,
+			populateSourcemapServerShuttingDown,
+		},
+	})
+
+	return steps
+}
+
+func copySlice[T any](original []T) []T {
+	sliceCopy := make([]T, len(original))
+	copy(sliceCopy, original)
+	return sliceCopy
+}
+
+type upgradeTest struct {
+	Versions []string `yaml:"versions"`
+}
+
+type upgradeTestConfig struct {
+	UpgradeTests               map[string]upgradeTest `yaml:"upgrade-tests"`
+	DataStreamLifecycle        map[string]string      `yaml:"data-stream-lifecycle"`
+	LazyRolloverWithExceptions map[string][]string    `yaml:"lazy-rollover-with-exceptions"`
+}
+
+func (cfg upgradeTestConfig) ExpectedLifecycle(version ecclient.StackVersion) string {
+	lifecycle, ok := cfg.DataStreamLifecycle[version.MajorMinor()]
+	if !ok {
+		return managedByILM
+	}
+	if strings.EqualFold(lifecycle, "DSL") {
+		return managedByDSL
+	}
+	return managedByILM
+}
+
+// HasLazyRollover checks if the upgrade path is expected to have lazy rollover.
+func (cfg upgradeTestConfig) HasLazyRollover(from, to ecclient.StackVersion) bool {
+	exceptions, ok := cfg.LazyRolloverWithExceptions[to.MajorMinor()]
+	if !ok {
+		return false
+	}
+	for _, exception := range exceptions {
+		if strings.EqualFold(from.MajorMinor(), exception) {
+			return false
+		}
+	}
+	return true
+}
+
+func parseConfig(filename string) (upgradeTestConfig, error) {
+	b, err := os.ReadFile(filename)
+	if err != nil {
+		return upgradeTestConfig{}, fmt.Errorf("failed to read %s: %w", filename, err)
+	}
+
+	config := upgradeTestConfig{}
+	if err = yaml.Unmarshal(b, &config); err != nil {
+		return upgradeTestConfig{}, fmt.Errorf("failed to unmarshal upgrade test config: %w", err)
+	}
+
+	return config, nil
 }

@@ -131,7 +131,7 @@ func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv, p
 	}
 
 	t.Logf("------ upgrade %s to %s ------", e.currentVersion(), u.NewVersion)
-	upgradeCluster(t, ctx, e.tf, *target, u.NewVersion, e.integrations)
+	upgradeCluster(t, ctx, e.tf, e.target, u.NewVersion, e.integrations)
 	// Update the environment version to the new one.
 	e.versions = append(e.versions, u.NewVersion)
 

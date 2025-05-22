@@ -40,6 +40,9 @@ import (
 // testStepsRunner consists of composable testStep(s) that is run
 // in sequence.
 type testStepsRunner struct {
+	// Target is the target environment for the Elastic Cloud deployment.
+	Target string
+
 	// DataStreamNamespace is the namespace for the APM data streams
 	// that is being tested. Defaults to "default".
 	//
@@ -54,6 +57,9 @@ type testStepsRunner struct {
 // Run runs the test steps in sequence, passing the result from the current step
 // into the next step etc.
 func (r testStepsRunner) Run(t *testing.T) {
+	if r.Target == "" {
+		r.Target = targetProd
+	}
 	if r.DataStreamNamespace == "" {
 		r.DataStreamNamespace = "default"
 	}
@@ -68,7 +74,7 @@ func (r testStepsRunner) Run(t *testing.T) {
 	start := time.Now()
 	ctx := context.Background()
 
-	env := testStepEnv{dsNamespace: r.DataStreamNamespace}
+	env := testStepEnv{target: r.Target, dsNamespace: r.DataStreamNamespace}
 	currentRes := testStepResult{}
 	for _, step := range r.Steps {
 		currentRes = step.Step(t, ctx, &env, currentRes)
@@ -93,6 +99,7 @@ type testStepResult struct {
 
 // testStepEnv is the environment of the step that is run.
 type testStepEnv struct {
+	target       string
 	dsNamespace  string
 	versions     []ecclient.StackVersion
 	integrations bool
@@ -139,6 +146,7 @@ func (mode apmDeploymentMode) enableIntegrations() bool {
 type createStep struct {
 	DeployVersion     ecclient.StackVersion
 	APMDeploymentMode apmDeploymentMode
+	CleanupOnFailure  bool
 }
 
 func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ testStepResult) testStepResult {
@@ -149,7 +157,7 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ te
 
 	t.Logf("------ cluster setup %s ------", c.DeployVersion)
 	e.tf = initTerraformRunner(t)
-	deployInfo := createCluster(t, ctx, e.tf, *target, c.DeployVersion, integrations)
+	deployInfo := createCluster(t, ctx, e.tf, e.target, c.DeployVersion, integrations, c.CleanupOnFailure)
 	e.esc = createESClient(t, deployInfo)
 	e.kbc = createKibanaClient(t, deployInfo)
 	e.gen = createAPMGenerator(t, ctx, e.esc, e.kbc, deployInfo)
@@ -184,10 +192,6 @@ type ingestStep struct {
 	// IgnoreDataStreams are the data streams to be ignored in assertions.
 	// The data stream names can contain '%s' to indicate namespace.
 	IgnoreDataStreams []string
-
-	// SkipIndices skips checking the indices within data streams,
-	// i.e. only data streams are checked.
-	SkipIndices bool
 }
 
 func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
@@ -210,11 +214,9 @@ func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, prev
 	dataStreams := getAPMDataStreams(t, ctx, e.esc, ignoreDS...)
 	if i.CheckIndividualDataStream != nil {
 		expected := formatAllMap(i.CheckIndividualDataStream, e.dsNamespace)
-		asserts.CheckDataStreamsIndividually(t, expected, dataStreams,
-			asserts.SkipIndices(i.SkipIndices))
+		asserts.CheckDataStreamsIndividually(t, expected, dataStreams)
 	} else {
-		asserts.CheckDataStreams(t, i.CheckDataStream, dataStreams,
-			asserts.SkipIndices(i.SkipIndices))
+		asserts.CheckDataStreams(t, i.CheckDataStream, dataStreams)
 	}
 
 	return testStepResult{DSDocCount: dsDocCount}
@@ -259,10 +261,6 @@ type upgradeStep struct {
 	// IgnoreDataStreams are the data streams to be ignored in assertions.
 	// The data stream names can contain '%s' to indicate namespace.
 	IgnoreDataStreams []string
-
-	// SkipIndices skips checking the indices within data streams,
-	// i.e. only data streams are checked.
-	SkipIndices bool
 }
 
 func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
@@ -271,7 +269,7 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 	}
 
 	t.Logf("------ upgrade %s to %s ------", e.currentVersion(), u.NewVersion)
-	upgradeCluster(t, ctx, e.tf, *target, u.NewVersion, e.integrations)
+	upgradeCluster(t, ctx, e.tf, e.target, u.NewVersion, e.integrations)
 	// Update the environment version to the new one.
 	e.versions = append(e.versions, u.NewVersion)
 
@@ -289,11 +287,9 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 	dataStreams := getAPMDataStreams(t, ctx, e.esc, ignoreDS...)
 	if u.CheckIndividualDataStream != nil {
 		expected := formatAllMap(u.CheckIndividualDataStream, e.dsNamespace)
-		asserts.CheckDataStreamsIndividually(t, expected, dataStreams,
-			asserts.SkipIndices(u.SkipIndices))
+		asserts.CheckDataStreamsIndividually(t, expected, dataStreams)
 	} else {
-		asserts.CheckDataStreams(t, u.CheckDataStream, dataStreams,
-			asserts.SkipIndices(u.SkipIndices))
+		asserts.CheckDataStreams(t, u.CheckDataStream, dataStreams)
 	}
 
 	return testStepResult{DSDocCount: dsDocCount}
@@ -329,16 +325,26 @@ func (c checkErrorLogsStep) Step(t *testing.T, ctx context.Context, e *testStepE
 	return previousRes
 }
 
-type stepFunc func(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult
-
-// customStep is a custom step to be defined by the user's. The step will run
-// the provided Func.
-type customStep struct {
-	Func stepFunc
+// createReroutePipelineStep creates custom ingest pipelines to reroute logs,
+// metrics and traces to different data streams specified by namespace.
+type createReroutePipelineStep struct {
+	DataStreamNamespace string
 }
 
-func (c customStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
-	return c.Func(t, ctx, e, previousRes)
+func (c createReroutePipelineStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
+	t.Log("create reroute ingest pipelines")
+	for _, pipeline := range []string{"logs@custom", "metrics@custom", "traces@custom"} {
+		err := e.esc.CreateIngestPipeline(ctx, pipeline, []types.ProcessorContainer{
+			{
+				Reroute: &types.RerouteProcessor{
+					Namespace: []string{c.DataStreamNamespace},
+				},
+			},
+		})
+		require.NoError(t, err)
+	}
+	e.dsNamespace = c.DataStreamNamespace
+	return previousRes
 }
 
 // expectedDataStreamsIngest represent the expected number of ingested document

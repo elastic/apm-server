@@ -25,18 +25,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-type CheckDataStreamsOption func(opts *checkDSOpts)
-
-func SkipIndices(b bool) CheckDataStreamsOption {
-	return func(opts *checkDSOpts) {
-		opts.skipIndices = b
-	}
-}
-
-type checkDSOpts struct {
-	skipIndices bool
-}
-
 type CheckDataStreamsWant struct {
 	Quantity         int
 	DSManagedBy      string
@@ -45,13 +33,8 @@ type CheckDataStreamsWant struct {
 }
 
 // CheckDataStreams asserts that all data streams have expected values.
-func CheckDataStreams(t *testing.T, expected CheckDataStreamsWant, actual []types.DataStream, options ...CheckDataStreamsOption) {
+func CheckDataStreams(t *testing.T, expected CheckDataStreamsWant, actual []types.DataStream) {
 	t.Helper()
-
-	opts := &checkDSOpts{}
-	for _, option := range options {
-		option(opts)
-	}
 
 	// Preliminarily check that these two are matching, to avoid panic later.
 	assert.Len(t, actual, expected.Quantity, "number of APM data streams differs from expectations")
@@ -61,7 +44,7 @@ func CheckDataStreams(t *testing.T, expected CheckDataStreamsWant, actual []type
 			DSManagedBy:      expected.DSManagedBy,
 			PreferIlm:        expected.PreferIlm,
 			IndicesManagedBy: expected.IndicesManagedBy,
-		}, v, opts)
+		}, v)
 	}
 }
 
@@ -72,13 +55,8 @@ type CheckDataStreamIndividualWant struct {
 }
 
 // CheckDataStreamsIndividually asserts that each data stream have expected values individually.
-func CheckDataStreamsIndividually(t *testing.T, expected map[string]CheckDataStreamIndividualWant, actual []types.DataStream, options ...CheckDataStreamsOption) {
+func CheckDataStreamsIndividually(t *testing.T, expected map[string]CheckDataStreamIndividualWant, actual []types.DataStream) {
 	t.Helper()
-
-	opts := &checkDSOpts{}
-	for _, option := range options {
-		option(opts)
-	}
 
 	assert.Len(t, actual, len(expected), "number of APM data streams differs from expectations")
 
@@ -89,11 +67,11 @@ func CheckDataStreamsIndividually(t *testing.T, expected map[string]CheckDataStr
 			continue
 		}
 
-		checkSingleDataStream(t, e, v, opts)
+		checkSingleDataStream(t, e, v)
 	}
 }
 
-func checkSingleDataStream(t *testing.T, expected CheckDataStreamIndividualWant, actual types.DataStream, opts *checkDSOpts) {
+func checkSingleDataStream(t *testing.T, expected CheckDataStreamIndividualWant, actual types.DataStream) {
 	if expected.PreferIlm {
 		assert.True(t, actual.PreferIlm, "data stream %s should prefer ILM", actual.Name)
 	} else {
@@ -104,15 +82,13 @@ func checkSingleDataStream(t *testing.T, expected CheckDataStreamIndividualWant,
 		`data stream %s should be managed by "%s"`, actual.Name, expected.DSManagedBy,
 	)
 
-	if !opts.skipIndices {
-		assert.Len(t, actual.Indices, len(expected.IndicesManagedBy),
-			"data stream %s should have %d indices", actual.Name, len(expected.IndicesManagedBy),
+	assert.Len(t, actual.Indices, len(expected.IndicesManagedBy),
+		"data stream %s should have %d indices", actual.Name, len(expected.IndicesManagedBy),
+	)
+	for i, index := range actual.Indices {
+		assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name,
+			`index %s should be managed by "%s"`, index.IndexName,
+			expected.IndicesManagedBy[i],
 		)
-		for i, index := range actual.Indices {
-			assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name,
-				`index %s should be managed by "%s"`, index.IndexName,
-				expected.IndicesManagedBy[i],
-			)
-		}
 	}
 }
