@@ -145,7 +145,7 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 
 func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) testStepsRunner {
 	checkILMAll := asserts.CheckDataStreamsWant{
-		Quantity:         8,
+		Quantity:         numExpectedDataStreams,
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
 		IndicesManagedBy: []string{managedByILM},
@@ -224,7 +224,7 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 func managed9Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) testStepsRunner {
 	// Data streams in 8.x should be all ILM if upgraded to a stack < 8.15 and > 8.16.
 	checkILMAll := asserts.CheckDataStreamsWant{
-		Quantity:         8,
+		Quantity:         numExpectedDataStreams,
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
 		IndicesManagedBy: []string{managedByILM},

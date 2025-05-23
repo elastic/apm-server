@@ -58,7 +58,6 @@ type versionsCache struct {
 	// fetchedVersions are the non-snapshot stack versions prefetched from Elastic Cloud API.
 	fetchedVersions ecclient.StackVersionInfos
 
-	client *ecclient.Client
 	region string
 }
 
