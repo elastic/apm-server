@@ -275,10 +275,11 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 	defer cancel()
 
 	for ready := false; !ready; {
-		ready, err = checkReady(ctx, url)
+		ready, err = checkReady(ctx, url, token)
 		if err != nil {
 			return fmt.Errorf("error while waiting for server to be ready: %w", err)
 		}
+		time.Sleep(time.Second)
 	}
 
 	var wg sync.WaitGroup
@@ -303,7 +304,7 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 	return nil
 }
 
-func checkReady(ctx context.Context, url string) (bool, error) {
+func checkReady(ctx context.Context, url string, token string) (bool, error) {
 	select {
 	case <-ctx.Done():
 		return false, ctx.Err()
@@ -313,6 +314,7 @@ func checkReady(ctx context.Context, url string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	req.Header.Set("Authorization", "Bearer "+token)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return false, err
@@ -329,8 +331,7 @@ func checkReady(ctx context.Context, url string) (bool, error) {
 		PublishReady bool `json:"publish_ready"`
 	}
 	if err := json.Unmarshal(b, &r); err != nil {
-		log.Println(string(b))
-		return false, nil
+		return false, err
 	}
 	return r.PublishReady, nil
 }
