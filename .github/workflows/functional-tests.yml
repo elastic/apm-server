@@ -20,22 +20,17 @@ env:
   TERRAFORM_VERSION: 1.10.2
 
 jobs:
-  run-deep:
-    name: Deep upgrade tests
+  run-upgrade:
+    name: Upgrade tests
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         environment:
           - 'pro'
-        active-version:
-          - '8.17'
-          - '8.18'
-          - '8.19'
-          - '9.0'
-          - '9.1'
-          - '8.x' # Latest 8 version
-          - '9.x' # Latest 9 version
+        upgrade-path:
+          - '8.15, 8.16, 8.17, 8.18, 9.0'
+          - '8.17, 8.19, 9.1'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
@@ -55,9 +50,7 @@ jobs:
         working-directory: ${{ github.workspace }}/functionaltests
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          VERSION="${{ matrix.active-version }}"
-          VERSION="${VERSION//./_}"
-          go test -run="_to_${VERSION}" -skip="_to_${VERSION}_to_|Standalone_to_Managed" -v -timeout=30m -target="${{ matrix.environment }}" ./
+          go test -run="TestUpgrade" -v -timeout=60m -target="${{ matrix.environment }}" -upgrade-path="${{ matrix.upgrade-path }}" ./
 
   run-standalone:
     name: Standalone-to-managed tests
@@ -86,7 +79,7 @@ jobs:
         working-directory: ${{ github.workspace }}/functionaltests
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          go test -run="Standalone_to_Managed" -v -timeout=60m -target="${{ matrix.environment }}" ./
+          go test -run="TestStandaloneManaged" -v -timeout=60m -target="${{ matrix.environment }}" ./
 
 #  notify:
 #    if: always()

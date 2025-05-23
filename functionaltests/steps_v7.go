@@ -87,8 +87,6 @@ func emptyDataStreamsIngestV7(namespace string) esclient.DataStreamsDocCount {
 // NOTE: Only works for versions 7.x.
 type ingestV7Step struct{}
 
-var _ testStep = ingestV7Step{}
-
 func (i ingestV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	if e.currentVersion().Major >= 8 {
 		t.Fatal("ingest v7 step should only be used for versions < 8.0")
@@ -127,15 +125,13 @@ type upgradeV7Step struct {
 	NewVersion ecclient.StackVersion
 }
 
-var _ testStep = upgradeV7Step{}
-
 func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	if e.currentVersion().Major >= 8 {
 		t.Fatal("upgrade v7 step should only be used from versions < 8.0")
 	}
 
 	t.Logf("------ upgrade %s to %s ------", e.currentVersion(), u.NewVersion)
-	upgradeCluster(t, ctx, e.tf, *target, u.NewVersion, e.integrations)
+	upgradeCluster(t, ctx, e.tf, e.target, u.NewVersion, e.integrations)
 	// Update the environment version to the new one.
 	e.versions = append(e.versions, u.NewVersion)
 
@@ -167,8 +163,6 @@ func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv, p
 // The output of this step is the indices document counts if version < 8.0,
 // or data streams document counts if version >= 8.0.
 type migrateManagedStep struct{}
-
-var _ testStep = migrateManagedStep{}
 
 func (m migrateManagedStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	if e.integrations {
@@ -208,8 +202,6 @@ func (m migrateManagedStep) Step(t *testing.T, ctx context.Context, e *testStepE
 //
 // The output of this step is the previous test step result.
 type resolveDeprecationsStep struct{}
-
-var _ testStep = resolveDeprecationsStep{}
 
 func (r resolveDeprecationsStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	t.Logf("------ resolve migration deprecations in %s ------", e.currentVersion())

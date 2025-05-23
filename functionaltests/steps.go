@@ -20,10 +20,14 @@ package functionaltests
 import (
 	"context"
 	"fmt"
+	"maps"
+	"slices"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
@@ -36,6 +40,9 @@ import (
 // testStepsRunner consists of composable testStep(s) that is run
 // in sequence.
 type testStepsRunner struct {
+	// Target is the target environment for the Elastic Cloud deployment.
+	Target string
+
 	// DataStreamNamespace is the namespace for the APM data streams
 	// that is being tested. Defaults to "default".
 	//
@@ -50,6 +57,9 @@ type testStepsRunner struct {
 // Run runs the test steps in sequence, passing the result from the current step
 // into the next step etc.
 func (r testStepsRunner) Run(t *testing.T) {
+	if r.Target == "" {
+		r.Target = targetProd
+	}
 	if r.DataStreamNamespace == "" {
 		r.DataStreamNamespace = "default"
 	}
@@ -64,7 +74,7 @@ func (r testStepsRunner) Run(t *testing.T) {
 	start := time.Now()
 	ctx := context.Background()
 
-	env := testStepEnv{dsNamespace: r.DataStreamNamespace}
+	env := testStepEnv{target: r.Target, dsNamespace: r.DataStreamNamespace}
 	currentRes := testStepResult{}
 	for _, step := range r.Steps {
 		currentRes = step.Step(t, ctx, &env, currentRes)
@@ -89,6 +99,7 @@ type testStepResult struct {
 
 // testStepEnv is the environment of the step that is run.
 type testStepEnv struct {
+	target       string
 	dsNamespace  string
 	versions     []ecclient.StackVersion
 	integrations bool
@@ -135,6 +146,7 @@ func (mode apmDeploymentMode) enableIntegrations() bool {
 type createStep struct {
 	DeployVersion     ecclient.StackVersion
 	APMDeploymentMode apmDeploymentMode
+	CleanupOnFailure  bool
 }
 
 func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ testStepResult) testStepResult {
@@ -145,7 +157,7 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ te
 
 	t.Logf("------ cluster setup %s ------", c.DeployVersion)
 	e.tf = initTerraformRunner(t)
-	deployInfo := createCluster(t, ctx, e.tf, *target, c.DeployVersion, integrations)
+	deployInfo := createCluster(t, ctx, e.tf, e.target, c.DeployVersion, integrations, c.CleanupOnFailure)
 	e.esc = createESClient(t, deployInfo)
 	e.kbc = createKibanaClient(t, deployInfo)
 	e.gen = createAPMGenerator(t, ctx, e.esc, e.kbc, deployInfo)
@@ -159,8 +171,6 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ te
 	return testStepResult{DSDocCount: getDocCountPerDS(t, ctx, e.esc)}
 }
 
-var _ testStep = ingestStep{}
-
 // ingestStep performs ingestion to the APM Server deployed on ECH. After
 // ingestion, it checks if the document counts difference between current
 // and previous is expected, and if the data streams are in an expected
@@ -170,17 +180,19 @@ var _ testStep = ingestStep{}
 //
 // NOTE: Only works for versions >= 8.0.
 type ingestStep struct {
+	// CheckDataStream is used to check all data streams have the same expected values.
+	// For checking each data stream individually, use CheckIndividualDataStream.
 	CheckDataStream asserts.CheckDataStreamsWant
-	// IgnoreDataStreams are the data streams to be ignored in assertions.
-	// The data stream names can contain '%s' to indicate namespace.
-	IgnoreDataStreams []string
+
 	// CheckIndividualDataStream is used to check the data streams individually
 	// instead of as a whole using CheckDataStream.
 	// The data stream names can contain '%s' to indicate namespace.
 	CheckIndividualDataStream map[string]asserts.CheckDataStreamIndividualWant
-}
 
-var _ testStep = ingestStep{}
+	// IgnoreDataStreams are the data streams to be ignored in assertions.
+	// The data stream names can contain '%s' to indicate namespace.
+	IgnoreDataStreams []string
+}
 
 func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	if e.currentVersion().Major < 8 {
@@ -234,18 +246,22 @@ func formatAllMap[T any](m map[string]T, s string) map[string]T {
 //
 // NOTE: Only works from versions >= 8.0.
 type upgradeStep struct {
-	NewVersion      ecclient.StackVersion
+	// NewVersion is the version to upgrade into.
+	NewVersion ecclient.StackVersion
+
+	// CheckDataStream is used to check all data streams have the same expected values.
+	// For checking each data stream individually, use CheckIndividualDataStream.
 	CheckDataStream asserts.CheckDataStreamsWant
-	// IgnoreDataStreams are the data streams to be ignored in assertions.
-	// The data stream names can contain '%s' to indicate namespace.
-	IgnoreDataStreams []string
+
 	// CheckIndividualDataStream is used to check the data streams individually
 	// instead of as a whole using CheckDataStream.
 	// The data stream names can contain '%s' to indicate namespace.
 	CheckIndividualDataStream map[string]asserts.CheckDataStreamIndividualWant
-}
 
-var _ testStep = upgradeStep{}
+	// IgnoreDataStreams are the data streams to be ignored in assertions.
+	// The data stream names can contain '%s' to indicate namespace.
+	IgnoreDataStreams []string
+}
 
 func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	if e.currentVersion().Major < 8 {
@@ -253,7 +269,7 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 	}
 
 	t.Logf("------ upgrade %s to %s ------", e.currentVersion(), u.NewVersion)
-	upgradeCluster(t, ctx, e.tf, *target, u.NewVersion, e.integrations)
+	upgradeCluster(t, ctx, e.tf, e.target, u.NewVersion, e.integrations)
 	// Update the environment version to the new one.
 	e.versions = append(e.versions, u.NewVersion)
 
@@ -285,11 +301,14 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 //
 // The output of this step is the previous step's result.
 type checkErrorLogsStep struct {
-	ESErrorLogsIgnored  esErrorLogs
+	// ESErrorLogsIgnored are the error logs query from Elasticsearch that are
+	// to be ignored.
+	ESErrorLogsIgnored esErrorLogs
+
+	// APMErrorLogsIgnored are the error logs query from APM Server that are
+	// to be ignored.
 	APMErrorLogsIgnored apmErrorLogs
 }
-
-var _ testStep = checkErrorLogsStep{}
 
 func (c checkErrorLogsStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
 	t.Log("------ check ES and APM error logs ------")
@@ -306,16 +325,115 @@ func (c checkErrorLogsStep) Step(t *testing.T, ctx context.Context, e *testStepE
 	return previousRes
 }
 
-type stepFunc func(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult
-
-// customStep is a custom step to be defined by the user's. The step will run
-// the provided Func.
-type customStep struct {
-	Func stepFunc
+// createReroutePipelineStep creates custom ingest pipelines to reroute logs,
+// metrics and traces to different data streams specified by namespace.
+type createReroutePipelineStep struct {
+	DataStreamNamespace string
 }
 
-var _ testStep = customStep{}
+func (c createReroutePipelineStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
+	t.Log("create reroute ingest pipelines")
+	for _, pipeline := range []string{"logs@custom", "metrics@custom", "traces@custom"} {
+		err := e.esc.CreateIngestPipeline(ctx, pipeline, []types.ProcessorContainer{
+			{
+				Reroute: &types.RerouteProcessor{
+					Namespace: []string{c.DataStreamNamespace},
+				},
+			},
+		})
+		require.NoError(t, err)
+	}
+	e.dsNamespace = c.DataStreamNamespace
+	return previousRes
+}
 
-func (c customStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
-	return c.Func(t, ctx, e, previousRes)
+// expectedDataStreamsIngest represent the expected number of ingested document
+// after a single run of ingest.
+//
+// NOTE: The aggregation data streams have negative counts, because they are
+// expected to appear but the document counts should not be asserted.
+func expectedDataStreamsIngest(namespace string) esclient.DataStreamsDocCount {
+	return map[string]int{
+		fmt.Sprintf("traces-apm-%s", namespace):                     15013,
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 1437,
+		fmt.Sprintf("metrics-apm.internal-%s", namespace):           1351,
+		fmt.Sprintf("logs-apm.error-%s", namespace):                 364,
+		// Ignore aggregation data streams.
+		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace): -1,
+		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace): -1,
+		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace):     -1,
+		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace):         -1,
+	}
+}
+
+// emptyDataStreamsIngest represent an empty ingestion.
+// It is useful for asserting that the document count did not change after an operation.
+//
+// NOTE: The aggregation data streams have negative counts, because they
+// are expected to appear but the document counts should not be asserted.
+func emptyDataStreamsIngest(namespace string) esclient.DataStreamsDocCount {
+	return map[string]int{
+		fmt.Sprintf("traces-apm-%s", namespace):                     0,
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 0,
+		fmt.Sprintf("metrics-apm.internal-%s", namespace):           0,
+		fmt.Sprintf("logs-apm.error-%s", namespace):                 0,
+		// Ignore aggregation data streams.
+		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace): -1,
+		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace): -1,
+		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace):     -1,
+		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace):         -1,
+	}
+}
+
+func allDataStreams(namespace string) []string {
+	return slices.Collect(maps.Keys(expectedDataStreamsIngest(namespace)))
+}
+
+func sliceToSet[T comparable](s []T) map[T]bool {
+	m := make(map[T]bool)
+	for _, ele := range s {
+		m[ele] = true
+	}
+	return m
+}
+
+// getAPMDataStreams get all APM related data streams.
+func getAPMDataStreams(t *testing.T, ctx context.Context, esc *esclient.Client, ignoreDS ...string) []types.DataStream {
+	t.Helper()
+	dataStreams, err := esc.GetDataStream(ctx, "*apm*")
+	require.NoError(t, err)
+
+	ignore := sliceToSet(ignoreDS)
+	return slices.DeleteFunc(dataStreams, func(ds types.DataStream) bool {
+		return ignore[ds.Name]
+	})
+}
+
+// getDocCountPerDS retrieves document count per data stream for versions >= 8.0.
+func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client, ignoreDS ...string) esclient.DataStreamsDocCount {
+	t.Helper()
+	count, err := esc.APMDSDocCount(ctx)
+	require.NoError(t, err)
+
+	ignore := sliceToSet(ignoreDS)
+	maps.DeleteFunc(count, func(ds string, _ int) bool {
+		return ignore[ds]
+	})
+	return count
+}
+
+// getDocCountPerDS retrieves document count per data stream for versions < 8.0.
+func getDocCountPerDSV7(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) esclient.DataStreamsDocCount {
+	t.Helper()
+	count, err := esc.APMDSDocCountV7(ctx, namespace)
+	require.NoError(t, err)
+	return count
+}
+
+// getDocCountPerIndexV7 retrieves document count per index for versions < 8.0.
+func getDocCountPerIndexV7(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.IndicesDocCount {
+	t.Helper()
+	count, err := esc.APMIdxDocCountV7(ctx)
+	require.NoError(t, err)
+	return count
 }
