@@ -2,6 +2,7 @@
 
 export TF_IN_AUTOMATION=1
 export TF_CLI_ARGS=-no-color
+export TF_LOG=DEBUG
 
 get_versions() {
     if [[ -z ${EC_API_KEY} ]]; then
