@@ -329,7 +329,8 @@ func checkReady(ctx context.Context, url string) (bool, error) {
 		PublishReady bool `json:"publish_ready"`
 	}
 	if err := json.Unmarshal(b, &r); err != nil {
-		return false, err
+		log.Println(string(b))
+		return false, nil
 	}
 	return r.PublishReady, nil
 }
