@@ -44,14 +44,7 @@ func logWarnings(log *logp.Logger, cfg *config.C) {
 		name string
 		info string
 	}
-	deprecatedConfigs := []deprecatedConfig{
-		{"apm-server.data_streams.enabled", "data streams are always enabled"},
-		{"apm-server.ilm", "ILM policies are managed by Fleet"},
-		{"apm-server.register.ingest.pipeline", "ingest pipelines are managed by Fleet"},
-		{"output.elasticsearch.index", "indices cannot be customised, APM Server now produces data streams"},
-		{"output.elasticsearch.indices", "indices cannot be customised, APM Server now produces data streams"},
-		{"setup.template", "index templates are managed by Fleet"},
-	}
+	deprecatedConfigs := []deprecatedConfig{}
 	format := "`%s` specified, but was removed in 8.0 and will be ignored: %s"
 	for _, deprecated := range deprecatedConfigs {
 		ok, err := cfg.Has(deprecated.name, -1)

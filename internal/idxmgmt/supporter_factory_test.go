@@ -66,14 +66,7 @@ func TestNewSupporterWarnings(t *testing.T) {
 		return zapcore.NewTee(in, core)
 	}))
 
-	attrs := map[string]interface{}{
-		"apm-server.data_streams.enabled":             "true",
-		"apm-server.ilm.enabled":                      "auto",
-		"apm-server.register.ingest.pipeline.enabled": "true",
-		"output.elasticsearch.indices":                map[string]interface{}{},
-		"setup.template.name":                         "custom",
-		"setup.template.pattern":                      "custom",
-	}
+	attrs := map[string]interface{}{}
 
 	NewSupporter(logger, config.MustNewConfigFrom(attrs))
 
@@ -82,11 +75,5 @@ func TestNewSupporterWarnings(t *testing.T) {
 		assert.Equal(t, zapcore.WarnLevel, record.Level, record.Message)
 		warnings = append(warnings, record.Message)
 	}
-	assert.Equal(t, []string{
-		"`apm-server.data_streams.enabled` specified, but was removed in 8.0 and will be ignored: data streams are always enabled",
-		"`apm-server.ilm` specified, but was removed in 8.0 and will be ignored: ILM policies are managed by Fleet",
-		"`apm-server.register.ingest.pipeline` specified, but was removed in 8.0 and will be ignored: ingest pipelines are managed by Fleet",
-		"`output.elasticsearch.indices` specified, but was removed in 8.0 and will be ignored: indices cannot be customised, APM Server now produces data streams",
-		"`setup.template` specified, but was removed in 8.0 and will be ignored: index templates are managed by Fleet",
-	}, warnings)
+	assert.Nil(t, warnings)
 }
