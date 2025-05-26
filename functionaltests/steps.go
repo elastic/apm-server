@@ -75,26 +75,10 @@ func (r testStepsRunner) Run(t *testing.T) {
 	ctx := context.Background()
 
 	env := testStepEnv{target: r.Target, dsNamespace: r.DataStreamNamespace}
-	currentRes := testStepResult{}
 	for _, step := range r.Steps {
-		currentRes = step.Step(t, ctx, &env, currentRes)
+		step.Step(t, ctx, &env)
 		t.Logf("time elapsed: %s", time.Since(start))
 	}
-}
-
-// testStepResult contains the results of running the step.
-type testStepResult struct {
-	// DSDocCount is the data streams document counts that is the
-	// result of this step.
-	//
-	// Note: Only applicable for stack versions >= 8.0.
-	DSDocCount esclient.DataStreamsDocCount
-
-	// IndicesDocCount is the indices document counts that is the
-	// result of this step.
-	//
-	// Note: Only applicable for stack versions < 8.0.
-	IndicesDocCount esclient.IndicesDocCount
 }
 
 // testStepEnv is the environment of the step that is run.
@@ -117,7 +101,7 @@ func (env *testStepEnv) currentVersion() ecclient.StackVersion {
 }
 
 type testStep interface {
-	Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult
+	Step(t *testing.T, ctx context.Context, e *testStepEnv)
 }
 
 // apmDeploymentMode is the deployment mode of APM in the cluster.
@@ -149,7 +133,7 @@ type createStep struct {
 	CleanupOnFailure  bool
 }
 
-func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ testStepResult) testStepResult {
+func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	integrations := c.APMDeploymentMode.enableIntegrations()
 	if c.DeployVersion.Major < 8 && integrations {
 		t.Fatal("create step cannot enable integrations for versions < 8.0")
@@ -164,11 +148,6 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, _ te
 	// Update the latest environment version to the new one.
 	e.versions = append(e.versions, c.DeployVersion)
 	e.integrations = integrations
-
-	if e.currentVersion().Major < 8 {
-		return testStepResult{IndicesDocCount: getDocCountPerIndexV7(t, ctx, e.esc)}
-	}
-	return testStepResult{DSDocCount: getDocCountPerDS(t, ctx, e.esc)}
 }
 
 // ingestStep performs ingestion to the APM Server deployed on ECH. After
@@ -194,10 +173,14 @@ type ingestStep struct {
 	IgnoreDataStreams []string
 }
 
-func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
+func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
+
 	if e.currentVersion().Major < 8 {
 		t.Fatal("ingest step should only be used for versions >= 8.0")
 	}
+
+	ignoreDS := formatAll(i.IgnoreDataStreams, e.dsNamespace)
+	beforeIngestDSDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
 
 	t.Logf("------ ingest in %s------", e.currentVersion())
 	err := e.gen.RunBlockingWait(ctx, e.currentVersion(), e.integrations)
@@ -205,9 +188,8 @@ func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, prev
 
 	t.Logf("------ ingest check in %s ------", e.currentVersion())
 	t.Log("check number of documents after ingestion")
-	ignoreDS := formatAll(i.IgnoreDataStreams, e.dsNamespace)
-	dsDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
-	asserts.CheckDocCount(t, dsDocCount, previousRes.DSDocCount,
+	afterIngestDSDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
+	asserts.CheckDocCount(t, afterIngestDSDocCount, beforeIngestDSDocCount,
 		expectedDataStreamsIngest(e.dsNamespace))
 
 	t.Log("check data streams after ingestion")
@@ -218,8 +200,6 @@ func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, prev
 	} else {
 		asserts.CheckDataStreams(t, i.CheckDataStream, dataStreams)
 	}
-
-	return testStepResult{DSDocCount: dsDocCount}
 }
 
 func formatAll(formats []string, s string) []string {
@@ -263,10 +243,13 @@ type upgradeStep struct {
 	IgnoreDataStreams []string
 }
 
-func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
+func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	if e.currentVersion().Major < 8 {
 		t.Fatal("upgrade step should only be used from versions >= 8.0")
 	}
+
+	ignoreDS := formatAll(u.IgnoreDataStreams, e.dsNamespace)
+	beforeUpgradeDSDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
 
 	t.Logf("------ upgrade %s to %s ------", e.currentVersion(), u.NewVersion)
 	upgradeCluster(t, ctx, e.tf, e.target, u.NewVersion, e.integrations)
@@ -278,9 +261,8 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 	// We assert that no changes happened in the number of documents after upgrade
 	// to ensure the state didn't change.
 	// We don't expect any change here unless something broke during the upgrade.
-	ignoreDS := formatAll(u.IgnoreDataStreams, e.dsNamespace)
-	dsDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
-	asserts.CheckDocCount(t, dsDocCount, previousRes.DSDocCount,
+	afterUpgradeDSDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
+	asserts.CheckDocCount(t, afterUpgradeDSDocCount, beforeUpgradeDSDocCount,
 		emptyDataStreamsIngest(e.dsNamespace))
 
 	t.Log("check data streams after upgrade")
@@ -291,8 +273,6 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 	} else {
 		asserts.CheckDataStreams(t, u.CheckDataStream, dataStreams)
 	}
-
-	return testStepResult{DSDocCount: dsDocCount}
 }
 
 // checkErrorLogsStep checks if there are any unexpected error logs from both
@@ -310,7 +290,7 @@ type checkErrorLogsStep struct {
 	APMErrorLogsIgnored apmErrorLogs
 }
 
-func (c checkErrorLogsStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
+func (c checkErrorLogsStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	t.Log("------ check ES and APM error logs ------")
 	t.Log("checking ES error logs")
 	resp, err := e.esc.GetESErrorLogs(ctx, c.ESErrorLogsIgnored.ToQueries()...)
@@ -321,8 +301,6 @@ func (c checkErrorLogsStep) Step(t *testing.T, ctx context.Context, e *testStepE
 	resp, err = e.esc.GetAPMErrorLogs(ctx, c.APMErrorLogsIgnored.ToQueries()...)
 	require.NoError(t, err)
 	asserts.ZeroAPMLogs(t, *resp)
-
-	return previousRes
 }
 
 // createReroutePipelineStep creates custom ingest pipelines to reroute logs,
@@ -331,7 +309,7 @@ type createReroutePipelineStep struct {
 	DataStreamNamespace string
 }
 
-func (c createReroutePipelineStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
+func (c createReroutePipelineStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	t.Log("create reroute ingest pipelines")
 	for _, pipeline := range []string{"logs@custom", "metrics@custom", "traces@custom"} {
 		err := e.esc.CreateIngestPipeline(ctx, pipeline, []types.ProcessorContainer{
@@ -344,7 +322,6 @@ func (c createReroutePipelineStep) Step(t *testing.T, ctx context.Context, e *te
 		require.NoError(t, err)
 	}
 	e.dsNamespace = c.DataStreamNamespace
-	return previousRes
 }
 
 // expectedDataStreamsIngest represent the expected number of ingested document
