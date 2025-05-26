@@ -29,7 +29,8 @@ jobs:
         environment:
           - 'pro'
         upgrade-path:
-          - '8.15, 8.16, 8.17, 8.18, 9.0'
+          - '8.15, 8.16, 8.17'
+          - '8.17, 8.18, 9.0'
           - '8.17, 8.19, 9.1'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4

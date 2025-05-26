@@ -52,14 +52,14 @@ To run the tests, you will first need to set the `EC_API_KEY` environment variab
 
 For upgrade tests:
 ```sh
-go test -run=TestUpgrade_UpgradePath -v -timeout=30m -cleanup-on-failure=false -target="pro" -upgrade-path="<some_upgrade_path>" ./
+go test -run=TestUpgrade_UpgradePath -v -timeout=60m -cleanup-on-failure=false -target="pro" -upgrade-path="<some_upgrade_path>" ./
 ```
 
 ### Standalone-to-Managed Tests
 
 For standalone tests:
 ```sh
-go test -run=TestStandaloneManaged -v -timeout=30m -cleanup-on-failure=false -target="pro" ./
+go test -run=TestStandaloneManaged -v -timeout=60m -cleanup-on-failure=false -target="pro" ./
 ```
 
 ## Debugging the Tests
@@ -67,4 +67,4 @@ go test -run=TestStandaloneManaged -v -timeout=30m -cleanup-on-failure=false -ta
 If you get some errors after running the test, you can try heading to the [Elastic Cloud console](https://cloud.elastic.co/home) in order to access the Kibana instance. 
 From there, you can use Dev Tools to check the data streams etc.
 
-Note: If the tests failed due to deployment, you may need to access the Elastic Cloud admin console instead to check the deployment errors.
+Note: If the tests failed due to deployment or in CI, you may need to access the Elastic Cloud admin console instead to check the errors.
