@@ -38,8 +38,6 @@ type IndicesDocCount map[string]int
 func (c *Client) APMIdxDocCountV7(ctx context.Context) (IndicesDocCount, error) {
 	indicesToCheck := []string{
 		"apm-*-transaction-*", "apm-*-span-*", "apm-*-error-*", "apm-*-metric-*",
-		"apm-*-profile-*",
-		"apm-*-onboarding-*",
 	}
 
 	count := IndicesDocCount{}
