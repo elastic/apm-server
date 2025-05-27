@@ -18,7 +18,6 @@
 package functionaltests
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"strings"
@@ -28,14 +27,6 @@ import (
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
-)
-
-var (
-	upgradePath = flag.String(
-		"upgrade-path",
-		"",
-		"Versions to be used in TestUpgrade_UpgradePath_Snapshot, separated by commas",
-	)
 )
 
 const (

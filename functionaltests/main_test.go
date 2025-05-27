@@ -42,6 +42,12 @@ var (
 		"pro",
 		"The target environment where to run tests againts. Valid values are: qa, pro.",
 	)
+
+	upgradePath = flag.String(
+		"upgrade-path",
+		"",
+		"Versions to be used in TestUpgrade_UpgradePath_Snapshot in upgrade_test.go, separated by commas",
+	)
 )
 
 var vsCache *versionsCache
