@@ -50,7 +50,7 @@ import (
 //				},
 //				ingestV7Step{},
 //				upgradeV7Step{NewVersion: getLatestSnapshot(t, "8")},
-//				ingestStep{CheckDataStream: checkILM},
+//				ingestStep{CheckDataStreams: checkILM},
 //			},
 //		}
 //		runner.Run(t)

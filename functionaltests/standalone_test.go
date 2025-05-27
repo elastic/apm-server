@@ -59,18 +59,18 @@ func TestStandaloneManaged_7_17_to_8_x_to_9_x_Snapshot(t *testing.T) {
 }
 
 func managed7Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) testStepsRunner {
-	checkILM := asserts.CheckDataStreamIndividualWant{
+	checkILM := asserts.DataStreamExpectation{
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
 		IndicesManagedBy: []string{managedByILM},
 	}
-	checkILMRollover := asserts.CheckDataStreamIndividualWant{
+	checkILMRollover := asserts.DataStreamExpectation{
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
 		IndicesManagedBy: []string{managedByILM, managedByILM},
 	}
 
-	check := map[string]asserts.CheckDataStreamIndividualWant{
+	check := map[string]asserts.DataStreamExpectation{
 		// These data streams are created in 7.x as well, so when we ingest
 		// again in 8.x, they will be rolled-over.
 		"traces-apm-%s":                     checkILMRollover,
@@ -78,7 +78,7 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 		"metrics-apm.internal-%s":           checkILMRollover,
 		"logs-apm.error-%s":                 checkILMRollover,
 		// These data streams are only created in 8.x, so they will only have
-		// 1 index.
+		// 1 index per.
 		"metrics-apm.service_destination.1m-%s": checkILM,
 		"metrics-apm.service_transaction.1m-%s": checkILM,
 		"metrics-apm.service_summary.1m-%s":     checkILM,
@@ -108,19 +108,19 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 			// Upgrade to 8.x.
 			upgradeV7Step{NewVersion: toVersion8},
 			ingestStep{
-				IgnoreDataStreams:         ignoredDataStreams,
-				CheckIndividualDataStream: check,
+				IgnoreDataStreams: ignoredDataStreams,
+				CheckDataStreams:  check,
 			},
 			// Resolve deprecations and upgrade to 9.x.
 			resolveDeprecationsStep{},
 			upgradeStep{
-				NewVersion:                toVersion9,
-				IgnoreDataStreams:         ignoredDataStreams,
-				CheckIndividualDataStream: check,
+				NewVersion:        toVersion9,
+				IgnoreDataStreams: ignoredDataStreams,
+				CheckDataStreams:  check,
 			},
 			ingestStep{
-				IgnoreDataStreams:         ignoredDataStreams,
-				CheckIndividualDataStream: check,
+				IgnoreDataStreams: ignoredDataStreams,
+				CheckDataStreams:  check,
 			},
 			checkErrorLogsStep{
 				ESErrorLogsIgnored: esErrorLogs{
@@ -144,30 +144,11 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 }
 
 func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) testStepsRunner {
-	checkILMAll := asserts.CheckDataStreamsWant{
-		Quantity:         numExpectedDataStreams,
+	check := dataStreamsExpectations(asserts.DataStreamExpectation{
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
 		IndicesManagedBy: []string{managedByILM},
-	}
-	checkILM := asserts.CheckDataStreamIndividualWant{
-		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
-		IndicesManagedBy: []string{managedByILM},
-	}
-
-	check := map[string]asserts.CheckDataStreamIndividualWant{
-		// These data streams are created in 7.x.
-		"traces-apm-%s":                     checkILM,
-		"metrics-apm.app.opbeans_python-%s": checkILM,
-		"metrics-apm.internal-%s":           checkILM,
-		"logs-apm.error-%s":                 checkILM,
-		// These data streams are created in 8.x.
-		"metrics-apm.service_destination.1m-%s": checkILM,
-		"metrics-apm.service_transaction.1m-%s": checkILM,
-		"metrics-apm.service_summary.1m-%s":     checkILM,
-		"metrics-apm.transaction.1m-%s":         checkILM,
-	}
+	})
 
 	// These data streams are created in 7.x, but not used in 8.x and 9.x,
 	// so we ignore them to avoid wrong assertions.
@@ -189,20 +170,20 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 			ingestV7Step{},
 			// Upgrade to 8.x.
 			upgradeV7Step{NewVersion: toVersion8},
-			ingestStep{CheckDataStream: checkILMAll},
+			ingestStep{CheckDataStreams: check},
 			// Migrate to managed
 			migrateManagedStep{},
-			ingestStep{CheckDataStream: checkILMAll},
+			ingestStep{CheckDataStreams: check},
 			// Resolve deprecations and upgrade to 9.x.
 			resolveDeprecationsStep{},
 			upgradeStep{
-				NewVersion:                toVersion9,
-				IgnoreDataStreams:         ignoredDataStreams,
-				CheckIndividualDataStream: check,
+				NewVersion:        toVersion9,
+				IgnoreDataStreams: ignoredDataStreams,
+				CheckDataStreams:  check,
 			},
 			ingestStep{
-				IgnoreDataStreams:         ignoredDataStreams,
-				CheckIndividualDataStream: check,
+				IgnoreDataStreams: ignoredDataStreams,
+				CheckDataStreams:  check,
 			},
 			checkErrorLogsStep{
 				ESErrorLogsIgnored: esErrorLogs{
@@ -222,13 +203,12 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 }
 
 func managed9Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) testStepsRunner {
-	// Data streams in 8.x should be all ILM if upgraded to a stack < 8.15 and > 8.16.
-	checkILMAll := asserts.CheckDataStreamsWant{
-		Quantity:         numExpectedDataStreams,
+	// Data streams created in latest 8.x and 9.x should be all ILM.
+	check := dataStreamsExpectations(asserts.DataStreamExpectation{
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
 		IndicesManagedBy: []string{managedByILM},
-	}
+	})
 
 	return testStepsRunner{
 		Target: *target,
@@ -242,17 +222,17 @@ func managed9Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 			ingestV7Step{},
 			// Upgrade to 8.x.
 			upgradeV7Step{NewVersion: toVersion8},
-			ingestStep{CheckDataStream: checkILMAll},
+			ingestStep{CheckDataStreams: check},
 			// Resolve deprecations and upgrade to 9.x.
 			resolveDeprecationsStep{},
 			upgradeStep{
-				NewVersion:      toVersion9,
-				CheckDataStream: checkILMAll,
+				NewVersion:       toVersion9,
+				CheckDataStreams: check,
 			},
-			ingestStep{CheckDataStream: checkILMAll},
+			ingestStep{CheckDataStreams: check},
 			// Migrate to managed.
 			migrateManagedStep{},
-			ingestStep{CheckDataStream: checkILMAll},
+			ingestStep{CheckDataStreams: check},
 			checkErrorLogsStep{
 				ESErrorLogsIgnored: esErrorLogs{
 					eventLoopShutdown,

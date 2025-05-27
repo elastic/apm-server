@@ -33,6 +33,14 @@ const (
 	numExpectedDataStreams = 8
 )
 
+func formatUpgradePath(p string) string {
+	splits := strings.Split(p, ",")
+	for i := range splits {
+		splits[i] = strings.TrimSpace(splits[i])
+	}
+	return strings.Join(splits, "_to_")
+}
+
 func TestUpgrade_UpgradePath_Snapshot(t *testing.T) {
 	// The versions are separated by commas.
 	if strings.TrimSpace(*upgradePath) == "" {
@@ -61,24 +69,26 @@ func TestUpgrade_UpgradePath_Snapshot(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Run("Default", func(t *testing.T) {
-		t.Parallel()
-		steps := buildTestSteps(t, versionInfos, config, false)
-		runner := testStepsRunner{
-			Target: *target,
-			Steps:  steps,
-		}
-		runner.Run(t)
-	})
+	t.Run(formatUpgradePath(*upgradePath), func(t *testing.T) {
+		t.Run("Default", func(t *testing.T) {
+			t.Parallel()
+			steps := buildTestSteps(t, versionInfos, config, false)
+			runner := testStepsRunner{
+				Target: *target,
+				Steps:  steps,
+			}
+			runner.Run(t)
+		})
 
-	t.Run("Reroute", func(t *testing.T) {
-		t.Parallel()
-		steps := buildTestSteps(t, versionInfos, config, true)
-		runner := testStepsRunner{
-			Target: *target,
-			Steps:  steps,
-		}
-		runner.Run(t)
+		t.Run("Reroute", func(t *testing.T) {
+			t.Parallel()
+			steps := buildTestSteps(t, versionInfos, config, true)
+			runner := testStepsRunner{
+				Target: *target,
+				Steps:  steps,
+			}
+			runner.Run(t)
+		})
 	})
 }
 
@@ -101,12 +111,11 @@ func buildTestSteps(t *testing.T, versionInfos ecclient.StackVersionInfos, confi
 				steps = append(steps, createReroutePipelineStep{DataStreamNamespace: "reroute"})
 			}
 			steps = append(steps, ingestStep{
-				CheckDataStream: asserts.CheckDataStreamsWant{
-					Quantity:         numExpectedDataStreams,
+				CheckDataStreams: dataStreamsExpectations(asserts.DataStreamExpectation{
 					PreferIlm:        lifecycle == managedByILM,
 					DSManagedBy:      lifecycle,
 					IndicesManagedBy: indicesManagedBy,
-				},
+				}),
 			})
 			continue
 		}
@@ -120,23 +129,21 @@ func buildTestSteps(t *testing.T, versionInfos ecclient.StackVersionInfos, confi
 		steps = append(steps,
 			upgradeStep{
 				NewVersion: info.Version,
-				CheckDataStream: asserts.CheckDataStreamsWant{
-					Quantity:    numExpectedDataStreams,
+				CheckDataStreams: dataStreamsExpectations(asserts.DataStreamExpectation{
 					PreferIlm:   lifecycle == managedByILM,
 					DSManagedBy: lifecycle,
 					// After upgrade, the indices should still be managed by
 					// the same lifecycle management.
 					IndicesManagedBy: oldIndicesManagedBy,
-				},
+				}),
 			},
 			ingestStep{
-				CheckDataStream: asserts.CheckDataStreamsWant{
-					Quantity:    numExpectedDataStreams,
+				CheckDataStreams: dataStreamsExpectations(asserts.DataStreamExpectation{
 					PreferIlm:   lifecycle == managedByILM,
 					DSManagedBy: lifecycle,
 					// After ingestion, lazy rollover should kick in if applicable.
 					IndicesManagedBy: indicesManagedBy,
-				},
+				}),
 			},
 		)
 	}
@@ -154,10 +161,24 @@ func buildTestSteps(t *testing.T, versionInfos ecclient.StackVersionInfos, confi
 			preconditionFailed,
 			populateSourcemapFetcher403,
 			populateSourcemapServerShuttingDown,
+			syncSourcemapContextCanceled,
 		},
 	})
 
 	return steps
+}
+
+func dataStreamsExpectations(expect asserts.DataStreamExpectation) map[string]asserts.DataStreamExpectation {
+	return map[string]asserts.DataStreamExpectation{
+		"traces-apm-%s":                         expect,
+		"metrics-apm.app.opbeans_python-%s":     expect,
+		"metrics-apm.internal-%s":               expect,
+		"logs-apm.error-%s":                     expect,
+		"metrics-apm.service_destination.1m-%s": expect,
+		"metrics-apm.service_transaction.1m-%s": expect,
+		"metrics-apm.service_summary.1m-%s":     expect,
+		"metrics-apm.transaction.1m-%s":         expect,
+	}
 }
 
 func copySlice[T any](original []T) []T {

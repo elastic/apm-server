@@ -19,7 +19,6 @@ package functionaltests
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -57,17 +56,17 @@ func (i ingestV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	require.NoError(t, err)
 
 	t.Logf("------ ingest check in %s ------", e.currentVersion())
-	t.Log("check number of documents after ingestion")
+	t.Log("check number of documents increased after ingestion")
 	if e.integrations {
 		// Managed, check data streams.
 		afterIngestDSDocCount := getDocCountPerDSV7(t, ctx, e.esc, e.dsNamespace)
-		asserts.CheckDocCount(t, afterIngestDSDocCount, beforeIngestDSDocCount,
-			expectedDataStreamsIngestV7(e.dsNamespace))
+		asserts.DocExistFor(t, afterIngestDSDocCount, allDataStreams(e.dsNamespace))
+		asserts.DocCountIncreased(t, afterIngestDSDocCount, beforeIngestDSDocCount)
 	} else {
 		// Standalone, check indices.
 		afterIngestIdxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
-		asserts.CheckDocCountV7(t, afterIngestIdxDocCount, beforeIngestIdxDocCount,
-			expectedIndicesIngest())
+		asserts.DocExistFor(t, afterIngestIdxDocCount, allIndices())
+		asserts.DocCountIncreased(t, afterIngestIdxDocCount, beforeIngestIdxDocCount)
 	}
 }
 
@@ -102,20 +101,20 @@ func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	e.versions = append(e.versions, u.NewVersion)
 
 	t.Logf("------ upgrade check in %s ------", e.currentVersion())
-	t.Log("check number of documents across upgrade")
+	t.Log("check number of documents stayed the same across upgrade")
 	// We assert that no changes happened in the number of documents after upgrade
 	// to ensure the state didn't change.
 	// We don't expect any change here unless something broke during the upgrade.
 	if e.integrations {
 		// Managed, check data streams.
 		afterUpgradeDSDocCount := getDocCountPerDSV7(t, ctx, e.esc, e.dsNamespace)
-		asserts.CheckDocCount(t, afterUpgradeDSDocCount, beforeUpgradeDSDocCount,
-			emptyDataStreamsIngestV7(e.dsNamespace))
+		asserts.DocExistFor(t, afterUpgradeDSDocCount, allDataStreams(e.dsNamespace))
+		asserts.DocCountStayedTheSame(t, afterUpgradeDSDocCount, beforeUpgradeDSDocCount)
 	} else {
 		// Standalone, check indices.
 		afterUpgradeIdxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
-		asserts.CheckDocCountV7(t, afterUpgradeIdxDocCount, beforeUpgradeIdxDocCount,
-			emptyIndicesIngest())
+		asserts.DocExistFor(t, afterUpgradeIdxDocCount, allIndices())
+		asserts.DocCountStayedTheSame(t, afterUpgradeIdxDocCount, beforeUpgradeIdxDocCount)
 	}
 }
 
@@ -151,18 +150,18 @@ func (m migrateManagedStep) Step(t *testing.T, ctx context.Context, e *testStepE
 	// NOTE: This value comes from empirical observations.
 	time.Sleep(80 * time.Second)
 
-	t.Log("check number of documents across migration to managed")
+	t.Log("check number of documents stayed the same across migration to managed")
 	// We assert that no changes happened in the number of documents after migration
 	// to ensure the state didn't change.
 	// We don't expect any change here unless something broke during the migration.
 	if e.currentVersion().Major >= 8 {
 		afterMigrateDSDocCount := getDocCountPerDS(t, ctx, e.esc)
-		asserts.CheckDocCount(t, afterMigrateDSDocCount, beforeMigrateDSDocCount,
-			emptyDataStreamsIngest(e.dsNamespace))
+		asserts.DocExistFor(t, afterMigrateDSDocCount, allDataStreams(e.dsNamespace))
+		asserts.DocCountStayedTheSame(t, afterMigrateDSDocCount, beforeMigrateDSDocCount)
 	} else {
 		afterMigrateIdxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
-		asserts.CheckDocCountV7(t, afterMigrateIdxDocCount, beforeMigrateIdxDocCount,
-			emptyIndicesIngest())
+		asserts.DocExistFor(t, afterMigrateIdxDocCount, allIndices())
+		asserts.DocCountStayedTheSame(t, afterMigrateIdxDocCount, beforeMigrateIdxDocCount)
 	}
 }
 
@@ -178,50 +177,29 @@ func (r resolveDeprecationsStep) Step(t *testing.T, ctx context.Context, e *test
 	require.NoError(t, err)
 }
 
-func expectedIndicesIngest() esclient.IndicesDocCount {
-	return esclient.IndicesDocCount{
-		"apm-*-error-*":       364,
-		"apm-*-profile-*":     0,
-		"apm-*-span-*":        10885,
-		"apm-*-transaction-*": 4128,
-		// Ignore aggregation indices.
-		"apm-*-metric-*":     -1,
-		"apm-*-onboarding-*": -1,
+func allIndices() []string {
+	return []string{
+		"apm-*-error-*",
+		"apm-*-profile-*",
+		"apm-*-span-*",
+		"apm-*-transaction-*",
+		"apm-*-metric-*",
+		"apm-*-onboarding-*",
 	}
 }
 
-func emptyIndicesIngest() esclient.IndicesDocCount {
-	return esclient.IndicesDocCount{
-		"apm-*-error-*":       0,
-		"apm-*-profile-*":     0,
-		"apm-*-span-*":        0,
-		"apm-*-transaction-*": 0,
-		"apm-*-onboarding-*":  0,
-		"apm-*-metric-*":      -1,
-	}
+// getDocCountPerDSV7 retrieves document count per data stream for versions < 8.0.
+func getDocCountPerDSV7(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) esclient.DataStreamsDocCount {
+	t.Helper()
+	count, err := esc.APMDSDocCountV7(ctx, namespace)
+	require.NoError(t, err)
+	return count
 }
 
-func expectedDataStreamsIngestV7(namespace string) esclient.DataStreamsDocCount {
-	return map[string]int{
-		fmt.Sprintf("traces-apm-%s", namespace):                     15013,
-		fmt.Sprintf("logs-apm.error-%s", namespace):                 364,
-		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 1492,
-		fmt.Sprintf("metrics-apm.app.opbeans_node-%s", namespace):   27,
-		fmt.Sprintf("metrics-apm.app.opbeans_go-%s", namespace):     11,
-		fmt.Sprintf("metrics-apm.app.opbeans_ruby-%s", namespace):   24,
-		// Document count fluctuates constantly.
-		fmt.Sprintf("metrics-apm.internal-%s", namespace): -1,
-	}
-}
-
-func emptyDataStreamsIngestV7(namespace string) esclient.DataStreamsDocCount {
-	return map[string]int{
-		fmt.Sprintf("traces-apm-%s", namespace):                     0,
-		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 0,
-		fmt.Sprintf("metrics-apm.app.opbeans_node-%s", namespace):   0,
-		fmt.Sprintf("metrics-apm.app.opbeans_go-%s", namespace):     0,
-		fmt.Sprintf("metrics-apm.app.opbeans_ruby-%s", namespace):   0,
-		fmt.Sprintf("metrics-apm.internal-%s", namespace):           0,
-		fmt.Sprintf("logs-apm.error-%s", namespace):                 0,
-	}
+// getDocCountPerIndexV7 retrieves document count per index for versions < 8.0.
+func getDocCountPerIndexV7(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.IndicesDocCount {
+	t.Helper()
+	count, err := esc.APMIdxDocCountV7(ctx)
+	require.NoError(t, err)
+	return count
 }

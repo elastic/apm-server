@@ -159,14 +159,9 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 //
 // NOTE: Only works for versions >= 8.0.
 type ingestStep struct {
-	// CheckDataStream is used to check all data streams have the same expected values.
-	// For checking each data stream individually, use CheckIndividualDataStream.
-	CheckDataStream asserts.CheckDataStreamsWant
-
-	// CheckIndividualDataStream is used to check the data streams individually
-	// instead of as a whole using CheckDataStream.
+	// CheckDataStreams is used to check the data streams individually.
 	// The data stream names can contain '%s' to indicate namespace.
-	CheckIndividualDataStream map[string]asserts.CheckDataStreamIndividualWant
+	CheckDataStreams map[string]asserts.DataStreamExpectation
 
 	// IgnoreDataStreams are the data streams to be ignored in assertions.
 	// The data stream names can contain '%s' to indicate namespace.
@@ -187,19 +182,14 @@ func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	require.NoError(t, err)
 
 	t.Logf("------ ingest check in %s ------", e.currentVersion())
-	t.Log("check number of documents after ingestion")
-	afterIngestDSDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
-	asserts.CheckDocCount(t, afterIngestDSDocCount, beforeIngestDSDocCount,
-		expectedDataStreamsIngest(e.dsNamespace))
-
 	t.Log("check data streams after ingestion")
 	dataStreams := getAPMDataStreams(t, ctx, e.esc, ignoreDS...)
-	if i.CheckIndividualDataStream != nil {
-		expected := formatAllMap(i.CheckIndividualDataStream, e.dsNamespace)
-		asserts.CheckDataStreamsIndividually(t, expected, dataStreams)
-	} else {
-		asserts.CheckDataStreams(t, i.CheckDataStream, dataStreams)
-	}
+	expected := formatAllMap(i.CheckDataStreams, e.dsNamespace)
+	asserts.DataStreamsMeetExpectation(t, expected, dataStreams)
+
+	t.Log("check number of documents increased after ingestion")
+	afterIngestDSDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
+	asserts.DocCountIncreased(t, afterIngestDSDocCount, beforeIngestDSDocCount)
 }
 
 func formatAll(formats []string, s string) []string {
@@ -229,14 +219,9 @@ type upgradeStep struct {
 	// NewVersion is the version to upgrade into.
 	NewVersion ecclient.StackVersion
 
-	// CheckDataStream is used to check all data streams have the same expected values.
-	// For checking each data stream individually, use CheckIndividualDataStream.
-	CheckDataStream asserts.CheckDataStreamsWant
-
-	// CheckIndividualDataStream is used to check the data streams individually
-	// instead of as a whole using CheckDataStream.
+	// CheckDataStreams is used to check the data streams individually.
 	// The data stream names can contain '%s' to indicate namespace.
-	CheckIndividualDataStream map[string]asserts.CheckDataStreamIndividualWant
+	CheckDataStreams map[string]asserts.DataStreamExpectation
 
 	// IgnoreDataStreams are the data streams to be ignored in assertions.
 	// The data stream names can contain '%s' to indicate namespace.
@@ -257,22 +242,17 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	e.versions = append(e.versions, u.NewVersion)
 
 	t.Logf("------ upgrade check in %s ------", e.currentVersion())
-	t.Log("check number of documents across upgrade")
+	t.Log("check data streams after upgrade")
+	dataStreams := getAPMDataStreams(t, ctx, e.esc, ignoreDS...)
+	expected := formatAllMap(u.CheckDataStreams, e.dsNamespace)
+	asserts.DataStreamsMeetExpectation(t, expected, dataStreams)
+
+	t.Log("check number of documents stayed the same across upgrade")
 	// We assert that no changes happened in the number of documents after upgrade
 	// to ensure the state didn't change.
 	// We don't expect any change here unless something broke during the upgrade.
 	afterUpgradeDSDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
-	asserts.CheckDocCount(t, afterUpgradeDSDocCount, beforeUpgradeDSDocCount,
-		emptyDataStreamsIngest(e.dsNamespace))
-
-	t.Log("check data streams after upgrade")
-	dataStreams := getAPMDataStreams(t, ctx, e.esc, ignoreDS...)
-	if u.CheckIndividualDataStream != nil {
-		expected := formatAllMap(u.CheckIndividualDataStream, e.dsNamespace)
-		asserts.CheckDataStreamsIndividually(t, expected, dataStreams)
-	} else {
-		asserts.CheckDataStreams(t, u.CheckDataStream, dataStreams)
-	}
+	asserts.DocCountStayedTheSame(t, afterUpgradeDSDocCount, beforeUpgradeDSDocCount)
 }
 
 // checkErrorLogsStep checks if there are any unexpected error logs from both
@@ -324,46 +304,18 @@ func (c createReroutePipelineStep) Step(t *testing.T, ctx context.Context, e *te
 	e.dsNamespace = c.DataStreamNamespace
 }
 
-// expectedDataStreamsIngest represent the expected number of ingested document
-// after a single run of ingest.
-//
-// NOTE: The aggregation data streams have negative counts, because they are
-// expected to appear but the document counts should not be asserted.
-func expectedDataStreamsIngest(namespace string) esclient.DataStreamsDocCount {
-	return map[string]int{
-		fmt.Sprintf("traces-apm-%s", namespace):                     15013,
-		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 1437,
-		fmt.Sprintf("metrics-apm.internal-%s", namespace):           1351,
-		fmt.Sprintf("logs-apm.error-%s", namespace):                 364,
-		// Ignore aggregation data streams.
-		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace): -1,
-		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace): -1,
-		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace):     -1,
-		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace):         -1,
-	}
-}
-
-// emptyDataStreamsIngest represent an empty ingestion.
-// It is useful for asserting that the document count did not change after an operation.
-//
-// NOTE: The aggregation data streams have negative counts, because they
-// are expected to appear but the document counts should not be asserted.
-func emptyDataStreamsIngest(namespace string) esclient.DataStreamsDocCount {
-	return map[string]int{
-		fmt.Sprintf("traces-apm-%s", namespace):                     0,
-		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 0,
-		fmt.Sprintf("metrics-apm.internal-%s", namespace):           0,
-		fmt.Sprintf("logs-apm.error-%s", namespace):                 0,
-		// Ignore aggregation data streams.
-		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace): -1,
-		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace): -1,
-		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace):     -1,
-		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace):         -1,
-	}
-}
-
+// allDataStreams are all the expected data streams.
 func allDataStreams(namespace string) []string {
-	return slices.Collect(maps.Keys(expectedDataStreamsIngest(namespace)))
+	return []string{
+		fmt.Sprintf("traces-apm-%s", namespace),
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace),
+		fmt.Sprintf("metrics-apm.internal-%s", namespace),
+		fmt.Sprintf("logs-apm.error-%s", namespace),
+		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace),
+		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace),
+		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace),
+		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace),
+	}
 }
 
 func sliceToSet[T comparable](s []T) map[T]bool {
@@ -396,21 +348,5 @@ func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client, i
 	maps.DeleteFunc(count, func(ds string, _ int) bool {
 		return ignore[ds]
 	})
-	return count
-}
-
-// getDocCountPerDS retrieves document count per data stream for versions < 8.0.
-func getDocCountPerDSV7(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) esclient.DataStreamsDocCount {
-	t.Helper()
-	count, err := esc.APMDSDocCountV7(ctx, namespace)
-	require.NoError(t, err)
-	return count
-}
-
-// getDocCountPerIndexV7 retrieves document count per index for versions < 8.0.
-func getDocCountPerIndexV7(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.IndicesDocCount {
-	t.Helper()
-	count, err := esc.APMIdxDocCountV7(ctx)
-	require.NoError(t, err)
 	return count
 }

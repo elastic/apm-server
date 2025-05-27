@@ -25,41 +25,28 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-type CheckDataStreamsWant struct {
-	Quantity         int
+type DataStreamExpectation struct {
 	DSManagedBy      string
 	PreferIlm        bool
 	IndicesManagedBy []string
 }
 
-// CheckDataStreams asserts that all data streams have expected values.
-func CheckDataStreams(t *testing.T, expected CheckDataStreamsWant, actual []types.DataStream) {
-	t.Helper()
-
-	// Preliminarily check that these two are matching, to avoid panic later.
-	assert.Len(t, actual, expected.Quantity, "number of APM data streams differs from expectations")
-
-	for _, v := range actual {
-		checkSingleDataStream(t, CheckDataStreamIndividualWant{
-			DSManagedBy:      expected.DSManagedBy,
-			PreferIlm:        expected.PreferIlm,
-			IndicesManagedBy: expected.IndicesManagedBy,
-		}, v)
-	}
-}
-
-type CheckDataStreamIndividualWant struct {
-	DSManagedBy      string
-	PreferIlm        bool
-	IndicesManagedBy []string
-}
-
-// CheckDataStreamsIndividually asserts that each data stream have expected values individually.
-func CheckDataStreamsIndividually(t *testing.T, expected map[string]CheckDataStreamIndividualWant, actual []types.DataStream) {
+// DataStreamsMeetExpectation asserts that each data stream have expected values individually.
+func DataStreamsMeetExpectation(t *testing.T, expected map[string]DataStreamExpectation, actual []types.DataStream) {
 	t.Helper()
 
 	assert.Len(t, actual, len(expected), "number of APM data streams differs from expectations")
 
+	// Check that all expected data streams appear.
+	mp := dataStreamsMap(actual)
+	for ds := range expected {
+		if _, ok := mp[ds]; !ok {
+			t.Errorf("expected data stream %s not found", ds)
+			continue
+		}
+	}
+
+	// Check that data streams are in expected state.
 	for _, v := range actual {
 		e, ok := expected[v.Name]
 		if !ok {
@@ -71,7 +58,15 @@ func CheckDataStreamsIndividually(t *testing.T, expected map[string]CheckDataStr
 	}
 }
 
-func checkSingleDataStream(t *testing.T, expected CheckDataStreamIndividualWant, actual types.DataStream) {
+func dataStreamsMap(dataStreams []types.DataStream) map[string]types.DataStream {
+	result := make(map[string]types.DataStream)
+	for _, dataStream := range dataStreams {
+		result[dataStream.Name] = dataStream
+	}
+	return result
+}
+
+func checkSingleDataStream(t *testing.T, expected DataStreamExpectation, actual types.DataStream) {
 	if expected.PreferIlm {
 		assert.True(t, actual.PreferIlm, "data stream %s should prefer ILM", actual.Name)
 	} else {
