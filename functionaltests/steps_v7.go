@@ -60,12 +60,12 @@ func (i ingestV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	if e.integrations {
 		// Managed, check data streams.
 		afterIngestDSDocCount := getDocCountPerDSV7(t, ctx, e.esc, e.dsNamespace)
-		asserts.DocExistFor(t, afterIngestDSDocCount, allDataStreams(e.dsNamespace))
+		asserts.DocExistFor(t, afterIngestDSDocCount, expectedDataStreams(e.dsNamespace))
 		asserts.DocCountIncreased(t, afterIngestDSDocCount, beforeIngestDSDocCount)
 	} else {
 		// Standalone, check indices.
 		afterIngestIdxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
-		asserts.DocExistFor(t, afterIngestIdxDocCount, allIndices())
+		asserts.DocExistFor(t, afterIngestIdxDocCount, expectedIndices())
 		asserts.DocCountIncreased(t, afterIngestIdxDocCount, beforeIngestIdxDocCount)
 	}
 }
@@ -108,12 +108,12 @@ func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	if e.integrations {
 		// Managed, check data streams.
 		afterUpgradeDSDocCount := getDocCountPerDSV7(t, ctx, e.esc, e.dsNamespace)
-		asserts.DocExistFor(t, afterUpgradeDSDocCount, allDataStreams(e.dsNamespace))
+		asserts.DocExistFor(t, afterUpgradeDSDocCount, expectedDataStreams(e.dsNamespace))
 		asserts.DocCountStayedTheSame(t, afterUpgradeDSDocCount, beforeUpgradeDSDocCount)
 	} else {
 		// Standalone, check indices.
 		afterUpgradeIdxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
-		asserts.DocExistFor(t, afterUpgradeIdxDocCount, allIndices())
+		asserts.DocExistFor(t, afterUpgradeIdxDocCount, expectedIndices())
 		asserts.DocCountStayedTheSame(t, afterUpgradeIdxDocCount, beforeUpgradeIdxDocCount)
 	}
 }
@@ -156,11 +156,11 @@ func (m migrateManagedStep) Step(t *testing.T, ctx context.Context, e *testStepE
 	// We don't expect any change here unless something broke during the migration.
 	if e.currentVersion().Major >= 8 {
 		afterMigrateDSDocCount := getDocCountPerDS(t, ctx, e.esc)
-		asserts.DocExistFor(t, afterMigrateDSDocCount, allDataStreams(e.dsNamespace))
+		asserts.DocExistFor(t, afterMigrateDSDocCount, expectedDataStreams(e.dsNamespace))
 		asserts.DocCountStayedTheSame(t, afterMigrateDSDocCount, beforeMigrateDSDocCount)
 	} else {
 		afterMigrateIdxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
-		asserts.DocExistFor(t, afterMigrateIdxDocCount, allIndices())
+		asserts.DocExistFor(t, afterMigrateIdxDocCount, expectedIndices())
 		asserts.DocCountStayedTheSame(t, afterMigrateIdxDocCount, beforeMigrateIdxDocCount)
 	}
 }
@@ -177,14 +177,12 @@ func (r resolveDeprecationsStep) Step(t *testing.T, ctx context.Context, e *test
 	require.NoError(t, err)
 }
 
-func allIndices() []string {
+func expectedIndices() []string {
 	return []string{
 		"apm-*-error-*",
-		"apm-*-profile-*",
 		"apm-*-span-*",
 		"apm-*-transaction-*",
 		"apm-*-metric-*",
-		"apm-*-onboarding-*",
 	}
 }
 

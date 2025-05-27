@@ -304,8 +304,8 @@ func (c createReroutePipelineStep) Step(t *testing.T, ctx context.Context, e *te
 	e.dsNamespace = c.DataStreamNamespace
 }
 
-// allDataStreams are all the expected data streams.
-func allDataStreams(namespace string) []string {
+// expectedDataStreams are all the expected data streams.
+func expectedDataStreams(namespace string) []string {
 	return []string{
 		fmt.Sprintf("traces-apm-%s", namespace),
 		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace),

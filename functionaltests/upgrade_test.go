@@ -29,16 +29,12 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 )
 
-const (
-	numExpectedDataStreams = 8
-)
-
 func formatUpgradePath(p string) string {
 	splits := strings.Split(p, ",")
 	for i := range splits {
 		splits[i] = strings.TrimSpace(splits[i])
 	}
-	return strings.Join(splits, "_to_")
+	return strings.ReplaceAll(strings.Join(splits, "_to_"), ".", "_")
 }
 
 func TestUpgrade_UpgradePath_Snapshot(t *testing.T) {
