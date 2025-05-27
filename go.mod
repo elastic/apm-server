@@ -38,7 +38,7 @@ require (
 	go.elastic.co/apm/module/apmotel/v2 v2.6.3
 	go.elastic.co/apm/v2 v2.6.3
 	go.elastic.co/fastjson v1.5.1
-	go.opentelemetry.io/collector/pdata v1.32.0
+	go.opentelemetry.io/collector/pdata v1.33.0
 	go.opentelemetry.io/otel v1.36.0
 	go.opentelemetry.io/otel/metric v1.36.0
 	go.opentelemetry.io/otel/sdk/metric v1.36.0
