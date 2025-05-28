@@ -393,11 +393,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the BatchProcessor chain that is used to process all events,
 	// including the metrics aggregated by APM Server.
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
-<<<<<<< HEAD
-		tracer, newElasticsearchClient, memLimitGB,
-=======
 		tracer, newElasticsearchClient, memLimitGB, s.logger, s.tracerProvider, s.meterProvider,
->>>>>>> 171ca9a2 (feat: do not instrument tracer final batch processor (#16870))
 	)
 	if err != nil {
 		return err
@@ -721,12 +717,9 @@ func (s *Runner) newFinalBatchProcessor(
 	tracer *apm.Tracer,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
 	memLimit float64,
-<<<<<<< HEAD
-=======
 	logger *logp.Logger,
 	tp trace.TracerProvider,
 	mp metric.MeterProvider,
->>>>>>> 171ca9a2 (feat: do not instrument tracer final batch processor (#16870))
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
 	if s.elasticsearchOutputConfig == nil {
 		monitoring.Default.Remove("libbeat")

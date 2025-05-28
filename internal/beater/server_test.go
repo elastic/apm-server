@@ -52,7 +52,6 @@ import (
 	_ "github.com/elastic/beats/v7/libbeat/outputs/console"
 	_ "github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-data/model/modelpb"
 
@@ -577,20 +576,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
-<<<<<<< HEAD
-	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
-	observedCore, observedLogs := observer.New(zapcore.DebugLevel)
-	err := logp.ConfigureWithOutputs(logp.Config{
-		Level:      logp.DebugLevel,
-		ToStderr:   false,
-		ToSyslog:   false,
-		ToFiles:    false,
-		ToEventLog: false,
-	}, observedCore)
-	require.NoError(t, err)
-=======
 	escfg, docs := beatertest.ElasticsearchOutputConfig(t)
->>>>>>> 171ca9a2 (feat: do not instrument tracer final batch processor (#16870))
 
 	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
 		map[string]interface{}{
@@ -647,9 +633,10 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	// Assert that logs contain expected values:
 	// - Original error with the status code.
 	// - Request timeout is logged separately with the the original error status code.
-	logs := observedLogs.Filter(func(l observer.LoggedEntry) bool {
+	logs := srv.Logs.Filter(func(l observer.LoggedEntry) bool {
 		return l.Level == zapcore.ErrorLevel
 	}).AllUntimed()
+	fmt.Println(logs)
 	assert.Len(t, logs, 1)
 	assert.Equal(t, logs[0].Message, "request timed out")
 	for _, f := range logs[0].Context {
