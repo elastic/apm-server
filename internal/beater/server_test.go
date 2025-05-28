@@ -583,7 +583,6 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 
 	// Enable self instrumentation, simulate a client disconnecting when sending intakev2 request
 	// Check that tracer records the correct http status code
-	found := make(chan struct{})
 	reqCtx, reqCancel := context.WithCancel(context.Background())
 
 	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
@@ -593,6 +592,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
+<<<<<<< HEAD
 	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
 	observedCore, observedLogs := observer.New(zapcore.DebugLevel)
 	err := logp.ConfigureWithOutputs(logp.Config{
@@ -603,6 +603,9 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 		ToEventLog: false,
 	}, observedCore)
 	require.NoError(t, err)
+=======
+	escfg, docs := beatertest.ElasticsearchOutputConfig(t)
+>>>>>>> 171ca9a2 (feat: do not instrument tracer final batch processor (#16870))
 
 	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
 		map[string]interface{}{
@@ -619,14 +622,6 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 					assert.ErrorIs(t, ctx.Err(), context.Canceled)
 					return errors.New("foobar")
 				}
-				for _, i := range *batch {
-					// Perform assertions on the event sent by the apmgorilla tracer
-					if i.Transaction.Id != "" && i.Transaction.Name == "POST /intake/v2/events" {
-						assert.Equal(t, "HTTP 5xx", i.Transaction.Result)
-						assert.Equal(t, http.StatusServiceUnavailable, int(i.Http.Response.StatusCode))
-						close(found)
-					}
-				}
 				return nil
 			})
 			return args, runServer, nil
@@ -641,11 +636,27 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	require.Nil(t, resp)
 
 	select {
-	case <-time.After(time.Second): // go apm agent takes time to send trace events
+	case <-time.After(time.Second):
 		assert.Fail(t, "timeout waiting for trace doc")
-	case <-found:
-		// Have to wait a bit here to avoid racing on the order of metrics middleware and the batch processor from above.
-		time.Sleep(10 * time.Millisecond)
+	case doc := <-docs:
+		var out struct {
+			Transaction struct {
+				ID     string
+				Name   string
+				Result string
+			}
+			HTTP struct {
+				Response struct {
+					StatusCode int
+				}
+			}
+		}
+		require.NoError(t, json.Unmarshal(doc, &out))
+		if out.Transaction.ID != "" && out.Transaction.Name == "POST /intake/v2/events" {
+			assert.Equal(t, "HTTP 5xx", out.Transaction.Result)
+			assert.Equal(t, http.StatusServiceUnavailable, out.HTTP.Response.StatusCode)
+			break
+		}
 	}
 
 	// Assert that logs contain expected values:

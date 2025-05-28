@@ -35,7 +35,9 @@ import (
 	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
+	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace"
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
@@ -371,7 +373,11 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the BatchProcessor chain that is used to process all events,
 	// including the metrics aggregated by APM Server.
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
+<<<<<<< HEAD
 		tracer, newElasticsearchClient, memLimitGB,
+=======
+		tracer, newElasticsearchClient, memLimitGB, s.logger, s.tracerProvider, s.meterProvider,
+>>>>>>> 171ca9a2 (feat: do not instrument tracer final batch processor (#16870))
 	)
 	if err != nil {
 		return err
@@ -488,8 +494,26 @@ func (s *Runner) Run(ctx context.Context) error {
 	g.Go(func() error {
 		return runServer(ctx, serverParams)
 	})
+	closeTracerProcessor := func(context.Context) error { return nil }
 	if tracerServerListener != nil {
-		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor, serverParams.Semaphore, serverParams.MeterProvider)
+		// use a batch processor without tracing to prevent the tracing processor from sending traces to itself
+		finalTracerBatchProcessor, closeTracerFinalBatchProcessor, err := s.newFinalBatchProcessor(
+			tracer, newElasticsearchClient, memLimitGB, s.logger, tracenoop.NewTracerProvider(), metricnoop.NewMeterProvider(),
+		)
+		if err != nil {
+			return err
+		}
+
+		tracerBatchProcessor := modelprocessor.Chained{
+			newObserverBatchProcessor(),
+			&modelprocessor.SetDataStream{Namespace: s.config.DataStreams.Namespace},
+			finalTracerBatchProcessor,
+		}
+
+		closeTracerProcessor = closeTracerFinalBatchProcessor
+
+		tracerProcessor := append(preBatchProcessors, tracerBatchProcessor)
+		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, tracerProcessor, serverParams.Semaphore, serverParams.MeterProvider)
 		if err != nil {
 			return fmt.Errorf("failed to create self-instrumentation server: %w", err)
 		}
@@ -507,7 +531,8 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	result := g.Wait()
 	closeErr := closeFinalBatchProcessor(backgroundContext)
-	return errors.Join(result, closeErr)
+	closeTracerErr := closeTracerProcessor(backgroundContext)
+	return errors.Join(result, closeErr, closeTracerErr)
 }
 
 // newInstrumentation is a thin wrapper around libbeat instrumentation that
@@ -675,6 +700,12 @@ func (s *Runner) newFinalBatchProcessor(
 	tracer *apm.Tracer,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
 	memLimit float64,
+<<<<<<< HEAD
+=======
+	logger *logp.Logger,
+	tp trace.TracerProvider,
+	mp metric.MeterProvider,
+>>>>>>> 171ca9a2 (feat: do not instrument tracer final batch processor (#16870))
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
 	if s.elasticsearchOutputConfig == nil {
 		monitoring.Default.Remove("libbeat")
@@ -692,7 +723,7 @@ func (s *Runner) newFinalBatchProcessor(
 	monitoring.NewString(outputRegistry, "name").Set("elasticsearch")
 
 	// Create the docappender and Elasticsearch config
-	appenderCfg, esCfg, err := s.newDocappenderConfig(s.tracerProvider, s.meterProvider, memLimit)
+	appenderCfg, esCfg, err := s.newDocappenderConfig(tp, mp, memLimit)
 	if err != nil {
 		return nil, nil, err
 	}
