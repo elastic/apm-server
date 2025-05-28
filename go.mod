@@ -31,12 +31,12 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.6.3
-	go.elastic.co/apm/module/apmgorilla/v2 v2.6.3
-	go.elastic.co/apm/module/apmgrpc/v2 v2.6.3
-	go.elastic.co/apm/module/apmhttp/v2 v2.6.3
-	go.elastic.co/apm/module/apmotel/v2 v2.6.3
-	go.elastic.co/apm/v2 v2.6.3
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.1
+	go.elastic.co/apm/module/apmgorilla/v2 v2.7.1
+	go.elastic.co/apm/module/apmgrpc/v2 v2.7.1
+	go.elastic.co/apm/module/apmhttp/v2 v2.7.1
+	go.elastic.co/apm/module/apmotel/v2 v2.7.1
+	go.elastic.co/apm/v2 v2.7.1
 	go.elastic.co/fastjson v1.5.1
 	go.opentelemetry.io/collector/pdata v1.33.0
 	go.opentelemetry.io/otel v1.36.0
