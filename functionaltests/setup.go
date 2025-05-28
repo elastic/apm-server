@@ -164,7 +164,7 @@ func createCluster(
 	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, integrations, name))
 
 	t.Cleanup(func() {
-		if !t.Failed() || (t.Failed() && cleanupOnFailure) {
+		if !t.Failed() || cleanupOnFailure {
 			t.Log("cleanup terraform resources")
 			require.NoError(t, tf.Destroy(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, version))
 		} else {

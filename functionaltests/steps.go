@@ -54,8 +54,7 @@ type testStepsRunner struct {
 	Steps []testStep
 }
 
-// Run runs the test steps in sequence, passing the result from the current step
-// into the next step etc.
+// Run runs the test steps in sequence.
 func (r testStepsRunner) Run(t *testing.T) {
 	if r.Target == "" {
 		r.Target = targetProd
@@ -123,8 +122,6 @@ func (mode apmDeploymentMode) enableIntegrations() bool {
 // Hosted (ECH) cluster with the provided stack version. It also creates the
 // necessary clients and set them into testStepEnv.
 //
-// The output of this step is the initial document counts in ES.
-//
 // Note: This step should always be the first step of any test runs, since it
 // initializes all the necessary dependencies for subsequent steps.
 type createStep struct {
@@ -154,8 +151,6 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 // ingestion, it checks if the document counts difference between current
 // and previous is expected, and if the data streams are in an expected
 // state.
-//
-// The output of this step is the data streams document counts after ingestion.
 //
 // NOTE: Only works for versions >= 8.0.
 type ingestStep struct {
@@ -212,8 +207,6 @@ func formatAllMap[T any](m map[string]T, s string) map[string]T {
 // version. It also adds the new version into testStepEnv. After upgrade, it
 // checks that the document counts did not change across upgrade.
 //
-// The output of this step is the data streams document counts after upgrade.
-//
 // NOTE: Only works from versions >= 8.0.
 type upgradeStep struct {
 	// NewVersion is the version to upgrade into.
@@ -258,8 +251,6 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 // checkErrorLogsStep checks if there are any unexpected error logs from both
 // Elasticsearch and APM Server. The provided APMErrorLogsIgnored is used to
 // ignore some APM logs from being included in the assertion.
-//
-// The output of this step is the previous step's result.
 type checkErrorLogsStep struct {
 	// ESErrorLogsIgnored are the error logs query from Elasticsearch that are
 	// to be ignored.
@@ -304,7 +295,150 @@ func (c createReroutePipelineStep) Step(t *testing.T, ctx context.Context, e *te
 	e.dsNamespace = c.DataStreamNamespace
 }
 
-// expectedDataStreams are all the expected data streams.
+// ingestV7Step performs ingestion to the APM Server deployed on ECH.
+// After ingestion, it checks if the document counts difference between
+// current and previous is expected.
+//
+// NOTE: Only works for versions 7.x.
+type ingestV7Step struct{}
+
+func (i ingestV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
+	if e.currentVersion().Major >= 8 {
+		t.Fatal("ingest v7 step should only be used for versions < 8.0")
+	}
+
+	var beforeIngestDSDocCount esclient.DataStreamsDocCount
+	var beforeIngestIdxDocCount esclient.IndicesDocCount
+	if e.integrations {
+		beforeIngestDSDocCount = getDocCountPerDSV7(t, ctx, e.esc, e.dsNamespace)
+	} else {
+		beforeIngestIdxDocCount = getDocCountPerIndexV7(t, ctx, e.esc)
+	}
+
+	t.Logf("------ ingest in %s ------", e.currentVersion())
+	err := e.gen.RunBlockingWait(ctx, e.currentVersion(), e.integrations)
+	require.NoError(t, err)
+
+	t.Logf("------ ingest check in %s ------", e.currentVersion())
+	t.Log("check number of documents increased after ingestion")
+	if e.integrations {
+		// Managed, check data streams.
+		afterIngestDSDocCount := getDocCountPerDSV7(t, ctx, e.esc, e.dsNamespace)
+		asserts.DocExistFor(t, afterIngestDSDocCount, expectedV7DataStreams(e.dsNamespace))
+		asserts.DocCountIncreased(t, afterIngestDSDocCount, beforeIngestDSDocCount)
+	} else {
+		// Standalone, check indices.
+		afterIngestIdxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
+		asserts.DocExistFor(t, afterIngestIdxDocCount, expectedIndices())
+		asserts.DocCountIncreased(t, afterIngestIdxDocCount, beforeIngestIdxDocCount)
+	}
+}
+
+// upgradeV7Step upgrades the ECH deployment from its current version to
+// the new version. It also adds the new version into testStepEnv. After
+// upgrade, it checks that the document counts did not change across upgrade.
+//
+// NOTE: Only works from versions 7.x.
+type upgradeV7Step struct {
+	NewVersion ecclient.StackVersion
+}
+
+func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
+	if e.currentVersion().Major >= 8 {
+		t.Fatal("upgrade v7 step should only be used from versions < 8.0")
+	}
+
+	var beforeUpgradeDSDocCount esclient.DataStreamsDocCount
+	var beforeUpgradeIdxDocCount esclient.IndicesDocCount
+	if e.integrations {
+		beforeUpgradeDSDocCount = getDocCountPerDSV7(t, ctx, e.esc, e.dsNamespace)
+	} else {
+		beforeUpgradeIdxDocCount = getDocCountPerIndexV7(t, ctx, e.esc)
+	}
+
+	t.Logf("------ upgrade %s to %s ------", e.currentVersion(), u.NewVersion)
+	upgradeCluster(t, ctx, e.tf, e.target, u.NewVersion, e.integrations)
+	// Update the environment version to the new one.
+	e.versions = append(e.versions, u.NewVersion)
+
+	t.Logf("------ upgrade check in %s ------", e.currentVersion())
+	t.Log("check number of documents stayed the same across upgrade")
+	// We assert that no changes happened in the number of documents after upgrade
+	// to ensure the state didn't change.
+	// We don't expect any change here unless something broke during the upgrade.
+	if e.integrations {
+		// Managed, check data streams.
+		afterUpgradeDSDocCount := getDocCountPerDSV7(t, ctx, e.esc, e.dsNamespace)
+		asserts.DocExistFor(t, afterUpgradeDSDocCount, expectedV7DataStreams(e.dsNamespace))
+		asserts.DocCountStayedTheSame(t, afterUpgradeDSDocCount, beforeUpgradeDSDocCount)
+	} else {
+		// Standalone, check indices.
+		afterUpgradeIdxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
+		asserts.DocExistFor(t, afterUpgradeIdxDocCount, expectedIndices())
+		asserts.DocCountStayedTheSame(t, afterUpgradeIdxDocCount, beforeUpgradeIdxDocCount)
+	}
+}
+
+// migrateManagedStep migrates the ECH APM deployment from standalone mode to
+// managed mode, which involves enabling the integrations server via Kibana.
+// It also checks that the document counts did not change across the migration.
+type migrateManagedStep struct {
+	// IgnoreDataStreams are the data streams to be ignored in assertions.
+	// The data stream names can contain '%s' to indicate namespace.
+	//
+	// Only applicable if used in version >= 8.0.
+	IgnoreDataStreams []string
+}
+
+func (m migrateManagedStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
+	if e.integrations {
+		t.Fatal("migrate managed step should only be used on standalone")
+	}
+
+	var beforeMigrateDSDocCount esclient.DataStreamsDocCount
+	var beforeMigrateIdxDocCount esclient.IndicesDocCount
+	if e.currentVersion().Major >= 8 {
+		beforeMigrateDSDocCount = getDocCountPerDS(t, ctx, e.esc, e.dsNamespace)
+	} else {
+		beforeMigrateIdxDocCount = getDocCountPerIndexV7(t, ctx, e.esc)
+	}
+
+	t.Logf("------ migrate to managed for %s ------", e.currentVersion())
+	t.Log("enable integrations server")
+	err := e.kbc.EnableIntegrationsServer(ctx)
+	require.NoError(t, err)
+	e.integrations = true
+
+	// APM Server needs some time to start serving requests again, and we don't have any
+	// visibility on when this completes.
+	// NOTE: This value comes from empirical observations.
+	time.Sleep(80 * time.Second)
+
+	t.Log("check number of documents stayed the same across migration to managed")
+	// We assert that no changes happened in the number of documents after migration
+	// to ensure the state didn't change.
+	// We don't expect any change here unless something broke during the migration.
+	if e.currentVersion().Major >= 8 {
+		afterMigrateDSDocCount := getDocCountPerDS(t, ctx, e.esc, e.dsNamespace)
+		asserts.DocExistFor(t, afterMigrateDSDocCount, expectedDataStreams(e.dsNamespace))
+		asserts.DocCountStayedTheSame(t, afterMigrateDSDocCount, beforeMigrateDSDocCount)
+	} else {
+		afterMigrateIdxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
+		asserts.DocExistFor(t, afterMigrateIdxDocCount, expectedIndices())
+		asserts.DocCountStayedTheSame(t, afterMigrateIdxDocCount, beforeMigrateIdxDocCount)
+	}
+}
+
+// resolveDeprecationsStep resolves critical migration deprecation warnings from Elasticsearch regarding
+// indices created in 7.x not being compatible with 9.x.
+type resolveDeprecationsStep struct{}
+
+func (r resolveDeprecationsStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
+	t.Logf("------ resolve migration deprecations in %s ------", e.currentVersion())
+	err := e.kbc.ResolveMigrationDeprecations(ctx)
+	require.NoError(t, err)
+}
+
 func expectedDataStreams(namespace string) []string {
 	return []string{
 		fmt.Sprintf("traces-apm-%s", namespace),
@@ -315,6 +449,27 @@ func expectedDataStreams(namespace string) []string {
 		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace),
 		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace),
 		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace),
+	}
+}
+
+func expectedV7DataStreams(namespace string) []string {
+	return []string{
+		fmt.Sprintf("traces-apm-%s", namespace),
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace),
+		fmt.Sprintf("metrics-apm.app.opbeans_node-%s", namespace),
+		fmt.Sprintf("metrics-apm.app.opbeans_go-%s", namespace),
+		fmt.Sprintf("metrics-apm.app.opbeans_ruby-%s", namespace),
+		fmt.Sprintf("metrics-apm.internal-%s", namespace),
+		fmt.Sprintf("logs-apm.error-%s", namespace),
+	}
+}
+
+func expectedIndices() []string {
+	return []string{
+		"apm-*-error-*",
+		"apm-*-span-*",
+		"apm-*-transaction-*",
+		"apm-*-metric-*",
 	}
 }
 
@@ -348,5 +503,21 @@ func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client, i
 	maps.DeleteFunc(count, func(ds string, _ int) bool {
 		return ignore[ds]
 	})
+	return count
+}
+
+// getDocCountPerDSV7 retrieves document count per data stream for versions < 8.0.
+func getDocCountPerDSV7(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) esclient.DataStreamsDocCount {
+	t.Helper()
+	count, err := esc.APMDSDocCountV7(ctx, namespace)
+	require.NoError(t, err)
+	return count
+}
+
+// getDocCountPerIndexV7 retrieves document count per index for versions < 8.0.
+func getDocCountPerIndexV7(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.IndicesDocCount {
+	t.Helper()
+	count, err := esc.APMIdxDocCountV7(ctx)
+	require.NoError(t, err)
 	return count
 }

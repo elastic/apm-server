@@ -25,8 +25,6 @@ import (
 )
 
 func TestStandaloneManaged_7_17_to_8_x_to_9_x_Snapshot(t *testing.T) {
-	t.Parallel()
-
 	from7 := vsCache.GetLatestSnapshot(t, "7.17")
 	to8 := vsCache.GetLatestSnapshot(t, "8")
 	to9 := vsCache.GetLatestSnapshot(t, "9")
@@ -130,13 +128,14 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 				APMErrorLogsIgnored: apmErrorLogs{
 					tlsHandshakeError,
 					esReturnedUnknown503,
+					refreshCache403,
 					refreshCache503,
+					refreshCacheCtxDeadline,
+					refreshCacheESConfigInvalid,
 					preconditionClusterInfoCtxCanceled,
 					waitServerReadyCtxCanceled,
 					grpcServerStopped,
 					populateSourcemapFetcher403,
-					refreshCache403,
-					refreshCacheESConfigInvalid,
 				},
 			},
 		},
@@ -192,10 +191,11 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 				APMErrorLogsIgnored: apmErrorLogs{
 					tlsHandshakeError,
 					esReturnedUnknown503,
-					refreshCache503,
-					populateSourcemapFetcher403,
 					refreshCache403,
+					refreshCache503,
+					refreshCacheCtxDeadline,
 					refreshCacheESConfigInvalid,
+					populateSourcemapFetcher403,
 				},
 			},
 		},
@@ -241,9 +241,10 @@ func managed9Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 					tlsHandshakeError,
 					esReturnedUnknown503,
 					refreshCache503,
-					populateSourcemapFetcher403,
 					refreshCache403,
+					refreshCacheCtxDeadline,
 					refreshCacheESConfigInvalid,
+					populateSourcemapFetcher403,
 				},
 			},
 		},

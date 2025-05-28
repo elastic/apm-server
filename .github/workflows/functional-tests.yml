@@ -61,6 +61,10 @@ jobs:
       matrix:
         environment:
           - 'pro'
+        test-name:
+          - 'Managed7'
+          - 'Managed8'
+          - 'Managed9'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
@@ -80,7 +84,7 @@ jobs:
         working-directory: ${{ github.workspace }}/functionaltests
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          go test -run="TestStandaloneManaged" -v -timeout=60m -target="${{ matrix.environment }}" ./
+          go test -run="TestStandaloneManaged*/${{ matrix.test-name }}" -v -timeout=60m -target="${{ matrix.environment }}" ./
 
 #  notify:
 #    if: always()

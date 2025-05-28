@@ -20,6 +20,7 @@ package functionaltests
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 
@@ -118,7 +119,7 @@ func buildTestSteps(t *testing.T, versionInfos ecclient.StackVersionInfos, confi
 
 		// Upgrade deployment to new version and ingest.
 		prev := versionInfos[i-1].Version
-		oldIndicesManagedBy := copySlice(indicesManagedBy)
+		oldIndicesManagedBy := slices.Clone(indicesManagedBy)
 		if config.HasLazyRollover(prev, info.Version) {
 			indicesManagedBy = append(indicesManagedBy, lifecycle)
 		}
@@ -175,12 +176,6 @@ func dataStreamsExpectations(expect asserts.DataStreamExpectation) map[string]as
 		"metrics-apm.service_summary.1m-%s":     expect,
 		"metrics-apm.transaction.1m-%s":         expect,
 	}
-}
-
-func copySlice[T any](original []T) []T {
-	sliceCopy := make([]T, len(original))
-	copy(sliceCopy, original)
-	return sliceCopy
 }
 
 type upgradeTest struct {
