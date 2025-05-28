@@ -50,7 +50,7 @@ jobs:
           export_to_environment: true
           secrets: |-
             EC_API_KEY:elastic-observability/elastic-cloud-observability-team-${{ matrix.environment }}-api-key
-      - name: "Run deep upgrade tests"
+      - name: "Run upgrade tests"
         working-directory: ${{ github.workspace }}/functionaltests
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
