@@ -512,23 +512,24 @@ func (s *Runner) Run(ctx context.Context) error {
 			finalTracerBatchProcessor,
 		}
 
-		closeTracerProcessor = closeTracerFinalBatchProcessor
-
 		tracerProcessor := append(preBatchProcessors, tracerBatchProcessor)
 		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, tracerProcessor, serverParams.Semaphore, serverParams.MeterProvider)
 		if err != nil {
 			return fmt.Errorf("failed to create self-instrumentation server: %w", err)
 		}
-		g.Go(func() error {
+		go func() error {
 			if err := tracerServer.Serve(tracerServerListener); err != http.ErrServerClosed {
 				return err
 			}
 			return nil
-		})
-		go func() {
-			<-ctx.Done()
-			tracerServer.Shutdown(backgroundContext)
 		}()
+
+		closeTracerProcessor = func(ctx context.Context) error {
+			return errors.Join(
+				closeTracerFinalBatchProcessor(ctx),
+				tracerServer.Shutdown(backgroundContext),
+			)
+		}
 	}
 
 	result := g.Wait()
