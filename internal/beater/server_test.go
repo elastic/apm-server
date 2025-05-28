@@ -592,8 +592,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
-<<<<<<< HEAD
-	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
+	escfg, docs := beatertest.ElasticsearchOutputConfig(t)
 	observedCore, observedLogs := observer.New(zapcore.DebugLevel)
 	err := logp.ConfigureWithOutputs(logp.Config{
 		Level:      logp.DebugLevel,
@@ -603,9 +602,6 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 		ToEventLog: false,
 	}, observedCore)
 	require.NoError(t, err)
-=======
-	escfg, docs := beatertest.ElasticsearchOutputConfig(t)
->>>>>>> 171ca9a2 (feat: do not instrument tracer final batch processor (#16870))
 
 	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
 		map[string]interface{}{
