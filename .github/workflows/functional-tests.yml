@@ -32,6 +32,9 @@ jobs:
           - '8.15, 8.16, 8.17'
           - '8.17, 8.18, 9.0'
           - '8.17, 8.19, 9.1'
+        scenario:
+          - 'Default'
+          - 'Reroute'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
@@ -51,7 +54,7 @@ jobs:
         working-directory: ${{ github.workspace }}/functionaltests
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          go test -run="TestUpgrade" -v -timeout=60m -target="${{ matrix.environment }}" -upgrade-path="${{ matrix.upgrade-path }}" ./
+          go test -run="TestUpgrade.*/.*/${{ matrix.scenario }}" -v -timeout=60m -target="${{ matrix.environment }}" -upgrade-path="${{ matrix.upgrade-path }}" ./
 
   run-standalone:
     name: Standalone-to-managed tests
@@ -61,7 +64,7 @@ jobs:
       matrix:
         environment:
           - 'pro'
-        test-name:
+        scenario:
           - 'Managed7'
           - 'Managed8'
           - 'Managed9'
@@ -84,7 +87,7 @@ jobs:
         working-directory: ${{ github.workspace }}/functionaltests
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          go test -run="TestStandaloneManaged*/${{ matrix.test-name }}" -v -timeout=60m -target="${{ matrix.environment }}" ./
+          go test -run="TestStandaloneManaged.*/${{ matrix.scenario }}" -v -timeout=60m -target="${{ matrix.environment }}" ./
 
 #  notify:
 #    if: always()
