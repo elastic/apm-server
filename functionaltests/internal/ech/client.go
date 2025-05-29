@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package ecclient
+package ech
 
 import (
 	"context"
@@ -33,6 +33,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/client/stack"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+
+	"github.com/elastic/apm-server/functionaltests/internal/version"
 )
 
 type Client struct {
@@ -64,10 +66,10 @@ func New(endpoint string, apiKey string, options ...ClientOption) (*Client, erro
 	}
 
 	if apiKey == "" {
-		return nil, fmt.Errorf("ecclient.New apiKey is required")
+		return nil, fmt.Errorf("ech.New apiKey is required")
 	}
 	if endpoint == "" {
-		return nil, fmt.Errorf("ecclient.New endpoint is required")
+		return nil, fmt.Errorf("ech.New endpoint is required")
 	}
 
 	ecAPI, err := api.NewAPI(api.Config{
@@ -152,13 +154,28 @@ func (c *Client) RestartIntegrationServer(ctx context.Context, deploymentID stri
 	}
 }
 
-func (c *Client) getVersionInfos(
+type StackVersion struct {
+	Version      version.Version
+	UpgradableTo []version.Version
+}
+
+// CanUpgradeTo checks if the current stack version can upgrade to the provided `version`.
+func (stackVer StackVersion) CanUpgradeTo(version version.Version) bool {
+	for _, upgrade := range stackVer.UpgradableTo {
+		if upgrade == version {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *Client) getVersions(
 	ctx context.Context,
 	region string,
 	showUnusable bool,
 	preFilter func(*models.StackVersionConfig) bool, // Filter before conversion
-	postFilter func(StackVersion) bool, // Filter after conversion
-) (StackVersionInfos, error) {
+	postFilter func(version.Version) bool, // Filter after conversion
+) ([]StackVersion, error) {
 	showDeleted := false
 	resp, err := c.ecAPI.V1API.Stack.GetVersionStacks(
 		// Add region to get the stack versions for that region only
@@ -175,12 +192,12 @@ func (c *Client) getVersionInfos(
 		return nil, errors.New("stack versions response payload is empty")
 	}
 
-	versionInfos := make(StackVersionInfos, 0, len(resp.Payload.Stacks))
+	stackVersions := make([]StackVersion, 0, len(resp.Payload.Stacks))
 	for _, s := range resp.Payload.Stacks {
 		if preFilter != nil && !preFilter(s) {
 			continue
 		}
-		v, err := NewStackVersionFromStr(s.Version)
+		v, err := version.NewFromString(s.Version)
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse stack version '%v': %w", s.Version, err)
 		}
@@ -189,79 +206,79 @@ func (c *Client) getVersionInfos(
 			if err != nil {
 				return nil, fmt.Errorf("cannot parse upgradable to for '%v': %w", s.Version, err)
 			}
-			versionInfos = append(versionInfos, StackVersionInfo{
+			stackVersions = append(stackVersions, StackVersion{
 				Version:      v,
 				UpgradableTo: upgradableTo,
 			})
 		}
 	}
 
-	versionInfos.Sort()
-	return versionInfos, nil
+	slices.SortFunc(stackVersions, func(a, b StackVersion) int {
+		return a.Version.Compare(b.Version)
+	})
+	return stackVersions, nil
 }
 
-func sortedStackVersionsForStrs(strs []string) ([]StackVersion, error) {
-	versions := make([]StackVersion, 0, len(strs))
+func sortedStackVersionsForStrs(strs []string) ([]version.Version, error) {
+	versions := make(version.Versions, 0, len(strs))
 	for _, s := range strs {
-		v, err := NewStackVersionFromStr(s)
+		v, err := version.NewFromString(s)
 		if err != nil {
 			return nil, err
 		}
 		versions = append(versions, v)
 	}
 
-	slices.SortFunc(versions, func(a, b StackVersion) int {
-		return a.Compare(b)
-	})
+	versions.Sort()
 	return versions, nil
 }
 
-// GetVersionInfos retrieves all stack version infos without suffix.
-func (c *Client) GetVersionInfos(ctx context.Context, region string) (StackVersionInfos, error) {
-	postFilter := func(v StackVersion) bool {
+// GetVersions retrieves all stack version infos without suffix.
+func (c *Client) GetVersions(ctx context.Context, region string) ([]StackVersion, error) {
+	postFilter := func(v version.Version) bool {
 		// Ignore all with suffix e.g. SNAPSHOTS, BC1
 		return v.Suffix == ""
 	}
 
-	versions, err := c.getVersionInfos(ctx, region, false, nil, postFilter)
+	versions, err := c.getVersions(ctx, region, false, nil, postFilter)
 	if err != nil {
 		return nil, fmt.Errorf("get versions failed: %w", err)
 	}
 	return versions, nil
 }
 
-// GetSnapshotVersionInfos retrieves all stack version infos with the suffix "SNAPSHOT".
-func (c *Client) GetSnapshotVersionInfos(ctx context.Context, region string) (StackVersionInfos, error) {
-	postFilter := func(v StackVersion) bool {
+// GetSnapshotVersions retrieves all stack version infos with the suffix "SNAPSHOT".
+func (c *Client) GetSnapshotVersions(ctx context.Context, region string) ([]StackVersion, error) {
+	postFilter := func(v version.Version) bool {
 		// Only keep SNAPSHOTs
 		return v.Suffix == "SNAPSHOT"
 	}
 
-	versions, err := c.getVersionInfos(ctx, region, true, nil, postFilter)
+	versions, err := c.getVersions(ctx, region, true, nil, postFilter)
 	if err != nil {
 		return nil, fmt.Errorf("get snapshot versions failed: %w", err)
 	}
 	return versions, nil
 }
 
-// GetCandidateVersionInfos retrieves all stack version infos that are potential build / release candidates.
-func (c *Client) GetCandidateVersionInfos(ctx context.Context, region string) (StackVersionInfos, error) {
-	preFilter := func(v *models.StackVersionConfig) bool {
+// GetCandidateVersions retrieves all stack version infos that are potential build / release candidates.
+func (c *Client) GetCandidateVersions(ctx context.Context, region string) ([]StackVersion, error) {
+	preFilter := func(cfg *models.StackVersionConfig) bool {
 		// For BCs and SNAPSHOTs, the `docker_image` will have a suffix e.g.:
 		//   docker.elastic.co/cloud-release/elasticsearch-cloud-ess:8.18.0-928cac41
 		// As compared to released:
 		//   docker.elastic.co/cloud-release/elasticsearch-cloud-ess:8.17.3
-		version := strings.Split(*v.Elasticsearch.DockerImage, ":")[1]
-		splits := strings.Split(version, "-")
+		suffix := strings.Split(*cfg.Elasticsearch.DockerImage, ":")[1]
+		splits := strings.Split(suffix, "-")
 		// Has suffix and the suffix is not empty / 1 character (older versions have this)
 		return len(splits) >= 2 && len(splits[1]) > 1
 	}
-	postFilter := func(v StackVersion) bool {
+	postFilter := func(v version.Version) bool {
 		// Ignore SNAPSHOTs
 		return v.Suffix != "SNAPSHOT"
 	}
 
-	versions, err := c.getVersionInfos(ctx, region, false, preFilter, postFilter)
+	versions, err := c.getVersions(ctx, region, false, preFilter, postFilter)
 	if err != nil {
 		return nil, fmt.Errorf("get candidate versions failed: %w", err)
 	}

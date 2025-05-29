@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package kbclient_test
+package kibana_test
 
 import (
 	"context"
@@ -32,7 +32,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
+	"github.com/elastic/apm-server/functionaltests/internal/kibana"
 )
 
 // getHttpClient instantiate a http.Client backed by a recorder.Recorder to be used in testing
@@ -108,11 +108,11 @@ func getHttpClient(t *testing.T) (*recorder.Recorder, *http.Client) {
 	return rec, hc
 }
 
-func newRecordedTestClient(t *testing.T) *kbclient.Client {
+func newRecordedTestClient(t *testing.T) *kibana.Client {
 	kibanaURL := os.Getenv("KIBANA_URL")
 	username := os.Getenv("KIBANA_USERNAME")
 	password := os.Getenv("KIBANA_PASSWORD")
-	kbc, err := kbclient.New(kibanaURL, username, password)
+	kbc, err := kibana.New(kibanaURL, username, password)
 	require.NoError(t, err)
 	_, httpc := getHttpClient(t)
 	kbc.Client = *httpc
@@ -134,10 +134,10 @@ func TestClient_UpdatePackagePolicyByID(t *testing.T) {
 	ctx := context.Background()
 	policyID := "elastic-cloud-apm"
 	err := kbc.UpdatePackagePolicyByID(ctx, policyID,
-		kbclient.PackagePolicy{
+		kibana.PackagePolicy{
 			Name:        "Elastic APM",
 			Description: "Hello World",
-			Package: kbclient.PackagePolicyPkg{
+			Package: kibana.PackagePolicyPkg{
 				Name:    "apm",
 				Version: "9.1.0-SNAPSHOT",
 			},
@@ -148,4 +148,70 @@ func TestClient_UpdatePackagePolicyByID(t *testing.T) {
 	policy, err := kbc.GetPackagePolicyByID(ctx, policyID)
 	require.NoError(t, err)
 	assert.Equal(t, "Hello World", policy.Description)
+}
+
+// To regenerate the fixture, first delete the existing fixture. Then, you will
+// need a deployed cluster that has been upgraded from 7.x to 8.x, and has
+// ingested APM data.
+//
+// For reference, here is the minimal required code to run (in the main test folder).
+// Note that the t.Fail() is intended in order to stop the test cleanup.
+//
+//	func TestResolveMigrationDeprecationsSetup(t *testing.T) {
+//		expect := dataStreamsExpectations(asserts.DataStreamExpectation{
+//			PreferIlm:        true,
+//			DSManagedBy:      managedByILM,
+//			IndicesManagedBy: []string{managedByILM},
+//		})
+//
+//		runner := testStepsRunner{
+//			Steps: []testStep{
+//				createStep{
+//					DeployVersion:     vsCache.GetLatestSnapshot(t, "7.17").Version,
+//					APMDeploymentMode: apmStandalone,
+//				},
+//				ingestV7Step{},
+//				upgradeV7Step{NewVersion: vsCache.GetLatestSnapshot(t, "8").Version},
+//				ingestStep{CheckDataStreams: expect},
+//			},
+//		}
+//		runner.Run(t)
+//		t.Fail()
+//	}
+//
+// Once you have the cluster setup, set the appropriate environment variables
+// (KIBANA_URL, KIBANA_USERNAME and KIBANA_PASSWORD) and run this test.
+func TestClient_ResolveMigrationDeprecations(t *testing.T) {
+	kbc := newRecordedTestClient(t)
+
+	ctx := context.Background()
+
+	// Check that system indices are not migrated.
+	status, err := kbc.QuerySystemIndicesMigrationStatus(ctx)
+	require.NoError(t, err)
+	require.Equal(t, kibana.MigrationNeeded, status)
+
+	// Check that there are some critical deprecation warnings.
+	deprecations, err := kbc.QueryCriticalESDeprecations(ctx)
+	require.NoError(t, err)
+	require.Greater(t, len(deprecations), 0)
+	for _, deprecation := range deprecations {
+		require.True(t, deprecation.IsCritical)
+	}
+
+	// Resolve them.
+	// NOTE: This test will not be effective against different deprecation
+	// types than what was initially set.
+	err = kbc.ResolveMigrationDeprecations(ctx)
+	require.NoError(t, err)
+
+	// Check that system indices are migrated.
+	status, err = kbc.QuerySystemIndicesMigrationStatus(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, kibana.NoMigrationNeeded, status)
+
+	// Check that there are no more warnings.
+	deprecations, err = kbc.QueryCriticalESDeprecations(ctx)
+	require.NoError(t, err)
+	assert.Len(t, deprecations, 0)
 }

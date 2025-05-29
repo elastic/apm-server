@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/apm-server/functionaltests/internal/elasticsearch"
 )
 
 // DocExistFor checks if documents exist for the expected data stream / index.
@@ -43,10 +43,10 @@ func DocCountIncreased(t *testing.T, currDocCount, prevDocCount map[string]int) 
 	t.Helper()
 
 	if currDocCount == nil {
-		currDocCount = esclient.DataStreamsDocCount{}
+		currDocCount = elasticsearch.DataStreamsDocCount{}
 	}
 	if prevDocCount == nil {
-		prevDocCount = esclient.DataStreamsDocCount{}
+		prevDocCount = elasticsearch.DataStreamsDocCount{}
 	}
 
 	// Check that document counts have increased for all data streams.
@@ -63,10 +63,10 @@ func DocCountStayedTheSame(t *testing.T, currDocCount, prevDocCount map[string]i
 	t.Helper()
 
 	if currDocCount == nil {
-		currDocCount = esclient.DataStreamsDocCount{}
+		currDocCount = elasticsearch.DataStreamsDocCount{}
 	}
 	if prevDocCount == nil {
-		prevDocCount = esclient.DataStreamsDocCount{}
+		prevDocCount = elasticsearch.DataStreamsDocCount{}
 	}
 
 	// Check that document counts stayed the same for all data streams.
