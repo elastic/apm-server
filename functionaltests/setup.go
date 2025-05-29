@@ -102,11 +102,11 @@ func terraformDir(t *testing.T) string {
 	return fmt.Sprintf("tf-%s", terraformDirName(t))
 }
 
-// initTerraformRunner copies the static Terraform files to the Terraform directory for this test,
-// then initializes the Terraform runner in that directory.
+// initTerraformRunner copies the static Terraform files to the Terraform directory
+// for this test, then initializes the Terraform runner in that directory.
 //
-// Note: This function will remove all existing files from the test Terraform directory if it exists,
-// before copying into it.
+// Note: This function will remove all existing files from the test Terraform directory
+// if it exists, before copying into it.
 func initTerraformRunner(t *testing.T) *terraform.Runner {
 	t.Helper()
 	dirName := terraformDir(t)
@@ -121,6 +121,8 @@ func initTerraformRunner(t *testing.T) *terraform.Runner {
 }
 
 type deploymentInfo struct {
+	DeploymentName string
+
 	// ElasticsearchURL holds the Elasticsearch URL.
 	ElasticsearchURL string
 
@@ -143,11 +145,15 @@ func deploymentName(t *testing.T) string {
 	return fmt.Sprintf("%s_%s", prefix, rand.Text()[:10])
 }
 
-// createCluster runs terraform on the test terraform folder to spin up an Elastic Cloud Hosted cluster for testing.
-// It returns the deploymentID of the created cluster and an esclient.Config object filled with cluster relevant
-// information.
-// It sets up a cleanup function to destroy resources if the test succeed, leveraging the cleanupOnFailure flag to
-// skip this behavior if appropriate.
+// createCluster runs terraform on the test terraform folder to spin up an
+// Elastic Cloud Hosted (ECH) cluster for testing.
+//
+// It returns the deploymentID of the created cluster and a deploymentInfo
+// object filled with cluster relevant information.
+//
+// It sets up a cleanup function to destroy resources if the test succeed.
+// If the test fails, cleanupOnFailure determines whether the cleanup function
+// will run.
 func createCluster(
 	t *testing.T,
 	ctx context.Context,
@@ -161,8 +167,6 @@ func createCluster(
 
 	deployName := deploymentName(t)
 	t.Logf("creating deployment version %s", fromVersion)
-	// TODO: use a terraform var file for all vars that are not expected to change across upgrades
-	// to simplify and clarify this code.
 	ecTarget := terraform.Var("ec_target", target)
 	ecRegion := terraform.Var("ec_region", regionFrom(target))
 	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
@@ -184,7 +188,7 @@ func createCluster(
 	require.NoError(t, tf.Output("deployment_id", &deploymentID))
 	var apmID string
 	require.NoError(t, tf.Output("apm_id", &apmID))
-	var info deploymentInfo
+	info := deploymentInfo{DeploymentName: deployName}
 	require.NoError(t, tf.Output("apm_url", &info.APMServerURL))
 	require.NoError(t, tf.Output("es_url", &info.ElasticsearchURL))
 	require.NoError(t, tf.Output("username", &info.Username))
@@ -204,6 +208,7 @@ func upgradeCluster(
 	t *testing.T,
 	ctx context.Context,
 	tf *terraform.Runner,
+	deployName string,
 	target string,
 	toVersion ecclient.StackVersion,
 	enableIntegrations bool,
@@ -215,7 +220,7 @@ func upgradeCluster(
 	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
 	version := terraform.Var("stack_version", toVersion.String())
 	integrations := terraform.Var("integrations_server", strconv.FormatBool(enableIntegrations))
-	name := terraform.Var("name", terraformDirName(t))
+	name := terraform.Var("name", deployName)
 	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, integrations, name))
 }
 

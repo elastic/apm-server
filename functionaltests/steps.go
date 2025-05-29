@@ -84,6 +84,7 @@ func (r testStepsRunner) Run(t *testing.T) {
 type testStepEnv struct {
 	target       string
 	dsNamespace  string
+	deployName   string
 	versions     []ecclient.StackVersion
 	integrations bool
 	tf           *terraform.Runner
@@ -139,6 +140,7 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	t.Logf("------ cluster setup %s ------", c.DeployVersion)
 	e.tf = initTerraformRunner(t)
 	deployInfo := createCluster(t, ctx, e.tf, e.target, c.DeployVersion, integrations, c.CleanupOnFailure)
+	e.deployName = deployInfo.DeploymentName
 	e.esc = createESClient(t, deployInfo)
 	e.kbc = createKibanaClient(t, deployInfo)
 	e.gen = createAPMGenerator(t, ctx, e.esc, e.kbc, deployInfo)
@@ -230,7 +232,7 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	beforeUpgradeDSDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
 
 	t.Logf("------ upgrade %s to %s ------", e.currentVersion(), u.NewVersion)
-	upgradeCluster(t, ctx, e.tf, e.target, u.NewVersion, e.integrations)
+	upgradeCluster(t, ctx, e.tf, e.deployName, e.target, u.NewVersion, e.integrations)
 	// Update the environment version to the new one.
 	e.versions = append(e.versions, u.NewVersion)
 
@@ -357,7 +359,7 @@ func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	}
 
 	t.Logf("------ upgrade %s to %s ------", e.currentVersion(), u.NewVersion)
-	upgradeCluster(t, ctx, e.tf, e.target, u.NewVersion, e.integrations)
+	upgradeCluster(t, ctx, e.tf, e.deployName, e.target, u.NewVersion, e.integrations)
 	// Update the environment version to the new one.
 	e.versions = append(e.versions, u.NewVersion)
 
