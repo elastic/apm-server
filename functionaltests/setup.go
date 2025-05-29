@@ -19,6 +19,7 @@ package functionaltests
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"os"
 	"strconv"
@@ -90,7 +91,7 @@ func deploymentTemplateFrom(region string) string {
 	}
 }
 
-func formattedTestName(t *testing.T) string {
+func terraformDirName(t *testing.T) string {
 	return strings.ReplaceAll(t.Name(), "/", "_")
 }
 
@@ -98,7 +99,7 @@ func formattedTestName(t *testing.T) string {
 func terraformDir(t *testing.T) string {
 	t.Helper()
 	// Flatten the dir name in case of path separators
-	return fmt.Sprintf("tf-%s", formattedTestName(t))
+	return fmt.Sprintf("tf-%s", terraformDirName(t))
 }
 
 // initTerraformRunner copies the static Terraform files to the Terraform directory for this test,
@@ -136,6 +137,12 @@ type deploymentInfo struct {
 	KibanaURL string
 }
 
+func deploymentName(t *testing.T) string {
+	prefix := strings.Split(t.Name(), "_")[0]
+	// We add random string to avoid having clashing alias in ECH.
+	return fmt.Sprintf("%s_%s", prefix, rand.Text()[:10])
+}
+
 // createCluster runs terraform on the test terraform folder to spin up an Elastic Cloud Hosted cluster for testing.
 // It returns the deploymentID of the created cluster and an esclient.Config object filled with cluster relevant
 // information.
@@ -152,6 +159,7 @@ func createCluster(
 ) deploymentInfo {
 	t.Helper()
 
+	deployName := deploymentName(t)
 	t.Logf("creating deployment version %s", fromVersion)
 	// TODO: use a terraform var file for all vars that are not expected to change across upgrades
 	// to simplify and clarify this code.
@@ -160,7 +168,7 @@ func createCluster(
 	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
 	version := terraform.Var("stack_version", fromVersion.String())
 	integrations := terraform.Var("integrations_server", strconv.FormatBool(enableIntegrations))
-	name := terraform.Var("name", formattedTestName(t))
+	name := terraform.Var("name", deployName)
 	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, integrations, name))
 
 	t.Cleanup(func() {
@@ -187,7 +195,7 @@ func createCluster(
 	if enableIntegrations {
 		standaloneOrManaged = "managed"
 	}
-	t.Logf("created deployment %s with %s APM (%s)", deploymentID, standaloneOrManaged, apmID)
+	t.Logf("created deployment %s (%s) with %s APM (%s)", deployName, deploymentID, standaloneOrManaged, apmID)
 	return info
 }
 
@@ -207,7 +215,7 @@ func upgradeCluster(
 	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
 	version := terraform.Var("stack_version", toVersion.String())
 	integrations := terraform.Var("integrations_server", strconv.FormatBool(enableIntegrations))
-	name := terraform.Var("name", formattedTestName(t))
+	name := terraform.Var("name", terraformDirName(t))
 	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, integrations, name))
 }
 
