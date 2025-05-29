@@ -24,7 +24,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
+	"github.com/elastic/apm-server/functionaltests/internal/ech"
 )
 
 var (
@@ -50,7 +50,7 @@ var (
 	)
 )
 
-var vsCache *versionsCache
+var vsCache *ech.VersionsCache
 
 func TestMain(m *testing.M) {
 	flag.Parse()
@@ -69,13 +69,13 @@ func TestMain(m *testing.M) {
 
 	ctx := context.Background()
 	ecRegion := regionFrom(*target)
-	ecc, err := ecclient.New(endpointFrom(*target), ecAPIKey)
+	ecc, err := ech.New(endpointFrom(*target), ecAPIKey)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	vsCache, err = newVersionsCache(ctx, ecc, ecRegion)
+	vsCache, err = ech.NewVersionsCache(ctx, ecc, ecRegion)
 	if err != nil {
 		log.Fatal(err)
 		return

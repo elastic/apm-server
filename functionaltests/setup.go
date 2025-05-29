@@ -32,11 +32,11 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
-	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
-	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/apm-server/functionaltests/internal/elasticsearch"
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
-	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
+	"github.com/elastic/apm-server/functionaltests/internal/kibana"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
+	"github.com/elastic/apm-server/functionaltests/internal/version"
 )
 
 const (
@@ -159,7 +159,7 @@ func createCluster(
 	ctx context.Context,
 	tf *terraform.Runner,
 	target string,
-	fromVersion ecclient.StackVersion,
+	fromVersion version.Version,
 	enableIntegrations bool,
 	cleanupOnFailure bool,
 ) deploymentInfo {
@@ -170,15 +170,15 @@ func createCluster(
 	ecTarget := terraform.Var("ec_target", target)
 	ecRegion := terraform.Var("ec_region", regionFrom(target))
 	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
-	version := terraform.Var("stack_version", fromVersion.String())
+	ver := terraform.Var("stack_version", fromVersion.String())
 	integrations := terraform.Var("integrations_server", strconv.FormatBool(enableIntegrations))
 	name := terraform.Var("name", deployName)
-	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, integrations, name))
+	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, ver, integrations, name))
 
 	t.Cleanup(func() {
 		if !t.Failed() || cleanupOnFailure {
 			t.Log("cleanup terraform resources")
-			require.NoError(t, tf.Destroy(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, version))
+			require.NoError(t, tf.Destroy(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, ver))
 		} else {
 			t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
 		}
@@ -210,7 +210,7 @@ func upgradeCluster(
 	tf *terraform.Runner,
 	deployName string,
 	target string,
-	toVersion ecclient.StackVersion,
+	toVersion version.Version,
 	enableIntegrations bool,
 ) {
 	t.Helper()
@@ -218,33 +218,33 @@ func upgradeCluster(
 	ecTarget := terraform.Var("ec_target", target)
 	ecRegion := terraform.Var("ec_region", regionFrom(target))
 	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
-	version := terraform.Var("stack_version", toVersion.String())
+	ver := terraform.Var("stack_version", toVersion.String())
 	integrations := terraform.Var("integrations_server", strconv.FormatBool(enableIntegrations))
 	name := terraform.Var("name", deployName)
-	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, integrations, name))
+	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, ver, integrations, name))
 }
 
 // createESClient instantiate an HTTP API client with dedicated methods to query the Elasticsearch API.
-func createESClient(t *testing.T, deployInfo deploymentInfo) *esclient.Client {
+func createESClient(t *testing.T, deployInfo deploymentInfo) *elasticsearch.Client {
 	t.Helper()
 	t.Log("create elasticsearch client")
-	esc, err := esclient.New(deployInfo.ElasticsearchURL, deployInfo.Username, deployInfo.Password)
+	esc, err := elasticsearch.New(deployInfo.ElasticsearchURL, deployInfo.Username, deployInfo.Password)
 	require.NoError(t, err)
 	return esc
 }
 
 // createKibanaClient instantiate an HTTP API client with dedicated methods to query the Kibana API.
-func createKibanaClient(t *testing.T, deployInfo deploymentInfo) *kbclient.Client {
+func createKibanaClient(t *testing.T, deployInfo deploymentInfo) *kibana.Client {
 	t.Helper()
 	t.Log("create kibana client")
-	kbc, err := kbclient.New(deployInfo.KibanaURL, deployInfo.Username, deployInfo.Password)
+	kbc, err := kibana.New(deployInfo.KibanaURL, deployInfo.Username, deployInfo.Password)
 	require.NoError(t, err)
 	return kbc
 }
 
 // createAPMGenerator instantiate a load generator for APM.
 // This function will also create an Elasticsearch API key with full permissions to be used by the generator.
-func createAPMGenerator(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client, deployInfo deploymentInfo) *gen.Generator {
+func createAPMGenerator(t *testing.T, ctx context.Context, esc *elasticsearch.Client, kbc *kibana.Client, deployInfo deploymentInfo) *gen.Generator {
 	t.Helper()
 	t.Log("create apm generator")
 	apiKey, err := esc.CreateAPIKey(ctx, "apmgenerator", -1, map[string]types.RoleDescriptor{})

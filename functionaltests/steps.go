@@ -30,11 +30,11 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
-	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
-	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/apm-server/functionaltests/internal/elasticsearch"
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
-	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
+	"github.com/elastic/apm-server/functionaltests/internal/kibana"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
+	"github.com/elastic/apm-server/functionaltests/internal/version"
 )
 
 // testStepsRunner consists of composable testStep(s) that is run
@@ -85,15 +85,15 @@ type testStepEnv struct {
 	target       string
 	dsNamespace  string
 	deployName   string
-	versions     []ecclient.StackVersion
+	versions     []version.Version
 	integrations bool
 	tf           *terraform.Runner
 	gen          *gen.Generator
-	kbc          *kbclient.Client
-	esc          *esclient.Client
+	kbc          *kibana.Client
+	esc          *elasticsearch.Client
 }
 
-func (env *testStepEnv) currentVersion() ecclient.StackVersion {
+func (env *testStepEnv) currentVersion() version.Version {
 	if len(env.versions) == 0 {
 		panic("test step env current version not found")
 	}
@@ -126,7 +126,7 @@ func (mode apmDeploymentMode) enableIntegrations() bool {
 // Note: This step should always be the first step of any test runs, since it
 // initializes all the necessary dependencies for subsequent steps.
 type createStep struct {
-	DeployVersion     ecclient.StackVersion
+	DeployVersion     version.Version
 	APMDeploymentMode apmDeploymentMode
 	CleanupOnFailure  bool
 }
@@ -212,7 +212,7 @@ func formatAllMap[T any](m map[string]T, s string) map[string]T {
 // NOTE: Only works from versions >= 8.0.
 type upgradeStep struct {
 	// NewVersion is the version to upgrade into.
-	NewVersion ecclient.StackVersion
+	NewVersion version.Version
 
 	// CheckDataStreams is used to check the data streams individually.
 	// The data stream names can contain '%s' to indicate namespace.
@@ -309,8 +309,8 @@ func (i ingestV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 		t.Fatal("ingest v7 step should only be used for versions < 8.0")
 	}
 
-	var beforeIngestDSDocCount esclient.DataStreamsDocCount
-	var beforeIngestIdxDocCount esclient.IndicesDocCount
+	var beforeIngestDSDocCount elasticsearch.DataStreamsDocCount
+	var beforeIngestIdxDocCount elasticsearch.IndicesDocCount
 	if e.integrations {
 		beforeIngestDSDocCount = getDocCountPerDSV7(t, ctx, e.esc, e.dsNamespace)
 	} else {
@@ -342,7 +342,7 @@ func (i ingestV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 //
 // NOTE: Only works from versions 7.x.
 type upgradeV7Step struct {
-	NewVersion ecclient.StackVersion
+	NewVersion version.Version
 }
 
 func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
@@ -350,8 +350,8 @@ func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 		t.Fatal("upgrade v7 step should only be used from versions < 8.0")
 	}
 
-	var beforeUpgradeDSDocCount esclient.DataStreamsDocCount
-	var beforeUpgradeIdxDocCount esclient.IndicesDocCount
+	var beforeUpgradeDSDocCount elasticsearch.DataStreamsDocCount
+	var beforeUpgradeIdxDocCount elasticsearch.IndicesDocCount
 	if e.integrations {
 		beforeUpgradeDSDocCount = getDocCountPerDSV7(t, ctx, e.esc, e.dsNamespace)
 	} else {
@@ -397,8 +397,8 @@ func (m migrateManagedStep) Step(t *testing.T, ctx context.Context, e *testStepE
 		t.Fatal("migrate managed step should only be used on standalone")
 	}
 
-	var beforeMigrateDSDocCount esclient.DataStreamsDocCount
-	var beforeMigrateIdxDocCount esclient.IndicesDocCount
+	var beforeMigrateDSDocCount elasticsearch.DataStreamsDocCount
+	var beforeMigrateIdxDocCount elasticsearch.IndicesDocCount
 	if e.currentVersion().Major >= 8 {
 		beforeMigrateDSDocCount = getDocCountPerDS(t, ctx, e.esc, e.dsNamespace)
 	} else {
@@ -484,7 +484,7 @@ func sliceToSet[T comparable](s []T) map[T]bool {
 }
 
 // getAPMDataStreams get all APM related data streams.
-func getAPMDataStreams(t *testing.T, ctx context.Context, esc *esclient.Client, ignoreDS ...string) []types.DataStream {
+func getAPMDataStreams(t *testing.T, ctx context.Context, esc *elasticsearch.Client, ignoreDS ...string) []types.DataStream {
 	t.Helper()
 	dataStreams, err := esc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
@@ -496,7 +496,7 @@ func getAPMDataStreams(t *testing.T, ctx context.Context, esc *esclient.Client, 
 }
 
 // getDocCountPerDS retrieves document count per data stream for versions >= 8.0.
-func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client, ignoreDS ...string) esclient.DataStreamsDocCount {
+func getDocCountPerDS(t *testing.T, ctx context.Context, esc *elasticsearch.Client, ignoreDS ...string) elasticsearch.DataStreamsDocCount {
 	t.Helper()
 	count, err := esc.APMDSDocCount(ctx)
 	require.NoError(t, err)
@@ -509,7 +509,7 @@ func getDocCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client, i
 }
 
 // getDocCountPerDSV7 retrieves document count per data stream for versions < 8.0.
-func getDocCountPerDSV7(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) esclient.DataStreamsDocCount {
+func getDocCountPerDSV7(t *testing.T, ctx context.Context, esc *elasticsearch.Client, namespace string) elasticsearch.DataStreamsDocCount {
 	t.Helper()
 	count, err := esc.APMDSDocCountV7(ctx, namespace)
 	require.NoError(t, err)
@@ -517,7 +517,7 @@ func getDocCountPerDSV7(t *testing.T, ctx context.Context, esc *esclient.Client,
 }
 
 // getDocCountPerIndexV7 retrieves document count per index for versions < 8.0.
-func getDocCountPerIndexV7(t *testing.T, ctx context.Context, esc *esclient.Client) esclient.IndicesDocCount {
+func getDocCountPerIndexV7(t *testing.T, ctx context.Context, esc *elasticsearch.Client) elasticsearch.IndicesDocCount {
 	t.Helper()
 	count, err := esc.APMIdxDocCountV7(ctx)
 	require.NoError(t, err)

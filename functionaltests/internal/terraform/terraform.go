@@ -26,6 +26,11 @@ import (
 	"github.com/hashicorp/terraform-exec/tfexec"
 )
 
+// Var is a helper to simplify creating Terraform vars to pass to terraform-exec.
+func Var(name, value string) *tfexec.VarOption {
+	return tfexec.Var(fmt.Sprintf("%s=%s", name, value))
+}
+
 type Runner struct {
 	initialized bool
 	outputs     map[string]tfexec.OutputMeta
@@ -92,4 +97,15 @@ func (t *Runner) Output(name string, res any) error {
 		return fmt.Errorf("cannot unmarshal output: %w", err)
 	}
 	return nil
+}
+
+// tfLoggerv2 wraps a testing.TB to implement the printfer interface
+// required by terraform-exec logger.
+type tfLoggerv2 struct {
+	testing.TB
+}
+
+// Printf implements terraform-exec.printfer interface
+func (l *tfLoggerv2) Printf(format string, v ...interface{}) {
+	l.Logf(format, v...)
 }
