@@ -517,11 +517,10 @@ func (s *Runner) Run(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("failed to create self-instrumentation server: %w", err)
 		}
-		go func() error {
+		go func() {
 			if err := tracerServer.Serve(tracerServerListener); err != http.ErrServerClosed {
-				return err
+				s.logger.With(logp.Error(err)).Error("failed to shutdown tracer server")
 			}
-			return nil
 		}()
 
 		closeTracerProcessor = func(ctx context.Context) error {
