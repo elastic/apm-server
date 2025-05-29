@@ -295,12 +295,14 @@ func (b *Beat) Run(ctx context.Context) error {
 	}()
 	defer b.Info.Logger.Infof("%s stopped.", b.Info.Beat)
 
+	// https://www.elastic.co/support/matrix
 	if runtime.GOOS == "darwin" {
 		if host, err := sysinfo.Host(); err != nil {
 			b.Info.Logger.Warnf("failed to retrieve kernel version, ignoring potential deprecation warning: %v", err)
-		} else if strings.HasPrefix(host.Info().KernelVersion, "19.") {
-			// macOS 10.15.x (catalina) means darwin kernel 19.y
-			b.Info.Logger.Warn("deprecation notice: support for macOS 10.15 will be removed in an upcoming version")
+		} else if strings.HasPrefix(host.Info().KernelVersion, "20.") {
+			b.Info.Logger.Warn("deprecation notice: support for macOS 11 will be removed in an upcoming version")
+		} else if strings.HasPrefix(host.Info().KernelVersion, "21.") {
+			b.Info.Logger.Warn("deprecation notice: support for macOS 12 will be removed in an upcoming version")
 		}
 	}
 
