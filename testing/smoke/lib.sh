@@ -183,10 +183,10 @@ data_stream_assert_events() {
     local METRICS_INDEX="metrics-apm.internal-*"
     local VERSION=${1}
     local ENTRIES=${2}
-    retry 10 assert_document ${ERRORS_INDEX} "error.id" "9876543210abcdeffedcba0123456789" ${VERSION} ${ENTRIES}
-    retry 10 assert_document ${TRACES_INDEX} "span.id" "1234567890aaaade" ${VERSION} ${ENTRIES}
-    retry 10 assert_document ${TRACES_INDEX} "transaction.id" "4340a8e0df1906ecbfa9" ${VERSION} ${ENTRIES}
-    retry 10 assert_document ${METRICS_INDEX} "transaction.type" "request" ${VERSION} ${ENTRIES}
+    retry 6 assert_document ${ERRORS_INDEX} "error.id" "9876543210abcdeffedcba0123456789" ${VERSION} ${ENTRIES}
+    retry 6 assert_document ${TRACES_INDEX} "span.id" "1234567890aaaade" ${VERSION} ${ENTRIES}
+    retry 6 assert_document ${TRACES_INDEX} "transaction.id" "4340a8e0df1906ecbfa9" ${VERSION} ${ENTRIES}
+    retry 6 assert_document ${METRICS_INDEX} "transaction.type" "request" ${VERSION} ${ENTRIES}
 }
 
 healthcheck() {
