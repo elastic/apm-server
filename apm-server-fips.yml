@@ -285,6 +285,10 @@ apm-server:
     # Synchronization interval for multiple APM Servers. Should be in the order of tens of seconds or low minutes.
     #interval: 1m
 
+    # TTL determines how long trace events are retained in the local storage while waiting for a sampling decision to be made.
+    # A greater TTL value increases storage space requirements. Should be at least 2 * interval.
+    #ttl: 30m
+
     # Criteria used to match a root transaction to a sample rate.
     #policies: []
 
