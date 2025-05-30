@@ -21,6 +21,7 @@ output:
     hosts: [ ${elasticsearch_url} ]
     username: ${elasticsearch_username}
     password: ${elasticsearch_password}
+    flush_interval: 100ms
 logging.level: debug
 logging.to_files: true
 logging.files:
