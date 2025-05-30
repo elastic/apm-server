@@ -28,7 +28,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/testing"
 
 	beaterconfig "github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/idxmgmt"
 )
 
 func genTestCmd(beatParams BeatParams) *cobra.Command {
@@ -73,9 +72,8 @@ func newTestOutputCommand(beatParams BeatParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			indexSupporter := idxmgmt.NewSupporter(beat.Info.Logger, beat.rawConfig)
 			output, err := outputs.Load(
-				indexSupporter, beat.Info, nil, beat.Config.Output.Name(), beat.Config.Output.Config(),
+				nil, beat.Info, nil, beat.Config.Output.Name(), beat.Config.Output.Config(),
 			)
 			if err != nil {
 				return fmt.Errorf("error initializing output: %w", err)

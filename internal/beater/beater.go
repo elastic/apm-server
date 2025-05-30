@@ -69,7 +69,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/fips140"
-	"github.com/elastic/apm-server/internal/idxmgmt"
 	"github.com/elastic/apm-server/internal/kibana"
 	srvmodelprocessor "github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/publish"
@@ -865,9 +864,8 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		if !s.outputConfig.IsSet() {
 			return "", outputs.Group{}, nil
 		}
-		indexSupporter := idxmgmt.NewSupporter(logger, s.rawConfig)
 		outputName := s.outputConfig.Name()
-		output, err := outputs.Load(indexSupporter, beatInfo, stats, outputName, s.outputConfig.Config())
+		output, err := outputs.Load(nil, beatInfo, stats, outputName, s.outputConfig.Config())
 		return outputName, output, err
 	}
 	var pipelineConfig pipeline.Config
