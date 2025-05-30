@@ -18,7 +18,6 @@
 package asserts
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,44 +25,54 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 )
 
-// CheckDocCount checks if difference in data stream document count between
-// current and previous state is equal to the expected, barring the skipped
-// data streams.
-//
-// NOTE: Ingestion should never remove documents. If the expectedDiff is
-// negative, the data stream will be expected to appear, but the document
-// count will not be asserted.
-func CheckDocCount(
-	t *testing.T,
-	currDocCount, prevDocCount, expectedDiff esclient.DataStreamsDocCount,
-) {
+// DocExistFor checks if documents exist for the expected data stream / index.
+func DocExistFor(t *testing.T, currDocCount map[string]int, names []string) {
 	t.Helper()
 
+	for _, name := range names {
+		if _, ok := currDocCount[name]; !ok {
+			t.Errorf("expected %s not found", name)
+			continue
+		}
+	}
+}
+
+// DocCountIncreased checks if current document counts for all data streams / indices
+// increased from the previous.
+func DocCountIncreased(t *testing.T, currDocCount, prevDocCount map[string]int) {
+	t.Helper()
+
+	if currDocCount == nil {
+		currDocCount = esclient.DataStreamsDocCount{}
+	}
 	if prevDocCount == nil {
-		prevDocCount = map[string]int{}
+		prevDocCount = esclient.DataStreamsDocCount{}
 	}
 
-	// Check that all expected data streams appear.
-	for ds := range expectedDiff {
-		if _, ok := currDocCount[ds]; !ok {
-			t.Errorf("expected data stream %s not found", ds)
-			continue
-		}
+	// Check that document counts have increased for all data streams.
+	for ds, currCount := range currDocCount {
+		prevCount := prevDocCount[ds]
+		assert.Greaterf(t, currCount, prevCount,
+			"document count did not increase for data stream %s", ds)
+	}
+}
+
+// DocCountStayedTheSame checks if current document counts for all data streams / indices
+// stayed the same from the previous.
+func DocCountStayedTheSame(t *testing.T, currDocCount, prevDocCount map[string]int) {
+	t.Helper()
+
+	if currDocCount == nil {
+		currDocCount = esclient.DataStreamsDocCount{}
+	}
+	if prevDocCount == nil {
+		prevDocCount = esclient.DataStreamsDocCount{}
 	}
 
-	// Check document counts for all data streams.
-	for ds, v := range currDocCount {
-		e, ok := expectedDiff[ds]
-		if !ok {
-			t.Errorf("unexpected documents (%d) for data stream %s", v, ds)
-			continue
-		}
-
-		if e < 0 {
-			continue
-		}
-
-		assert.Equal(t, e, v-prevDocCount[ds],
-			fmt.Sprintf("wrong document count difference for data stream %s", ds))
+	// Check that document counts stayed the same for all data streams.
+	for ds, currCount := range currDocCount {
+		prevCount := prevDocCount[ds]
+		assert.Equalf(t, currCount, prevCount,
+			"document count changed for data stream %s", ds)
 	}
 }

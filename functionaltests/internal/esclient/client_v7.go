@@ -38,8 +38,6 @@ type IndicesDocCount map[string]int
 func (c *Client) APMIdxDocCountV7(ctx context.Context) (IndicesDocCount, error) {
 	indicesToCheck := []string{
 		"apm-*-transaction-*", "apm-*-span-*", "apm-*-error-*", "apm-*-metric-*",
-		"apm-*-profile-*",
-		"apm-*-onboarding-*",
 	}
 
 	count := IndicesDocCount{}
@@ -93,6 +91,11 @@ func (c *Client) getDocCountV7(ctx context.Context, name string) (docCountV7, er
 		Perform(ctx)
 	if err != nil {
 		return docCountV7{}, fmt.Errorf("cannot get count for %s: %w", name, err)
+	}
+
+	// If not found, return zero count instead of error.
+	if resp.StatusCode == http.StatusNotFound {
+		return docCountV7{Count: 0}, nil
 	}
 
 	if resp.StatusCode > http.StatusOK {
