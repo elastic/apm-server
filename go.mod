@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.3.0
 	github.com/elastic/apm-data v1.18.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250528132404-ba454d5d6b35
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250530131704-4314d0b8610b
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
 	github.com/elastic/elastic-agent-libs v0.19.5
 	github.com/elastic/elastic-agent-system-metrics v0.11.12
@@ -97,7 +97,7 @@ require (
 	github.com/ebitengine/purego v0.9.0-alpha.3.0.20250507171635-5047c08daa38 // indirect
 	github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 // indirect
 	github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe // indirect
-	github.com/elastic/go-elasticsearch/v8 v8.17.1 // indirect
+	github.com/elastic/go-elasticsearch/v8 v8.18.0 // indirect
 	github.com/elastic/go-licenser v0.4.2 // indirect
 	github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f // indirect
 	github.com/elastic/go-structform v0.0.12 // indirect
@@ -120,7 +120,7 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/golang/snappy v0.0.5-0.20231225225746-43d5d4cd4e0e // indirect
+	github.com/golang/snappy v1.0.0 // indirect
 	github.com/gomodule/redigo v1.8.9 // indirect
 	github.com/google/licenseclassifier v0.0.0-20221004142553-c1ed8fcf4bab // indirect
 	github.com/google/rpmpack v0.6.1-0.20240329070804-c2247cbb881a // indirect
@@ -188,14 +188,14 @@ require (
 	github.com/prometheus/client_golang v1.22.0 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
-	github.com/prometheus/procfs v0.15.1 // indirect
+	github.com/prometheus/procfs v0.16.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.6.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
-	github.com/shirou/gopsutil/v4 v4.25.1 // indirect
+	github.com/shirou/gopsutil/v4 v4.25.3 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/skeema/knownhosts v1.3.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
@@ -222,12 +222,12 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zclconf/go-cty v1.15.0 // indirect
 	gitlab.com/digitalxero/go-conventional-commit v1.0.7 // indirect
-	go.elastic.co/apm/module/apmzap/v2 v2.6.3 // indirect
+	go.elastic.co/apm/module/apmzap/v2 v2.7.0 // indirect
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.7.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/collector/consumer v1.28.0 // indirect
-	go.opentelemetry.io/collector/semconv v0.121.0 // indirect
+	go.opentelemetry.io/collector/consumer v1.31.0 // indirect
+	go.opentelemetry.io/collector/semconv v0.125.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.36.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.38.0 // indirect
