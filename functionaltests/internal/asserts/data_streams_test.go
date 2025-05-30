@@ -31,17 +31,22 @@ import (
 func TestCheckDataStreams(t *testing.T) {
 	tests := []struct {
 		name     string
-		expected asserts.CheckDataStreamsWant
+		expected map[string]asserts.DataStreamExpectation
 		dss      []types.DataStream
 	}{
 		{
 			name: "default",
-			expected: asserts.CheckDataStreamsWant{
-				Quantity:         2,
-				DSManagedBy:      "Index Lifecycle Management",
-				PreferIlm:        true,
-				IndicesPerDS:     2,
-				IndicesManagedBy: []string{"Data Stream Lifecycle", "Index Lifecycle Management"},
+			expected: map[string]asserts.DataStreamExpectation{
+				"logs-apm.error-default": {
+					DSManagedBy:      "Index Lifecycle Management",
+					PreferIlm:        true,
+					IndicesManagedBy: []string{"Data Stream Lifecycle", "Index Lifecycle Management"},
+				},
+				"metrics-apm.app.opbeans_python-default": {
+					DSManagedBy:      "Index Lifecycle Management",
+					PreferIlm:        true,
+					IndicesManagedBy: []string{"Data Stream Lifecycle", "Index Lifecycle Management"},
+				},
 			},
 			dss: []types.DataStream{
 				{
@@ -79,7 +84,7 @@ func TestCheckDataStreams(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			asserts.CheckDataStreams(t, tt.expected, tt.dss)
+			asserts.DataStreamsMeetExpectation(t, tt.expected, tt.dss)
 			assert.False(t, t.Failed())
 		})
 	}

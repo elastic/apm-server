@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package ecclient_test
+package ech_test
 
 import (
 	"context"
@@ -31,7 +31,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
+	"github.com/elastic/apm-server/functionaltests/internal/ech"
 )
 
 // recordedHTTPClient instantiates a http.Client backed by a recorder.Recorder to be
@@ -83,11 +83,11 @@ func recordedHTTPClient(t *testing.T) (*recorder.Recorder, *http.Client) {
 	return rec, httpClient
 }
 
-func newRecordedClient(t *testing.T) *ecclient.Client {
+func newRecordedClient(t *testing.T) *ech.Client {
 	endpoint := os.Getenv("EC_URL")
 	apiKey := os.Getenv("EC_API_KEY")
 	_, httpClient := recordedHTTPClient(t)
-	ecc, err := ecclient.New(endpoint, apiKey, ecclient.WithHTTPClient(httpClient))
+	ecc, err := ech.New(endpoint, apiKey, ech.WithHTTPClient(httpClient))
 	require.NoError(t, err)
 	return ecc
 }
@@ -96,18 +96,19 @@ func TestClient_GetVersions(t *testing.T) {
 	ecc := newRecordedClient(t)
 	region := os.Getenv("EC_REGION")
 
-	versionInfos, err := ecc.GetVersionInfos(context.Background(), region)
+	versions, err := ecc.GetVersions(context.Background(), region)
 	require.NoError(t, err)
 
 	allNoSuffix := func() bool {
-		for _, versionInfo := range versionInfos {
-			if versionInfo.Version.Suffix != "" {
+		for _, v := range versions {
+			if v.Version.Suffix != "" {
 				return false
 			}
 		}
 		return true
 	}
 
+	assert.True(t, len(versions) > 0)
 	assert.True(t, allNoSuffix())
 }
 
@@ -115,18 +116,19 @@ func TestClient_GetSnapshotVersions(t *testing.T) {
 	ecc := newRecordedClient(t)
 	region := os.Getenv("EC_REGION")
 
-	versionInfos, err := ecc.GetSnapshotVersionInfos(context.Background(), region)
+	versions, err := ecc.GetSnapshotVersions(context.Background(), region)
 	require.NoError(t, err)
 
 	allSnapshots := func() bool {
-		for _, versionInfo := range versionInfos {
-			if versionInfo.Version.Suffix != "SNAPSHOT" {
+		for _, v := range versions {
+			if v.Version.Suffix != "SNAPSHOT" {
 				return false
 			}
 		}
 		return true
 	}
 
+	assert.True(t, len(versions) > 0)
 	assert.True(t, allSnapshots())
 }
 
@@ -134,10 +136,10 @@ func TestClient_GetCandidateVersions(t *testing.T) {
 	ecc := newRecordedClient(t)
 	region := os.Getenv("EC_REGION")
 
-	versionInfos, err := ecc.GetCandidateVersionInfos(context.Background(), region)
+	versions, err := ecc.GetCandidateVersions(context.Background(), region)
 	require.NoError(t, err)
 
-	versionInfo, ok := versionInfos.Last()
-	require.True(t, ok)
-	assert.Equal(t, "9.0.0", versionInfo.Version.String())
+	assert.True(t, len(versions) > 0)
+	v := versions[len(versions)-1]
+	assert.Equal(t, "9.0.0", v.Version.String())
 }
