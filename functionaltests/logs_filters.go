@@ -102,6 +102,12 @@ var (
 		},
 	})
 
+	syncSourcemapContextCanceled = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "failed to sync sourcemaps metadata: failed to run initial search query: fetcher unavailable: context canceled"},
+		},
+	})
+
 	waitServerReadyCtxCanceled = apmErrorLog(types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "error waiting for server to be ready: context canceled"},
