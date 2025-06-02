@@ -121,6 +121,11 @@ output "apm_server_url" {
   description = "The APM Server URL"
 }
 
+output "apm_server_ip" {
+  value       = module.standalone_apm_server.apm_server_ip
+  description = "The APM Server URL"
+}
+
 output "kibana_url" {
   value       = module.ec_deployment.kibana_url
   description = "The Kibana URL"

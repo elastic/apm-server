@@ -84,15 +84,35 @@ append_tfvar() {
 
 terraform_apply() {
     echo "-> Applying terraform configuration..."
-    terraform apply -auto-approve >> tf.log
+    TF_APPLY_RESULT_CODE=0
+    terraform apply -auto-approve >> tf.log || TF_APPLY_RESULT_CODE=$?
 
     ELASTICSEARCH_URL=$(terraform output -raw elasticsearch_url)
     ELASTICSEARCH_USER=$(terraform output -raw elasticsearch_username)
     ELASTICSEARCH_PASS=$(terraform output -raw elasticsearch_password)
     APM_AUTH_HEADER="Authorization: Bearer $(terraform output -raw apm_secret_token)"
     APM_SERVER_URL=$(terraform output -raw apm_server_url)
+    APM_SERVER_IP=$(terraform output -raw apm_server_ip)
     KIBANA_URL=$(terraform output -raw kibana_url)
     STACK_VERSION=$(terraform output -raw stack_version)
+
+    if [[ TF_APPLY_RESULT_CODE -ne 0 ]]
+      then
+        echo "-> Terraform apply failed; Code: $TF_APPLY_RESULT_CODE. Testing ssh connection to $APM_SERVER_IP"
+        sleep 10
+
+        result=$(ssh -i "provisioner_key_local_smoke_test" -o ConnectTimeout=30 -o "StrictHostKeyChecking no" "ubuntu@$APM_SERVER_IP" 'exit' 2>&1)
+        ssh_exit_code=$?
+        if [ $ssh_exit_code -gt 0 ]
+        then
+          echo "-> ssh exit code: $ssh_exit_code"
+          echo "-> ssh error message: $result"
+        else
+          echo "-> ssh success"
+        fi
+
+      return $RC
+    fi
 }
 
 terraform_destroy() {
@@ -102,6 +122,12 @@ terraform_destroy() {
         echo "-> Printing terraform logs:"
         cat tf.log
     fi
+
+    if [[ ${TF_APPLY_RESULT_CODE} -gt 0 ]]; then
+      echo "-> terraform apply failed. Skipping destroy to troubleshoot"
+      return 0
+    fi
+
     echo "-> Destroying the underlying infrastructure..."
     terraform destroy -auto-approve >> tf.log
     rm -f terraform.tfvars tf.log

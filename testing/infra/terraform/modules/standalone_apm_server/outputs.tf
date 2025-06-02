@@ -13,3 +13,9 @@ output "apm_server_ip" {
   value       = aws_instance.apm.public_ip
   description = "The APM Server EC2 IP address"
 }
+
+output "apm_server_instance_id" {
+  value       = aws_instance.apm.id
+  description = "The APM Server EC2 ID"
+}
+
