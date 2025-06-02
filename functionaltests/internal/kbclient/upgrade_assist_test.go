@@ -31,27 +31,25 @@ import (
 // need a deployed cluster that has been upgraded from 7.x to 8.x, and has
 // ingested APM data.
 //
-// For reference, here is the minimal required code to run. Note that the t.Fail()
-// is intended in order to stop the test cleanup.
+// For reference, here is the minimal required code to run (in the main test folder).
+// Note that the t.Fail() is intended in order to stop the test cleanup.
 //
 //	func TestResolveMigrationDeprecationsSetup(t *testing.T) {
-//		checkILM := asserts.CheckDataStreamsWant{
-//			Quantity:         8,
+//		expect := dataStreamsExpectations(asserts.DataStreamExpectation{
 //			PreferIlm:        true,
 //			DSManagedBy:      managedByILM,
-//			IndicesPerDS:     1,
 //			IndicesManagedBy: []string{managedByILM},
-//		}
+//		})
 //
 //		runner := testStepsRunner{
 //			Steps: []testStep{
 //				createStep{
-//					DeployVersion:     getLatestSnapshot(t, "7.17"),
+//					DeployVersion:     vsCache.GetLatestSnapshot(t, "7.17").Version,
 //					APMDeploymentMode: apmStandalone,
 //				},
 //				ingestV7Step{},
-//				upgradeV7Step{NewVersion: getLatestSnapshot(t, "8")},
-//				ingestStep{CheckDataStream: checkILM},
+//				upgradeV7Step{NewVersion: vsCache.GetLatestSnapshot(t, "8").Version},
+//				ingestStep{CheckDataStreams: expect},
 //			},
 //		}
 //		runner.Run(t)

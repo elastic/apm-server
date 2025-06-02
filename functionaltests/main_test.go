@@ -27,6 +27,31 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 )
 
+var (
+	// cleanupOnFailure determines whether the created resources should be cleaned up on test failure.
+	cleanupOnFailure = flag.Bool(
+		"cleanup-on-failure",
+		true,
+		"Whether to run cleanup even if the test failed.",
+	)
+
+	// target is the Elastic Cloud environment to target with these test.
+	// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
+	target = flag.String(
+		"target",
+		"pro",
+		"The target environment where to run tests againts. Valid values are: qa, pro.",
+	)
+
+	upgradePath = flag.String(
+		"upgrade-path",
+		"",
+		"Versions to be used in TestUpgrade_UpgradePath_Snapshot in upgrade_test.go, separated by commas",
+	)
+)
+
+var vsCache *versionsCache
+
 func TestMain(m *testing.M) {
 	flag.Parse()
 
@@ -50,26 +75,11 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	candidates, err := ecc.GetCandidateVersionInfos(ctx, ecRegion)
+	vsCache, err = newVersionsCache(ctx, ecc, ecRegion)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-	fetchedCandidates = candidates
-
-	snapshots, err := ecc.GetSnapshotVersionInfos(ctx, ecRegion)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	fetchedSnapshots = snapshots
-
-	versions, err := ecc.GetVersionInfos(ctx, ecRegion)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	fetchedVersions = versions
 
 	code := m.Run()
 	os.Exit(code)
