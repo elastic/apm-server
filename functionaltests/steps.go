@@ -247,7 +247,7 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	// to ensure the state didn't change.
 	// We don't expect any change here unless something broke during the upgrade.
 	afterUpgradeDSDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
-	asserts.DocCountStayedTheSame(t, afterUpgradeDSDocCount, beforeUpgradeDSDocCount)
+	asserts.DocCountUnchanged(t, afterUpgradeDSDocCount, beforeUpgradeDSDocCount)
 }
 
 // checkErrorLogsStep checks if there are any unexpected error logs from both
@@ -372,12 +372,12 @@ func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 		// Managed, check data streams.
 		afterUpgradeDSDocCount := getDocCountPerDSV7(t, ctx, e.esc, e.dsNamespace)
 		asserts.DocExistFor(t, afterUpgradeDSDocCount, expectedV7DataStreams(e.dsNamespace))
-		asserts.DocCountStayedTheSame(t, afterUpgradeDSDocCount, beforeUpgradeDSDocCount)
+		asserts.DocCountUnchanged(t, afterUpgradeDSDocCount, beforeUpgradeDSDocCount)
 	} else {
 		// Standalone, check indices.
 		afterUpgradeIdxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
 		asserts.DocExistFor(t, afterUpgradeIdxDocCount, expectedIndices())
-		asserts.DocCountStayedTheSame(t, afterUpgradeIdxDocCount, beforeUpgradeIdxDocCount)
+		asserts.DocCountUnchanged(t, afterUpgradeIdxDocCount, beforeUpgradeIdxDocCount)
 	}
 }
 
@@ -423,11 +423,11 @@ func (m migrateManagedStep) Step(t *testing.T, ctx context.Context, e *testStepE
 	if e.currentVersion().Major >= 8 {
 		afterMigrateDSDocCount := getDocCountPerDS(t, ctx, e.esc, e.dsNamespace)
 		asserts.DocExistFor(t, afterMigrateDSDocCount, expectedDataStreams(e.dsNamespace))
-		asserts.DocCountStayedTheSame(t, afterMigrateDSDocCount, beforeMigrateDSDocCount)
+		asserts.DocCountUnchanged(t, afterMigrateDSDocCount, beforeMigrateDSDocCount)
 	} else {
 		afterMigrateIdxDocCount := getDocCountPerIndexV7(t, ctx, e.esc)
 		asserts.DocExistFor(t, afterMigrateIdxDocCount, expectedIndices())
-		asserts.DocCountStayedTheSame(t, afterMigrateIdxDocCount, beforeMigrateIdxDocCount)
+		asserts.DocCountUnchanged(t, afterMigrateIdxDocCount, beforeMigrateIdxDocCount)
 	}
 }
 

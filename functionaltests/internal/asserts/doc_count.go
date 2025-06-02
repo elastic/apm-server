@@ -57,9 +57,9 @@ func DocCountIncreased(t *testing.T, currDocCount, prevDocCount map[string]int) 
 	}
 }
 
-// DocCountStayedTheSame checks if current document counts for all data streams / indices
+// DocCountUnchanged checks if current document counts for all data streams / indices
 // stayed the same from the previous.
-func DocCountStayedTheSame(t *testing.T, currDocCount, prevDocCount map[string]int) {
+func DocCountUnchanged(t *testing.T, currDocCount, prevDocCount map[string]int) {
 	t.Helper()
 
 	if currDocCount == nil {
