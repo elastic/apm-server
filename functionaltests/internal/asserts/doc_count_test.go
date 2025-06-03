@@ -25,7 +25,7 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 )
 
-func TestCheckDocCount(t *testing.T) {
+func TestDocCountIncreased(t *testing.T) {
 	type args struct {
 		currDocCount esclient.DataStreamsDocCount
 		prevDocCount esclient.DataStreamsDocCount
@@ -48,17 +48,12 @@ func TestCheckDocCount(t *testing.T) {
 					"logs-apm.error-default":                 100,
 					"metrics-apm.app.opbeans_python-default": 10,
 				},
-				expectedDiff: esclient.DataStreamsDocCount{
-					"traces-apm-default":                     50,
-					"logs-apm.error-default":                 100,
-					"metrics-apm.app.opbeans_python-default": -1,
-				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			CheckDocCount(t, tt.args.currDocCount, tt.args.prevDocCount, tt.args.expectedDiff)
+			DocCountIncreased(t, tt.args.currDocCount, tt.args.prevDocCount)
 			assert.False(t, t.Failed())
 		})
 	}

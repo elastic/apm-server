@@ -134,8 +134,8 @@ func (c *Client) GetDataStream(ctx context.Context, name string) ([]types.DataSt
 	return resp.DataStreams, nil
 }
 
-// DocCount is used to unmarshal response from ES|QL query.
-type DocCount struct {
+// docCount is used to unmarshal response from ES|QL query.
+type docCount struct {
 	DataStream string
 	Count      int
 }
@@ -153,7 +153,7 @@ func (c *Client) APMDSDocCount(ctx context.Context) (DataStreamsDocCount, error)
 | SORT count DESC`
 
 	qry := c.es.Esql.Query().Query(q)
-	resp, err := query.Helper[DocCount](ctx, qry)
+	resp, err := query.Helper[docCount](ctx, qry)
 	if err != nil {
 		var eserr *types.ElasticsearchError
 		// suppress this error as it only indicates no data is available yet.

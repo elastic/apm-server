@@ -202,6 +202,7 @@ func (g *traceGroups) finalizeSampledTraces(traceIDs []string) []string {
 			total, traceIDs = group.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
 			if (maxDynamicServiceGroupsReached || total == 0) && group.reservoir.Size() == minReservoirSize {
 				g.numDynamicServiceGroups--
+				g.numDynamicServiceGroupsCounter.Add(context.Background(), -1)
 				delete(pg.dynamic, serviceName)
 			}
 		}
