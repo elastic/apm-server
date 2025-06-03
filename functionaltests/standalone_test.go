@@ -29,11 +29,11 @@ func TestStandaloneManaged_7_17_to_8_x_to_9_x_Snapshot(t *testing.T) {
 	to8 := vsCache.GetLatestSnapshot(t, "8")
 	to9 := vsCache.GetLatestSnapshot(t, "9")
 	if !vsCache.CanUpgradeTo(from7, to8) {
-		t.Skipf("upgrade from %s to %s is not allowed", from7, to8)
+		t.Fatalf("upgrade from %s to %s is not allowed", from7, to8)
 		return
 	}
 	if !vsCache.CanUpgradeTo(to8, to9) {
-		t.Skipf("upgrade from %s to %s is not allowed", to8, to9)
+		t.Fatalf("upgrade from %s to %s is not allowed", to8, to9)
 		return
 	}
 

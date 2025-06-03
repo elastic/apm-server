@@ -51,6 +51,7 @@ func NewVersionsCache(ctx context.Context, ecc *Client, ecRegion string) (*Versi
 		fetchedCandidates: candidates,
 		fetchedSnapshots:  snapshots,
 		fetchedVersions:   versions,
+		upgradeInfo:       upgradeInfo,
 		region:            ecRegion,
 	}, nil
 }
