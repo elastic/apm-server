@@ -5,11 +5,11 @@ go 1.24.3
 require (
 	github.com/KimMachineGun/automemlimit v0.7.2
 	github.com/cespare/xxhash/v2 v2.3.0
-	github.com/cockroachdb/pebble/v2 v2.0.3
+	github.com/cockroachdb/pebble/v2 v2.0.4
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.3.0
 	github.com/elastic/apm-data v1.18.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250530131704-4314d0b8610b
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250602145443-1d00d2040cf3
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
 	github.com/elastic/elastic-agent-libs v0.19.6
 	github.com/elastic/elastic-agent-system-metrics v0.11.12

@@ -20,22 +20,24 @@ env:
   TERRAFORM_VERSION: 1.10.2
 
 jobs:
-  run-deep:
-    name: Deep upgrade tests
+  run-upgrade:
+    name: Upgrade tests
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         environment:
           - 'pro'
-        active-version:
-          - '8.17'
-          - '8.18'
-          - '8.19'
-          - '9.0'
-          - '9.1'
-          - '8.x' # Latest 8 version
-          - '9.x' # Latest 9 version
+        upgrade-path:
+          # Latest 8.15 cannot upgrade to latest 8.17, it can only go to 8.17.3.
+          # With our current setup (only latest patch), we have to upgrade to intermediate latest 8.16 instead.
+          # TODO: Maybe add support for upgrading to latest upgradable instead of absolute latest?
+          - '8.15, 8.16, 8.17'
+          - '8.17, 8.18, 9.0'
+          - '8.17, 8.19, 9.1'
+        scenario:
+          - 'Default'
+          - 'Reroute'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
@@ -51,13 +53,11 @@ jobs:
           export_to_environment: true
           secrets: |-
             EC_API_KEY:elastic-observability/elastic-cloud-observability-team-${{ matrix.environment }}-api-key
-      - name: "Run deep upgrade tests"
+      - name: "Run upgrade tests"
         working-directory: ${{ github.workspace }}/functionaltests
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          VERSION="${{ matrix.active-version }}"
-          VERSION="${VERSION//./_}"
-          go test -run="_to_${VERSION}" -skip="_to_${VERSION}_to_|Standalone_to_Managed" -v -timeout=30m -target="${{ matrix.environment }}" ./
+          go test -run="TestUpgrade.*/.*/${{ matrix.scenario }}" -v -timeout=60m -target="${{ matrix.environment }}" -upgrade-path="${{ matrix.upgrade-path }}" ./
 
   run-standalone:
     name: Standalone-to-managed tests
@@ -67,6 +67,10 @@ jobs:
       matrix:
         environment:
           - 'pro'
+        scenario:
+          - 'Managed7'
+          - 'Managed8'
+          - 'Managed9'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
@@ -86,7 +90,7 @@ jobs:
         working-directory: ${{ github.workspace }}/functionaltests
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          go test -run="Standalone_to_Managed" -v -timeout=60m -target="${{ matrix.environment }}" ./
+          go test -run="TestStandaloneManaged.*/${{ matrix.scenario }}" -v -timeout=60m -target="${{ matrix.environment }}" ./
 
 #  notify:
 #    if: always()
