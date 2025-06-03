@@ -2,6 +2,7 @@
 
 export TF_IN_AUTOMATION=1
 export TF_CLI_ARGS=-no-color
+export TF_LOG=TRACE
 
 get_versions() {
     if [[ -z ${EC_API_KEY} ]]; then
@@ -110,6 +111,10 @@ terraform_apply() {
         else
           echo "-> ssh success"
         fi
+
+        echo "-> Running terraform plan"
+        terraform plan
+        echo "-> End terraform plan"
 
       return $RC
     fi
