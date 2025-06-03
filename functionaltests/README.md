@@ -4,64 +4,67 @@
 
 The functional tests test that APM Server works as expected after version upgrades.
 
-## Running the Tests
+## Code Details
 
-To run the tests, you will first need to set the `EC_API_KEY` environment variable, which can be obtained by following
-[this guide](https://www.elastic.co/guide/en/cloud/current/ec-api-authentication.html).
-
-Then, from the current directory, simply run:
-```sh
-go test -v -timeout=30m -cleanup-on-failure=false -target="pro" ./
-```
-
-You can also specify a specific test you want to run, for example:
-```sh
-go test -run=TestUpgrade_8_18_to_9_0 -v -timeout=30m -cleanup-on-failure=false -target="pro" ./
-```
-
-Note: Before running tests, make sure to delete the Terraforms by running `rm -r tf-*`.
-
-### Debugging the Tests
-
-If you get some errors after running the test, you can try heading to the [Elastic Cloud console](https://cloud.elastic.co/home)
-in order to access the Kibana instance. From there, you can use Dev Tools to check the data streams etc.
-
-Note: If the tests failed due to deployment, you may need to access the Elastic Cloud admin console instead to check the
-deployment errors.
-
-## Code Structure
-
-The following is the simplified directory structure of functional tests.
+The following is a simplified directory structure of functional tests.
 ```
 - functionaltests/
    |- infra/
    |- internal/
    |- main_test.go
-   |- x_y_test.go
+   |- standalone_test.go
+   |- upgrade_test.go
 ```
-
-All the functional tests are written in the current directory.
 
 The `internal/` directory contains helper packages used in the tests, e.g. Elasticsearch, Kibana client wrapper etc.
 
-The `infra/` directory contains infrastructure related code. In our case, we use Terraform for deploying the stack in
-Elastic Cloud. The Terraform files are located in `infra/terraform`, and are copied into `tf-<test_name>/` e.g.
-`tf-TestUpgrade_8_19_to_9_0/`, at the start of each test (since Terraform saves state in the directory it is initialized
-in).
+The `infra/` directory contains infrastructure related code. In our case, we use Terraform for deploying the stack in Elastic Cloud.
+The Terraform files are located in `infra/terraform`, and are copied into `tf-<test_name>/` e.g. `tf-TestUpgrade_8_19_to_9_0/`, at the start of each test (since Terraform saves state in the directory it is initialized in).
+
+The rest are test files / utility functions for the tests.
 
 ### Upgrade Tests
 
-We suggest each upgrade test to be named in the format of `TestUpgrade_<from_version>_to_<to_version_1>[_to_<to_version_N>]*[_<suffix>]?`.
-This means that the test will start from `from_version`, and be upgraded to `to_version_1`, then subsequently to
-`to_version_2` etc. all the way to `to_version_N`.
+The upgrade tests reside in `upgrade_test.go`.
 
-The upgrade tests are implemented in each version test file. The test file is named after the last version of the upgrade
-chain. For example, `TestUpgrade_8_15_to_8_16` will be in `8_16_test.go`.
+These tests take an `upgrade-path` argument that represents a list of versions for the upgrade test.
+The test will create a deployment with the first version, perform ingestion and check that everything is expected.
+Then, it will consecutively upgrade to the next version, perform ingestion and check again.
+For example, if we provide an `upgrade-path` of `8.15, 8.16, 8.17`, a deployment will be created in `8.15`, upgraded to `8.16` and then to `8.17`.
+
+We provide the `upgrade-path` argument through GitHub workflow matrix, see `functional-tests.yml`.
+Configuration for the upgrade test can be found in `upgrade-config.yaml`.
 
 ### Standalone-to-Managed Tests
 
-If the standalone-to-managed test includes an upgrade, simply add `Standalone_to_Managed` at the end of the test name,
-e.g. `TestUpgrade_7_17_to_8_x_Standalone_to_Managed`. Otherwise, if there is no upgrade simply omit the `Upgrade`
-prefix, e.g. `Test_7_17_Standalone_to_Managed`.
+The standalone-to-managed tests reside in `standalone_test.go`
 
-The standalone-to-managed tests are implemented in `standalone_test.go`.
+These tests test the migration from standalone APM Server to Fleet-managed. Currently, the tests include:
+- 7.x standalone -> 8.x standalone -> 8.x managed -> 9.x managed
+- 7.x standalone -> 8.x standalone -> 9.x standalone -> 9.x managed
+- 7.x standalone -> 7.x managed -> 8.x managed -> 9.x managed
+
+## Running the Tests
+
+To run the tests, you will first need to set the `EC_API_KEY` environment variable, which can be obtained by following [this guide](https://www.elastic.co/guide/en/cloud/current/ec-api-authentication.html).
+
+### Upgrade Tests
+
+For upgrade tests:
+```sh
+go test -run=TestUpgrade_UpgradePath -v -timeout=60m -cleanup-on-failure=false -target="pro" -upgrade-path="<some_upgrade_path>" ./
+```
+
+### Standalone-to-Managed Tests
+
+For standalone tests:
+```sh
+go test -run=TestStandaloneManaged -v -timeout=60m -cleanup-on-failure=false -target="pro" ./
+```
+
+## Debugging the Tests
+
+If you get some errors after running the test, you can try heading to the [Elastic Cloud console](https://cloud.elastic.co/home) in order to access the Kibana instance. 
+From there, you can use Dev Tools to check the data streams etc.
+
+Note: If the tests failed due to deployment or in CI, you may need to access the Elastic Cloud admin console instead to check the errors.
