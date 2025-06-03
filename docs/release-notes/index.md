@@ -20,6 +20,10 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 % ### Fixes [elastic-apm-next-fixes]
 
+## 9.0.2 [elastic-apm-9.0.2-release-notes]
+
+* No significant changes.
+
 ## 9.0.1 [elastic-apm-9.0.1-release-notes]
 
 ### Fixes [elastic-apm-9.0.1-fixes]
