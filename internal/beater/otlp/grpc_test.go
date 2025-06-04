@@ -34,6 +34,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc"
@@ -193,7 +194,7 @@ func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor, mp metri
 	logger := logptest.NewTestingLogger(t, "otlp.grpc.test")
 	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Metrics(logger, mp)))
 	semaphore := semaphore.NewWeighted(1)
-	otlp.RegisterGRPCServices(srv, zap.NewNop(), batchProcessor, semaphore, mp)
+	otlp.RegisterGRPCServices(srv, zap.NewNop(), batchProcessor, semaphore, mp, noop.NewTracerProvider())
 
 	go srv.Serve(lis)
 	t.Cleanup(srv.GracefulStop)

@@ -15,13 +15,14 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package esclient
+package elasticsearch
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -38,8 +39,8 @@ type Client struct {
 	es *elasticsearch.TypedClient
 }
 
-// New returns a new Client for accessing Elasticsearch.
-func New(esURL, username, password string) (*Client, error) {
+// NewClient returns a new Client for accessing Elasticsearch.
+func NewClient(esURL, username, password string) (*Client, error) {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 
 	es, err := elasticsearch.NewTypedClient(elasticsearch.Config{
@@ -134,8 +135,8 @@ func (c *Client) GetDataStream(ctx context.Context, name string) ([]types.DataSt
 	return resp.DataStreams, nil
 }
 
-// DocCount is used to unmarshal response from ES|QL query.
-type DocCount struct {
+// docCount is used to unmarshal response from ES|QL query.
+type docCount struct {
 	DataStream string
 	Count      int
 }
@@ -153,7 +154,7 @@ func (c *Client) APMDSDocCount(ctx context.Context) (DataStreamsDocCount, error)
 | SORT count DESC`
 
 	qry := c.es.Esql.Query().Query(q)
-	resp, err := query.Helper[DocCount](ctx, qry)
+	resp, err := query.Helper[docCount](ctx, qry)
 	if err != nil {
 		var eserr *types.ElasticsearchError
 		// suppress this error as it only indicates no data is available yet.
@@ -252,4 +253,105 @@ func (c *Client) GetAPMErrorLogs(ctx context.Context, exclude ...types.Query) (*
 	}
 
 	return res, nil
+}
+
+/* V7 */
+
+type docCountV7 struct {
+	Count int `json:"count"`
+}
+
+// IndicesDocCount is an easy to assert on format reporting document count
+// for indices.
+type IndicesDocCount map[string]int
+
+// APMIdxDocCountV7 retrieves the document count per index of all APM indices.
+func (c *Client) APMIdxDocCountV7(ctx context.Context) (IndicesDocCount, error) {
+	indicesToCheck := []string{
+		"apm-*-transaction-*", "apm-*-span-*", "apm-*-error-*", "apm-*-metric-*",
+	}
+
+	count := IndicesDocCount{}
+	var errs []error
+	for _, idx := range indicesToCheck {
+		dc, err := c.getDocCountV7(ctx, idx)
+		if err != nil {
+			errs = append(errs, err)
+		}
+		count[idx] = dc.Count
+	}
+
+	if len(errs) > 0 {
+		return IndicesDocCount{}, errors.Join(errs...)
+	}
+	return count, nil
+}
+
+// APMDSDocCountV7 retrieves the document count per data stream of all APM data streams.
+func (c *Client) APMDSDocCountV7(ctx context.Context, namespace string) (DataStreamsDocCount, error) {
+	dsToCheck := []string{
+		"traces-apm-%s", "metrics-apm.internal-%s", "logs-apm.error-%s",
+		"metrics-apm.app.opbeans_python-%s", "metrics-apm.app.opbeans_node-%s",
+		"metrics-apm.app.opbeans_ruby-%s", "metrics-apm.app.opbeans_go-%s",
+	}
+	for i, ds := range dsToCheck {
+		dsToCheck[i] = fmt.Sprintf(ds, namespace)
+	}
+
+	count := DataStreamsDocCount{}
+	var errs []error
+	for _, ds := range dsToCheck {
+		dc, err := c.getDocCountV7(ctx, ds)
+		if err != nil {
+			errs = append(errs, err)
+		}
+		count[ds] = dc.Count
+	}
+
+	if len(errs) > 0 {
+		return DataStreamsDocCount{}, errors.Join(errs...)
+	}
+	return count, nil
+}
+
+func (c *Client) getDocCountV7(ctx context.Context, name string) (docCountV7, error) {
+	resp, err := c.es.
+		Count().
+		Index(name).
+		FilterPath("count").
+		Perform(ctx)
+	if err != nil {
+		return docCountV7{}, fmt.Errorf("cannot get count for %s: %w", name, err)
+	}
+
+	// If not found, return zero count instead of error.
+	if resp.StatusCode == http.StatusNotFound {
+		return docCountV7{Count: 0}, nil
+	}
+
+	if resp.StatusCode > http.StatusOK {
+		return docCountV7{}, fmt.Errorf(
+			"count request for %s returned unexpected status code: %d",
+			name, resp.StatusCode,
+		)
+	}
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return docCountV7{}, fmt.Errorf(
+			"cannot read response body for %s: %w",
+			resp.Request.URL.Path, err,
+		)
+	}
+	defer resp.Body.Close()
+
+	var dc docCountV7
+	err = json.Unmarshal(b, &dc)
+	if err != nil {
+		return docCountV7{}, fmt.Errorf(
+			"cannot unmarshal JSON response for %s: %w",
+			resp.Request.URL.Path, err,
+		)
+	}
+	return dc, nil
 }

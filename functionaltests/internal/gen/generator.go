@@ -31,18 +31,18 @@ import (
 	"github.com/elastic/apm-perf/pkg/supportedstacks"
 	"github.com/elastic/apm-perf/pkg/telemetrygen"
 
-	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
-	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
+	"github.com/elastic/apm-server/functionaltests/internal/ech"
+	"github.com/elastic/apm-server/functionaltests/internal/kibana"
 )
 
 type Generator struct {
 	logger       *zap.Logger
-	kbc          *kbclient.Client
+	kbc          *kibana.Client
 	apmAPIKey    string
 	apmServerURL string
 }
 
-func New(url, apikey string, kbc *kbclient.Client, logger *zap.Logger) *Generator {
+func New(url, apikey string, kbc *kibana.Client, logger *zap.Logger) *Generator {
 	if logger == nil {
 		logger = zap.NewNop()
 	}
@@ -78,7 +78,7 @@ func (g *Generator) waitForAPMToBePublishReady(ctx context.Context, maxWaitDurat
 }
 
 // runBlocking runs the underlying generator in blocking mode.
-func (g *Generator) runBlocking(ctx context.Context, version ecclient.StackVersion) error {
+func (g *Generator) runBlocking(ctx context.Context, version ech.Version) error {
 	eventRate := "1000/s"
 
 	cfg := telemetrygen.DefaultConfig()
@@ -120,7 +120,7 @@ func (g *Generator) runBlocking(ctx context.Context, version ecclient.StackVersi
 // This may lead to data loss if the final flush takes more than 30s, which may happen if the
 // quantity of data ingested with runBlocking gets too big. The current quantity does not
 // trigger this behavior.
-func (g *Generator) RunBlockingWait(ctx context.Context, version ecclient.StackVersion, integrations bool) error {
+func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version, integrations bool) error {
 	if err := g.runBlocking(ctx, version); err != nil {
 		return fmt.Errorf("cannot run generator: %w", err)
 	}
@@ -140,7 +140,7 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ecclient.StackV
 
 // flushAPMMetrics sends an update to the Fleet APM package policy in order
 // to trigger the flushing of in-flight APM metrics.
-func flushAPMMetrics(ctx context.Context, kbc *kbclient.Client, version ecclient.StackVersion) error {
+func flushAPMMetrics(ctx context.Context, kbc *kibana.Client, version ech.Version) error {
 	policyID := "elastic-cloud-apm"
 	description := fmt.Sprintf("Functional tests %s", version)
 

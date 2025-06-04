@@ -22,14 +22,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/apm-server/functionaltests/internal/elasticsearch"
 )
 
-func TestCheckDocCount(t *testing.T) {
+func TestDocCountIncreased(t *testing.T) {
 	type args struct {
-		currDocCount esclient.DataStreamsDocCount
-		prevDocCount esclient.DataStreamsDocCount
-		expectedDiff esclient.DataStreamsDocCount
+		currDocCount elasticsearch.DataStreamsDocCount
+		prevDocCount elasticsearch.DataStreamsDocCount
+		expectedDiff elasticsearch.DataStreamsDocCount
 	}
 	tests := []struct {
 		name string
@@ -38,27 +38,22 @@ func TestCheckDocCount(t *testing.T) {
 		{
 			name: "default",
 			args: args{
-				currDocCount: esclient.DataStreamsDocCount{
+				currDocCount: elasticsearch.DataStreamsDocCount{
 					"traces-apm-default":                     100,
 					"logs-apm.error-default":                 200,
 					"metrics-apm.app.opbeans_python-default": 12,
 				},
-				prevDocCount: esclient.DataStreamsDocCount{
+				prevDocCount: elasticsearch.DataStreamsDocCount{
 					"traces-apm-default":                     50,
 					"logs-apm.error-default":                 100,
 					"metrics-apm.app.opbeans_python-default": 10,
-				},
-				expectedDiff: esclient.DataStreamsDocCount{
-					"traces-apm-default":                     50,
-					"logs-apm.error-default":                 100,
-					"metrics-apm.app.opbeans_python-default": -1,
 				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			CheckDocCount(t, tt.args.currDocCount, tt.args.prevDocCount, tt.args.expectedDiff)
+			DocCountIncreased(t, tt.args.currDocCount, tt.args.prevDocCount)
 			assert.False(t, t.Failed())
 		})
 	}
