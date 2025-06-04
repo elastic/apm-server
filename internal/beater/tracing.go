@@ -55,13 +55,8 @@ func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Log
 		nil,                         // no sourcemap store
 		func() bool { return true }, // ready for publishing
 		semaphore,
-<<<<<<< HEAD
-		noop.NewMeterProvider(),
-=======
 		noopmetric.NewMeterProvider(),
 		nooptrace.NewTracerProvider(),
-		logger,
->>>>>>> 398af2c1 (feat: bump apm-data and propagate trace provider (#17096))
 	)
 	if err != nil {
 		return nil, err
