@@ -33,8 +33,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/client/stack"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-
-	"github.com/elastic/apm-server/functionaltests/internal/version"
 )
 
 type Client struct {
@@ -58,7 +56,7 @@ func WithHTTPClient(httpClient *http.Client) ClientOption {
 	}
 }
 
-func New(endpoint string, apiKey string, options ...ClientOption) (*Client, error) {
+func NewClient(endpoint string, apiKey string, options ...ClientOption) (*Client, error) {
 	cfg := clientConfig{}
 	cfg.initDefaults()
 	for _, o := range options {
@@ -66,10 +64,10 @@ func New(endpoint string, apiKey string, options ...ClientOption) (*Client, erro
 	}
 
 	if apiKey == "" {
-		return nil, fmt.Errorf("ech.New apiKey is required")
+		return nil, fmt.Errorf("ech.NewClient apiKey is required")
 	}
 	if endpoint == "" {
-		return nil, fmt.Errorf("ech.New endpoint is required")
+		return nil, fmt.Errorf("ech.NewClient endpoint is required")
 	}
 
 	ecAPI, err := api.NewAPI(api.Config{
@@ -155,12 +153,12 @@ func (c *Client) RestartIntegrationServer(ctx context.Context, deploymentID stri
 }
 
 type StackVersion struct {
-	Version      version.Version
-	UpgradableTo []version.Version
+	Version      Version
+	UpgradableTo []Version
 }
 
 // CanUpgradeTo checks if the current stack version can upgrade to the provided `version`.
-func (stackVer StackVersion) CanUpgradeTo(version version.Version) bool {
+func (stackVer StackVersion) CanUpgradeTo(version Version) bool {
 	for _, upgrade := range stackVer.UpgradableTo {
 		if upgrade == version {
 			return true
@@ -174,7 +172,7 @@ func (c *Client) getVersions(
 	region string,
 	showUnusable bool,
 	preFilter func(*models.StackVersionConfig) bool, // Filter before conversion
-	postFilter func(version.Version) bool, // Filter after conversion
+	postFilter func(Version) bool, // Filter after conversion
 ) ([]StackVersion, error) {
 	showDeleted := false
 	resp, err := c.ecAPI.V1API.Stack.GetVersionStacks(
@@ -197,7 +195,7 @@ func (c *Client) getVersions(
 		if preFilter != nil && !preFilter(s) {
 			continue
 		}
-		v, err := version.NewFromString(s.Version)
+		v, err := NewFromString(s.Version)
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse stack version '%v': %w", s.Version, err)
 		}
@@ -219,10 +217,10 @@ func (c *Client) getVersions(
 	return stackVersions, nil
 }
 
-func sortedStackVersionsForStrs(strs []string) ([]version.Version, error) {
-	versions := make(version.Versions, 0, len(strs))
+func sortedStackVersionsForStrs(strs []string) ([]Version, error) {
+	versions := make(Versions, 0, len(strs))
 	for _, s := range strs {
-		v, err := version.NewFromString(s)
+		v, err := NewFromString(s)
 		if err != nil {
 			return nil, err
 		}
@@ -235,7 +233,7 @@ func sortedStackVersionsForStrs(strs []string) ([]version.Version, error) {
 
 // GetVersions retrieves all stack version infos without suffix.
 func (c *Client) GetVersions(ctx context.Context, region string) ([]StackVersion, error) {
-	postFilter := func(v version.Version) bool {
+	postFilter := func(v Version) bool {
 		// Ignore all with suffix e.g. SNAPSHOTS, BC1
 		return v.Suffix == ""
 	}
@@ -249,7 +247,7 @@ func (c *Client) GetVersions(ctx context.Context, region string) ([]StackVersion
 
 // GetSnapshotVersions retrieves all stack version infos with the suffix "SNAPSHOT".
 func (c *Client) GetSnapshotVersions(ctx context.Context, region string) ([]StackVersion, error) {
-	postFilter := func(v version.Version) bool {
+	postFilter := func(v Version) bool {
 		// Only keep SNAPSHOTs
 		return v.Suffix == "SNAPSHOT"
 	}
@@ -273,7 +271,7 @@ func (c *Client) GetCandidateVersions(ctx context.Context, region string) ([]Sta
 		// Has suffix and the suffix is not empty / 1 character (older versions have this)
 		return len(splits) >= 2 && len(splits[1]) > 1
 	}
-	postFilter := func(v version.Version) bool {
+	postFilter := func(v Version) bool {
 		// Ignore SNAPSHOTs
 		return v.Suffix != "SNAPSHOT"
 	}

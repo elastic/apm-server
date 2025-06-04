@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
-	"github.com/elastic/apm-server/functionaltests/internal/version"
+	"github.com/elastic/apm-server/functionaltests/internal/ech"
 )
 
 func TestStandaloneManaged_7_17_to_8_x_to_9_x_Snapshot(t *testing.T) {
@@ -56,7 +56,7 @@ func TestStandaloneManaged_7_17_to_8_x_to_9_x_Snapshot(t *testing.T) {
 	})
 }
 
-func managed7Runner(fromVersion7, toVersion8, toVersion9 version.Version) testStepsRunner {
+func managed7Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsRunner {
 	expectILM := asserts.DataStreamExpectation{
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
@@ -142,7 +142,7 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 version.Version) testSt
 	}
 }
 
-func managed8Runner(fromVersion7, toVersion8, toVersion9 version.Version) testStepsRunner {
+func managed8Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsRunner {
 	expect := dataStreamsExpectations(asserts.DataStreamExpectation{
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
@@ -202,7 +202,7 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 version.Version) testSt
 	}
 }
 
-func managed9Runner(fromVersion7, toVersion8, toVersion9 version.Version) testStepsRunner {
+func managed9Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsRunner {
 	// Data streams created in latest 8.x and 9.x should be all ILM.
 	expect := dataStreamsExpectations(asserts.DataStreamExpectation{
 		PreferIlm:        true,

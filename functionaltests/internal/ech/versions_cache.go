@@ -22,27 +22,25 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/apm-server/functionaltests/internal/version"
 )
 
-func NewVersionsCache(ctx context.Context, ecc *Client, ecRegion string) (*VersionsCache, error) {
-	cs, err := ecc.GetCandidateVersions(ctx, ecRegion)
+func NewVersionsCache(ctx context.Context, client *Client, ecRegion string) (*VersionsCache, error) {
+	cs, err := client.GetCandidateVersions(ctx, ecRegion)
 	if err != nil {
 		return nil, err
 	}
 
-	ss, err := ecc.GetSnapshotVersions(ctx, ecRegion)
+	ss, err := client.GetSnapshotVersions(ctx, ecRegion)
 	if err != nil {
 		return nil, err
 	}
 
-	vs, err := ecc.GetVersions(ctx, ecRegion)
+	vs, err := client.GetVersions(ctx, ecRegion)
 	if err != nil {
 		return nil, err
 	}
 
-	upgradeInfo := map[version.Version]version.Versions{}
+	upgradeInfo := map[Version]Versions{}
 	candidates := unpackStackVersions(cs, upgradeInfo)
 	snapshots := unpackStackVersions(ss, upgradeInfo)
 	versions := unpackStackVersions(vs, upgradeInfo)
@@ -58,9 +56,9 @@ func NewVersionsCache(ctx context.Context, ecc *Client, ecRegion string) (*Versi
 
 func unpackStackVersions(
 	stackVersions []StackVersion,
-	upgradeInfo map[version.Version]version.Versions,
-) version.Versions {
-	versions := version.Versions{}
+	upgradeInfo map[Version]Versions,
+) Versions {
+	versions := Versions{}
 	for _, stackVersion := range stackVersions {
 		versions = append(versions, stackVersion.Version)
 		upgradeInfo[stackVersion.Version] = stackVersion.UpgradableTo
@@ -68,26 +66,30 @@ func unpackStackVersions(
 	return versions
 }
 
+// VersionsCache is used to cache stack versions that are fetched from Elastic Cloud API,
+// in order to avoid redundant HTTP requests each time we need the versions.
+// It also includes some helper functions to more easily obtain the latest version given
+// a particular prefix.
 type VersionsCache struct {
 	// fetchedCandidates are the build-candidate stack versions prefetched from Elastic Cloud API.
-	fetchedCandidates version.Versions
+	fetchedCandidates Versions
 	// fetchedSnapshots are the snapshot stack versions prefetched from Elastic Cloud API.
-	fetchedSnapshots version.Versions
+	fetchedSnapshots Versions
 	// fetchedVersions are the non-snapshot stack versions prefetched from Elastic Cloud API.
-	fetchedVersions version.Versions
+	fetchedVersions Versions
 
-	upgradeInfo map[version.Version]version.Versions
+	upgradeInfo map[Version]Versions
 
 	region string
 }
 
-func (c *VersionsCache) CanUpgradeTo(from, to version.Version) bool {
+func (c *VersionsCache) CanUpgradeTo(from, to Version) bool {
 	upgradableVersions := c.upgradeInfo[from]
 	return upgradableVersions.Has(to)
 }
 
 // GetLatestSnapshot retrieves the latest snapshot version for the version prefix.
-func (c *VersionsCache) GetLatestSnapshot(t *testing.T, prefix string) version.Version {
+func (c *VersionsCache) GetLatestSnapshot(t *testing.T, prefix string) Version {
 	t.Helper()
 	ver, ok := c.fetchedSnapshots.LatestFor(prefix)
 	require.True(t, ok, "snapshot for '%s' found in EC region %s", prefix, c.region)
@@ -96,36 +98,36 @@ func (c *VersionsCache) GetLatestSnapshot(t *testing.T, prefix string) version.V
 
 // GetLatestVersionOrSkip retrieves the latest non-snapshot version for the version prefix.
 // If the version is not found, the test is skipped.
-func (c *VersionsCache) GetLatestVersionOrSkip(t *testing.T, prefix string) version.Version {
+func (c *VersionsCache) GetLatestVersionOrSkip(t *testing.T, prefix string) Version {
 	t.Helper()
 	ver, ok := c.fetchedVersions.LatestFor(prefix)
 	if !ok {
 		t.Skipf("version for '%s' not found in EC region %s, skipping test", prefix, c.region)
-		return version.Version{}
+		return Version{}
 	}
 	return ver
 }
 
 // GetLatestBCOrSkip retrieves the latest build-candidate version for the version prefix.
 // If the version is not found, the test is skipped.
-func (c *VersionsCache) GetLatestBCOrSkip(t *testing.T, prefix string) version.Version {
+func (c *VersionsCache) GetLatestBCOrSkip(t *testing.T, prefix string) Version {
 	t.Helper()
 	candidate, ok := c.fetchedCandidates.LatestFor(prefix)
 	if !ok {
 		t.Skipf("BC for '%s' not found in EC region %s, skipping test", prefix, c.region)
-		return version.Version{}
+		return Version{}
 	}
 
 	// Check that the BC version is actually latest, otherwise skip the test.
 	versionInfo := c.GetLatestVersionOrSkip(t, prefix)
 	if versionInfo.Major != candidate.Major {
 		t.Skipf("BC for '%s' is invalid in EC region %s, skipping test", prefix, c.region)
-		return version.Version{}
+		return Version{}
 	}
 	if versionInfo.Minor > candidate.Minor {
 		t.Skipf("BC for '%s' is less than latest normal version in EC region %s, skipping test",
 			prefix, c.region)
-		return version.Version{}
+		return Version{}
 	}
 
 	return candidate

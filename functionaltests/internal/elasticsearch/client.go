@@ -39,8 +39,8 @@ type Client struct {
 	es *elasticsearch.TypedClient
 }
 
-// New returns a new Client for accessing Elasticsearch.
-func New(esURL, username, password string) (*Client, error) {
+// NewClient returns a new Client for accessing Elasticsearch.
+func NewClient(esURL, username, password string) (*Client, error) {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 
 	es, err := elasticsearch.NewTypedClient(elasticsearch.Config{

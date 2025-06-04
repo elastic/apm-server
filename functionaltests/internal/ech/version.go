@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package version
+package ech
 
 import (
 	"cmp"
@@ -29,7 +29,7 @@ import (
 
 type Versions []Version
 
-// Sort sorts the stack versions in ascending order based on
+// Sort sorts the versions in ascending order based on
 // major, minor, patch, suffix in order of importance.
 func (vs Versions) Sort() {
 	cmpFn := func(a, b Version) int {
@@ -59,7 +59,7 @@ func (vs Versions) Last() (Version, bool) {
 //
 // Invalid prefix will cause this function to panic.
 //
-// Note: This assumes that StackVersionInfos is already sorted in ascending order.
+// Note: This assumes that Versions is already sorted in ascending order.
 func (vs Versions) LatestFor(prefix string) (Version, bool) {
 	lv, err := parseVersionPrefix(prefix)
 	if err != nil {
@@ -76,7 +76,7 @@ func (vs Versions) LatestFor(prefix string) (Version, bool) {
 
 // LatestForMajor retrieves the latest version for that major.
 //
-// Note: This assumes that StackVersionInfos is already sorted in ascending order.
+// Note: This assumes that Versions is already sorted in ascending order.
 func (vs Versions) LatestForMajor(major uint64) (Version, bool) {
 	for i := len(vs) - 1; i >= 0; i-- {
 		if vs[i].IsMajor(major) {
@@ -88,7 +88,7 @@ func (vs Versions) LatestForMajor(major uint64) (Version, bool) {
 
 // LatestForMinor retrieves the latest version for that minor.
 //
-// Note: This assumes that StackVersionInfos is already sorted in ascending order.
+// Note: This assumes that Versions is already sorted in ascending order.
 func (vs Versions) LatestForMinor(major, minor uint64) (Version, bool) {
 	for i := len(vs) - 1; i >= 0; i-- {
 		if vs[i].IsMinor(major, minor) {
@@ -145,7 +145,7 @@ type Version struct {
 	Suffix string // Optional
 }
 
-func New(major, minor, patch uint64, suffix string) Version {
+func NewVersion(major, minor, patch uint64, suffix string) Version {
 	return Version{
 		Major:  major,
 		Minor:  minor,
@@ -179,7 +179,7 @@ func NewFromString(versionStr string) (Version, error) {
 	if len(splits) > 1 {
 		suffix = splits[1]
 	}
-	return New(major, minor, patch, suffix), nil
+	return NewVersion(major, minor, patch, suffix), nil
 }
 
 func (v Version) String() string {
@@ -222,7 +222,7 @@ func (v Version) Compare(other Version) int {
 	return cmp.Compare(v.Suffix, other.Suffix)
 }
 
-// HasPrefix checks if the stack version contains the prefix.
+// HasPrefix checks if the version contains the prefix.
 // The prefix must loosely follow semantic versioning in the form of:
 //   - X.Y.Z
 //   - X.Y

@@ -37,7 +37,7 @@ type Runner struct {
 	tf          *tfexec.Terraform
 }
 
-func New(t *testing.T, workingDir string) (*Runner, error) {
+func NewRunner(t *testing.T, workingDir string) (*Runner, error) {
 	tr := Runner{}
 
 	tf, err := tfexec.NewTerraform(workingDir, "terraform")

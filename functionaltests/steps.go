@@ -30,11 +30,11 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
+	"github.com/elastic/apm-server/functionaltests/internal/ech"
 	"github.com/elastic/apm-server/functionaltests/internal/elasticsearch"
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kibana"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
-	"github.com/elastic/apm-server/functionaltests/internal/version"
 )
 
 // testStepsRunner consists of composable testStep(s) that is run
@@ -85,7 +85,7 @@ type testStepEnv struct {
 	target       string
 	dsNamespace  string
 	deployName   string
-	versions     []version.Version
+	versions     []ech.Version
 	integrations bool
 	tf           *terraform.Runner
 	gen          *gen.Generator
@@ -93,7 +93,7 @@ type testStepEnv struct {
 	esc          *elasticsearch.Client
 }
 
-func (env *testStepEnv) currentVersion() version.Version {
+func (env *testStepEnv) currentVersion() ech.Version {
 	if len(env.versions) == 0 {
 		panic("test step env current version not found")
 	}
@@ -126,7 +126,7 @@ func (mode apmDeploymentMode) enableIntegrations() bool {
 // Note: This step should always be the first step of any test runs, since it
 // initializes all the necessary dependencies for subsequent steps.
 type createStep struct {
-	DeployVersion     version.Version
+	DeployVersion     ech.Version
 	APMDeploymentMode apmDeploymentMode
 	CleanupOnFailure  bool
 }
@@ -212,7 +212,7 @@ func formatAllMap[T any](m map[string]T, s string) map[string]T {
 // NOTE: Only works from versions >= 8.0.
 type upgradeStep struct {
 	// NewVersion is the version to upgrade into.
-	NewVersion version.Version
+	NewVersion ech.Version
 
 	// CheckDataStreams is used to check the data streams individually.
 	// The data stream names can contain '%s' to indicate namespace.
@@ -342,7 +342,7 @@ func (i ingestV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 //
 // NOTE: Only works from versions 7.x.
 type upgradeV7Step struct {
-	NewVersion version.Version
+	NewVersion ech.Version
 }
 
 func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {

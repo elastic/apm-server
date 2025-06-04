@@ -31,12 +31,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/apm-server/functionaltests/internal/version"
+	"github.com/elastic/apm-server/functionaltests/internal/ech"
 )
 
-func New(kibanaURL, username, password string) (*Client, error) {
+func NewClient(kibanaURL, username, password string) (*Client, error) {
 	if kibanaURL == "" {
-		return nil, fmt.Errorf("kibana.New kibanaURL must not be empty")
+		return nil, fmt.Errorf("kibana.NewClient kibanaURL must not be empty")
 	}
 
 	return &Client{
@@ -213,7 +213,7 @@ func (c *Client) UpdatePackagePolicyByID(ctx context.Context, policyID string, p
 func (c *Client) UpdatePackagePolicyDescriptionByID(
 	ctx context.Context,
 	policyID string,
-	version version.Version,
+	version ech.Version,
 	description string,
 ) error {
 	policy, err := c.GetPackagePolicyByID(ctx, policyID)

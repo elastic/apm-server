@@ -32,11 +32,11 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
+	"github.com/elastic/apm-server/functionaltests/internal/ech"
 	"github.com/elastic/apm-server/functionaltests/internal/elasticsearch"
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kibana"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
-	"github.com/elastic/apm-server/functionaltests/internal/version"
 )
 
 const (
@@ -115,7 +115,7 @@ func initTerraformRunner(t *testing.T) *terraform.Runner {
 	err = os.CopyFS(terraformDir(t), os.DirFS("infra/terraform"))
 	require.NoError(t, err)
 
-	tf, err := terraform.New(t, dirName)
+	tf, err := terraform.NewRunner(t, dirName)
 	require.NoError(t, err)
 	return tf
 }
@@ -159,7 +159,7 @@ func createCluster(
 	ctx context.Context,
 	tf *terraform.Runner,
 	target string,
-	fromVersion version.Version,
+	fromVersion ech.Version,
 	enableIntegrations bool,
 	cleanupOnFailure bool,
 ) deploymentInfo {
@@ -210,7 +210,7 @@ func upgradeCluster(
 	tf *terraform.Runner,
 	deployName string,
 	target string,
-	toVersion version.Version,
+	toVersion ech.Version,
 	enableIntegrations bool,
 ) {
 	t.Helper()
@@ -228,7 +228,7 @@ func upgradeCluster(
 func createESClient(t *testing.T, deployInfo deploymentInfo) *elasticsearch.Client {
 	t.Helper()
 	t.Log("create elasticsearch client")
-	esc, err := elasticsearch.New(deployInfo.ElasticsearchURL, deployInfo.Username, deployInfo.Password)
+	esc, err := elasticsearch.NewClient(deployInfo.ElasticsearchURL, deployInfo.Username, deployInfo.Password)
 	require.NoError(t, err)
 	return esc
 }
@@ -237,7 +237,7 @@ func createESClient(t *testing.T, deployInfo deploymentInfo) *elasticsearch.Clie
 func createKibanaClient(t *testing.T, deployInfo deploymentInfo) *kibana.Client {
 	t.Helper()
 	t.Log("create kibana client")
-	kbc, err := kibana.New(deployInfo.KibanaURL, deployInfo.Username, deployInfo.Password)
+	kbc, err := kibana.NewClient(deployInfo.KibanaURL, deployInfo.Username, deployInfo.Password)
 	require.NoError(t, err)
 	return kbc
 }

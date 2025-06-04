@@ -87,7 +87,7 @@ func newRecordedClient(t *testing.T) *ech.Client {
 	endpoint := os.Getenv("EC_URL")
 	apiKey := os.Getenv("EC_API_KEY")
 	_, httpClient := recordedHTTPClient(t)
-	ecc, err := ech.New(endpoint, apiKey, ech.WithHTTPClient(httpClient))
+	ecc, err := ech.NewClient(endpoint, apiKey, ech.WithHTTPClient(httpClient))
 	require.NoError(t, err)
 	return ecc
 }

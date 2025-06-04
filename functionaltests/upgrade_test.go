@@ -27,7 +27,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
-	"github.com/elastic/apm-server/functionaltests/internal/version"
+	"github.com/elastic/apm-server/functionaltests/internal/ech"
 )
 
 func formatUpgradePath(p string) string {
@@ -49,7 +49,7 @@ func TestUpgrade_UpgradePath_Snapshot(t *testing.T) {
 	}
 
 	// Get all snapshot versions based on input.
-	var versions version.Versions
+	var versions ech.Versions
 	for i, s := range splits {
 		curr := vsCache.GetLatestSnapshot(t, strings.TrimSpace(s))
 		if i != 0 {
@@ -89,7 +89,7 @@ func TestUpgrade_UpgradePath_Snapshot(t *testing.T) {
 	})
 }
 
-func buildTestSteps(t *testing.T, versions version.Versions, config upgradeTestConfig, reroute bool) []testStep {
+func buildTestSteps(t *testing.T, versions ech.Versions, config upgradeTestConfig, reroute bool) []testStep {
 	t.Helper()
 
 	var steps []testStep
@@ -189,7 +189,7 @@ type upgradeTestConfig struct {
 }
 
 // ExpectedLifecycle returns the lifecycle management that is expected of the provided version.
-func (cfg upgradeTestConfig) ExpectedLifecycle(version version.Version) string {
+func (cfg upgradeTestConfig) ExpectedLifecycle(version ech.Version) string {
 	lifecycle, ok := cfg.DataStreamLifecycle[version.MajorMinor()]
 	if !ok {
 		return managedByILM
@@ -201,7 +201,7 @@ func (cfg upgradeTestConfig) ExpectedLifecycle(version version.Version) string {
 }
 
 // HasLazyRollover checks if the upgrade path is expected to have lazy rollover.
-func (cfg upgradeTestConfig) HasLazyRollover(from, to version.Version) bool {
+func (cfg upgradeTestConfig) HasLazyRollover(from, to ech.Version) bool {
 	exceptions, ok := cfg.LazyRolloverWithExceptions[to.MajorMinor()]
 	if !ok {
 		return false

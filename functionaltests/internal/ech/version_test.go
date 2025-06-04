@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package version
+package ech
 
 import (
 	"testing"
@@ -59,33 +59,33 @@ func TestVersions_LatestFor(t *testing.T) {
 		wantExist   bool
 	}{
 		{
-			name:      "no stack versions",
+			name:      "no versions",
 			vs:        []string{},
 			args:      args{prefix: "8.17"},
 			wantExist: false,
 		},
 		{
-			name:      "no matching stack version",
+			name:      "no matching version",
 			vs:        []string{"8.16.5", "8.17.1", "8.17.2", "8.17.3", "8.18.0"},
 			args:      args{prefix: "9.0"},
 			wantExist: false,
 		},
 		{
-			name:        "latest stack version major",
+			name:        "latest version major",
 			vs:          []string{"8.16.4", "8.16.5", "8.17.1", "8.17.2", "8.17.3", "8.18.0"},
 			args:        args{prefix: "8"},
 			wantVersion: Version{Major: 8, Minor: 18, Patch: 0},
 			wantExist:   true,
 		},
 		{
-			name:        "latest stack version minor",
+			name:        "latest version minor",
 			vs:          []string{"8.16.4", "8.16.5", "8.17.1", "8.17.2", "8.17.3", "8.18.0"},
 			args:        args{prefix: "8.16"},
 			wantVersion: Version{Major: 8, Minor: 16, Patch: 5},
 			wantExist:   true,
 		},
 		{
-			name:        "latest stack version patch",
+			name:        "latest version patch",
 			vs:          []string{"8.16.4", "8.16.5", "8.17.1", "8.17.2", "8.17.3", "8.18.0"},
 			args:        args{prefix: "8.17.1"},
 			wantVersion: Version{Major: 8, Minor: 17, Patch: 1},
@@ -131,19 +131,19 @@ func TestVersions_LatestForMajor(t *testing.T) {
 		wantExist   bool
 	}{
 		{
-			name:      "no stack versions",
+			name:      "no versions",
 			vs:        []string{},
 			args:      args{major: 8},
 			wantExist: false,
 		},
 		{
-			name:      "no matching stack version",
+			name:      "no matching version",
 			vs:        []string{"8.16.5", "8.17.1", "8.17.2", "8.17.3", "8.18.0"},
 			args:      args{major: 9},
 			wantExist: false,
 		},
 		{
-			name:        "latest stack version",
+			name:        "latest version",
 			vs:          []string{"8.16.5", "8.17.1", "8.17.2", "8.17.3", "8.18.0"},
 			args:        args{major: 8},
 			wantVersion: Version{Major: 8, Minor: 18, Patch: 0},
@@ -174,19 +174,19 @@ func TestVersions_LatestForMinor(t *testing.T) {
 		wantExist   bool
 	}{
 		{
-			name:      "no stack versions",
+			name:      "no versions",
 			vs:        []string{},
 			args:      args{major: 8, minor: 17},
 			wantExist: false,
 		},
 		{
-			name:      "no matching stack version",
+			name:      "no matching version",
 			vs:        []string{"8.16.5", "8.17.1", "8.17.2", "8.17.3", "8.18.0"},
 			args:      args{major: 9, minor: 0},
 			wantExist: false,
 		},
 		{
-			name:        "latest stack version",
+			name:        "latest version",
 			vs:          []string{"8.16.5-SNAPSHOT", "8.17.1-SNAPSHOT", "8.17.2-SNAPSHOT", "8.17.3-SNAPSHOT", "8.18.0-SNAPSHOT"},
 			args:        args{major: 8, minor: 17},
 			wantVersion: Version{Major: 8, Minor: 17, Patch: 3, Suffix: "SNAPSHOT"},

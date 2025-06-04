@@ -112,7 +112,7 @@ func newRecordedTestClient(t *testing.T) *kibana.Client {
 	kibanaURL := os.Getenv("KIBANA_URL")
 	username := os.Getenv("KIBANA_USERNAME")
 	password := os.Getenv("KIBANA_PASSWORD")
-	kbc, err := kibana.New(kibanaURL, username, password)
+	kbc, err := kibana.NewClient(kibanaURL, username, password)
 	require.NoError(t, err)
 	_, httpc := getHttpClient(t)
 	kbc.Client = *httpc
