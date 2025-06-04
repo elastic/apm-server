@@ -262,3 +262,5 @@ tool (
 	gotest.tools/gotestsum
 	honnef.co/go/tools/cmd/staticcheck
 )
+
+replace github.com/elastic/apm-aggregation => github.com/kruskall/apm-aggregation v0.0.0-20250604114653-9f80738fb023
