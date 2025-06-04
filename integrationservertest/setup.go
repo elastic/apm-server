@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package functionaltests
+package integrationservertest
 
 import (
 	"context"
@@ -32,11 +32,11 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
-	"github.com/elastic/apm-server/functionaltests/internal/ech"
-	"github.com/elastic/apm-server/functionaltests/internal/elasticsearch"
-	"github.com/elastic/apm-server/functionaltests/internal/gen"
-	"github.com/elastic/apm-server/functionaltests/internal/kibana"
-	"github.com/elastic/apm-server/functionaltests/internal/terraform"
+	"github.com/elastic/apm-server/integrationservertest/internal/ech"
+	"github.com/elastic/apm-server/integrationservertest/internal/elasticsearch"
+	"github.com/elastic/apm-server/integrationservertest/internal/gen"
+	"github.com/elastic/apm-server/integrationservertest/internal/kibana"
+	"github.com/elastic/apm-server/integrationservertest/internal/terraform"
 )
 
 const (

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// Package asserts provides assertion helpers for our functional tests.
+// Package asserts provides assertion helpers for our tests.
 // Assertions can be implemented as public functions, hiding the additional
 // logic/types required for a more ergonomic implementation and with
 // unit tests coverage to ease development.

@@ -15,13 +15,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package functionaltests
+package integrationservertest
 
 import (
 	"testing"
 
-	"github.com/elastic/apm-server/functionaltests/internal/asserts"
-	"github.com/elastic/apm-server/functionaltests/internal/ech"
+	"github.com/elastic/apm-server/integrationservertest/internal/asserts"
+	"github.com/elastic/apm-server/integrationservertest/internal/ech"
 )
 
 func TestStandaloneManaged_7_17_to_8_x_to_9_x_Snapshot(t *testing.T) {

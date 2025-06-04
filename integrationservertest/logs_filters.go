@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package functionaltests
+package integrationservertest
 
 import "github.com/elastic/go-elasticsearch/v8/typedapi/types"
 

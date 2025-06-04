@@ -32,7 +32,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/functionaltests/internal/kibana"
+	"github.com/elastic/apm-server/integrationservertest/internal/kibana"
 )
 
 // getHttpClient instantiate a http.Client backed by a recorder.Recorder to be used in testing

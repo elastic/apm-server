@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package functionaltests
+package integrationservertest
 
 import (
 	"context"
@@ -24,7 +24,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/elastic/apm-server/functionaltests/internal/ech"
+	"github.com/elastic/apm-server/integrationservertest/internal/ech"
 )
 
 var (
@@ -58,9 +58,9 @@ func TestMain(m *testing.M) {
 	// This is a simple check to alert users if this necessary env var
 	// is not available.
 	//
-	// Functional tests are expected to run Terraform code to operate
-	// on infrastructure required for each test and to query Elastic
-	// Cloud APIs. In both cases a valid API key is required.
+	// Integration server tests are expected to run Terraform code to operate on
+	// infrastructure required for each test and to query Elastic Cloud APIs.
+	// In both cases a valid API key is required.
 	ecAPIKey := os.Getenv("EC_API_KEY")
 	if ecAPIKey == "" {
 		log.Fatal("EC_API_KEY env var not set")

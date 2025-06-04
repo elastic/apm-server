@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// Package kibana implements a Kibana HTTP API client to perform operation needed by functional tests.
+// Package kibana implements a Kibana HTTP API client to perform operation needed by tests.
 package kibana
 
 import (
@@ -31,7 +31,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/apm-server/functionaltests/internal/ech"
+	"github.com/elastic/apm-server/integrationservertest/internal/ech"
 )
 
 func NewClient(kibanaURL, username, password string) (*Client, error) {

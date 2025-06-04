@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/functionaltests/internal/elasticsearch"
+	"github.com/elastic/apm-server/integrationservertest/internal/elasticsearch"
 )
 
 // DocExistFor checks if documents exist for the expected data stream / index.

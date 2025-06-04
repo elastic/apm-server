@@ -31,7 +31,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/functionaltests/internal/ech"
+	"github.com/elastic/apm-server/integrationservertest/internal/ech"
 )
 
 // recordedHTTPClient instantiates a http.Client backed by a recorder.Recorder to be

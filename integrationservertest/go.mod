@@ -1,4 +1,4 @@
-module github.com/elastic/apm-server/functionaltests
+module github.com/elastic/apm-server/integrationservertest
 
 go 1.24.3
 

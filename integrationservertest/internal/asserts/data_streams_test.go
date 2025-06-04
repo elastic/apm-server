@@ -25,7 +25,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/managedby"
 
-	"github.com/elastic/apm-server/functionaltests/internal/asserts"
+	"github.com/elastic/apm-server/integrationservertest/internal/asserts"
 )
 
 func TestCheckDataStreams(t *testing.T) {

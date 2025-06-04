@@ -31,8 +31,8 @@ import (
 	"github.com/elastic/apm-perf/pkg/supportedstacks"
 	"github.com/elastic/apm-perf/pkg/telemetrygen"
 
-	"github.com/elastic/apm-server/functionaltests/internal/ech"
-	"github.com/elastic/apm-server/functionaltests/internal/kibana"
+	"github.com/elastic/apm-server/integrationservertest/internal/ech"
+	"github.com/elastic/apm-server/integrationservertest/internal/kibana"
 )
 
 type Generator struct {
@@ -142,7 +142,7 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version, in
 // to trigger the flushing of in-flight APM metrics.
 func flushAPMMetrics(ctx context.Context, kbc *kibana.Client, version ech.Version) error {
 	policyID := "elastic-cloud-apm"
-	description := fmt.Sprintf("Functional tests %s", version)
+	description := fmt.Sprintf("Integration server test %s", version)
 
 	// Sending an update with modifying the description is enough to trigger
 	// final aggregations in APM Server and flush of in-flight metrics.

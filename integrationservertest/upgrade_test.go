@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package functionaltests
+package integrationservertest
 
 import (
 	"fmt"
@@ -26,8 +26,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/elastic/apm-server/functionaltests/internal/asserts"
-	"github.com/elastic/apm-server/functionaltests/internal/ech"
+	"github.com/elastic/apm-server/integrationservertest/internal/asserts"
+	"github.com/elastic/apm-server/integrationservertest/internal/ech"
 )
 
 func formatUpgradePath(p string) string {

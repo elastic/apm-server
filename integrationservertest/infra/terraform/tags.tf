@@ -8,7 +8,7 @@ locals {
     build        = var.BUILD_ID
     created_date = coalesce(var.CREATED_DATE, time_static.created_date.unix)
   }
-  project = "apm-server-functionaltest"
+  project = "apm-server-integration-server-test"
 }
 
 module "tags" {

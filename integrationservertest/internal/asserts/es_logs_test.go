@@ -21,7 +21,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/elastic/apm-server/functionaltests/internal/asserts"
+	"github.com/elastic/apm-server/integrationservertest/internal/asserts"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 
 	"github.com/stretchr/testify/assert"

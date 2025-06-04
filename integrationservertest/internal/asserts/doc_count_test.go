@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/functionaltests/internal/elasticsearch"
+	"github.com/elastic/apm-server/integrationservertest/internal/elasticsearch"
 )
 
 func TestDocCountIncreased(t *testing.T) {

@@ -1,14 +1,14 @@
-[![Functional Tests](https://github.com/elastic/apm-server/actions/workflows/functional-tests.yml/badge.svg)](https://github.com/elastic/apm-server/actions/workflows/functional-tests.yml)
+[![Integration Server Test](https://github.com/elastic/apm-server/actions/workflows/integration-server-test.yml/badge.svg)](https://github.com/elastic/apm-server/actions/workflows/integration-server-test.yml)
 
-# Functional Tests
+# Integration Server Test
 
-The functional tests test that APM Server works as expected after version upgrades.
+The integration server test checks that APM Server in Elastic Cloud Hosted works as expected after version upgrades.
 
 ## Code Details
 
-The following is a simplified directory structure of functional tests.
+The following is a simplified directory structure of integration server test.
 ```
-- functionaltests/
+- integrationservertest/
    |- infra/
    |- internal/
    |- main_test.go
@@ -32,7 +32,7 @@ The test will create a deployment with the first version, perform ingestion and 
 Then, it will consecutively upgrade to the next version, perform ingestion and check again.
 For example, if we provide an `upgrade-path` of `8.15, 8.16, 8.17`, a deployment will be created in `8.15`, upgraded to `8.16` and then to `8.17`.
 
-We provide the `upgrade-path` argument through GitHub workflow matrix, see `functional-tests.yml`.
+We provide the `upgrade-path` argument through GitHub workflow matrix, see `integration-server-test.yml`.
 Configuration for the upgrade test can be found in `upgrade-config.yaml`.
 
 ### Standalone-to-Managed Tests
