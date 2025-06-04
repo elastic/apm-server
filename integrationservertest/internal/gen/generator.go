@@ -134,7 +134,7 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version, in
 	}
 
 	// With standalone, we don't have Fleet, so simply just wait for some arbitrary time.
-	time.Sleep(60 * time.Second)
+	time.Sleep(180 * time.Second)
 	return nil
 }
 
@@ -156,7 +156,7 @@ func flushAPMMetrics(ctx context.Context, kbc *kibana.Client, version ech.Versio
 	// APM Server needs some time to flush all metrics, and we don't have any
 	// visibility on when this completes.
 	// NOTE: This value comes from empirical observations.
-	time.Sleep(40 * time.Second)
+	time.Sleep(120 * time.Second)
 	return nil
 }
 
