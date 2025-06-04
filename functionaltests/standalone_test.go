@@ -21,42 +21,42 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
-	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
+	"github.com/elastic/apm-server/functionaltests/internal/ech"
 )
 
 func TestStandaloneManaged_7_17_to_8_x_to_9_x_Snapshot(t *testing.T) {
 	from7 := vsCache.GetLatestSnapshot(t, "7.17")
 	to8 := vsCache.GetLatestSnapshot(t, "8")
 	to9 := vsCache.GetLatestSnapshot(t, "9")
-	if !from7.CanUpgradeTo(to8.Version) {
-		t.Skipf("upgrade from %s to %s is not allowed", from7.Version, to8.Version)
+	if !vsCache.CanUpgradeTo(from7, to8) {
+		t.Fatalf("upgrade from %s to %s is not allowed", from7, to8)
 		return
 	}
-	if !to8.CanUpgradeTo(to9.Version) {
-		t.Skipf("upgrade from %s to %s is not allowed", to8.Version, to9.Version)
+	if !vsCache.CanUpgradeTo(to8, to9) {
+		t.Fatalf("upgrade from %s to %s is not allowed", to8, to9)
 		return
 	}
 
 	t.Run("Managed7", func(t *testing.T) {
 		t.Parallel()
-		runner := managed7Runner(from7.Version, to8.Version, to9.Version)
+		runner := managed7Runner(from7, to8, to9)
 		runner.Run(t)
 	})
 
 	t.Run("Managed8", func(t *testing.T) {
 		t.Parallel()
-		runner := managed8Runner(from7.Version, to8.Version, to9.Version)
+		runner := managed8Runner(from7, to8, to9)
 		runner.Run(t)
 	})
 
 	t.Run("Managed9", func(t *testing.T) {
 		t.Parallel()
-		runner := managed9Runner(from7.Version, to8.Version, to9.Version)
+		runner := managed9Runner(from7, to8, to9)
 		runner.Run(t)
 	})
 }
 
-func managed7Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) testStepsRunner {
+func managed7Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsRunner {
 	expectILM := asserts.DataStreamExpectation{
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
@@ -142,7 +142,7 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 	}
 }
 
-func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) testStepsRunner {
+func managed8Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsRunner {
 	expect := dataStreamsExpectations(asserts.DataStreamExpectation{
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
@@ -202,7 +202,7 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) 
 	}
 }
 
-func managed9Runner(fromVersion7, toVersion8, toVersion9 ecclient.StackVersion) testStepsRunner {
+func managed9Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsRunner {
 	// Data streams created in latest 8.x and 9.x should be all ILM.
 	expect := dataStreamsExpectations(asserts.DataStreamExpectation{
 		PreferIlm:        true,
