@@ -189,11 +189,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		publishReady,
 		args.Semaphore,
 		args.MeterProvider,
-<<<<<<< HEAD
-=======
 		args.TracerProvider,
-		args.Logger,
->>>>>>> 398af2c1 (feat: bump apm-data and propagate trace provider (#17096))
 	)
 	if err != nil {
 		return server{}, err
@@ -213,12 +209,8 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		}
 	}
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
-<<<<<<< HEAD
-	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore, args.MeterProvider)
-	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, args.BatchProcessor, args.AgentConfig, args.Semaphore, args.MeterProvider)
-=======
 	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore, args.MeterProvider, args.TracerProvider)
->>>>>>> 398af2c1 (feat: bump apm-data and propagate trace provider (#17096))
+	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, args.BatchProcessor, args.AgentConfig, args.Semaphore, args.MeterProvider)
 
 	return server{
 		logger:     args.Logger,
