@@ -26,6 +26,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -90,6 +91,7 @@ func NewMux(
 	publishReady func() bool,
 	semaphore input.Semaphore,
 	meterProvider metric.MeterProvider,
+	traceProvider trace.TracerProvider,
 	logger *logp.Logger,
 ) (*mux.Router, error) {
 	pool := request.NewContextPool()
@@ -109,9 +111,10 @@ func NewMux(
 
 	zapLogger := zap.New(logger.Core(), zap.WithCaller(true))
 	builder.intakeProcessor = elasticapm.NewProcessor(elasticapm.Config{
-		MaxEventSize: beaterConfig.MaxEventSize,
-		Semaphore:    semaphore,
-		Logger:       zapLogger,
+		MaxEventSize:  beaterConfig.MaxEventSize,
+		Semaphore:     semaphore,
+		Logger:        zapLogger,
+		TraceProvider: traceProvider,
 	})
 
 	type route struct {
@@ -119,7 +122,7 @@ func NewMux(
 		handlerFn func() (request.Handler, error)
 	}
 
-	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, batchProcessor, semaphore, meterProvider)
+	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, batchProcessor, semaphore, meterProvider, traceProvider)
 	rumIntakeHandler := builder.rumIntakeHandler(meterProvider)
 	routeMap := []route{
 		{RootPath, builder.rootHandler(publishReady, meterProvider)},
