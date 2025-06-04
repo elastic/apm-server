@@ -22,7 +22,9 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ## 9.0.2 [elastic-apm-9.0.2-release-notes]
 
-* No significant changes.
+### Fixes [elastic-apm-9.0.2-fixes]
+
+* Fix missing trusted root certificate authority in the docker image ([#16928](https://github.com/elastic/apm-server/pull/16928))
 
 ## 9.0.1 [elastic-apm-9.0.1-release-notes]
 
