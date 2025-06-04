@@ -297,6 +297,10 @@ func TestInvalidation(t *testing.T) {
 			}
 
 			cancel()
+			// wait for invalidationChan to be closed so
+			// the background goroutine is done
+			for range invalidationChan {
+			}
 			<-invCh
 		})
 	}
