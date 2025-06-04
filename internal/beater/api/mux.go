@@ -91,11 +91,7 @@ func NewMux(
 	publishReady func() bool,
 	semaphore input.Semaphore,
 	meterProvider metric.MeterProvider,
-<<<<<<< HEAD
-=======
 	traceProvider trace.TracerProvider,
-	logger *logp.Logger,
->>>>>>> 398af2c1 (feat: bump apm-data and propagate trace provider (#17096))
 ) (*mux.Router, error) {
 	pool := request.NewContextPool()
 	logger := logp.NewLogger(logs.Handler)
