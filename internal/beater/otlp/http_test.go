@@ -180,11 +180,7 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) (string,
 		func() bool { return true },
 		semaphore.NewWeighted(1),
 		mp,
-<<<<<<< HEAD
-=======
 		noop.NewTracerProvider(),
-		logptest.NewTestingLogger(t, ""),
->>>>>>> 398af2c1 (feat: bump apm-data and propagate trace provider (#17096))
 	)
 	require.NoError(t, err)
 	srv := http.Server{Handler: router}
