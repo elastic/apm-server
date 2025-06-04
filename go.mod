@@ -7,12 +7,22 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/cockroachdb/pebble/v2 v2.0.5
 	github.com/dustin/go-humanize v1.0.1
+<<<<<<< HEAD
 	github.com/elastic/apm-aggregation v1.2.0
 	github.com/elastic/apm-data v1.16.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250515170043-69f406bc6466
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
 	github.com/elastic/elastic-agent-libs v0.19.3
 	github.com/elastic/elastic-agent-system-metrics v0.11.10
+=======
+	github.com/elastic/apm-aggregation v1.3.0
+	github.com/elastic/apm-data v1.19.0
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250604125703-4195119f0e60
+	github.com/elastic/elastic-agent-client/v7 v7.17.2
+	github.com/elastic/elastic-agent-libs v0.19.6
+	github.com/elastic/elastic-agent-system-metrics v0.11.12
+	github.com/elastic/elastic-transport-go/v8 v8.7.0
+>>>>>>> 398af2c1 (feat: bump apm-data and propagate trace provider (#17096))
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.9.0
 	github.com/elastic/go-elasticsearch/v8 v8.17.1
@@ -109,7 +119,7 @@ require (
 	github.com/elastic/go-windows v1.0.2 // indirect
 	github.com/elastic/gobench v0.0.0-20241125091404-f9fd2d295223 // indirect
 	github.com/elastic/gosigar v0.14.3 // indirect
-	github.com/elastic/opentelemetry-lib v0.14.0 // indirect
+	github.com/elastic/opentelemetry-lib v0.18.0 // indirect
 	github.com/elastic/pkcs8 v1.0.0 // indirect
 	github.com/elastic/sarama v1.19.1-0.20250304185506-df6449b5c996 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
@@ -231,19 +241,34 @@ require (
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.7.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
+<<<<<<< HEAD
 	go.opentelemetry.io/collector/consumer v1.28.0 // indirect
 	go.opentelemetry.io/collector/semconv v0.121.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.35.0 // indirect
+=======
+	go.opentelemetry.io/collector/consumer v1.32.0 // indirect
+	go.opentelemetry.io/collector/semconv v0.126.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.36.0 // indirect
+>>>>>>> 398af2c1 (feat: bump apm-data and propagate trace provider (#17096))
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c // indirect
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
+<<<<<<< HEAD
 	golang.org/x/mod v0.23.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/tools v0.30.0 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
+=======
+	golang.org/x/mod v0.24.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
+	golang.org/x/tools v0.33.0 // indirect
+	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250303144028-a0af3efb3deb // indirect
+>>>>>>> 398af2c1 (feat: bump apm-data and propagate trace provider (#17096))
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

@@ -244,11 +244,19 @@ these terms.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/apm-data
+<<<<<<< HEAD
 Version: v1.16.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.16.0/LICENSE:
+=======
+Version: v1.19.0
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.19.0/LICENSE:
+>>>>>>> 398af2c1 (feat: bump apm-data and propagate trace provider (#17096))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -9160,11 +9168,11 @@ limitations under the License.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/opentelemetry-lib
-Version: v0.14.0
+Version: v0.18.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/opentelemetry-lib@v0.14.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/opentelemetry-lib@v0.18.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -14188,11 +14196,19 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/auto/sdk@v1.1.
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/consumer
+<<<<<<< HEAD
 Version: v1.28.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.28.0/LICENSE:
+=======
+Version: v1.32.0
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.32.0/LICENSE:
+>>>>>>> 398af2c1 (feat: bump apm-data and propagate trace provider (#17096))
 
 
                                  Apache License
@@ -14400,11 +14416,19 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/cons
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/semconv
+<<<<<<< HEAD
 Version: v0.121.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/semconv@v0.121.0/LICENSE:
+=======
+Version: v0.126.0
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/semconv@v0.126.0/LICENSE:
+>>>>>>> 398af2c1 (feat: bump apm-data and propagate trace provider (#17096))
 
 
                                  Apache License
@@ -14963,11 +14987,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto/googleapis/rpc
+<<<<<<< HEAD
 Version: v0.0.0-20250115164207-1a7da9e5054f
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20250115164207-1a7da9e5054f/LICENSE:
+=======
+Version: v0.0.0-20250303144028-a0af3efb3deb
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20250303144028-a0af3efb3deb/LICENSE:
+>>>>>>> 398af2c1 (feat: bump apm-data and propagate trace provider (#17096))
 
 
                                  Apache License

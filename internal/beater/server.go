@@ -184,6 +184,11 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		publishReady,
 		args.Semaphore,
 		args.MeterProvider,
+<<<<<<< HEAD
+=======
+		args.TracerProvider,
+		args.Logger,
+>>>>>>> 398af2c1 (feat: bump apm-data and propagate trace provider (#17096))
 	)
 	if err != nil {
 		return server{}, err
@@ -203,7 +208,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		}
 	}
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
-	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore, args.MeterProvider)
+	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore, args.MeterProvider, args.TracerProvider)
 
 	return server{
 		logger:     args.Logger,
