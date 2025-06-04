@@ -31,6 +31,7 @@ import (
 	"github.com/stretchr/testify/require"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+	"go.opentelemetry.io/otel/trace/noop"
 	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -182,6 +183,7 @@ func (m muxBuilder) build(cfg *config.Config) (sdkmetric.Reader, http.Handler, e
 		func() bool { return true },
 		semaphore.NewWeighted(1),
 		mp,
+		noop.NewTracerProvider(),
 		m.Logger,
 	)
 	return reader, r, err
