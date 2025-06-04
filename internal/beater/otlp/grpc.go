@@ -25,6 +25,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
@@ -45,6 +46,7 @@ func RegisterGRPCServices(
 	processor modelpb.BatchProcessor,
 	semaphore input.Semaphore,
 	mp metric.MeterProvider,
+	tp trace.TracerProvider,
 ) {
 	// TODO(axw) stop assuming we have only one OTLP gRPC service running
 	// at any time, and instead aggregate metrics from consumers that are
@@ -54,6 +56,7 @@ func RegisterGRPCServices(
 		Logger:           logger,
 		Semaphore:        semaphore,
 		RemapOTelMetrics: true,
+		TraceProvider:    tp,
 	})
 
 	meter := mp.Meter("github.com/elastic/apm-server/internal/beater/otlp")
