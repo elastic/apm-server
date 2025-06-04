@@ -22,14 +22,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/apm-server/functionaltests/internal/elasticsearch"
 )
 
 func TestDocCountIncreased(t *testing.T) {
 	type args struct {
-		currDocCount esclient.DataStreamsDocCount
-		prevDocCount esclient.DataStreamsDocCount
-		expectedDiff esclient.DataStreamsDocCount
+		currDocCount elasticsearch.DataStreamsDocCount
+		prevDocCount elasticsearch.DataStreamsDocCount
+		expectedDiff elasticsearch.DataStreamsDocCount
 	}
 	tests := []struct {
 		name string
@@ -38,12 +38,12 @@ func TestDocCountIncreased(t *testing.T) {
 		{
 			name: "default",
 			args: args{
-				currDocCount: esclient.DataStreamsDocCount{
+				currDocCount: elasticsearch.DataStreamsDocCount{
 					"traces-apm-default":                     100,
 					"logs-apm.error-default":                 200,
 					"metrics-apm.app.opbeans_python-default": 12,
 				},
-				prevDocCount: esclient.DataStreamsDocCount{
+				prevDocCount: elasticsearch.DataStreamsDocCount{
 					"traces-apm-default":                     50,
 					"logs-apm.error-default":                 100,
 					"metrics-apm.app.opbeans_python-default": 10,

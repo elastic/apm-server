@@ -27,7 +27,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
-	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
+	"github.com/elastic/apm-server/functionaltests/internal/ech"
 )
 
 func formatUpgradePath(p string) string {
@@ -49,16 +49,16 @@ func TestUpgrade_UpgradePath_Snapshot(t *testing.T) {
 	}
 
 	// Get all snapshot versions based on input.
-	var versionInfos []ecclient.StackVersionInfo
+	var versions ech.Versions
 	for i, s := range splits {
-		versionInfo := vsCache.GetLatestSnapshot(t, strings.TrimSpace(s))
+		curr := vsCache.GetLatestSnapshot(t, strings.TrimSpace(s))
 		if i != 0 {
-			prevVersionInfo := versionInfos[len(versionInfos)-1]
-			if !prevVersionInfo.CanUpgradeTo(versionInfo.Version) {
-				t.Fatalf("%s is not upgradable to %s", prevVersionInfo.Version, versionInfo.Version)
+			prev := versions[len(versions)-1]
+			if !vsCache.CanUpgradeTo(prev, curr) {
+				t.Fatalf("%s is not upgradable to %s", prev, curr)
 			}
 		}
-		versionInfos = append(versionInfos, versionInfo)
+		versions = append(versions, curr)
 	}
 
 	config, err := parseConfig("upgrade-config.yaml")
@@ -69,7 +69,7 @@ func TestUpgrade_UpgradePath_Snapshot(t *testing.T) {
 	t.Run(formatUpgradePath(*upgradePath), func(t *testing.T) {
 		t.Run("Default", func(t *testing.T) {
 			t.Parallel()
-			steps := buildTestSteps(t, versionInfos, config, false)
+			steps := buildTestSteps(t, versions, config, false)
 			runner := testStepsRunner{
 				Target: *target,
 				Steps:  steps,
@@ -79,7 +79,7 @@ func TestUpgrade_UpgradePath_Snapshot(t *testing.T) {
 
 		t.Run("Reroute", func(t *testing.T) {
 			t.Parallel()
-			steps := buildTestSteps(t, versionInfos, config, true)
+			steps := buildTestSteps(t, versions, config, true)
 			runner := testStepsRunner{
 				Target: *target,
 				Steps:  steps,
@@ -89,19 +89,19 @@ func TestUpgrade_UpgradePath_Snapshot(t *testing.T) {
 	})
 }
 
-func buildTestSteps(t *testing.T, versionInfos ecclient.StackVersionInfos, config upgradeTestConfig, reroute bool) []testStep {
+func buildTestSteps(t *testing.T, versions ech.Versions, config upgradeTestConfig, reroute bool) []testStep {
 	t.Helper()
 
 	var steps []testStep
 	var indicesManagedBy []string
 
-	for i, info := range versionInfos {
-		lifecycle := config.ExpectedLifecycle(info.Version)
+	for i, ver := range versions {
+		lifecycle := config.ExpectedLifecycle(ver)
 		// Create deployment using first version, create reroute (if enabled) and ingest.
 		if i == 0 {
 			indicesManagedBy = append(indicesManagedBy, lifecycle)
 			steps = append(steps, createStep{
-				DeployVersion:    info.Version,
+				DeployVersion:    ver,
 				CleanupOnFailure: *cleanupOnFailure,
 			})
 			if reroute {
@@ -118,14 +118,14 @@ func buildTestSteps(t *testing.T, versionInfos ecclient.StackVersionInfos, confi
 		}
 
 		// Upgrade deployment to new version and ingest.
-		prev := versionInfos[i-1].Version
+		prev := versions[i-1]
 		oldIndicesManagedBy := slices.Clone(indicesManagedBy)
-		if config.HasLazyRollover(prev, info.Version) {
+		if config.HasLazyRollover(prev, ver) {
 			indicesManagedBy = append(indicesManagedBy, lifecycle)
 		}
 		steps = append(steps,
 			upgradeStep{
-				NewVersion: info.Version,
+				NewVersion: ver,
 				CheckDataStreams: dataStreamsExpectations(asserts.DataStreamExpectation{
 					PreferIlm:   lifecycle == managedByILM,
 					DSManagedBy: lifecycle,
@@ -189,7 +189,7 @@ type upgradeTestConfig struct {
 }
 
 // ExpectedLifecycle returns the lifecycle management that is expected of the provided version.
-func (cfg upgradeTestConfig) ExpectedLifecycle(version ecclient.StackVersion) string {
+func (cfg upgradeTestConfig) ExpectedLifecycle(version ech.Version) string {
 	lifecycle, ok := cfg.DataStreamLifecycle[version.MajorMinor()]
 	if !ok {
 		return managedByILM
@@ -201,7 +201,7 @@ func (cfg upgradeTestConfig) ExpectedLifecycle(version ecclient.StackVersion) st
 }
 
 // HasLazyRollover checks if the upgrade path is expected to have lazy rollover.
-func (cfg upgradeTestConfig) HasLazyRollover(from, to ecclient.StackVersion) bool {
+func (cfg upgradeTestConfig) HasLazyRollover(from, to ech.Version) bool {
 	exceptions, ok := cfg.LazyRolloverWithExceptions[to.MajorMinor()]
 	if !ok {
 		return false
