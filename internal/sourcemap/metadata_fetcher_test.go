@@ -301,8 +301,6 @@ func TestInvalidation(t *testing.T) {
 					t.Fatal("timed out waiting for invalidations")
 				}
 			}
-<<<<<<< HEAD
-=======
 
 			cancel()
 			<-invCh
@@ -310,7 +308,6 @@ func TestInvalidation(t *testing.T) {
 			// the background goroutine created by NewMetadataFetcher is done
 			for range invalidationChan {
 			}
->>>>>>> 6437d20d (test: wait for fetcher background goroutine to exit (#17098))
 		})
 	}
 }
