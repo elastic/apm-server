@@ -1,5 +1,6 @@
 ---
 name: integration-server-test
+run-name: Integration Server Test
 
 on:
   workflow_dispatch: ~
