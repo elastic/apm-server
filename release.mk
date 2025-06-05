@@ -83,11 +83,6 @@ minor-release:
 	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)"
 
-	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
-	$(MAKE) create-branch NAME=changelog-$(RELEASE_BRANCH) BASE=$(RELEASE_BRANCH)
-	$(MAKE) update-changelog VERSION=$(RELEASE_BRANCH)
-	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
-
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
 	$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH)
 	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
@@ -99,7 +94,6 @@ minor-release:
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
 	git push origin $(RELEASE_BRANCH)
 	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs" BODY="Merge as soon as the GitHub checks are green."
-	$(MAKE) create-pull-request BRANCH=changelog-$(RELEASE_BRANCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs" BODY="Merge as soon as $(TARGET_BRANCH) branch is created and the GitHub checks are green."
 
 # This is the contract with the GitHub action .github/workflows/run-major-release.yml.
 # The GitHub action will provide the below environment variables:
