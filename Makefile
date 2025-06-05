@@ -350,6 +350,25 @@ testing/rally/corpora:
 	@rm -fr testing/rally/corpora && mkdir testing/rally/corpora
 	@cd systemtest/cmd/gencorpora && go run . -write-dir $(CURRENT_DIR)/testing/rally/corpora/ -replay-count $(RALLY_GENCORPORA_REPLAY_COUNT)
 
+##############################################################################
+# Integration Server Tests -- Upgrade tests for APM Server in ECH.
+##############################################################################
+
+.PHONY: integration-server-upgrade-test
+integration-server-upgrade-test:
+ifndef UPGRADE_PATH
+	$(error UPGRADE_PATH is not set)
+endif
+	@cd integration-server-test && go test -run=TestUpgrade_UpgradePath -v -timeout=60m -cleanup-on-failure=false -target="pro" -upgrade-path="$(UPGRADE_PATH)}" ./
+
+.PHONY: integration-server-standalone-test
+integration-server-standalone-test:
+	@cd integration-server-test && go test -run=TestStandaloneManaged -v -timeout=60m -cleanup-on-failure=false -target="pro" ./
+
+##############################################################################
+# Generating and linting API documentation
+##############################################################################
+
 .PHONY: api-docs
 api-docs: ## Generate bundled OpenAPI documents
 	@npx @redocly/cli bundle "docs/spec/openapi/apm-openapi.yaml" --ext yaml --output "docs/spec/openapi/bundled.yaml"
