@@ -29,7 +29,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-	"go.opentelemetry.io/otel/metric/noop"
+	noopmetric "go.opentelemetry.io/otel/metric/noop"
+	nooptrace "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
 	"golang.org/x/sync/semaphore"
@@ -231,7 +232,7 @@ func newServer(t *testing.T, batchProcessor modelpb.BatchProcessor, agentcfgFetc
 	semaphore := semaphore.NewWeighted(1)
 
 	core, observedLogs := observer.New(zap.DebugLevel)
-	RegisterGRPCServices(srv, zap.New(core), batchProcessor, agentcfgFetcher, semaphore, noop.NewMeterProvider())
+	RegisterGRPCServices(srv, zap.New(core), batchProcessor, agentcfgFetcher, semaphore, noopmetric.NewMeterProvider(), nooptrace.NewTracerProvider())
 
 	go srv.Serve(lis)
 	t.Cleanup(srv.GracefulStop)
