@@ -244,11 +244,11 @@ these terms.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/apm-data
-Version: v1.18.0
+Version: v1.19.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.18.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.19.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -455,11 +455,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.18.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20250603140231-e39ae683dc67
+Version: v7.0.0-alpha2.0.20250604125703-4195119f0e60
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250603140231-e39ae683dc67/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250604125703-4195119f0e60/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -8792,11 +8792,11 @@ limitations under the License.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/opentelemetry-lib
-Version: v0.14.0
+Version: v0.18.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/opentelemetry-lib@v0.14.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/opentelemetry-lib@v0.18.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -9033,11 +9033,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/sarama
-Version: v1.19.1-0.20250304185506-df6449b5c996
+Version: v1.19.1-0.20250603175145-7672917f26b6
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/sarama@v1.19.1-0.20250304185506-df6449b5c996/LICENSE.md:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/sarama@v1.19.1-0.20250603175145-7672917f26b6/LICENSE.md:
 
 # MIT License
 
@@ -15802,11 +15802,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/auto/sdk@v1.1.
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/consumer
-Version: v1.31.0
+Version: v1.32.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.31.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.32.0/LICENSE:
 
 
                                  Apache License
@@ -16014,11 +16014,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/cons
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/semconv
-Version: v0.125.0
+Version: v0.126.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/semconv@v0.125.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/semconv@v0.126.0/LICENSE:
 
 
                                  Apache License
@@ -16614,11 +16614,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto/googleapis/rpc
-Version: v0.0.0-20250218202821-56aae31c358a
+Version: v0.0.0-20250303144028-a0af3efb3deb
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20250218202821-56aae31c358a/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20250303144028-a0af3efb3deb/LICENSE:
 
 
                                  Apache License
