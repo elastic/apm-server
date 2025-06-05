@@ -25,8 +25,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        environment:
-          - 'pro'
         upgrade-path:
           # Latest 8.15 cannot upgrade to latest 8.17, it can only go to 8.17.3.
           # With our current setup (only latest patch), we have to upgrade to intermediate latest 8.16 instead.
@@ -51,12 +49,12 @@ jobs:
         with:
           export_to_environment: true
           secrets: |-
-            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-${{ matrix.environment }}-api-key
+            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
       - name: "Run upgrade tests"
         working-directory: ${{ github.workspace }}/integrationservertest
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          go test -run="TestUpgrade.*/.*/${{ matrix.scenario }}" -v -timeout=60m -target="${{ matrix.environment }}" -upgrade-path="${{ matrix.upgrade-path }}" ./
+          go test -run="TestUpgrade.*/.*/${{ matrix.scenario }}" -v -timeout=60m -target="pro" -upgrade-path="${{ matrix.upgrade-path }}" ./
 
   run-standalone:
     name: Standalone-to-managed tests
@@ -64,8 +62,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        environment:
-          - 'pro'
         scenario:
           - 'Managed7'
           - 'Managed8'
@@ -84,12 +80,12 @@ jobs:
         with:
           export_to_environment: true
           secrets: |-
-            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-${{ matrix.environment }}-api-key
+            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
       - name: "Run standalone-to-managed tests"
         working-directory: ${{ github.workspace }}/integrationservertest
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          go test -run="TestStandaloneManaged.*/${{ matrix.scenario }}" -v -timeout=60m -target="${{ matrix.environment }}" ./
+          go test -run="TestStandaloneManaged.*/${{ matrix.scenario }}" -v -timeout=60m -target="pro" ./
 
   notify:
     if: always()
