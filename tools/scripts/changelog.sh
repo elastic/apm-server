@@ -32,12 +32,12 @@ updateFile() {
 
 updateBreakingChanges() {
   # offset is number of lines below in the Next version section + 1
-  updateFile "./docs/release-notes/breaking-changes.md" 11
+  updateFile "./docs/release-notes/breaking-changes.md" 10
 }
 
 updateDeprecations() {
   # offset is number of lines below in the Next version section + 1
-  updateFile "./docs/release-notes/deprecations.md" 9
+  updateFile "./docs/release-notes/deprecations.md" 8
 }
 
 updateIndex() {
