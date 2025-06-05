@@ -354,16 +354,37 @@ testing/rally/corpora:
 # Integration Server Tests -- Upgrade tests for APM Server in ECH.
 ##############################################################################
 
+# Run integration server upgrade test on one scenario - Default / Reroute
 .PHONY: integration-server-upgrade-test
 integration-server-upgrade-test:
 ifndef UPGRADE_PATH
 	$(error UPGRADE_PATH is not set)
 endif
-	@cd integration-server-test && go test -run=TestUpgrade_UpgradePath -v -timeout=60m -cleanup-on-failure=false -target="pro" -upgrade-path="$(UPGRADE_PATH)}" ./
+ifndef SCENARIO
+	$(error SCENARIO is not set)
+endif
+	@cd integrationservertest && go test -run=TestUpgrade.*/.*/$(SCENARIO) -v -timeout=60m -cleanup-on-failure=false -target="pro" -upgrade-path="$(UPGRADE_PATH)}" ./
 
+# Run integration server upgrade test on all scenarios
+.PHONY: integration-server-upgrade-test-all
+integration-server-upgrade-test-all:
+ifndef UPGRADE_PATH
+	$(error UPGRADE_PATH is not set)
+endif
+	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath -v -timeout=60m -cleanup-on-failure=false -target="pro" -upgrade-path="$(UPGRADE_PATH)}" ./
+
+# Run integration server standalone test on one scenario - Managed7 / Managed8 / Managed9
 .PHONY: integration-server-standalone-test
 integration-server-standalone-test:
-	@cd integration-server-test && go test -run=TestStandaloneManaged -v -timeout=60m -cleanup-on-failure=false -target="pro" ./
+ifndef SCENARIO
+	$(error SCENARIO is not set)
+endif
+	@cd integrationservertest && go test -run=TestStandaloneManaged.*/$(SCENARIO) -v -timeout=60m -cleanup-on-failure=false -target="pro" ./
+
+# Run integration server standalone test on all scenarios
+.PHONY: integration-server-standalone-test-all
+integration-server-standalone-test-all:
+	@cd integrationservertest && go test -run=TestStandaloneManaged -v -timeout=60m -cleanup-on-failure=false -target="pro" ./
 
 ##############################################################################
 # Generating and linting API documentation

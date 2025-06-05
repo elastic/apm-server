@@ -51,10 +51,10 @@ jobs:
           secrets: |-
             EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
       - name: "Run upgrade tests"
-        working-directory: ${{ github.workspace }}/integrationservertest
+        working-directory: ${{ github.workspace }}
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          go test -run="TestUpgrade.*/.*/${{ matrix.scenario }}" -v -timeout=60m -target="pro" -upgrade-path="${{ matrix.upgrade-path }}" ./
+          SCENARIO="${{ matrix.scenario }}" UPGRADE_PATH="${{ matrix.upgrade-path }}" make integration-server-upgrade-test
 
   run-standalone:
     name: Standalone-to-managed tests
@@ -85,7 +85,7 @@ jobs:
         working-directory: ${{ github.workspace }}/integrationservertest
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          go test -run="TestStandaloneManaged.*/${{ matrix.scenario }}" -v -timeout=60m -target="pro" ./
+          SCENARIO="${{ matrix.scenario }}" make integration-server-standalone-test
 
   notify:
     if: always()
