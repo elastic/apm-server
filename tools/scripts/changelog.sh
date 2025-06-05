@@ -22,7 +22,6 @@ updateFile() {
   head -n "$(($LN + $offset))" "$file" > "$newfile"
   # introduce the new version header
   echo "## $VERSION [$anchor]" >> "$newfile"
-  echo "% **Release date:** Month day, year" >> "$newfile"
   # Add the rest of the file, skip placeholder content, replace next section with version.
   tail -n+$(($LN + $offset)) "$file" | \
     sed "s|## Next version.*|## $VERSION [$anchor]|g" /dev/stdin >> "$newfile"
@@ -53,7 +52,6 @@ updateIndex() {
   head -n "$(($LN - 1))" "$file" > "$newfile"
   # add template
   echo "## Next version [elastic-apm-next-release-notes]" >> "$newfile"
-  echo "% **Release date:** Month day, year" >> "$newfile"
   echo "" >> "$newfile"
   echo "### Features and enhancements [elastic-apm-next-features-enhancements]" >> "$newfile"
   echo "% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))" >> "$newfile"
@@ -63,7 +61,7 @@ updateIndex() {
   echo "" >> "$newfile"
   # introduce the new version header
   echo "## $VERSION [$anchor]" >> "$newfile"
-  echo "% **Release date:** Month day, year" >> "$newfile"
+  echo "" >> "$newfile"
   # Add the rest of the file, skip placeholder content, replace next section with version.
   tail -n+$(($LN + 2)) "$file" | \
     sed "s|elastic-apm-next-features-enhancements|$anchor-features-enhancements|g" /dev/stdin | \
