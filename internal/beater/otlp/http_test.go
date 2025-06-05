@@ -35,6 +35,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+	"go.opentelemetry.io/otel/trace/noop"
 	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -179,6 +180,7 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) (string,
 		func() bool { return true },
 		semaphore.NewWeighted(1),
 		mp,
+		noop.NewTracerProvider(),
 	)
 	require.NoError(t, err)
 	srv := http.Server{Handler: router}

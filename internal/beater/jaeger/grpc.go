@@ -29,6 +29,7 @@ import (
 	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -58,11 +59,13 @@ func RegisterGRPCServices(
 	fetcher agentcfg.Fetcher,
 	semaphore input.Semaphore,
 	mp metric.MeterProvider,
+	tp trace.TracerProvider,
 ) {
 	traceConsumer := otlp.NewConsumer(otlp.ConsumerConfig{
-		Processor: processor,
-		Logger:    logger,
-		Semaphore: semaphore,
+		Processor:     processor,
+		Logger:        logger,
+		Semaphore:     semaphore,
+		TraceProvider: tp,
 	})
 
 	logger.Info(deprecationNotice)
