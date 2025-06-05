@@ -299,7 +299,7 @@ func TestInvalidation(t *testing.T) {
 			cancel()
 			<-invCh
 			// wait for invalidationChan to be closed so
-			// the background goroutine is done
+			// the background goroutine created by NewMetadataFetcher is done
 			for range invalidationChan {
 			}
 		})
