@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"sync"
@@ -148,7 +149,7 @@ func NewStorageManager(storageDir string, logger *logp.Logger, opts ...StorageMa
 		},
 	}
 	sm.getDBSize = func() uint64 {
-		return sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage()
+		return dbDiskSpaceUsage(sm.eventDB) + dbDiskSpaceUsage(sm.decisionDB)
 	}
 	for _, opt := range opts {
 		opt(sm)
@@ -465,4 +466,15 @@ func wrapNonNilErr(format string, err error) error {
 		return nil
 	}
 	return fmt.Errorf(format, err)
+}
+
+// dbDiskSpaceUsage works around a negative db.Metrics().Table.Local.ObsoleteSize that overflows a uint64.
+// See https://github.com/elastic/apm-server/issues/17043
+func dbDiskSpaceUsage(db *pebble.DB) uint64 {
+	m := db.Metrics()
+	dsu := m.DiskSpaceUsage()
+	if m.Table.Local.ObsoleteSize > math.MaxInt64 {
+		return dsu - m.Table.Local.ObsoleteSize
+	}
+	return dsu
 }
