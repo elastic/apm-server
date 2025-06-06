@@ -2,8 +2,6 @@ module github.com/elastic/apm-server
 
 go 1.24.3
 
-toolchain go1.24.4
-
 require (
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/dgraph-io/badger/v2 v2.2007.4
