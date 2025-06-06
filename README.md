@@ -1,5 +1,5 @@
 [![ci](https://github.com/elastic/apm-server/actions/workflows/ci.yml/badge.svg)](https://github.com/elastic/apm-server/actions/workflows/ci.yml)
-[![Smoke Tests](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-schedule.yml/badge.svg)](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-schedule.yml)
+[![Smoke Tests](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-os-sched.yml/badge.svg)](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-os-sched.yml)
 [![Package status](https://badge.buildkite.com/fc4aa824ffecf245db871971507275aa3c35904e380fef449c.svg?branch=main)](https://buildkite.com/elastic/apm-server-package)
 
 # APM Server
