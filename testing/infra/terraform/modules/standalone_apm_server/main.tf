@@ -13,6 +13,7 @@ locals {
     "RHEL-9"                           = "309956199498" # Red Hat
   }
   instance_types = {
+<<<<<<< HEAD
     "ubuntu-bionic-18.04-arm64-server" = "t4g.nano"
     "ubuntu-focal-20.04-arm64-server"  = "t4g.nano"
     "ubuntu-jammy-22.04-arm64-server"  = "t4g.nano"
@@ -24,6 +25,22 @@ locals {
     "RHEL-7"                           = "t3a.micro" # RHEL-7 doesn't support arm
     "RHEL-8"                           = "t4g.micro" # RHEL doesn't support nano instances
     "RHEL-9"                           = "t4g.micro" # RHEL doesn't support nano instances
+=======
+    "ubuntu-focal-20.04-arm64-server" = "t4g.nano"
+    "ubuntu-jammy-22.04-arm64-server" = "t4g.nano"
+    "ubuntu-noble-24.04-arm64-server" = "t4g.nano"
+    "debian-12-arm64"                 = "t4g.nano"
+    "al2023-ami-2023"                 = "t4g.nano"
+    "al2023-ami-2023.*-x86_64"        = "t3a.micro"
+    "RHEL-8"                          = "t4g.micro" # RHEL doesn't support nano instances
+    "RHEL-9"                          = "t4g.micro" # RHEL doesn't support nano instances
+    "Rocky-8-EC2-Base"                = "t4g.micro" # Larger instance size to improve test reliability
+    "Rocky-9-EC2-Base"                = "t4g.nano"
+    "AlmaLinux OS 8"                  = "t4g.nano"
+    "AlmaLinux OS 9"                  = "t4g.nano"
+    "OL8"                             = "t4g.nano"
+    "OL9"                             = "t4g.nano"
+>>>>>>> 028e8181 (smoke: Increase Rocky-8 instance type to `t4g.micro` (#17116))
   }
   instance_arch = {
     "ubuntu-bionic-18.04-arm64-server" = "arm64"
