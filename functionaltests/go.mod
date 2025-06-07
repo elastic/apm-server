@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server/functionaltests
 
-go 1.24.3
+go 1.24.4
 
 require (
 	github.com/dnaeon/go-vcr v1.2.0
