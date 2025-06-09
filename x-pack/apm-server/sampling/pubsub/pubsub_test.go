@@ -240,7 +240,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	}
 }
 
-func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
+func TestSubscribeSampledTraceIDsStatsError(t *testing.T) {
 	statsRequests := make(chan struct{})
 	firstStats := true
 	m := newMockElasticsearchServer(t)
@@ -267,6 +267,37 @@ func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
 		case <-statsRequests:
 		case <-timeout:
 			t.Fatal("timed out waiting for _stats request")
+		}
+	}
+}
+
+func TestSubscribeSampledTraceIDsRefreshError(t *testing.T) {
+	refreshRequests := make(chan struct{})
+	first := true
+	m := newMockElasticsearchServer(t)
+	m.searchStatusCode = http.StatusNotFound
+	m.statsGlobalCheckpoint = 99
+	m.onRefresh = func(r *http.Request) {
+		select {
+		case <-r.Context().Done():
+		case refreshRequests <- struct{}{}:
+		}
+		if first {
+			first = false
+			return
+		}
+		m.refreshStatusCode = http.StatusInternalServerError
+	}
+	newSubscriber(t, m.srv)
+
+	// Show that failed requests to Elasticsearch are not fatal, and
+	// that the subscriber will retry.
+	timeout := time.After(10 * time.Second)
+	for i := 0; i < 10; i++ {
+		select {
+		case <-refreshRequests:
+		case <-timeout:
+			t.Fatal("timed out waiting for _refresh request")
 		}
 	}
 }
@@ -324,6 +355,9 @@ type mockElasticsearchServer struct {
 	// statsStatusCode is the status code that the _stats/get handler responds with.
 	statsStatusCode int
 
+	// refreshStatusCode is the status code that the _refresh handler responds with.
+	refreshStatusCode int
+
 	// searchResults is the search hits that the _search handler responds with.
 	searchResults []searchHit
 
@@ -334,6 +368,10 @@ type mockElasticsearchServer struct {
 	// This may be used to adjust the status code or global checkpoint that will be
 	// returned.
 	onStats func(r *http.Request)
+
+	// onRefresh is a function that is invoked whenever a _refresh request is received.
+	// This may be used to adjust the status code.
+	onRefresh func(r *http.Request)
 
 	// onSearch is a function that is invoked whenever a _search request is received.
 	// This may be used to check the search query, and adjust the search results that
@@ -347,11 +385,13 @@ type mockElasticsearchServer struct {
 
 func newMockElasticsearchServer(t testing.TB) *mockElasticsearchServer {
 	m := &mockElasticsearchServer{
-		statsStatusCode:  http.StatusOK,
-		searchStatusCode: http.StatusOK,
-		onStats:          func(*http.Request) {},
-		onSearch:         func(*http.Request) {},
-		onBulk:           func(*http.Request) {},
+		statsStatusCode:   http.StatusOK,
+		refreshStatusCode: http.StatusOK,
+		searchStatusCode:  http.StatusOK,
+		onStats:           func(*http.Request) {},
+		onRefresh:         func(*http.Request) {},
+		onSearch:          func(*http.Request) {},
+		onBulk:            func(*http.Request) {},
 	}
 
 	mux := http.NewServeMux()
@@ -402,7 +442,8 @@ func (m *mockElasticsearchServer) handleStats(w http.ResponseWriter, r *http.Req
 }
 
 func (m *mockElasticsearchServer) handleRefresh(w http.ResponseWriter, r *http.Request) {
-	// Empty 200 OK response
+	m.onRefresh(r)
+	w.WriteHeader(m.refreshStatusCode)
 }
 
 func (m *mockElasticsearchServer) handleSearch(w http.ResponseWriter, r *http.Request) {
