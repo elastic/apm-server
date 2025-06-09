@@ -74,11 +74,11 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/cockroachdb/pebble/v2
-Version: v2.0.4
+Version: v2.0.5
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble/v2@v2.0.4/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble/v2@v2.0.5/LICENSE:
 
 Copyright (c) 2011 The LevelDB-Go Authors. All rights reserved.
 
@@ -4192,11 +4192,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/pdata
-Version: v1.33.0
+Version: v1.34.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.33.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.34.0/LICENSE:
 
 
                                  Apache License
