@@ -124,12 +124,12 @@ github.com/cockroachdb/metamorphic v0.0.0-20231108215700-4ba948b56895 h1:XANOgPY
 github.com/cockroachdb/metamorphic v0.0.0-20231108215700-4ba948b56895/go.mod h1:aPd7gM9ov9M8v32Yy5NJrDyOcD8z642dqs+F0CeNXfA=
 github.com/cockroachdb/pebble v1.1.2 h1:CUh2IPtR4swHlEj48Rhfzw6l/d0qA31fItcIszQVIsA=
 github.com/cockroachdb/pebble v1.1.2/go.mod h1:4exszw1r40423ZsmkG/09AFEG83I0uDgfujJdbL6kYU=
-github.com/cockroachdb/pebble/v2 v2.0.2 h1:PmmN7V/rDK+xgp5HiPV9e7ycAalyMjKwSIrcj/4HQz4=
-github.com/cockroachdb/pebble/v2 v2.0.2/go.mod h1:NgxgNcWwyG/uxkLUZGM2aelshaLIZvc0hCX7SCfaO8s=
+github.com/cockroachdb/pebble/v2 v2.0.5 h1:fTDR65vj+MzdOY+B5ZjQoYjKZp8O/8micl2hmDhdRSA=
+github.com/cockroachdb/pebble/v2 v2.0.5/go.mod h1:VqRjBA5foHAE0sW2N/E8lg+y0zHWV1xKLZNGoReg16c=
 github.com/cockroachdb/redact v1.1.5 h1:u1PMllDkdFfPWaNGMyLD1+so+aq3uUItthCFqzwPJ30=
 github.com/cockroachdb/redact v1.1.5/go.mod h1:BVNblN9mBWFyMyqK1k3AAiSxhvhfK2oOZZ2lK+dpvRg=
-github.com/cockroachdb/swiss v0.0.0-20250228210649-a321086955f2 h1:CoX69Km9dzIKq0r3XIm5Ylnvfdm/xQWIv7p40M6YMEk=
-github.com/cockroachdb/swiss v0.0.0-20250228210649-a321086955f2/go.mod h1:yBRu/cnL4ks9bgy4vAASdjIW+/xMlFwuHKqtmh3GZQg=
+github.com/cockroachdb/swiss v0.0.0-20250304010804-34a2c6a59016 h1:d0dxi6Q8yGtRBupybhtBC4GJk8WegtDAFr+Xk+/3sSE=
+github.com/cockroachdb/swiss v0.0.0-20250304010804-34a2c6a59016/go.mod h1:yBRu/cnL4ks9bgy4vAASdjIW+/xMlFwuHKqtmh3GZQg=
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 h1:zuQyyAKVxetITBuuhv3BI9cMrmStnpT18zmgmTxunpo=
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06/go.mod h1:7nc4anLGjupUW/PeY5qiNYsdNXj7zopG+eqsS7To5IQ=
 github.com/cpuguy83/go-md2man/v2 v2.0.6 h1:XJtiaUW6dEEqVuZiMTn1ldk455QWwEIsMIJlo5vtkx0=
