@@ -24,7 +24,7 @@ func getGlobalCheckpoints(
 	indexGlobalCheckpoints := make(map[string]int64)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/"+dataStream+"/_stats/get?level=shards", nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to created indices request: %w", err)
+		return nil, fmt.Errorf("failed to create index stats request: %w", err)
 	}
 	resp, err := client.Perform(req)
 	if err != nil {
@@ -38,12 +38,12 @@ func getGlobalCheckpoints(
 			return indexGlobalCheckpoints, nil
 		}
 		message, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("index stats request failed: %s", message)
+		return nil, fmt.Errorf("index stats request failed with status code %d: %s", resp.StatusCode, message)
 	}
 
 	var stats dataStreamStats
 	if err := json.NewDecoder(resp.Body).Decode(&stats); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse index stats response: %w", err)
 	}
 
 	for index, indexStats := range stats.Indices {
