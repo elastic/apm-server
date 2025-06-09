@@ -119,6 +119,14 @@ patch-release:
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
 	$(MAKE) create-pull-request BRANCH=$(BRANCH_PATCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_VERSION): update versions" BODY="Merge on request by the Release Manager." BACKPORT_LABEL=backport-skip
 
+	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
+	$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH)
+	$(MAKE) update-changelog VERSION=$(RELEASE_VERSION)
+	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update changelogs for $(RELEASE_BRANCH) release"
+	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
+	git push origin update-$(RELEASE_VERSION)
+	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update release notes" BODY="Merge as soon as the GitHub checks are green."
+
 ############################################
 ## Internal make goals to bump versions
 ############################################
