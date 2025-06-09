@@ -153,9 +153,8 @@ func (p *Pubsub) SubscribeSampledTraceIDs(
 		case <-ticker.C:
 			changed, err := p.searchTraceIDs(ctx, traceIDs, pos.observedSeqnos)
 			if err != nil {
-				// Errors may occur due to rate limiting, or while the index is
-				// still being created, so just log and continue.
-				p.config.Logger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Debug("error searching for trace IDs")
+				// Errors may occur due to rate limiting so just log and continue.
+				p.config.Logger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Error("error searching for trace IDs")
 				continue
 			}
 			if changed {
