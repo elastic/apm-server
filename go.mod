@@ -5,7 +5,11 @@ go 1.24.3
 require (
 	github.com/KimMachineGun/automemlimit v0.7.0
 	github.com/cespare/xxhash/v2 v2.3.0
+<<<<<<< HEAD
 	github.com/cockroachdb/pebble/v2 v2.0.2
+=======
+	github.com/cockroachdb/pebble/v2 v2.0.5
+>>>>>>> b6d397da (TBS: Fix incorrectly large pebble database lsm_size monitoring metric (#17149))
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.2.0
 	github.com/elastic/apm-data v1.16.0

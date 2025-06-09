@@ -74,11 +74,19 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/cockroachdb/pebble/v2
+<<<<<<< HEAD
 Version: v2.0.2
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble/v2@v2.0.2/LICENSE:
+=======
+Version: v2.0.5
+Licence type (autodetected): BSD-3-Clause
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble/v2@v2.0.5/LICENSE:
+>>>>>>> b6d397da (TBS: Fix incorrectly large pebble database lsm_size monitoring metric (#17149))
 
 Copyright (c) 2011 The LevelDB-Go Authors. All rights reserved.
 
