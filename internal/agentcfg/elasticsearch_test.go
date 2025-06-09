@@ -28,9 +28,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.elastic.co/apm/v2"
-	"go.elastic.co/apm/v2/apmtest"
-	"go.opentelemetry.io/otel/metric/noop"
+	metricnoop "go.opentelemetry.io/otel/metric/noop"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
@@ -59,7 +60,7 @@ func newElasticsearchFetcher(
 	t testing.TB,
 	hits []map[string]interface{},
 	searchSize int,
-	rt *apm.Tracer,
+	tp trace.TracerProvider,
 ) *ElasticsearchFetcher {
 	var maxScore = func(hits []map[string]interface{}) interface{} {
 		if len(hits) == 0 {
@@ -106,14 +107,29 @@ func newElasticsearchFetcher(
 		w.WriteHeader(200)
 		w.Write(b)
 		i += searchSize
-	}), time.Second, nil, rt, noop.NewMeterProvider(), logptest.NewTestingLogger(t, ""))
+	}), time.Second, nil, tp, metricnoop.NewMeterProvider(), logptest.NewTestingLogger(t, ""))
 	fetcher.searchSize = searchSize
 	return fetcher
 }
 
+type manualExporter struct {
+	spans []sdktrace.ReadOnlySpan
+}
+
+func (e *manualExporter) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error {
+	e.spans = append(e.spans, spans...)
+	return nil
+}
+
+func (e *manualExporter) Shutdown(ctx context.Context) error {
+	return nil
+}
+
 func TestRun(t *testing.T) {
-	rt := apmtest.NewRecordingTracer()
-	fetcher := newElasticsearchFetcher(t, sampleHits, 2, rt.Tracer)
+	exporter := &manualExporter{}
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporter)))
+
+	fetcher := newElasticsearchFetcher(t, sampleHits, 2, tp)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -123,22 +139,19 @@ func TestRun(t *testing.T) {
 	}()
 
 	assert.Eventually(t, func() bool {
-		rt.Tracer.Flush(nil)
-		payloads := rt.Payloads()
-		return len(payloads.Transactions) == 1 && len(payloads.Spans) == 4
+		tp.ForceFlush(t.Context())
+		payloads := exporter.spans
+		return len(payloads) == 2
 	}, 10*time.Second, 10*time.Millisecond)
 
-	payloads := rt.Payloads()
-	assert.Equal(t, "ElasticsearchFetcher.refresh", payloads.Transactions[0].Name)
-	assert.Equal(t, "Elasticsearch: POST .apm-agent-configuration/_search", payloads.Spans[0].Name)
-	assert.Equal(t, "Elasticsearch: POST _search/scroll", payloads.Spans[1].Name)
-	assert.Equal(t, "Elasticsearch: DELETE _search/scroll/", payloads.Spans[2].Name[:37]) // trim scrollID
-	assert.Equal(t, "ElasticsearchFetcher.refreshCache", payloads.Spans[3].Name)
+	payloads := exporter.spans
+	assert.Equal(t, "ElasticsearchFetcher.refreshCache", payloads[0].Name())
+	assert.Equal(t, "ElasticsearchFetcher.refresh", payloads[1].Name())
+	assert.Equal(t, payloads[1].SpanContext().SpanID(), payloads[0].Parent().SpanID())
 }
 
 func TestFetch(t *testing.T) {
-	rt := apmtest.NewRecordingTracer()
-	fetcher := newElasticsearchFetcher(t, sampleHits, 2, rt.Tracer)
+	fetcher := newElasticsearchFetcher(t, sampleHits, 2, tracenoop.NewTracerProvider())
 	err := fetcher.refreshCache(context.Background())
 	require.NoError(t, err)
 	require.Len(t, fetcher.cache, 2)
@@ -153,8 +166,7 @@ func TestFetch(t *testing.T) {
 }
 
 func TestRefreshCacheScroll(t *testing.T) {
-	rt := apmtest.NewRecordingTracer()
-	fetcher := newElasticsearchFetcher(t, sampleHits, 1, rt.Tracer)
+	fetcher := newElasticsearchFetcher(t, sampleHits, 1, tracenoop.NewTracerProvider())
 	err := fetcher.refreshCache(context.Background())
 	require.NoError(t, err)
 	require.Len(t, fetcher.cache, 2)
@@ -163,8 +175,7 @@ func TestRefreshCacheScroll(t *testing.T) {
 }
 
 func TestFetchOnCacheNotReady(t *testing.T) {
-	rt := apmtest.NewRecordingTracer()
-	fetcher := newElasticsearchFetcher(t, []map[string]interface{}{}, 1, rt.Tracer)
+	fetcher := newElasticsearchFetcher(t, []map[string]interface{}{}, 1, tracenoop.NewTracerProvider())
 
 	_, err := fetcher.Fetch(context.Background(), Query{Service: Service{Name: ""}, Etag: ""})
 	require.EqualError(t, err, ErrInfrastructureNotReady)
@@ -194,8 +205,8 @@ func TestFetchUseFallback(t *testing.T) {
 		}),
 		time.Second,
 		fallbackFetcher,
-		apmtest.NewRecordingTracer().Tracer,
-		noop.NewMeterProvider(),
+		tracenoop.NewTracerProvider(),
+		metricnoop.NewMeterProvider(),
 		logptest.NewTestingLogger(t, ""),
 	)
 
@@ -211,8 +222,8 @@ func TestFetchNoFallbackInvalidESCfg(t *testing.T) {
 		}),
 		time.Second,
 		nil,
-		apmtest.NewRecordingTracer().Tracer,
-		noop.NewMeterProvider(),
+		tracenoop.NewTracerProvider(),
+		metricnoop.NewMeterProvider(),
 		logptest.NewTestingLogger(t, ""),
 	)
 
@@ -229,8 +240,8 @@ func TestFetchNoFallback(t *testing.T) {
 		}),
 		time.Second,
 		nil,
-		apmtest.NewRecordingTracer().Tracer,
-		noop.NewMeterProvider(),
+		tracenoop.NewTracerProvider(),
+		metricnoop.NewMeterProvider(),
 		logptest.NewTestingLogger(t, ""),
 	)
 

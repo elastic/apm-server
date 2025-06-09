@@ -243,7 +243,7 @@ func newAgentConfigFetcher(
 	cfg *config.Config,
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
-	tracer *apm.Tracer,
+	tp trace.TracerProvider,
 	mp metric.MeterProvider,
 	logger *logp.Logger,
 ) (agentcfg.Fetcher, func(context.Context) error, error) {
@@ -270,6 +270,6 @@ func newAgentConfigFetcher(
 	if err != nil {
 		return nil, nil, err
 	}
-	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tracer, mp, logger)
+	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tp, mp, logger)
 	return agentcfg.SanitizingFetcher{Fetcher: esFetcher}, esFetcher.Run, nil
 }
