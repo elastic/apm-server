@@ -35,8 +35,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+<<<<<<< HEAD
 	"go.elastic.co/apm/v2/apmtest"
 	"go.opentelemetry.io/otel/metric/noop"
+=======
+	"go.opentelemetry.io/otel/trace/noop"
+>>>>>>> 512bfc93 (feat(sourcemap): replace apm tracer with otel tracing (#17137))
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -81,7 +85,7 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	_, cancel, err := newSourcemapFetcher(
 		cfg.RumConfig.SourceMapping,
 		nil, elasticsearch.NewClient,
-		apmtest.NewRecordingTracer().Tracer,
+		noop.NewTracerProvider(),
 		logptest.NewTestingLogger(t, ""),
 	)
 	require.NoError(t, err)
