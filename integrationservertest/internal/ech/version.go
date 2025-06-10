@@ -259,7 +259,7 @@ func parseVersionPrefix(prefix string) (looseVersion, error) {
 	// First match is the whole string, last match is the suffix, total 5
 	matches := looseVersionRegex.FindStringSubmatch(prefix)
 	if len(matches) == 0 || len(matches) > 5 {
-		return looseVersion{}, errors.New("invalid prefix format")
+		return looseVersion{}, fmt.Errorf("invalid prefix format: %s", prefix)
 	}
 
 	major, err := strconv.ParseUint(matches[1], 10, 64)
