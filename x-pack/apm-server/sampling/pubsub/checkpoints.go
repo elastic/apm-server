@@ -11,8 +11,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/pkg/errors"
-
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
@@ -33,7 +31,7 @@ func getGlobalCheckpoints(
 		Metric: []string{"get"},
 	}.Do(ctx, client)
 	if err != nil {
-		return nil, errors.Wrap(err, "index stats request failed")
+		return nil, fmt.Errorf("index stats request failed: %w", err)
 	}
 	defer resp.Body.Close()
 	if resp.IsError() {
@@ -41,14 +39,17 @@ func getGlobalCheckpoints(
 		case http.StatusNotFound:
 			// Data stream does not yet exist.
 			return indexGlobalCheckpoints, nil
+		case http.StatusTooManyRequests:
+			message, _ := io.ReadAll(resp.Body)
+			return nil, fmt.Errorf("index stats request failed with status code %w: %s", errTooManyRequests, message)
 		}
 		message, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("index stats request failed: %s", message)
+		return nil, fmt.Errorf("index stats request failed with status code %d: %s", resp.StatusCode, message)
 	}
 
 	var stats dataStreamStats
 	if err := json.NewDecoder(resp.Body).Decode(&stats); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse index stats response: %w", err)
 	}
 
 	for index, indexStats := range stats.Indices {
