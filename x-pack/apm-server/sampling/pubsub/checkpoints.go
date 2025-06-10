@@ -11,8 +11,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/pkg/errors"
-
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
@@ -33,15 +31,7 @@ func getGlobalCheckpoints(
 		Metric: []string{"get"},
 	}.Do(ctx, client)
 	if err != nil {
-<<<<<<< HEAD
-		return nil, errors.Wrap(err, "index stats request failed")
-=======
-		return nil, fmt.Errorf("failed to create index stats request: %w", err)
-	}
-	resp, err := client.Perform(req)
-	if err != nil {
 		return nil, fmt.Errorf("index stats request failed: %w", err)
->>>>>>> 6d414320 (TBS: Log pubsub errors at error or warn level (#17135))
 	}
 	defer resp.Body.Close()
 	if resp.IsError() {
