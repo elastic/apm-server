@@ -15,9 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//go:build requirefips && !relaxfips
-
-// enforce fips140=only when running in fips mode
-//go:debug fips140=only
-
-package main
+// Package asserts provides assertion helpers for our tests.
+// Assertions can be implemented as public functions, hiding the additional
+// logic/types required for a more ergonomic implementation and with
+// unit tests coverage to ease development.
+package asserts
