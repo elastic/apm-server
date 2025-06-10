@@ -18,7 +18,7 @@ COPY script /src/script
 
 RUN --mount=type=cache,target=/root/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    make apm-server-fips
+    make apm-server-fips-msft
 
 COPY --chmod=0644 apm-server-fips.yml ./apm-server.yml
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
