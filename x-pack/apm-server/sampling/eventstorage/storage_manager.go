@@ -265,8 +265,10 @@ func (sm *StorageManager) updateDiskUsage() {
 	lsmSize := sm.getDBSize()
 	sm.cachedDBSize.Store(lsmSize)
 
-	if sm.meterProvider != nil {
+	if sm.storageMetrics.lsmSizeGauge != nil {
 		sm.storageMetrics.lsmSizeGauge.Record(context.Background(), int64(lsmSize))
+	}
+	if sm.storageMetrics.valueLogSizeGauge != nil {
 		sm.storageMetrics.valueLogSizeGauge.Record(context.Background(), int64(defaultValueLogSize))
 	}
 
@@ -296,6 +298,9 @@ func (sm *StorageManager) diskUsed() uint64 {
 
 // runDiskUsageLoop runs a loop that updates cached disk usage regularly and reports usage.
 func (sm *StorageManager) runDiskUsageLoop(stopping <-chan struct{}) error {
+	// initial disk usage update so data is available immediately
+	sm.updateDiskUsage()
+
 	ticker := time.NewTicker(diskUsageFetchInterval)
 	defer ticker.Stop()
 	for {

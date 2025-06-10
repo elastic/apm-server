@@ -595,7 +595,7 @@ func TestGroupsMonitoring(t *testing.T) {
 //
 // It is helpful to provide multiple names for synchronous metrics to avoid losing data when collecting.
 // Observable metrics report everytime Collect is called, so there will be no data loss.
-func getGaugeValues(t testing.TB, reader sdkmetric.Reader, names []string) []int64 {
+func getGaugeValues(t testing.TB, reader sdkmetric.Reader, names ...string) []int64 {
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
@@ -644,7 +644,7 @@ func TestStorageMonitoring(t *testing.T) {
 	require.NoError(t, config.DB.Flush())
 
 	metricsNames := []string{"apm-server.sampling.tail.storage.lsm_size", "apm-server.sampling.tail.storage.value_log_size"}
-	gaugeValues := getGaugeValues(t, tempdirConfig.metricReader, metricsNames)
+	gaugeValues := getGaugeValues(t, tempdirConfig.metricReader, metricsNames...)
 	assert.Len(t, gaugeValues, 2)
 
 	lsmSize := gaugeValues[0]
