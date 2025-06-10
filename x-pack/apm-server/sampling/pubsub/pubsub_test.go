@@ -12,11 +12,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-<<<<<<< HEAD
-=======
-	"net/url"
 	"strconv"
->>>>>>> 6d414320 (TBS: Log pubsub errors at error or warn level (#17135))
 	"strings"
 	"sync"
 	"testing"
@@ -31,13 +27,9 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
-<<<<<<< HEAD
-	"github.com/elastic/go-elasticsearch/v8"
-=======
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
-	"github.com/elastic/elastic-transport-go/v8/elastictransport"
->>>>>>> 6d414320 (TBS: Log pubsub errors at error or warn level (#17135))
+	"github.com/elastic/go-elasticsearch/v8"
 )
 
 const (
@@ -385,18 +377,9 @@ func newSubscriberPosition(t testing.TB, srv *httptest.Server, pos pubsub.Subscr
 	return ids, positions, cancelFunc
 }
 
-<<<<<<< HEAD
-func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval time.Duration) *pubsub.Pubsub {
+func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval time.Duration, logger *logp.Logger) *pubsub.Pubsub {
 	client, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: []string{srv.URL},
-=======
-func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval time.Duration, logger *logp.Logger) *pubsub.Pubsub {
-	u, err := url.Parse(srv.URL)
-	require.NoError(t, err)
-
-	client, err := elastictransport.New(elastictransport.Config{
-		URLs: []*url.URL{u},
->>>>>>> 6d414320 (TBS: Log pubsub errors at error or warn level (#17135))
 	})
 	require.NoError(t, err)
 
@@ -410,10 +393,7 @@ func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval
 		ServerID:       serverID,
 		FlushInterval:  flushInterval,
 		SearchInterval: searchInterval,
-<<<<<<< HEAD
-=======
 		Logger:         logger,
->>>>>>> 6d414320 (TBS: Log pubsub errors at error or warn level (#17135))
 	})
 	require.NoError(t, err)
 	return sub
