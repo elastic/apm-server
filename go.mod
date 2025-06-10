@@ -1,10 +1,6 @@
 module github.com/elastic/apm-server
 
-<<<<<<< HEAD
-go 1.24.2
-=======
 go 1.24.4
->>>>>>> 08d2bf30 ([updatecli] Bump Golang version to 1.24.4 (#17175))
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.0
