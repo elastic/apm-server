@@ -31,7 +31,10 @@ import (
 // ErrClosed may be returned by Pubsub methods after the Close method is called.
 var ErrClosed = errors.New("pubsub closed")
 
-var errIndexNotFound = errors.New("index not found")
+var (
+	errIndexNotFound   = errors.New("index not found")
+	errTooManyRequests = errors.New("429")
+)
 
 // Pubsub provides a means of publishing and subscribing to sampled trace IDs,
 // using Elasticsearch for temporary storage.
@@ -153,8 +156,12 @@ func (p *Pubsub) SubscribeSampledTraceIDs(
 		case <-ticker.C:
 			changed, err := p.searchTraceIDs(ctx, traceIDs, pos.observedSeqnos)
 			if err != nil {
-				// Errors may occur due to rate limiting so just log and continue.
-				p.config.Logger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Error("error searching for trace IDs")
+				logger := p.config.Logger.With(logp.Error(err)).With(logp.Reflect("position", pos))
+				if errors.Is(err, errTooManyRequests) {
+					logger.Warn("error searching for trace IDs")
+				} else {
+					logger.Error("error searching for trace IDs")
+				}
 				continue
 			}
 			if changed {
@@ -245,6 +252,10 @@ func (p *Pubsub) refreshIndices(ctx context.Context, indices []string) error {
 	if resp.StatusCode > 299 {
 		// No need to handle 404 because of ignore_unavailable=true
 		message, _ := io.ReadAll(resp.Body)
+		switch resp.StatusCode {
+		case http.StatusTooManyRequests:
+			return fmt.Errorf("index refresh request failed with status code %w: %s", errTooManyRequests, message)
+		}
 		return fmt.Errorf("index refresh request failed with status code %d: %s", resp.StatusCode, message)
 	}
 	return nil
@@ -348,6 +359,10 @@ func (p *Pubsub) doSearchRequest(ctx context.Context, index string, body io.Read
 			return errIndexNotFound
 		}
 		message, _ := io.ReadAll(resp.Body)
+		switch resp.StatusCode {
+		case http.StatusTooManyRequests:
+			return fmt.Errorf("search request failed with status code %w: %s", errTooManyRequests, message)
+		}
 		return fmt.Errorf("search request failed with status code %d: %s", resp.StatusCode, message)
 	}
 	if err := json.NewDecoder(resp.Body).Decode(out); err != nil {

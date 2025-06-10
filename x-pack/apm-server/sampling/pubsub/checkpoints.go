@@ -36,6 +36,9 @@ func getGlobalCheckpoints(
 		case http.StatusNotFound:
 			// Data stream does not yet exist.
 			return indexGlobalCheckpoints, nil
+		case http.StatusTooManyRequests:
+			message, _ := io.ReadAll(resp.Body)
+			return nil, fmt.Errorf("index stats request failed with status code %w: %s", errTooManyRequests, message)
 		}
 		message, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("index stats request failed with status code %d: %s", resp.StatusCode, message)
