@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,6 +24,7 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 )
 
