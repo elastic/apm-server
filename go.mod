@@ -79,7 +79,7 @@ require (
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/caarlos0/go-version v0.2.0 // indirect
 	github.com/cavaliergopher/cpio v1.0.1 // indirect
-	github.com/cloudflare/circl v1.3.8 // indirect
+	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/cockroachdb/crlib v0.0.0-20241015224233-894974b3ad94 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240816210425-c5d0cb0b6fc0 // indirect
