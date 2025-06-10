@@ -52,6 +52,9 @@ const (
 	// that applies when disk usage threshold cannot be enforced due to an error.
 	dbStorageLimitFallback = 3 << 30
 
+	// defaultValueLogSize default is 0 because pebble does not have a vlog.
+	defaultValueLogSize = 0
+
 	gb = float64(1 << 30)
 )
 
@@ -127,9 +130,15 @@ type StorageManager struct {
 	runCh chan struct{}
 
 	// meterProvider is the OTel meter provider
-	meterProvider metric.MeterProvider
+	meterProvider  metric.MeterProvider
+	storageMetrics storageMetrics
 
 	metricRegistration metric.Registration
+}
+
+type storageMetrics struct {
+	lsmSizeGauge      metric.Int64Gauge
+	valueLogSizeGauge metric.Int64Gauge
 }
 
 // NewStorageManager returns a new StorageManager with pebble DB at storageDir.
@@ -156,15 +165,9 @@ func NewStorageManager(storageDir string, logger *logp.Logger, opts ...StorageMa
 
 	if sm.meterProvider != nil {
 		meter := sm.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
-		lsmSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.lsm_size")
-		valueLogSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.value_log_size")
 
-		sm.metricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
-			lsmSize, valueLogSize := sm.Size()
-			o.ObserveInt64(lsmSizeGauge, lsmSize)
-			o.ObserveInt64(valueLogSizeGauge, valueLogSize)
-			return nil
-		}, lsmSizeGauge, valueLogSizeGauge)
+		sm.storageMetrics.lsmSizeGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
+		sm.storageMetrics.valueLogSizeGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.value_log_size")
 	}
 
 	if err := sm.reset(); err != nil {
@@ -249,7 +252,7 @@ func (sm *StorageManager) Size() (lsm, vlog int64) {
 	// Also remember to update
 	// - x-pack/apm-server/sampling/processor.go:CollectMonitoring
 	// - systemtest/benchtest/expvar/metrics.go
-	return int64(sm.dbSize()), 0
+	return int64(sm.dbSize()), defaultValueLogSize
 }
 
 // dbSize returns the disk usage of databases in bytes.
@@ -259,7 +262,13 @@ func (sm *StorageManager) dbSize() uint64 {
 }
 
 func (sm *StorageManager) updateDiskUsage() {
-	sm.cachedDBSize.Store(sm.getDBSize())
+	lsmSize := sm.getDBSize()
+	sm.cachedDBSize.Store(lsmSize)
+
+	if sm.meterProvider != nil {
+		sm.storageMetrics.lsmSizeGauge.Record(context.Background(), int64(lsmSize))
+		sm.storageMetrics.valueLogSizeGauge.Record(context.Background(), int64(defaultValueLogSize))
+	}
 
 	if sm.getDiskUsageFailed.Load() {
 		// Skip GetDiskUsage under the assumption that
@@ -285,7 +294,7 @@ func (sm *StorageManager) diskUsed() uint64 {
 	return sm.cachedDiskStat.used.Load()
 }
 
-// runDiskUsageLoop runs a loop that updates cached disk usage regularly.
+// runDiskUsageLoop runs a loop that updates cached disk usage regularly and reports usage.
 func (sm *StorageManager) runDiskUsageLoop(stopping <-chan struct{}) error {
 	ticker := time.NewTicker(diskUsageFetchInterval)
 	defer ticker.Stop()
