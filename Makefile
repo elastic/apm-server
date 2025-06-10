@@ -351,60 +351,44 @@ testing/rally/corpora:
 	@cd systemtest/cmd/gencorpora && go run . -write-dir $(CURRENT_DIR)/testing/rally/corpora/ -replay-count $(RALLY_GENCORPORA_REPLAY_COUNT)
 
 ##############################################################################
-# Smoke tests -- Basic smoke tests for APM Server.
+# Integration Server Tests -- Upgrade tests for APM Server in ECH.
 ##############################################################################
 
-SMOKETEST_VERSIONS ?= latest
-# supported-os tests are exclude and hence they are not running as part of this process
-# since they are required to run against different versions in a different CI pipeline.
-SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d | grep -v supported-os | grep -v /managed | grep -v legacy)
-SMOKETEST_DIRS_LEGACY = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d | grep legacy)
+# Run integration server upgrade test on one scenario - Default / Reroute
+.PHONY: integration-server-upgrade-test
+integration-server-upgrade-test:
+ifndef UPGRADE_PATH
+	$(error UPGRADE_PATH is not set)
+endif
+ifndef SCENARIO
+	$(error SCENARIO is not set)
+endif
+	@cd integrationservertest && go test -run=TestUpgrade.*/.*/$(SCENARIO) -v -timeout=60m -cleanup-on-failure=false -target="pro" -upgrade-path="$(UPGRADE_PATH)}" ./
 
-.PHONY: smoketest/discover
-smoketest/discover:
-	@ echo "$(SMOKETEST_DIRS)" | jq -cnR '[inputs | select(length > 0)]'
+# Run integration server upgrade test on all scenarios
+.PHONY: integration-server-upgrade-test-all
+integration-server-upgrade-test-all:
+ifndef UPGRADE_PATH
+	$(error UPGRADE_PATH is not set)
+endif
+	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath -v -timeout=60m -cleanup-on-failure=false -target="pro" -upgrade-path="$(UPGRADE_PATH)}" ./
 
-.PHONY: smoketest/discover-legacy
-smoketest/discover-legacy:
-	@ echo "$(SMOKETEST_DIRS_LEGACY)" | jq -cnR '[inputs | select(length > 0)]'
+# Run integration server standalone test on one scenario - Managed7 / Managed8 / Managed9
+.PHONY: integration-server-standalone-test
+integration-server-standalone-test:
+ifndef SCENARIO
+	$(error SCENARIO is not set)
+endif
+	@cd integrationservertest && go test -run=TestStandaloneManaged.*/$(SCENARIO) -v -timeout=60m -cleanup-on-failure=false -target="pro" ./
 
-.PHONY: smoketest/run-version
-smoketest/run-version:
-	@ echo "-> Running $(TEST_DIR) smoke tests for version $${SMOKETEST_VERSION}..."
-	@ cd $(TEST_DIR) && ./test.sh "$(SMOKETEST_VERSION)"
+# Run integration server standalone test on all scenarios
+.PHONY: integration-server-standalone-test-all
+integration-server-standalone-test-all:
+	@cd integrationservertest && go test -run=TestStandaloneManaged -v -timeout=60m -cleanup-on-failure=false -target="pro" ./
 
-.PHONY: smoketest/run
-smoketest/run:
-	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do \
-		$(MAKE) smoketest/run-version SMOKETEST_VERSION=$${version}; \
-	done
-
-.PHONY: smoketest/cleanup
-smoketest/cleanup:
-	@ cd $(TEST_DIR); \
-	if [ -f "./cleanup.sh" ]; then \
-		./cleanup.sh; \
-	fi
-
-.PHONY: smoketest/all
-smoketest/all:
-	@ for test_dir in $(SMOKETEST_DIRS); do \
-		$(MAKE) smoketest/run TEST_DIR=$${test_dir}; \
-	done
-	@ for test_dir in $(SMOKETEST_DIRS_LEGACY); do \
-		$(MAKE) smoketest/run TEST_DIR=$${test_dir}; \
-	done
-
-.PHONY: smoketest/all/cleanup
-smoketest/all/cleanup:
-	@ for test_dir in $(SMOKETEST_DIRS); do \
-		echo "-> Cleanup $${test_dir} smoke tests..."; \
-		$(MAKE) smoketest/cleanup TEST_DIR=$${test_dir}; \
-	done
-	@ for test_dir in $(SMOKETEST_DIRS_LEGACY); do \
-		echo "-> Cleanup $${test_dir} smoke tests..."; \
-		$(MAKE) smoketest/cleanup TEST_DIR=$${test_dir}; \
-	done
+##############################################################################
+# Generating and linting API documentation
+##############################################################################
 
 .PHONY: api-docs
 api-docs: ## Generate bundled OpenAPI documents
