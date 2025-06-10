@@ -82,7 +82,7 @@ jobs:
           secrets: |-
             EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
       - name: "Run standalone-to-managed tests"
-        working-directory: ${{ github.workspace }}/integrationservertest
+        working-directory: ${{ github.workspace }}
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
           SCENARIO="${{ matrix.scenario }}" make integration-server-standalone-test
