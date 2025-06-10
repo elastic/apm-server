@@ -120,8 +120,8 @@ github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b h1:r6VH0faHjZe
 github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b/go.mod h1:Vz9DsVWQQhf3vs21MhPMZpMGSht7O/2vFW2xusFUVOs=
 github.com/cockroachdb/metamorphic v0.0.0-20231108215700-4ba948b56895 h1:XANOgPYtvELQ/h4IrmPAohXqe2pWA8Bwhejr3VQoZsA=
 github.com/cockroachdb/metamorphic v0.0.0-20231108215700-4ba948b56895/go.mod h1:aPd7gM9ov9M8v32Yy5NJrDyOcD8z642dqs+F0CeNXfA=
-github.com/cockroachdb/pebble/v2 v2.0.4 h1:1bnNm9TxObCKYYV8gxp17ja8XK+tcsvyhl9FALenocA=
-github.com/cockroachdb/pebble/v2 v2.0.4/go.mod h1:VqRjBA5foHAE0sW2N/E8lg+y0zHWV1xKLZNGoReg16c=
+github.com/cockroachdb/pebble/v2 v2.0.5 h1:fTDR65vj+MzdOY+B5ZjQoYjKZp8O/8micl2hmDhdRSA=
+github.com/cockroachdb/pebble/v2 v2.0.5/go.mod h1:VqRjBA5foHAE0sW2N/E8lg+y0zHWV1xKLZNGoReg16c=
 github.com/cockroachdb/redact v1.1.5 h1:u1PMllDkdFfPWaNGMyLD1+so+aq3uUItthCFqzwPJ30=
 github.com/cockroachdb/redact v1.1.5/go.mod h1:BVNblN9mBWFyMyqK1k3AAiSxhvhfK2oOZZ2lK+dpvRg=
 github.com/cockroachdb/swiss v0.0.0-20250327203710-2932b022f6df h1:GUJ4KuZtbOcIfRlprHJFFvIqQ4irtQUl+1fJr+yNmPI=
@@ -644,8 +644,8 @@ go.opentelemetry.io/auto/sdk v1.1.0 h1:cH53jehLUN6UFLY71z+NDOiNJqDdPRaXzTel0sJyS
 go.opentelemetry.io/auto/sdk v1.1.0/go.mod h1:3wSPjt5PWp2RhlCcmmOial7AvC4DQqZb7a7wCow3W8A=
 go.opentelemetry.io/collector/consumer v1.32.0 h1:pMRa/i3z+Z4MD+hmr60Fr3DZ7vyffPcjqXl/uSWJm3g=
 go.opentelemetry.io/collector/consumer v1.32.0/go.mod h1:zhli99OuSl1mGc43qLBfWF3/fRdJDdSEKBTfowWSM6c=
-go.opentelemetry.io/collector/pdata v1.33.0 h1:PuqiZzdCoBJo9NmMzuYfzazpeFZyLmbDVcRrvb497lg=
-go.opentelemetry.io/collector/pdata v1.33.0/go.mod h1:TDvbHuvIK+g6xqu1gxtz8ti4pB2x1WcBpjFob5KfleU=
+go.opentelemetry.io/collector/pdata v1.34.0 h1:2vwYftckXe7pWxI9mfSo+tw3wqdGNrYpMbDx/5q6rw8=
+go.opentelemetry.io/collector/pdata v1.34.0/go.mod h1:StPHMFkhLBellRWrULq0DNjv4znCDJZP6La4UuC+JHI=
 go.opentelemetry.io/collector/semconv v0.126.0 h1:1q1rfOhN9sOcHQomjs9JIqFUweIgp9REUq550R6B7d8=
 go.opentelemetry.io/collector/semconv v0.126.0/go.mod h1:te6VQ4zZJO5Lp8dM2XIhDxDiL45mwX0YAQQWRQ0Qr9U=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0 h1:sbiXRNDSWJOTobXh5HyQKjq6wUC5tNybqjIqDpAY4CU=
