@@ -12,6 +12,11 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+<<<<<<< HEAD
+=======
+	"net/url"
+	"strconv"
+>>>>>>> 6d414320 (TBS: Log pubsub errors at error or warn level (#17135))
 	"strings"
 	"sync"
 	"testing"
@@ -20,10 +25,19 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
+<<<<<<< HEAD
 	"github.com/elastic/go-elasticsearch/v8"
+=======
+	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
+>>>>>>> 6d414320 (TBS: Log pubsub errors at error or warn level (#17135))
 )
 
 const (
@@ -47,7 +61,7 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 		case requestBodies <- readBody(r):
 		}
 	}
-	pub := newPubsub(t, ms.srv, time.Millisecond, time.Minute)
+	pub := newPubsub(t, ms.srv, time.Millisecond, time.Minute, nil)
 
 	input := make([]string, 20)
 	for i := 0; i < len(input); i++ {
@@ -197,7 +211,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 		}
 	}
 
-	ids, positions, closeSubscriber := newSubscriber(t, ms.srv)
+	ids, positions, closeSubscriber := newSubscriber(t, ms.srv, nil)
 	assert.Equal(t, "trace_1", expectValue(t, ids))
 	assert.Equal(t, "trace_2", expectValue(t, ids))
 	assert.Equal(t, "trace_3", expectValue(t, ids))
@@ -218,7 +232,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 
 	// close first subscriber, create a new one initialised with position
 	closeSubscriber()
-	ids, positions, _ = newSubscriberPosition(t, ms.srv, pos)
+	ids, positions, _ = newSubscriberPosition(t, ms.srv, pos, nil)
 
 	// Global checkpoint hasn't changed.
 	expectNone(t, ids)
@@ -238,43 +252,124 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 	}
 }
 
-func TestSubscribeSampledTraceIDsErrors(t *testing.T) {
-	statsRequests := make(chan struct{})
-	firstStats := true
-	m := newMockElasticsearchServer(t)
-	m.searchStatusCode = http.StatusNotFound
-	m.statsGlobalCheckpoint = 99
-	m.onStats = func(r *http.Request) {
-		select {
-		case <-r.Context().Done():
-		case statsRequests <- struct{}{}:
-		}
-		if firstStats {
-			firstStats = false
-			return
-		}
-		m.statsStatusCode = http.StatusInternalServerError
-	}
-	newSubscriber(t, m.srv)
+func TestSubscribeSampledTraceIDsError(t *testing.T) {
+	for _, tc := range []struct {
+		request    string
+		statusCode int
+		logLevel   zapcore.Level
+	}{
+		{
+			request:    "stats",
+			statusCode: http.StatusInternalServerError,
+			logLevel:   zapcore.ErrorLevel,
+		},
+		{
+			request:    "stats",
+			statusCode: http.StatusTooManyRequests,
+			logLevel:   zapcore.WarnLevel,
+		},
+		{
+			request:    "refresh",
+			statusCode: http.StatusInternalServerError,
+			logLevel:   zapcore.ErrorLevel,
+		},
+		{
+			request:    "refresh",
+			statusCode: http.StatusTooManyRequests,
+			logLevel:   zapcore.WarnLevel,
+		},
+		{
+			request:    "search",
+			statusCode: http.StatusInternalServerError,
+			logLevel:   zapcore.ErrorLevel,
+		},
+		{
+			request:    "search",
+			statusCode: http.StatusTooManyRequests,
+			logLevel:   zapcore.WarnLevel,
+		},
+	} {
+		t.Run(fmt.Sprintf("%s=%d", tc.request, tc.statusCode), func(t *testing.T) {
+			core, observedLogs := observer.New(zapcore.InfoLevel)
+			logger := logptest.NewTestingLogger(t, "", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+				return zapcore.NewTee(in, core)
+			}))
 
-	// Show that failed requests to Elasticsearch are not fatal, and
-	// that the subscriber will retry.
-	timeout := time.After(10 * time.Second)
-	for i := 0; i < 10; i++ {
-		select {
-		case <-statsRequests:
-		case <-timeout:
-			t.Fatal("timed out waiting for _stats request")
-		}
+			req := make(chan struct{})
+			first := true
+			m := newMockElasticsearchServer(t)
+			m.statsGlobalCheckpoint = 99
+			switch tc.request {
+			case "refresh":
+				m.searchStatusCode = http.StatusNotFound
+				m.onRefresh = func(r *http.Request) {
+					select {
+					case <-r.Context().Done():
+					case req <- struct{}{}:
+					}
+					if first {
+						first = false
+						return
+					}
+					m.refreshStatusCode = tc.statusCode
+				}
+			case "stats":
+				m.searchStatusCode = http.StatusNotFound
+				m.onStats = func(r *http.Request) {
+					select {
+					case <-r.Context().Done():
+					case req <- struct{}{}:
+					}
+					if first {
+						first = false
+						return
+					}
+					m.statsStatusCode = tc.statusCode
+				}
+			case "search":
+				m.onSearch = func(r *http.Request) {
+					select {
+					case <-r.Context().Done():
+					case req <- struct{}{}:
+					}
+					if first {
+						first = false
+						return
+					}
+					m.searchStatusCode = tc.statusCode
+				}
+			}
+
+			newSubscriber(t, m.srv, logger)
+
+			// Show that failed requests to Elasticsearch are not fatal, and
+			// that the subscriber will retry.
+			timeout := time.After(10 * time.Second)
+			N := 10
+			for i := 0; i < N; i++ {
+				select {
+				case <-req:
+				case <-timeout:
+					t.Fatal("timed out waiting for request")
+				}
+			}
+
+			logs := observedLogs.FilterMessageSnippet("error searching for trace IDs").All()
+			assert.GreaterOrEqual(t, len(logs), 1, logs)
+			for _, l := range logs {
+				assert.Equal(t, tc.logLevel, l.Level)
+				assert.Contains(t, l.ContextMap()["error"], strconv.Itoa(tc.statusCode))
+			}
+		})
 	}
 }
 
-func newSubscriber(t testing.TB, srv *httptest.Server) (<-chan string, <-chan pubsub.SubscriberPosition, context.CancelFunc) {
-	return newSubscriberPosition(t, srv, pubsub.SubscriberPosition{})
+func newSubscriber(t testing.TB, srv *httptest.Server, logger *logp.Logger) (<-chan string, <-chan pubsub.SubscriberPosition, context.CancelFunc) {
+	return newSubscriberPosition(t, srv, pubsub.SubscriberPosition{}, logger)
 }
 
-func newSubscriberPosition(t testing.TB, srv *httptest.Server, pos pubsub.SubscriberPosition) (<-chan string, <-chan pubsub.SubscriberPosition, context.CancelFunc) {
-	sub := newPubsub(t, srv, time.Minute, time.Millisecond)
+func newSubscriberPosition(t testing.TB, srv *httptest.Server, pos pubsub.SubscriberPosition, logger *logp.Logger) (<-chan string, <-chan pubsub.SubscriberPosition, context.CancelFunc) {
+	sub := newPubsub(t, srv, time.Minute, time.Millisecond, logger)
 	ids := make(chan string)
 	positions := make(chan pubsub.SubscriberPosition)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -290,11 +385,24 @@ func newSubscriberPosition(t testing.TB, srv *httptest.Server, pos pubsub.Subscr
 	return ids, positions, cancelFunc
 }
 
+<<<<<<< HEAD
 func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval time.Duration) *pubsub.Pubsub {
 	client, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: []string{srv.URL},
+=======
+func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval time.Duration, logger *logp.Logger) *pubsub.Pubsub {
+	u, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+
+	client, err := elastictransport.New(elastictransport.Config{
+		URLs: []*url.URL{u},
+>>>>>>> 6d414320 (TBS: Log pubsub errors at error or warn level (#17135))
 	})
 	require.NoError(t, err)
+
+	if logger == nil {
+		logger = logptest.NewTestingLogger(t, "")
+	}
 
 	sub, err := pubsub.New(pubsub.Config{
 		Client:         client,
@@ -302,6 +410,10 @@ func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval
 		ServerID:       serverID,
 		FlushInterval:  flushInterval,
 		SearchInterval: searchInterval,
+<<<<<<< HEAD
+=======
+		Logger:         logger,
+>>>>>>> 6d414320 (TBS: Log pubsub errors at error or warn level (#17135))
 	})
 	require.NoError(t, err)
 	return sub
@@ -318,6 +430,9 @@ type mockElasticsearchServer struct {
 	// statsStatusCode is the status code that the _stats/get handler responds with.
 	statsStatusCode int
 
+	// refreshStatusCode is the status code that the _refresh handler responds with.
+	refreshStatusCode int
+
 	// searchResults is the search hits that the _search handler responds with.
 	searchResults []searchHit
 
@@ -328,6 +443,10 @@ type mockElasticsearchServer struct {
 	// This may be used to adjust the status code or global checkpoint that will be
 	// returned.
 	onStats func(r *http.Request)
+
+	// onRefresh is a function that is invoked whenever a _refresh request is received.
+	// This may be used to adjust the status code.
+	onRefresh func(r *http.Request)
 
 	// onSearch is a function that is invoked whenever a _search request is received.
 	// This may be used to check the search query, and adjust the search results that
@@ -341,11 +460,13 @@ type mockElasticsearchServer struct {
 
 func newMockElasticsearchServer(t testing.TB) *mockElasticsearchServer {
 	m := &mockElasticsearchServer{
-		statsStatusCode:  http.StatusOK,
-		searchStatusCode: http.StatusOK,
-		onStats:          func(*http.Request) {},
-		onSearch:         func(*http.Request) {},
-		onBulk:           func(*http.Request) {},
+		statsStatusCode:   http.StatusOK,
+		refreshStatusCode: http.StatusOK,
+		searchStatusCode:  http.StatusOK,
+		onStats:           func(*http.Request) {},
+		onRefresh:         func(*http.Request) {},
+		onSearch:          func(*http.Request) {},
+		onBulk:            func(*http.Request) {},
 	}
 
 	mux := http.NewServeMux()
@@ -396,7 +517,8 @@ func (m *mockElasticsearchServer) handleStats(w http.ResponseWriter, r *http.Req
 }
 
 func (m *mockElasticsearchServer) handleRefresh(w http.ResponseWriter, r *http.Request) {
-	// Empty 200 OK response
+	m.onRefresh(r)
+	w.WriteHeader(m.refreshStatusCode)
 }
 
 func (m *mockElasticsearchServer) handleSearch(w http.ResponseWriter, r *http.Request) {
