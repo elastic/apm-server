@@ -57,6 +57,17 @@ func TestMonitoring(t *testing.T) {
 
 	// Wrap & run the server twice, to ensure metric registration does not panic.
 	runServerError := errors.New("runServer")
+	runServerFunc := func(ctx context.Context, args beater.ServerParams) error {
+		// run server for some time until storage metrics are reported by the storage manager
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			monitoringtest.ExpectContainOtelMetricsKeys(t, reader, []string{
+				"apm-server.sampling.tail.storage.lsm_size",
+				"apm-server.sampling.tail.storage.value_log_size",
+			})
+		}, time.Second, 10*time.Millisecond)
+
+		return runServerError
+	}
 	for i := 0; i < 2; i++ {
 		serverParams, runServer, err := wrapServer(beater.ServerParams{
 			Config:                 cfg,
@@ -66,17 +77,18 @@ func TestMonitoring(t *testing.T) {
 			BatchProcessor:         modelpb.ProcessBatchFunc(func(ctx context.Context, b *modelpb.Batch) error { return nil }),
 			Namespace:              "default",
 			NewElasticsearchClient: elasticsearch.NewClient,
-		}, func(ctx context.Context, args beater.ServerParams) error {
-			return runServerError
-		})
+		}, runServerFunc)
 		require.NoError(t, err)
 
 		err = runServer(context.Background(), serverParams)
 		assert.Equal(t, runServerError, err)
+<<<<<<< HEAD
 		monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
 			"apm-server.sampling.tail.storage.lsm_size":       0,
 			"apm-server.sampling.tail.storage.value_log_size": 0,
 		})
+=======
+>>>>>>> d147b7af (tbs: Update storage metrics to be reported synchronously in the existing `runDiskUsageLoop` method (#17154))
 	}
 }
 
