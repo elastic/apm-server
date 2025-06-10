@@ -54,9 +54,8 @@ func TestMonitoring(t *testing.T) {
 	// Wrap & run the server twice, to ensure metric registration does not panic.
 	runServerError := errors.New("runServer")
 	runServerFunc := func(ctx context.Context, args beater.ServerParams) error {
-		// run server for some time to allow storage metrics to be reported
-		// should be wait at least x-pack/apm-server/sampling/eventstorage/storage_manager.go:diskUsageFetchInterval
-		time.Sleep(2 * time.Second)
+		// run server for some time to allow storage metrics to be reported by the storage manager
+		time.Sleep(10 * time.Millisecond)
 		return runServerError
 	}
 	for i := 0; i < 2; i++ {
