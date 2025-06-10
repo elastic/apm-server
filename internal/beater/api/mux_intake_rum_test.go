@@ -39,17 +39,29 @@ func TestOPTIONS(t *testing.T) {
 	ratelimitStore, _ := ratelimit.NewStore(1, 1, 1)
 	requestTaken := make(chan struct{}, 1)
 	done := make(chan struct{}, 1)
+	handled := make(chan struct{}, 2) // 2 expected request
 
 	cfg := cfgEnabledRUM()
 	cfg.RumConfig.AllowOrigins = []string{"*"}
 	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
+
+	lastMiddleware := func(h request.Handler) (request.Handler, error) {
+		return func(c *request.Context) {
+			h(c)
+			handled <- struct{}{}
+		}, nil
+	}
 
 	h, _ := middleware.Wrap(
 		func(c *request.Context) {
 			requestTaken <- struct{}{}
 			<-done
 		},
+<<<<<<< HEAD
 		rumMiddleware(cfg, authenticator, ratelimitStore, "", noop.NewMeterProvider())...)
+=======
+		append([]middleware.Middleware{lastMiddleware}, rumMiddleware(cfg, authenticator, ratelimitStore, "", noop.NewMeterProvider(), logptest.NewTestingLogger(t, ""))...)...)
+>>>>>>> 872fab1b (test: wait for middlewares to finish in TestOptions test (#17167))
 
 	// use this to block the single allowed concurrent requests
 	go func() {
@@ -67,7 +79,10 @@ func TestOPTIONS(t *testing.T) {
 	h(c)
 
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
-	done <- struct{}{}
+	done <- struct{}{} // unblock first request
+	// wait for both request middlewares to complete
+	<-handled
+	<-handled
 }
 
 func TestRUMHandler_NoAuthorizationRequired(t *testing.T) {
