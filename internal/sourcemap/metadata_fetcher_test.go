@@ -27,8 +27,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.elastic.co/apm/v2/apmtest"
-	"go.elastic.co/apm/v2/transport/transporttest"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 
@@ -126,8 +126,9 @@ func TestMetadataFetcher(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 			defer cancel()
 
-			tracer, recorder := transporttest.NewRecorderTracer()
-			fetcher, _ := NewMetadataFetcher(ctx, esClient, ".apm-source-map", tracer, logptest.NewTestingLogger(t, ""))
+			exporter := &manualExporter{}
+			tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporter)))
+			fetcher, _ := NewMetadataFetcher(ctx, esClient, ".apm-source-map", tp, logptest.NewTestingLogger(t, ""))
 
 			<-fetcher.ready()
 			if tc.expectErr {
@@ -140,12 +141,24 @@ func TestMetadataFetcher(t *testing.T) {
 			assert.Equal(t, tc.expectID, ok)
 
 			close(waitCh)
-			tracer.Flush(nil)
+			tp.ForceFlush(ctx)
 
-			assert.Len(t, recorder.Payloads().Transactions, 1)
-			assert.Greater(t, len(recorder.Payloads().Spans), 1)
+			assert.Greater(t, len(exporter.spans), 1)
 		})
 	}
+}
+
+type manualExporter struct {
+	spans []sdktrace.ReadOnlySpan
+}
+
+func (e *manualExporter) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error {
+	e.spans = append(e.spans, spans...)
+	return nil
+}
+
+func (e *manualExporter) Shutdown(ctx context.Context) error {
+	return nil
 }
 
 type metadata struct {
@@ -255,8 +268,7 @@ func TestInvalidation(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 			defer cancel()
 
-			rt := apmtest.NewRecordingTracer()
-			fetcher, invalidationChan := NewMetadataFetcher(ctx, esClient, ".apm-source-map", rt.Tracer, logptest.NewTestingLogger(t, ""))
+			fetcher, invalidationChan := NewMetadataFetcher(ctx, esClient, ".apm-source-map", noop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 
 			invCh := make(chan struct{})
 			go func() {
