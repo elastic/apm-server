@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,7 +25,6 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 )
 
@@ -54,8 +54,14 @@ func TestMonitoring(t *testing.T) {
 	// Wrap & run the server twice, to ensure metric registration does not panic.
 	runServerError := errors.New("runServer")
 	runServerFunc := func(ctx context.Context, args beater.ServerParams) error {
-		// run server for some time to allow storage metrics to be reported by the storage manager
-		time.Sleep(10 * time.Millisecond)
+		// run server for some time until storage metrics are reported by the storage manager
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			monitoringtest.ExpectContainOtelMetricsKeys(t, reader, []string{
+				"apm-server.sampling.tail.storage.lsm_size",
+				"apm-server.sampling.tail.storage.value_log_size",
+			})
+		}, time.Second, 10*time.Millisecond)
+
 		return runServerError
 	}
 	for i := 0; i < 2; i++ {
@@ -72,9 +78,5 @@ func TestMonitoring(t *testing.T) {
 
 		err = runServer(context.Background(), serverParams)
 		assert.Equal(t, runServerError, err)
-		monitoringtest.ExpectContainOtelMetricsKeys(t, reader, []string{
-			"apm-server.sampling.tail.storage.lsm_size",
-			"apm-server.sampling.tail.storage.value_log_size",
-		})
 	}
 }
