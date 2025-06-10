@@ -28,7 +28,6 @@ import (
 
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/go-elasticsearch/v8"
 )
 
@@ -283,7 +282,7 @@ func TestSubscribeSampledTraceIDsError(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("%s=%d", tc.request, tc.statusCode), func(t *testing.T) {
 			core, observedLogs := observer.New(zapcore.InfoLevel)
-			logger := logptest.NewTestingLogger(t, "", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+			logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
 				return zapcore.NewTee(in, core)
 			}))
 
@@ -384,7 +383,7 @@ func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval
 	require.NoError(t, err)
 
 	if logger == nil {
-		logger = logptest.NewTestingLogger(t, "")
+		logger = logp.NewLogger("")
 	}
 
 	sub, err := pubsub.New(pubsub.Config{
