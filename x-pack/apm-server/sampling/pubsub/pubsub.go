@@ -244,30 +244,16 @@ func (p *Pubsub) refreshIndices(ctx context.Context, indices []string) error {
 	if len(indices) == 0 {
 		return nil
 	}
-<<<<<<< HEAD
 	ignoreUnavailable := true
 	resp, err := esapi.IndicesRefreshRequest{
 		Index:             indices,
 		IgnoreUnavailable: &ignoreUnavailable,
 	}.Do(ctx, p.config.Client)
-=======
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/"+strings.Join(indices, ",")+"/_refresh?ignore_unavailable=true", nil)
-	if err != nil {
-		return fmt.Errorf("failed to create index refresh request: %w", err)
-	}
-
-	resp, err := p.config.Client.Perform(req)
->>>>>>> 6d414320 (TBS: Log pubsub errors at error or warn level (#17135))
 	if err != nil {
 		return fmt.Errorf("index refresh request failed: %w", err)
 	}
 	defer resp.Body.Close()
-<<<<<<< HEAD
 	if resp.IsError() {
-=======
-	if resp.StatusCode > 299 {
-		// No need to handle 404 because of ignore_unavailable=true
->>>>>>> 6d414320 (TBS: Log pubsub errors at error or warn level (#17135))
 		message, _ := io.ReadAll(resp.Body)
 		switch resp.StatusCode {
 		case http.StatusTooManyRequests:
@@ -356,20 +342,10 @@ func (p *Pubsub) searchIndexTraceIDs(ctx context.Context, out chan<- string, ind
 }
 
 func (p *Pubsub) doSearchRequest(ctx context.Context, index string, body io.Reader, out interface{}) error {
-<<<<<<< HEAD
 	resp, err := esapi.SearchRequest{
 		Index: []string{index},
 		Body:  body,
 	}.Do(ctx, p.config.Client)
-=======
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/"+index+"/_search", body)
-	if err != nil {
-		return fmt.Errorf("failed to create search request: %w", err)
-	}
-	req.Header.Add("Content-Type", "application/json")
-
-	resp, err := p.config.Client.Perform(req)
->>>>>>> 6d414320 (TBS: Log pubsub errors at error or warn level (#17135))
 	if err != nil {
 		return fmt.Errorf("search request failed: %w", err)
 	}
