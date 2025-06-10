@@ -112,7 +112,7 @@ func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan strin
 				p.config.Logger.With(
 					logp.Error(err),
 					logp.Reflect("event", &doc),
-				).Debug("failed to encode sampled trace document")
+				).Error("failed to encode sampled trace ID document")
 				return err
 			}
 			data := w.Bytes()
@@ -120,7 +120,7 @@ func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan strin
 				p.config.Logger.With(
 					logp.Error(err),
 					logp.Reflect("event", &doc),
-				).Debug("failed to index sampled trace document")
+				).Error("failed to index sampled trace ID document")
 				return err
 			}
 		}
