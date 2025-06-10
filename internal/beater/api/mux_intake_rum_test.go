@@ -57,11 +57,7 @@ func TestOPTIONS(t *testing.T) {
 			requestTaken <- struct{}{}
 			<-done
 		},
-<<<<<<< HEAD
-		rumMiddleware(cfg, authenticator, ratelimitStore, "", noop.NewMeterProvider())...)
-=======
-		append([]middleware.Middleware{lastMiddleware}, rumMiddleware(cfg, authenticator, ratelimitStore, "", noop.NewMeterProvider(), logptest.NewTestingLogger(t, ""))...)...)
->>>>>>> 872fab1b (test: wait for middlewares to finish in TestOptions test (#17167))
+		append([]middleware.Middleware{lastMiddleware}, rumMiddleware(cfg, authenticator, ratelimitStore, "", noop.NewMeterProvider())...)...)
 
 	// use this to block the single allowed concurrent requests
 	go func() {
