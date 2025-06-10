@@ -102,20 +102,25 @@ x-pack/apm-server/versioninfo_%.syso: $(GITREFFILE) packaging/versioninfo.json
 	# but it could be run from any OS so use the host os and arch.
 	GOOS=$(GOHOSTOS) GOARCH=$(GOHOSTARCH) go tool github.com/josephspurrier/goversioninfo/cmd/goversioninfo -o $@ $(GOVERSIONINFO_FLAGS) packaging/versioninfo.json
 
-.PHONY: apm-server apm-server-oss apm-server-fips
+.PHONY: apm-server apm-server-oss apm-server-fips apm-server-fips-msft
 
 apm-server-oss: PKG=./cmd/apm-server
-apm-server apm-server-fips: PKG=./x-pack/apm-server
+apm-server apm-server-fips apm-server-fips-msft: PKG=./x-pack/apm-server
 
-apm-server-fips: CGO_ENABLED=1
+apm-server-fips apm-server-fips-msft: CGO_ENABLED=1
 apm-server apm-server-oss: CGO_ENABLED=0
 
+<<<<<<< HEAD
 apm-server-fips: GOTAGS=-tags=requirefips,ms_tls13kdf
+=======
+apm-server-fips: GOTAGS=requirefips
+apm-server-fips-msft: GOTAGS=requirefips,ms_tls13kdf,relaxfips
+>>>>>>> 41d11f3a (feat: disable fipsonly mode in apm-server-fips msft build (#17170))
 
 apm-server-oss: SUFFIX=-oss
-apm-server-fips: SUFFIX=-fips
+apm-server-fips apm-server-fips-msft: SUFFIX=-fips
 
-apm-server apm-server-oss apm-server-fips:
+apm-server apm-server-oss apm-server-fips apm-server-fips-msft:
 	# call make instead of using a prerequisite to force it to run the task when
 	# multiple targets are specified
 	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) \
