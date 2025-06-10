@@ -590,21 +590,28 @@ func TestGroupsMonitoring(t *testing.T) {
 	})
 }
 
-func getGauge(t testing.TB, reader sdkmetric.Reader, name string) int64 {
+// getGaugeValues collects metrics and searches for gauge values that match the provided names.
+// Values will be returned in the same order as the names.
+//
+// It is helpful to provide multiple names for synchronous metrics to avoid losing data when collecting.
+// Observable metrics report everytime Collect is called, so there will be no data loss.
+func getGaugeValues(t testing.TB, reader sdkmetric.Reader, names ...string) []int64 {
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
 	assert.NotEqual(t, 0, len(rm.ScopeMetrics))
 
-	for _, sm := range rm.ScopeMetrics {
-		for _, m := range sm.Metrics {
-			if m.Name == name {
-				return m.Data.(metricdata.Gauge[int64]).DataPoints[0].Value
+	values := make([]int64, len(names))
+	for i, name := range names {
+		for _, sm := range rm.ScopeMetrics {
+			for _, m := range sm.Metrics {
+				if m.Name == name {
+					values[i] = m.Data.(metricdata.Gauge[int64]).DataPoints[0].Value
+				}
 			}
 		}
 	}
-
-	return 0
+	return values
 }
 
 func TestStorageMonitoring(t *testing.T) {
@@ -636,9 +643,14 @@ func TestStorageMonitoring(t *testing.T) {
 
 	require.NoError(t, config.DB.Flush())
 
-	lsmSize := getGauge(t, tempdirConfig.metricReader, "apm-server.sampling.tail.storage.lsm_size")
+	metricsNames := []string{"apm-server.sampling.tail.storage.lsm_size", "apm-server.sampling.tail.storage.value_log_size"}
+	gaugeValues := getGaugeValues(t, tempdirConfig.metricReader, metricsNames...)
+	assert.Len(t, gaugeValues, 2)
+
+	lsmSize := gaugeValues[0]
 	assert.NotZero(t, lsmSize)
-	vlogSize := getGauge(t, tempdirConfig.metricReader, "apm-server.sampling.tail.storage.value_log_size")
+
+	vlogSize := gaugeValues[1]
 	assert.Zero(t, vlogSize)
 }
 
