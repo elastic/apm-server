@@ -332,7 +332,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		fetcher, cancel, err := newSourcemapFetcher(
 			s.config.RumConfig.SourceMapping,
 			kibanaClient, newElasticsearchClient,
-			tracer,
+			s.tracerProvider,
 			s.logger,
 		)
 		if err != nil {
@@ -904,7 +904,7 @@ func newSourcemapFetcher(
 	cfg config.SourceMapping,
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
-	tracer *apm.Tracer,
+	tp trace.TracerProvider,
 	logger *logp.Logger,
 ) (sourcemap.Fetcher, context.CancelFunc, error) {
 	esClient, err := newElasticsearchClient(cfg.ESConfig)
@@ -916,7 +916,7 @@ func newSourcemapFetcher(
 
 	// start background sync job
 	ctx, ctxCancel := context.WithCancel(context.Background())
-	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex, tracer, logger)
+	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex, tp, logger)
 	cancel := func() {
 		ctxCancel()
 		<-invalidationChan
