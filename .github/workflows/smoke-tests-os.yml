@@ -18,15 +18,12 @@ jobs:
     name: Generate smoke tests list
     runs-on: ubuntu-latest
     outputs:
-      tests: ${{ steps.generate.outputs.tests }}
       date: ${{ steps.generate.outputs.date }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ inputs.branch }}
       - id: generate
-        name: Generate matrix and date
-        uses: ./.github/workflows/generate-smoke-tests-list
+        name: Generate date
+        run: echo "date=$(date +%s)" >> "${GITHUB_OUTPUT}"
+        shell: bash
 
   smoke-tests-os:
     name: Run smoke tests OS
