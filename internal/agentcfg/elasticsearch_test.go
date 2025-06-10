@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -113,16 +114,25 @@ func newElasticsearchFetcher(
 }
 
 type manualExporter struct {
+	mu    sync.Mutex
 	spans []sdktrace.ReadOnlySpan
 }
 
 func (e *manualExporter) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
 	e.spans = append(e.spans, spans...)
 	return nil
 }
 
 func (e *manualExporter) Shutdown(ctx context.Context) error {
 	return nil
+}
+
+func (e *manualExporter) payloads() []sdktrace.ReadOnlySpan {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return e.spans
 }
 
 func TestRun(t *testing.T) {
@@ -140,11 +150,11 @@ func TestRun(t *testing.T) {
 
 	assert.Eventually(t, func() bool {
 		tp.ForceFlush(t.Context())
-		payloads := exporter.spans
+		payloads := exporter.payloads()
 		return len(payloads) == 2
 	}, 10*time.Second, 10*time.Millisecond)
 
-	payloads := exporter.spans
+	payloads := exporter.payloads()
 	assert.Equal(t, "ElasticsearchFetcher.refreshCache", payloads[0].Name())
 	assert.Equal(t, "ElasticsearchFetcher.refresh", payloads[1].Name())
 	assert.Equal(t, payloads[1].SpanContext().SpanID(), payloads[0].Parent().SpanID())
