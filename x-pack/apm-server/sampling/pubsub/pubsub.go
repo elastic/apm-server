@@ -157,9 +157,12 @@ func (p *Pubsub) SubscribeSampledTraceIDs(
 			changed, err := p.searchTraceIDs(ctx, traceIDs, pos.observedSeqnos)
 			if err != nil {
 				logger := p.config.Logger.With(logp.Error(err)).With(logp.Reflect("position", pos))
-				if errors.Is(err, errTooManyRequests) {
+				switch {
+				case errors.Is(err, context.Canceled):
+					// Ignore shutdown errors
+				case errors.Is(err, errTooManyRequests):
 					logger.Warn("error searching for trace IDs")
-				} else {
+				default:
 					logger.Error("error searching for trace IDs")
 				}
 				continue
