@@ -40,7 +40,7 @@ require (
 	go.elastic.co/apm/module/apmgrpc/v2 v2.6.3
 	go.elastic.co/apm/module/apmhttp/v2 v2.6.3
 	go.elastic.co/apm/module/apmotel/v2 v2.6.3
-	go.elastic.co/apm/v2 v2.7.0
+	go.elastic.co/apm/v2 v2.7.1
 	go.elastic.co/fastjson v1.5.1
 	go.opentelemetry.io/collector/consumer v1.32.0
 	go.opentelemetry.io/collector/pdata v1.32.0
