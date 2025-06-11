@@ -1,4 +1,6 @@
 project: 'APM Server documentation'
+products:
+  - id: apm
 exclude:
   - README.md
 cross_links:
