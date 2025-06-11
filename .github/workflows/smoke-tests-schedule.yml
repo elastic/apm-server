@@ -20,11 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: generate
         name: Generate matrix
-<<<<<<< HEAD:.github/workflows/smoke-tests-schedule.yml
-        uses: elastic/oblt-actions/elastic/active-branches@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
-=======
         uses: elastic/oblt-actions/elastic/active-branches@v1
->>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191)):.github/workflows/smoke-tests-os-sched.yml
         with:
           exclude-branches: '7.17'
 
