@@ -18,10 +18,6 @@ jobs:
       # See https://github.com/cli/cli/issues/6274
       repository-projects: read
     steps:
-<<<<<<< HEAD
-      - uses: elastic/oblt-actions/mergify/labels-copier@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
-=======
       - uses: elastic/oblt-actions/mergify/labels-copier@v1
->>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           excluded-labels-regex: "^backport-*"
