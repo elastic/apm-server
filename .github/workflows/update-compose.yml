@@ -36,32 +36,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-<<<<<<< HEAD
-      - uses: elastic/oblt-actions/updatecli/run@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
-=======
       - uses: elastic/oblt-actions/updatecli/run@v1
->>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           command: --experimental compose diff
         env:
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
 
-<<<<<<< HEAD
-      - uses: elastic/oblt-actions/updatecli/run@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
-=======
       - uses: elastic/oblt-actions/updatecli/run@v1
->>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           command: --experimental compose apply
         env:
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
 
       - if: ${{ failure()  }}
-<<<<<<< HEAD
-        uses: elastic/oblt-actions/slack/send@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
-=======
         uses: elastic/oblt-actions/slack/send@v1
->>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           channel-id: '#apm-server'
           message: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"
