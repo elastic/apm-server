@@ -80,9 +80,9 @@ jobs:
       GOBENCH_USERNAME: ${{ secrets.GOBENCH_USERNAME }}
       GOBENCH_HOST: ${{ secrets.GOBENCH_HOST }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
 
@@ -115,9 +115,15 @@ jobs:
           username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
           password: ${{ secrets.ELASTIC_DOCKER_PASSWORD }}
 
+<<<<<<< HEAD
       - uses: elastic/oblt-actions/google/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
 
       - uses: elastic/oblt-actions/aws/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+=======
+      - uses: elastic/oblt-actions/google/auth@v1
+
+      - uses: elastic/oblt-actions/aws/auth@v1
+>>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           role-duration-seconds: 21600 # 6 hours
 
@@ -180,7 +186,11 @@ jobs:
           $PNG_REPORT_FILE
 
       - name: Upload PNG
+<<<<<<< HEAD
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+=======
+        uses: actions/upload-artifact@v4
+>>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           name: kibana-png-report
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.PNG_REPORT_FILE }}
@@ -196,7 +206,11 @@ jobs:
           echo "png_report_url=https://elastic-apm-server-benchmark-reports.s3.amazonaws.com/${DEST_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Upload benchmark result
+<<<<<<< HEAD
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+=======
+        uses: actions/upload-artifact@v4
+>>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           name: benchmark-result
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_RESULT }}
@@ -210,7 +224,11 @@ jobs:
         run: make cp-cpuprof
 
       - name: Upload CPU profile
+<<<<<<< HEAD
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+=======
+        uses: actions/upload-artifact@v4
+>>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           name: cpu-profile
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
@@ -232,7 +250,11 @@ jobs:
       # GitHub bot won't trigger any CI builds.
       # See https://github.com/peter-evans/create-pull-request/issues/48#issuecomment-537478081
       - name: Configure git user
+<<<<<<< HEAD
         uses: elastic/oblt-actions/git/setup@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+=======
+        uses: elastic/oblt-actions/git/setup@v1
+>>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           github-token: ${{ steps.get_token.outputs.token }}
 
@@ -270,7 +292,11 @@ jobs:
 
       # Notify failure to Slack only on schedule (nightly run)
       - if: failure() && github.event_name == 'schedule'
+<<<<<<< HEAD
         uses: elastic/oblt-actions/slack/notify-result@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+=======
+        uses: elastic/oblt-actions/slack/notify-result@v1
+>>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"

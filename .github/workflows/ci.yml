@@ -27,12 +27,12 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: false
-      - uses: actions/cache@v4.2.3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/go/pkg/mod/cache
@@ -47,12 +47,12 @@ jobs:
         os: ['macos-latest', 'ubuntu-latest', 'windows-latest']
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: false
-      - uses: actions/cache/restore@v4.2.3
+      - uses: actions/cache/restore@v4
         with:
           enableCrossOsArchive: true
           path: |
@@ -62,15 +62,44 @@ jobs:
             go-
       - run: go test -v -race ./...
 
+<<<<<<< HEAD
+=======
+  test-integration-server-internal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: integrationservertest/go.mod
+          cache: false
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod/cache
+          key: integrationservertest-go-${{ hashFiles('integrationservertest/go.mod') }}
+          restore-keys: |
+            integration-server-test-go-
+      - env:
+          KIBANA_URL: "https://kibana.test"
+          KIBANA_USERNAME: "dummy"
+          KIBANA_PASSWORD: "dummy"
+          EC_URL: "https://elastic-cloud.test"
+          EC_API_KEY: "dummy"
+          EC_REGION: "gcp-us-west2"
+        # run integrationservertest/internal tests
+        # integrationservertest themselves are run in the integration-server-test pipeline
+        run: cd ./integrationservertest && go test -v -race ./internal/...
+
+>>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
   test-fips:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: false
-      - uses: actions/cache@v4.2.3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/go/pkg/mod/cache
@@ -86,13 +115,13 @@ jobs:
   system-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: systemtest/go.mod
           cache: false
       - run: docker compose up -d
-      - uses: actions/cache@v4.2.3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/go/pkg/mod/cache
@@ -104,11 +133,37 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: make system-test
 
+<<<<<<< HEAD
+=======
+  system-test-fips:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: systemtest/go.mod
+          cache: false
+      - run: docker compose up -d
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod/cache
+          key: systemtest-go-${{ hashFiles('systemtest/go.mod', 'go.mod') }}
+          restore-keys: |
+            systemtest-go-
+      - env:
+          GOTESTFLAGS: "-v -tags=requirefips"
+          GOFIPS140: "latest"
+          GODEBUG: "fips140=only"
+          GH_TOKEN: ${{ github.token }}
+        run: make system-test
+
+>>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
   test-package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: false
@@ -123,8 +178,8 @@ jobs:
     env:
       GENERATE_WOLFI_IMAGES: true
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: false
