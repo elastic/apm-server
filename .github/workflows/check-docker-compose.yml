@@ -44,20 +44,12 @@ jobs:
       - check-docker-compose
     steps:
       - id: check
-<<<<<<< HEAD
-        uses: elastic/oblt-actions/check-dependent-jobs@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
-=======
         uses: elastic/oblt-actions/check-dependent-jobs@v1
->>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           jobs: ${{ toJSON(needs) }}
       - run: ${{ steps.check.outputs.isSuccess }}
       - if: failure()
-<<<<<<< HEAD
-        uses: elastic/oblt-actions/slack/notify-result@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
-=======
         uses: elastic/oblt-actions/slack/notify-result@v1
->>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"
