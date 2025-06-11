@@ -17,11 +17,7 @@ jobs:
       matrix: ${{ steps.generator.outputs.matrix }}
     steps:
       - id: generator
-<<<<<<< HEAD
-        uses: elastic/oblt-actions/elastic/active-branches@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
-=======
         uses: elastic/oblt-actions/elastic/active-branches@v1
->>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
 
   check-docker-compose:
     needs:
