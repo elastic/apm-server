@@ -24,7 +24,7 @@ locals {
     "al2023-ami-2023.*-x86_64"        = "t3a.micro"
     "RHEL-8"                          = "t4g.micro" # RHEL doesn't support nano instances
     "RHEL-9"                          = "t4g.micro" # RHEL doesn't support nano instances
-    "Rocky-8-EC2-Base"                = "t4g.nano"
+    "Rocky-8-EC2-Base"                = "t4g.micro" # Larger instance size to improve test reliability
     "Rocky-9-EC2-Base"                = "t4g.nano"
     "AlmaLinux OS 8"                  = "t4g.nano"
     "AlmaLinux OS 9"                  = "t4g.nano"

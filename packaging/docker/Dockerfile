@@ -24,11 +24,13 @@ COPY --chmod=0644 apm-server.yml ./apm-server.yml
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 
+FROM cgr.dev/chainguard/static:latest@sha256:633aabd19a2d1b9d4ccc1f4b704eb5e9d34ce6ad231a4f5b7f7a3af1307fdba8 AS builder-certs
+
 ################################################################################
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:839f16991579b023d4452eadd0efa925e438f8b73063afe4f75bdc6cf7a09b12
+FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:955512628a9104d74f7b3b0a91db27a6bbecdd6a1975ce0f1b2658d3cd060b98
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION
@@ -75,7 +77,9 @@ ENV LIBBEAT_MONITORING_CGROUPS_HIERARCHY_OVERRIDE=/
 # running in Docker.
 ENV BEAT_STRICT_PERMS=false
 
-COPY --chmod=0644 licenses/ELASTIC-LICENSE-2.0.txt NOTICE.txt /licenses/
+COPY --chmod=0755 licenses/ELASTIC-LICENSE-2.0.txt NOTICE.txt /licenses/
+COPY --from=builder-certs /etc/pki /etc/pki
+COPY --from=builder-certs /etc/ssl /etc/ssl
 
 WORKDIR /usr/share/apm-server
 

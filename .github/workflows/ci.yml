@@ -53,7 +53,7 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
-      - uses: actions/cache@v4.2.3
+      - uses: actions/cache/restore@v4.2.3
         with:
           enableCrossOsArchive: true
           path: |
@@ -63,21 +63,21 @@ jobs:
             go-
       - run: go test -v -race ./...
 
-  functional-test:
+  test-integration-server-internal:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.2.2
       - uses: actions/setup-go@v5.4.0
         with:
-          go-version-file: functionaltests/go.mod
+          go-version-file: integrationservertest/go.mod
           cache: false
       - uses: actions/cache@v4.2.3
         with:
           path: |
             ~/go/pkg/mod/cache
-          key: functionaltests-go-${{ hashFiles('functionaltests/go.mod') }}
+          key: integrationservertest-go-${{ hashFiles('integrationservertest/go.mod') }}
           restore-keys: |
-            functionaltests-go-
+            integration-server-test-go-
       - env:
           KIBANA_URL: "https://kibana.test"
           KIBANA_USERNAME: "dummy"
@@ -85,9 +85,9 @@ jobs:
           EC_URL: "https://elastic-cloud.test"
           EC_API_KEY: "dummy"
           EC_REGION: "gcp-us-west2"
-        # run functionaltests internal tests
-        # functionaltests themselves are run in the functional-tests pipeline
-        run: cd ./functionaltests && go test -v -race ./internal/...
+        # run integrationservertest/internal tests
+        # integrationservertest themselves are run in the integration-server-test pipeline
+        run: cd ./integrationservertest && go test -v -race ./internal/...
 
   test-fips:
     runs-on: ubuntu-latest

@@ -41,10 +41,9 @@ The packaging and release automation relies on the Unified Release process and B
 There is a [GitHub workflow](./opentelemetry.yml) in charge to populate what the workflow run in terms of jobs and steps. Those details can be seen in
 [here](https://ela.st/oblt-ci-cd-stats) (**NOTE**: only available for Elasticians).
 
-## Smoke tests
+## Smoke tests OS
 
-Smoke tests are triggered based on a specific scheduler, see [smoke-tests-ess](./smoke-tests-ess.yml) and [smoke-tests-os](./smoke-tests-os.yml)
-for further details.
+Smoke tests are triggered based on a specific scheduler, see [smoke-tests-os](./smoke-tests-os.yml) for further details.
 
 ## Bump automation
 

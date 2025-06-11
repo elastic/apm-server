@@ -31,7 +31,10 @@ import (
 // ErrClosed may be returned by Pubsub methods after the Close method is called.
 var ErrClosed = errors.New("pubsub closed")
 
-var errIndexNotFound = errors.New("index not found")
+var (
+	errIndexNotFound   = errors.New("index not found")
+	errTooManyRequests = errors.New("429")
+)
 
 // Pubsub provides a means of publishing and subscribing to sampled trace IDs,
 // using Elasticsearch for temporary storage.
@@ -109,7 +112,7 @@ func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan strin
 				p.config.Logger.With(
 					logp.Error(err),
 					logp.Reflect("event", &doc),
-				).Debug("failed to encode sampled trace document")
+				).Error("failed to encode sampled trace ID document")
 				return err
 			}
 			data := w.Bytes()
@@ -117,7 +120,7 @@ func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan strin
 				p.config.Logger.With(
 					logp.Error(err),
 					logp.Reflect("event", &doc),
-				).Debug("failed to index sampled trace document")
+				).Error("failed to index sampled trace ID document")
 				return err
 			}
 		}
@@ -153,9 +156,15 @@ func (p *Pubsub) SubscribeSampledTraceIDs(
 		case <-ticker.C:
 			changed, err := p.searchTraceIDs(ctx, traceIDs, pos.observedSeqnos)
 			if err != nil {
-				// Errors may occur due to rate limiting, or while the index is
-				// still being created, so just log and continue.
-				p.config.Logger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Debug("error searching for trace IDs")
+				logger := p.config.Logger.With(logp.Error(err)).With(logp.Reflect("position", pos))
+				switch {
+				case errors.Is(err, context.Canceled):
+					// Ignore shutdown errors
+				case errors.Is(err, errTooManyRequests):
+					logger.Warn("error searching for trace IDs")
+				default:
+					logger.Error("error searching for trace IDs")
+				}
 				continue
 			}
 			if changed {
@@ -235,17 +244,22 @@ func (p *Pubsub) refreshIndices(ctx context.Context, indices []string) error {
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/"+strings.Join(indices, ",")+"/_refresh?ignore_unavailable=true", nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create index refresh request: %w", err)
 	}
 
 	resp, err := p.config.Client.Perform(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("index refresh request failed: %w", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode > 299 {
+		// No need to handle 404 because of ignore_unavailable=true
 		message, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("index refresh request failed: %s", message)
+		switch resp.StatusCode {
+		case http.StatusTooManyRequests:
+			return fmt.Errorf("index refresh request failed with status code %w: %s", errTooManyRequests, message)
+		}
+		return fmt.Errorf("index refresh request failed with status code %d: %s", resp.StatusCode, message)
 	}
 	return nil
 }
@@ -334,13 +348,13 @@ func (p *Pubsub) searchIndexTraceIDs(ctx context.Context, out chan<- string, ind
 func (p *Pubsub) doSearchRequest(ctx context.Context, index string, body io.Reader, out interface{}) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/"+index+"/_search", body)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create search request: %w", err)
 	}
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := p.config.Client.Perform(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("search request failed: %w", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode > 299 {
@@ -348,9 +362,16 @@ func (p *Pubsub) doSearchRequest(ctx context.Context, index string, body io.Read
 			return errIndexNotFound
 		}
 		message, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("search request failed: %s", message)
+		switch resp.StatusCode {
+		case http.StatusTooManyRequests:
+			return fmt.Errorf("search request failed with status code %w: %s", errTooManyRequests, message)
+		}
+		return fmt.Errorf("search request failed with status code %d: %s", resp.StatusCode, message)
 	}
-	return json.NewDecoder(resp.Body).Decode(out)
+	if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
+		return fmt.Errorf("failed to parse search response: %w", err)
+	}
+	return nil
 }
 
 type traceIDDocument struct {

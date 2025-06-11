@@ -184,6 +184,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		publishReady,
 		args.Semaphore,
 		args.MeterProvider,
+		args.TracerProvider,
 		args.Logger,
 	)
 	if err != nil {
@@ -204,7 +205,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		}
 	}
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
-	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore, args.MeterProvider)
+	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore, args.MeterProvider, args.TracerProvider)
 
 	return server{
 		logger:     args.Logger,
@@ -242,7 +243,7 @@ func newAgentConfigFetcher(
 	cfg *config.Config,
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
-	tracer *apm.Tracer,
+	tp trace.TracerProvider,
 	mp metric.MeterProvider,
 	logger *logp.Logger,
 ) (agentcfg.Fetcher, func(context.Context) error, error) {
@@ -269,6 +270,6 @@ func newAgentConfigFetcher(
 	if err != nil {
 		return nil, nil, err
 	}
-	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tracer, mp, logger)
+	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tp, mp, logger)
 	return agentcfg.SanitizingFetcher{Fetcher: esFetcher}, esFetcher.Run, nil
 }

@@ -1,1 +1,0 @@
-../basic-upgrade/cleanup.sh
