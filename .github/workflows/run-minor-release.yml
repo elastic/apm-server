@@ -48,11 +48,7 @@ jobs:
       contents: write
     steps:
 
-<<<<<<< HEAD
-      - uses: elastic/oblt-actions/slack/send@9a8ac45080b2f079246e2a0c665b551c6986b6c3 # v1.9.1
-=======
       - uses: elastic/oblt-actions/slack/send@v1
->>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
