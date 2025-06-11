@@ -27,12 +27,12 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: false
-      - uses: actions/cache@v4.2.3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/go/pkg/mod/cache
@@ -50,12 +50,12 @@ jobs:
         os: ['macos-latest', 'ubuntu-latest', 'windows-latest']
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: false
-      - uses: actions/cache/restore@v4.2.3
+      - uses: actions/cache/restore@v4
         with:
           enableCrossOsArchive: true
           path: |
@@ -68,13 +68,13 @@ jobs:
   system-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: systemtest/go.mod
           cache: false
       - run: docker compose up -d
-      - uses: actions/cache@v4.2.3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/go/pkg/mod/cache
@@ -89,8 +89,8 @@ jobs:
   test-package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: false
@@ -105,8 +105,8 @@ jobs:
     env:
       GENERATE_WOLFI_IMAGES: true
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: false
