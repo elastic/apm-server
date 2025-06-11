@@ -32,6 +32,7 @@ import (
 	"github.com/spf13/cobra"
 
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
@@ -232,7 +233,7 @@ func bootstrap() (*es.Client, *config.Config, error) {
 		esOutputCfg = cfg.Output.Config()
 	}
 
-	beaterConfig, err := config.NewConfig(cfg.APMServer, esOutputCfg)
+	beaterConfig, err := config.NewConfig(cfg.APMServer, esOutputCfg, logp.L())
 	if err != nil {
 		return nil, nil, err
 	}

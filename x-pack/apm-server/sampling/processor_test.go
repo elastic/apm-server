@@ -31,11 +31,12 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub/pubsubtest"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestProcessUnsampled(t *testing.T) {
 	cfg, _ := newTempdirConfig(t)
-	processor, err := sampling.NewProcessor(cfg)
+	processor, err := sampling.NewProcessor(cfg, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -86,7 +87,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// writer shards that can list all the events committed so far.
 	require.NoError(t, config.Storage.Flush())
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -172,7 +173,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			published := make(chan string)
 			config.Elasticsearch = pubsubtest.Client(pubsubtest.PublisherChan(published), nil)
 
-			processor, err := sampling.NewProcessor(config)
+			processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 			require.NoError(t, err)
 
 			trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
@@ -287,7 +288,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	config, metricreader := newTempdirConfig(t)
 	config.FlushInterval = time.Minute
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -355,7 +356,7 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 	published := make(chan string)
 	config.Elasticsearch = pubsubtest.Client(pubsubtest.PublisherChan(published), nil)
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	// Send transactions which would match either policy defined above.
@@ -430,7 +431,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 		}
 	})
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -539,7 +540,7 @@ func TestProcessDiscardOnWriteFailure(t *testing.T) {
 			config, _ := newTempdirConfig(t)
 			config.DiscardOnWriteFailure = discard
 			config.Storage = errorRW{err: errors.New("boom")}
-			processor, err := sampling.NewProcessor(config)
+			processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 			require.NoError(t, err)
 			go processor.Run()
 			defer processor.Stop(context.Background())
@@ -574,7 +575,7 @@ func TestGroupsMonitoring(t *testing.T) {
 	config.FlushInterval = time.Minute
 	config.Policies[0].SampleRate = 0.99
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -613,7 +614,7 @@ func TestStorageGC(t *testing.T) {
 
 	writeBatch := func(n int) {
 		config.StorageGCInterval = time.Hour // effectively disable
-		processor, err := sampling.NewProcessor(config)
+		processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		go processor.Run()
 		defer processor.Stop(context.Background())
@@ -643,7 +644,7 @@ func TestStorageGC(t *testing.T) {
 	}
 
 	config.StorageGCInterval = 10 * time.Millisecond
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -670,7 +671,7 @@ func TestStorageGCConcurrency(t *testing.T) {
 
 	g := errgroup.Group{}
 	for i := 0; i < 2; i++ {
-		processor, err := sampling.NewProcessor(config)
+		processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		g.Go(processor.Run)
 		go func() {
@@ -692,7 +693,7 @@ func TestStorageLimit(t *testing.T) {
 	}
 
 	writeBatch := func(n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
-		processor, err := sampling.NewProcessor(c)
+		processor, err := sampling.NewProcessor(c, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		go processor.Run()
 		defer processor.Stop(context.Background())
@@ -767,7 +768,7 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	subscriber := pubsubtest.SubscriberChan(subscriberChan)
 	config.Elasticsearch = pubsubtest.Client(nil, subscriber)
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -806,7 +807,7 @@ func TestDropLoop(t *testing.T) {
 	}
 
 	writeBatch := func(t *testing.T, n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
-		processor, err := sampling.NewProcessor(c)
+		processor, err := sampling.NewProcessor(c, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		go processor.Run()
 		defer processor.Stop(context.Background())
@@ -878,7 +879,7 @@ func TestDropLoop(t *testing.T) {
 				// because there's a hardcoded 90% threshold for storage limit
 				config.StorageLimit = uint64(float64(lsm+vlog) * 1.05)
 				config.TTL = time.Second
-				processor, err := sampling.NewProcessor(config)
+				processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 				require.NoError(t, err)
 				go processor.Run()
 				defer processor.Stop(context.Background())
@@ -946,7 +947,7 @@ func TestReadSubscriberPositionFile(t *testing.T) {
 			err := tc.setupFile(filepath.Join(tempdirConfig.StorageDir, "subscriber_position.json"))
 			require.NoError(t, err)
 
-			processor, err := sampling.NewProcessor(tempdirConfig)
+			processor, err := sampling.NewProcessor(tempdirConfig, logptest.NewTestingLogger(t, ""))
 			require.NoError(t, err)
 
 			ret := make(chan error)
@@ -965,7 +966,7 @@ func TestGracefulShutdown(t *testing.T) {
 	config.Policies = []sampling.Policy{{SampleRate: sampleRate}}
 	config.FlushInterval = time.Minute // disable finalize
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 

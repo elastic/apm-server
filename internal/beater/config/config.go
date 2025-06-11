@@ -81,8 +81,8 @@ type Config struct {
 }
 
 // NewConfig creates a Config struct based on the default config and the given input params
-func NewConfig(ucfg *config.C, outputESCfg *config.C) (*Config, error) {
-	logger := logp.NewLogger(logs.Config)
+func NewConfig(ucfg *config.C, outputESCfg *config.C, logger *logp.Logger) (*Config, error) {
+	logger = logger.Named(logs.Config)
 	c := DefaultConfig()
 	if err := ucfg.Unpack(c); err != nil {
 		return nil, errors.Wrap(err, "Error processing configuration")

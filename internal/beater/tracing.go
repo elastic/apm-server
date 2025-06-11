@@ -57,6 +57,7 @@ func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Log
 		semaphore,
 		noopmetric.NewMeterProvider(),
 		nooptrace.NewTracerProvider(),
+		logger,
 	)
 	if err != nil {
 		return nil, err

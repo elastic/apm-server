@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestSamplingPoliciesValidation(t *testing.T) {
@@ -31,13 +32,13 @@ func TestSamplingPoliciesValidation(t *testing.T) {
 			"sampling.tail.policies": []map[string]interface{}{{
 				"sample_rate": 0.5,
 			}},
-		}), nil)
+		}), nil, logptest.NewTestingLogger(t, ""))
 		assert.NoError(t, err)
 	})
 	t.Run("NoPolicies", func(t *testing.T) {
 		c, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
 			"sampling.tail.enabled": true,
-		}), nil)
+		}), nil, logptest.NewTestingLogger(t, ""))
 		assert.NoError(t, err)
 		assert.False(t, c.Sampling.Tail.Enabled)
 	})
@@ -47,7 +48,7 @@ func TestSamplingPoliciesValidation(t *testing.T) {
 				"service.name": "foo",
 				"sample_rate":  0.5,
 			}},
-		}), nil)
+		}), nil, logptest.NewTestingLogger(t, ""))
 		assert.NoError(t, err)
 		assert.False(t, c.Sampling.Tail.Enabled)
 	})

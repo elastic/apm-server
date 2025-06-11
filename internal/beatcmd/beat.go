@@ -169,16 +169,17 @@ func (b *Beat) init() error {
 	if err := configureLogging(b.Config); err != nil {
 		return fmt.Errorf("failed to configure logging: %w", err)
 	}
+	b.Beat.Info.Logger = logp.NewLogger("")
 
 	// log paths values to help with troubleshooting
-	logp.Info("%s", paths.Paths.String())
+	b.Info.Logger.Infof("%s", paths.Paths.String())
 
 	// Load the unique ID and "first start" info from meta.json.
 	metaPath := paths.Resolve(paths.Data, "meta.json")
 	if err := b.loadMeta(metaPath); err != nil {
 		return err
 	}
-	logp.Info("Beat ID: %v", b.Info.ID)
+	b.Info.Logger.Infof("Beat ID: %v", b.Info.ID)
 
 	// Initialize central config manager.
 	manager, err := management.NewManager(b.Config.Management, b.Registry)
@@ -188,11 +189,11 @@ func (b *Beat) init() error {
 	b.Manager = manager
 
 	if maxProcs := b.Config.MaxProcs; maxProcs > 0 {
-		logp.Info("Set max procs limit: %v", maxProcs)
+		b.Info.Logger.Infof("Set max procs limit: %v", maxProcs)
 		runtime.GOMAXPROCS(maxProcs)
 	}
 	if gcPercent := b.Config.GCPercent; gcPercent > 0 {
-		logp.Info("Set gc percentage to: %v", gcPercent)
+		b.Info.Logger.Infof("Set gc percentage to: %v", gcPercent)
 		debug.SetGCPercent(gcPercent)
 	}
 	return nil
@@ -204,7 +205,7 @@ func (b *Beat) loadMeta(metaPath string) error {
 		FirstStart time.Time `json:"first_start"`
 	}
 
-	logp.Debug("beat", "Beat metadata path: %v", metaPath)
+	b.Info.Logger.Debugf("beat", "Beat metadata path: %v", metaPath)
 	f, err := openRegular(metaPath)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("meta file failed to open: %w", err)
@@ -283,25 +284,23 @@ func openRegular(filename string) (*os.File, error) {
 }
 
 func (b *Beat) Run(ctx context.Context) error {
-	defer logp.Sync()
+	defer b.Info.Logger.Sync()
 	defer func() {
 		if r := recover(); r != nil {
-			logp.NewLogger("").Fatalw("exiting due to panic",
+			b.Info.Logger.Fatalw("exiting due to panic",
 				"panic", r,
 				zap.Stack("stack"),
 			)
 		}
 	}()
-	defer logp.Info("%s stopped.", b.Info.Beat)
-
-	logger := logp.NewLogger("")
+	defer b.Info.Logger.Infof("%s stopped.", b.Info.Beat)
 
 	if runtime.GOOS == "darwin" {
 		if host, err := sysinfo.Host(); err != nil {
-			logger.Warnf("failed to retrieve kernel version, ignoring potential deprecation warning: %v", err)
+			b.Info.Logger.Warnf("failed to retrieve kernel version, ignoring potential deprecation warning: %v", err)
 		} else if strings.HasPrefix(host.Info().KernelVersion, "19.") {
 			// macOS 10.15.x (catalina) means darwin kernel 19.y
-			logger.Warn("deprecation notice: support for macOS 10.15 will be removed in an upcoming version")
+			b.Info.Logger.Warn("deprecation notice: support for macOS 10.15 will be removed in an upcoming version")
 		}
 	}
 
@@ -327,7 +326,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	var apiServer *api.Server
 	if b.Config.HTTP.Enabled() {
 		var err error
-		apiServer, err = api.NewWithDefaultRoutes(logp.NewLogger(""), b.Config.HTTP, api.NamespaceLookupFunc())
+		apiServer, err = api.NewWithDefaultRoutes(b.Info.Logger, b.Config.HTTP, api.NamespaceLookupFunc())
 		if err != nil {
 			return fmt.Errorf("could not start the HTTP server for the API: %w", err)
 		}
@@ -373,10 +372,10 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	g.Go(func() error {
-		return adjustMaxProcs(ctx, 30*time.Second, logger)
+		return adjustMaxProcs(ctx, 30*time.Second, b.Info.Logger)
 	})
 
-	slogger := slog.New(zapslog.NewHandler(logger.Core()))
+	slogger := slog.New(zapslog.NewHandler(b.Info.Logger.Core()))
 	if err := adjustMemlimit(30*time.Second, slogger); err != nil {
 		return err
 	}
@@ -395,7 +394,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 	defer cleanup()
 
-	if err := metricreport.SetupMetrics(logp.NewLogger("metrics"), b.Info.Beat, b.Info.Version); err != nil {
+	if err := metricreport.SetupMetrics(b.Info.Logger.Named("metrics"), b.Info.Beat, b.Info.Version); err != nil {
 		return err
 	}
 
@@ -418,7 +417,7 @@ func (b *Beat) Run(ctx context.Context) error {
 		runner, err := b.newRunner(RunnerParams{
 			Config:          b.rawConfig,
 			Info:            b.Info,
-			Logger:          logp.NewLogger(""),
+			Logger:          b.Info.Logger,
 			MeterProvider:   b.meterProvider,
 			MetricsGatherer: b.metricGatherer,
 		})
@@ -427,7 +426,7 @@ func (b *Beat) Run(ctx context.Context) error {
 		}
 		g.Go(func() error { return runner.Run(ctx) })
 	}
-	logp.Info("%s started.", b.Info.Beat)
+	b.Info.Logger.Infof("%s started.", b.Info.Beat)
 	if err := g.Wait(); err != nil && !errors.Is(err, context.Canceled) {
 		return err
 	}
@@ -833,9 +832,9 @@ func (b *Beat) setupMonitoring() (report.Reporter, error) {
 // runtime, host, and process. If any of the data is not available it will be
 // omitted.
 func logSystemInfo(info beat.Info) {
-	defer logp.Recover("An unexpected error occurred while collecting " +
+	defer info.Logger.Recover("An unexpected error occurred while collecting " +
 		"information about the system.")
-	log := logp.NewLogger("beat").With(logp.Namespace("system_info"))
+	log := info.Logger.Named("beat").With(logp.Namespace("system_info"))
 
 	// Beat
 	beat := mapstr.M{

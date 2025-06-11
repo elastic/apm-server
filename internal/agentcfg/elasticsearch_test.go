@@ -33,6 +33,7 @@ import (
 	"go.opentelemetry.io/otel/metric/noop"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 var sampleHits = []map[string]interface{}{
@@ -105,7 +106,7 @@ func newElasticsearchFetcher(
 		w.WriteHeader(200)
 		w.Write(b)
 		i += searchSize
-	}), time.Second, nil, rt, noop.NewMeterProvider())
+	}), time.Second, nil, rt, noop.NewMeterProvider(), logptest.NewTestingLogger(t, ""))
 	fetcher.searchSize = searchSize
 	return fetcher
 }
@@ -195,6 +196,7 @@ func TestFetchUseFallback(t *testing.T) {
 		fallbackFetcher,
 		apmtest.NewRecordingTracer().Tracer,
 		noop.NewMeterProvider(),
+		logptest.NewTestingLogger(t, ""),
 	)
 
 	fetcher.refreshCache(context.Background())
@@ -211,6 +213,7 @@ func TestFetchNoFallbackInvalidESCfg(t *testing.T) {
 		nil,
 		apmtest.NewRecordingTracer().Tracer,
 		noop.NewMeterProvider(),
+		logptest.NewTestingLogger(t, ""),
 	)
 
 	err := fetcher.refreshCache(context.Background())
@@ -228,6 +231,7 @@ func TestFetchNoFallback(t *testing.T) {
 		nil,
 		apmtest.NewRecordingTracer().Tracer,
 		noop.NewMeterProvider(),
+		logptest.NewTestingLogger(t, ""),
 	)
 
 	err := fetcher.refreshCache(context.Background())
