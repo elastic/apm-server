@@ -28,11 +28,8 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
-<<<<<<< HEAD
-=======
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
->>>>>>> 6d414320 (TBS: Log pubsub errors at error or warn level (#17135))
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 )
 
@@ -400,10 +397,7 @@ func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval
 		ServerID:       serverID,
 		FlushInterval:  flushInterval,
 		SearchInterval: searchInterval,
-<<<<<<< HEAD
-=======
 		Logger:         logger,
->>>>>>> 6d414320 (TBS: Log pubsub errors at error or warn level (#17135))
 	})
 	require.NoError(t, err)
 	return sub
