@@ -15,12 +15,8 @@ require (
 	github.com/elastic/elastic-agent-system-metrics v0.11.11
 	github.com/elastic/elastic-transport-go/v8 v8.7.0
 	github.com/elastic/gmux v0.3.2
-<<<<<<< HEAD
 	github.com/elastic/go-docappender/v2 v2.9.0
-=======
-	github.com/elastic/go-docappender/v2 v2.8.0
 	github.com/elastic/go-freelru v0.16.0
->>>>>>> e0c9eda4 (feat: use go-freelru consistently (#16549))
 	github.com/elastic/go-sysinfo v1.15.3
 	github.com/elastic/go-ucfg v0.8.8
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
@@ -29,16 +25,10 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.7.0
 	github.com/gorilla/mux v1.8.1
-<<<<<<< HEAD
-	github.com/hashicorp/golang-lru v1.0.2
 	github.com/jaegertracing/jaeger-idl v0.6.0
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901
 	github.com/libp2p/go-reuseport v0.4.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.126.0
-	github.com/patrickmn/go-cache v2.1.0+incompatible
-=======
-	github.com/libp2p/go-reuseport v0.4.0
->>>>>>> e0c9eda4 (feat: use go-freelru consistently (#16549))
 	github.com/pkg/errors v0.9.1
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.9.1
