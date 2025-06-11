@@ -17,7 +17,7 @@ jobs:
       matrix: ${{ steps.generator.outputs.matrix }}
     steps:
       - id: generator
-        uses: elastic/oblt-actions/elastic/active-branches@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
+        uses: elastic/oblt-actions/elastic/active-branches@v1
 
   bump-elastic-stack:
     runs-on: ubuntu-latest
@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.filter.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ matrix.branch }}
 
@@ -42,7 +42,7 @@ jobs:
               "pull_requests": "write"
             }
 
-      - uses: elastic/oblt-actions/updatecli/run@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
+      - uses: elastic/oblt-actions/updatecli/run@v1
         with:
           command: --experimental apply --config .ci/updatecli/bump-elastic-stack-snapshot.yml --values .ci/updatecli/values.d/scm.yml
         env:
@@ -50,7 +50,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
 
       - if: ${{ failure()  }}
-        uses: elastic/oblt-actions/slack/send@db0844c27572a45966ce669e4d3073c205c8d5e4 # v1
+        uses: elastic/oblt-actions/slack/send@v1
         with:
           channel-id: '#apm-server'
           message: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"
