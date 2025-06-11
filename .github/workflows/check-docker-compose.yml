@@ -17,7 +17,11 @@ jobs:
       matrix: ${{ steps.generator.outputs.matrix }}
     steps:
       - id: generator
+<<<<<<< HEAD
         uses: elastic/oblt-actions/elastic/active-branches@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+=======
+        uses: elastic/oblt-actions/elastic/active-branches@v1
+>>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
 
   check-docker-compose:
     needs:
@@ -27,10 +31,10 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.filter.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ matrix.branch }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: true
@@ -47,12 +51,20 @@ jobs:
       - check-docker-compose
     steps:
       - id: check
+<<<<<<< HEAD
         uses: elastic/oblt-actions/check-dependent-jobs@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+=======
+        uses: elastic/oblt-actions/check-dependent-jobs@v1
+>>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           jobs: ${{ toJSON(needs) }}
       - run: ${{ steps.check.outputs.isSuccess }}
       - if: failure()
+<<<<<<< HEAD
         uses: elastic/oblt-actions/slack/notify-result@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+=======
+        uses: elastic/oblt-actions/slack/notify-result@v1
+>>>>>>> 0e1f32a6 (ci: revert image pinning for internal and github actions (#17191))
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"
