@@ -63,11 +63,11 @@ jobs:
     uses: ./.github/workflows/benchmarks.yml
     with:
       profile: ${{ matrix.profile }}
-      benchmarkAgents: ${{ input.benchmarkAgents }}
-      runStandalone: ${{ input.runStandalone }}
-      enableTailSampling: ${{ input.enableTailSampling }}
-      tailSamplingStorageLimit: ${{ input.tailSamplingStorageLimit }}
-      runOnStable: ${{ input.runOnStable }}
-      benchmarkRun: ${{ input.benchmarkRun }}
-      warmupTime: ${{ input.warmupTime }}
-      pgoExport: ${{ input.pgoExport }}
+      benchmarkAgents: ${{ inputs.benchmarkAgents }}
+      runStandalone: ${{ inputs.runStandalone }}
+      enableTailSampling: ${{ inputs.enableTailSampling }}
+      tailSamplingStorageLimit: ${{ inputs.tailSamplingStorageLimit }}
+      runOnStable: ${{ inputs.runOnStable }}
+      benchmarkRun: ${{ inputs.benchmarkRun }}
+      warmupTime: ${{ inputs.warmupTime }}
+      pgoExport: ${{ inputs.pgoExport }}
