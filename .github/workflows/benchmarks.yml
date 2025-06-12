@@ -129,6 +129,15 @@ jobs:
             echo "BENCHMARK_WARMUP_TIME=5m" >> "$GITHUB_ENV"
           fi
 
+          # Set deployment template for different CSPs
+          if [ "${TF_VAR_ess_region:0:4}" = "gcp-" ]; then
+            echo "TF_VAR_deployment_template=gcp-cpu-optimized" >> "$GITHUB_ENV"
+          elif [ "${TF_VAR_ess_region:0:6}" = "azure-" ]; then
+            echo "TF_VAR_deployment_template=azure-cpu-optimized" >> "$GITHUB_ENV"
+          else
+            echo "TF_VAR_deployment_template=aws-cpu-optimized-faster-warm" >> "$GITHUB_ENV"
+          fi
+
       # exclude BenchmarkTraces* from scheduled benchmarks
       - if: github.event_name == 'schedule'
         run: |
