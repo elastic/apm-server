@@ -66,3 +66,19 @@ jobs:
       runOnStable: ${{ inputs.runOnStable }}
       benchmarkRun: ${{ inputs.benchmarkRun }}
       warmupTime: ${{ inputs.warmupTime }}
+    secrets:
+      GOBENCH_PASSWORD: ${{secrets.GOBENCH_PASSWORD}}
+      GOBENCH_USERNAME: ${{secrets.GOBENCH_USERNAME}}
+      GOBENCH_HOST: ${{secrets.GOBENCH_HOST}}
+      ELASTIC_DOCKER_REGISTRY: ${{secrets.ELASTIC_DOCKER_REGISTRY}}
+      ELASTIC_DOCKER_USERNAME: ${{secrets.ELASTIC_DOCKER_USERNAME}}
+      ELASTIC_DOCKER_PASSWORD: ${{secrets.ELASTIC_DOCKER_PASSWORD}}
+      KIBANA_BENCH_ENDPOINT: ${{secrets.KIBANA_BENCH_ENDPOINT}}
+      KIBANA_BENCH_USERNAME: ${{secrets.KIBANA_BENCH_USERNAME}}
+      KIBANA_BENCH_PASSWORD: ${{secrets.KIBANA_BENCH_PASSWORD}}
+      OBS_AUTOMATION_APP_ID: ${{secrets.OBS_AUTOMATION_APP_ID}}
+      OBS_AUTOMATION_APP_PEM: ${{secrets.OBS_AUTOMATION_APP_PEM}}
+      GPG_PRIVATE_KEY: ${{secrets.GPG_PRIVATE_KEY}}
+      GPG_PASSPHRASE: ${{secrets.GPG_PASSPHRASE}}
+      SLACK_BOT_TOKEN: ${{secrets.SLACK_BOT_TOKEN}}
+      KIBANA_BENCH_DASHBOARD: ${{secrets.KIBANA_BENCH_DASHBOARD}}
