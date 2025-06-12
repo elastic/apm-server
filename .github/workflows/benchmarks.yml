@@ -23,6 +23,11 @@ on:
         required: false
         type: string
         # defaults set below (TFVARS_SOURCE)
+      essRegion:
+        description: 'ESS region, e.g. gcp-us-west2'
+        required: false
+        type: string
+        # defaults set below
       runOnStable:
         description: 'Benchmark on latest stable version'
         required: false
@@ -81,6 +86,7 @@ jobs:
       TF_VAR_apm_server_tail_sampling_storage_limit: ${{ inputs.tailSamplingStorageLimit || '10GB' }} # set the default again otherwise schedules won't work
       RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 0 1 * *' }}
       PGO_EXPORT: ${{ inputs.pgoExport || github.event.schedule=='0 0 1 * *' }}
+      TF_VAR_ess_region: ${{ inputs.essRegion || 'gcp-us-west2' }}
       TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # set the default again otherwise schedules won't work
       TF_VAR_BUILD_ID: ${{ github.run_id }}
       TF_VAR_ENVIRONMENT: ci
