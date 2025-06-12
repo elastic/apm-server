@@ -134,6 +134,7 @@ patch-release:
 update-changelog: VERSION=$${VERSION}
 update-changelog:
 	@echo ">> update-changelog"
+	bash ./tools/scripts/changelog.sh $(VERSION)
 
 ## Update the references on .mergify.yml with the new minor release.
 .PHONY: update-mergify
