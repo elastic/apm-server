@@ -22,7 +22,7 @@ on:
         required: false
         type: string
       runOnStable:
-        description: 'Benchmark on latest stable version'
+        description: 'Benchmark on latest stable version instead of SNAPSHOT'
         required: false
         type: boolean
         default: false

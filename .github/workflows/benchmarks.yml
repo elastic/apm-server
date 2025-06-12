@@ -26,7 +26,7 @@ on:
         type: string
         # defaults set below (TFVARS_SOURCE)
       runOnStable:
-        description: 'Benchmark on latest stable version'
+        description: 'Benchmark on latest stable version instead of SNAPSHOT'
         required: false
         type: boolean
         default: false
@@ -75,7 +75,7 @@ on:
         type: string
         # defaults set below (TFVARS_SOURCE)
       runOnStable:
-        description: 'Benchmark on latest stable version'
+        description: 'Benchmark on latest stable version instead of SNAPSHOT'
         required: false
         type: boolean
         default: false
