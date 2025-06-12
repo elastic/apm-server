@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       essRegionsJSON:
-        description: 'JSON list of ESS regions to benchmark, e.g. ["gcp-us-west2", "azure-westus2", "us-west-2"]'
+        description: 'JSON list of ESS regions, e.g. ["gcp-us-west2", "azure-westus2", "us-west-2"]'
         required: true
         type: string
       runStandalone:

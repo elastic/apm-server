@@ -24,7 +24,7 @@ on:
         type: string
         # defaults set below (TFVARS_SOURCE)
       essRegion:
-        description: 'ESS region, e.g. gcp-us-west2'
+        description: 'ESS region of deployment, e.g. gcp-us-west2'
         required: false
         type: string
         # defaults set below
