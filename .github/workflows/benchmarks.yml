@@ -2,7 +2,7 @@ name: benchmarks
 
 on:
   workflow_dispatch:
-    inputs: &benchmark_inputs
+    inputs:
       runStandalone:
         description: 'Benchmark against standalone APM Server with Moxy'
         required: false
@@ -54,7 +54,59 @@ on:
         type: boolean
         default: false
   workflow_call:
-    inputs: *benchmark_inputs
+    # Identical to workflow_dispatch inputs
+    # GH Actions YAML parser doesn't support anchors yet: https://github.com/actions/runner/issues/1182
+    inputs:
+      runStandalone:
+        description: 'Benchmark against standalone APM Server with Moxy'
+        required: false
+        type: boolean
+        default: false
+      enableTailSampling:
+        description: 'Enable tail-based sampling on APM server'
+        required: false
+        type: boolean
+        default: false
+      tailSamplingStorageLimit:
+        description: 'Storage size limit of tail-based sampling on APM server'
+        required: false
+        type: string
+        default: "10GB"
+      profile:
+        description: 'System profile for benchmark, e.g. system-profiles/8GBx1zone.tfvars'
+        required: false
+        type: string
+        # defaults set below (TFVARS_SOURCE)
+      essRegion:
+        description: 'ESS region of deployment, e.g. gcp-us-west2'
+        required: false
+        type: string
+        # defaults set below
+      runOnStable:
+        description: 'Benchmark on latest stable version'
+        required: false
+        type: boolean
+        default: false
+      benchmarkAgents:
+        description: 'Number of benchmark agents sending data to APM Server'
+        required: false
+        type: string
+        # defaults set in Makefile
+      benchmarkRun:
+        description: 'Benchmark scenarios that only match regex, e.g. BenchmarkAgentAll'
+        required: false
+        type: string
+        # defaults set in Makefile
+      warmupTime:
+        description: 'Benchmark warmup time for APM Server e.g. 3s, 5m, 2h'
+        required: false
+        type: string
+        # defaults set below (Set up env)
+      pgoExport:
+        description: 'Benchmark with PGO export'
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: '0 17 * * *' # Scheduled regular benchmarks.
     - cron: '0 0 1 * *' # Scheduled PGO benchmarks.
