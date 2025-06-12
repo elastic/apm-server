@@ -2,7 +2,7 @@ name: benchmarks
 
 on:
   workflow_dispatch:
-    inputs:
+    inputs: &benchmark_inputs
       runStandalone:
         description: 'Benchmark against standalone APM Server with Moxy'
         required: false
@@ -48,6 +48,8 @@ on:
         required: false
         type: boolean
         default: false
+  workflow_call:
+    inputs: *benchmark_inputs
   schedule:
     - cron: '0 17 * * *' # Scheduled regular benchmarks.
     - cron: '0 0 1 * *' # Scheduled PGO benchmarks.
