@@ -48,6 +48,9 @@ permissions:
 
 jobs:
   bench-matrix:
+    permissions:
+      contents: write
+      id-token: write
     strategy:
       matrix:
         profile: ${{ fromJSON(inputs.profilesJSON)}}
