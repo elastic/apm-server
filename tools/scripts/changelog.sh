@@ -29,22 +29,83 @@ updateFile() {
   mv "$newfile" "$file"
 }
 
+# maybeInsertEmptyReleaseNote file start_marker end_marker comment
+# This function checks if between $start_marker and $end_marker lines there are
+# non empty and non commented lines. If there are any, adds the content of 
+# $comment in between. This allows to automate inserting empty release notes when
+# necessary.
+# NOTE: it overrides $file with the new content.
+maybeInsertEmptyReleaseNote() {
+  local file
+  file="$1"
+  local start_marker
+  start_marker="$2"
+  local end_marker
+  end_marker="$3"
+  local comment
+  comment="$4"
+
+  awk -v sm="$start_marker" -v em="$end_marker" -v comment="$comment" '
+  BEGIN {in_block=0; found=0}
+  {
+    # Detect start marker
+    if ($0 ~ sm) {
+      print
+      in_block=1
+      block_lines=""
+      next
+    }
+    # Detect end marker
+    if (in_block && $0 ~ em) {
+      # Check if any non-comment, non-blank lines found
+      if (found == 0) {
+        print comment, "\n"
+      }
+      print
+      in_block=0
+      found=0
+      next
+    }
+    if (in_block) {
+      # Only check lines between the markers
+      if ($0 !~ /^%/ && $0 !~ /^[[:space:]]*$/) {
+        found=1
+      }
+      block_lines = block_lines $0 "\n"
+      print
+      next
+    }
+    print
+  }
+  ' "$file" > "$file.new"
+
+  mv "$file.new" "$file"
+}
+
 updateBreakingChanges() {
+  file="./docs/release-notes/breaking-changes.md"
+  maybeInsertEmptyReleaseNote "$file" "## Next version" "## [0-9]+\.[0-9]+\.[0-9]+" "_No breaking changes_"
   # offset is number of lines below in the Next version section + 1
-  updateFile "./docs/release-notes/breaking-changes.md" 10
+  updateFile "$file" 10
 }
 
 updateDeprecations() {
+  file="./docs/release-notes/deprecations.md"
+  maybeInsertEmptyReleaseNote "$file" "## Next version" "## [0-9]+\.[0-9]+\.[0-9]+" "_No deprecations_"
   # offset is number of lines below in the Next version section + 1
-  updateFile "./docs/release-notes/deprecations.md" 8
+  updateFile "$file" 8
 }
 
 updateIndex() {
   file=./docs/release-notes/index.md
   newfile="newfile.md"
 
+
+  maybeInsertEmptyReleaseNote "$file" "## Features and enhancements" "## Fixes" "_No new features or enhancements_"
+  maybeInsertEmptyReleaseNote "$file" "## Fixes" "## [0-9]+\.[0-9]+\.[0-9]+" "_No new fixes_"
+
   # get the line where we will introduce back the next version section
-  LN=$(grep -n "## version.next" "$file" | head -1 | grep -Eo '^[^:]+')
+  LN=$(grep -n "## Next version" "$file" | head -1 | grep -Eo '^[^:]+')
   # create anchor from version string
   anchor=$(echo "$VERSION" | tr . -)
   # create the new file content
