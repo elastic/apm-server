@@ -66,4 +66,4 @@ jobs:
       runOnStable: ${{ inputs.runOnStable }}
       benchmarkRun: ${{ inputs.benchmarkRun }}
       warmupTime: ${{ inputs.warmupTime }}
-    secrets: inherit
+    secrets: inherit  # Requires allowlist in https://github.com/elastic/oblt-infra/tree/main/conf/resources/repos/apm-server

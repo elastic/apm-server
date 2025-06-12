@@ -1,5 +1,7 @@
 name: benchmarks
 
+# Secret access requires allowlist in https://github.com/elastic/oblt-infra/tree/main/conf/resources/repos/apm-server
+
 on:
   workflow_dispatch:
     inputs:
