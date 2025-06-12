@@ -2,7 +2,11 @@ name: benchmarks-matrix
 
 on:
   workflow_dispatch:
-    inputs: &benchmark_inputs
+    inputs:
+      profileJSON:
+        description: 'JSON list of system profile for benchmark, e.g. ["system-profiles/8GBx1zone.tfvars"]'
+        required: true
+        type: string
       runStandalone:
         description: 'Benchmark against standalone APM Server with Moxy'
         required: false
@@ -18,10 +22,6 @@ on:
         required: false
         type: string
         default: "10GB"
-      profile:
-        description: 'System profile for benchmark, e.g. system-profiles/8GBx1zone.tfvars'
-        required: false
-        type: string
         # defaults set below (TFVARS_SOURCE)
       runOnStable:
         description: 'Benchmark on latest stable version'
@@ -43,11 +43,6 @@ on:
         required: false
         type: string
         # defaults set below (Set up env)
-      pgoExport:
-        description: 'Benchmark with PGO export'
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -56,10 +51,7 @@ jobs:
   bench-matrix:
     strategy:
       matrix:
-        profile:
-          - system-profiles/8GBx1zone.tfvars
-          - system-profiles/16GBx2zone.tfvars
-          - system-profiles/32GBx2zone.tfvars
+        profile: ${{ fromJSON(inputs.profileJSON)}}
     uses: ./.github/workflows/benchmarks.yml
     with:
       profile: ${{ matrix.profile }}
@@ -70,4 +62,3 @@ jobs:
       runOnStable: ${{ inputs.runOnStable }}
       benchmarkRun: ${{ inputs.benchmarkRun }}
       warmupTime: ${{ inputs.warmupTime }}
-      pgoExport: ${{ inputs.pgoExport }}
