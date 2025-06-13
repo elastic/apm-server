@@ -102,9 +102,15 @@ var (
 		},
 	})
 
-	syncSourcemapContextCanceled = apmErrorLog(types.Query{
+	initialSearchQueryContextCanceled = apmErrorLog(types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "failed to sync sourcemaps metadata: failed to run initial search query: fetcher unavailable: context canceled"},
+		},
+	})
+
+	scrollSearchQueryContextCanceled = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "failed to sync sourcemaps metadata: failed scroll search: failed to run scroll search query: context canceled"},
 		},
 	})
 
