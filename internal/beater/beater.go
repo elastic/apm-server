@@ -240,6 +240,14 @@ func (s *Runner) Run(ctx context.Context) error {
 		)
 	}
 
+	if s.config.Sampling.Tail.Enabled {
+		// 16MB for 1GB
+		s.config.Sampling.Tail.DatabaseCacheSize = uint64(linearScaledValue(8<<20, memLimitGB, 8<<20))
+		s.logger.Infof("Sampling.Tail.DatabaseCacheSize set to %d based on %0.1fgb of memory",
+			s.config.Sampling.Tail.DatabaseCacheSize, memLimitGB,
+		)
+	}
+
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 

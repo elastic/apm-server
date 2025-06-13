@@ -63,6 +63,9 @@ type TailSamplingConfig struct {
 
 	DiscardOnWriteFailure bool `config:"discard_on_write_failure"`
 
+	// DatabaseCacheSize is cache size in bytes for tail-sampling database.
+	DatabaseCacheSize uint64 `config:"database_cache_size"`
+
 	esConfigured bool
 }
 

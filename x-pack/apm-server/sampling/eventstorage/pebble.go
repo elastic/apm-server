@@ -38,8 +38,10 @@ func eventComparer() *pebble.Comparer {
 	return &comparer
 }
 
-func OpenEventPebble(storageDir string, logger *logp.Logger) (*pebble.DB, error) {
+func OpenEventPebble(storageDir string, cacheSize uint64, logger *logp.Logger) (*pebble.DB, error) {
 	// Option values are picked and validated in https://github.com/elastic/apm-server/issues/15568
+	cache := pebble.NewCache(int64(cacheSize))
+	defer cache.Unref()
 	opts := &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logger.Named(logs.Sampling),
@@ -53,12 +55,15 @@ func OpenEventPebble(storageDir string, logger *logp.Logger) (*pebble.DB, error)
 			},
 		},
 		Comparer: eventComparer(),
+		Cache:    cache,
 	}
 	return pebble.Open(filepath.Join(storageDir, "event"), opts)
 }
 
-func OpenDecisionPebble(storageDir string, logger *logp.Logger) (*pebble.DB, error) {
+func OpenDecisionPebble(storageDir string, cacheSize uint64, logger *logp.Logger) (*pebble.DB, error) {
 	// Option values are picked and validated in https://github.com/elastic/apm-server/issues/15568
+	cache := pebble.NewCache(int64(cacheSize))
+	defer cache.Unref()
 	return pebble.Open(filepath.Join(storageDir, "decision"), &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logger.Named(logs.Sampling),
@@ -71,5 +76,6 @@ func OpenDecisionPebble(storageDir string, logger *logp.Logger) (*pebble.DB, err
 				FilterType:   pebble.TableFilter,
 			},
 		},
+		Cache: cache,
 	})
 }
