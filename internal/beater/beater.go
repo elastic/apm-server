@@ -240,7 +240,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		)
 	}
 
-	if s.config.Sampling.Tail.Enabled {
+	if s.config.Sampling.Tail.Enabled && s.config.Sampling.Tail.DatabaseCacheSize == 0 {
 		// 1GB=16MB, 2GB=24MB, 4GB=40MB, ..., 32GB=264MB, 64GB=520MB
 		s.config.Sampling.Tail.DatabaseCacheSize = uint64(linearScaledValue(8<<20, memLimitGB, 8<<20))
 		s.logger.Infof("Sampling.Tail.DatabaseCacheSize set to %d based on %0.1fgb of memory",
