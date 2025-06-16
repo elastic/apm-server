@@ -5,6 +5,7 @@
 package eventstorage
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -61,7 +62,13 @@ type StorageManager struct {
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
 	runCh chan struct{}
 
-	meterProvider metric.MeterProvider
+	meterProvider  metric.MeterProvider
+	storageMetrics storageMetrics
+}
+
+type storageMetrics struct {
+	lsmSizeGauge      metric.Int64Gauge
+	valueLogSizeGauge metric.Int64Gauge
 }
 
 // NewStorageManager returns a new StorageManager with badger DB at storageDir.
@@ -76,9 +83,19 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 		opt(sm)
 	}
 
+	if sm.meterProvider != nil {
+		meter := sm.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
+
+		sm.storageMetrics.lsmSizeGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
+		sm.storageMetrics.valueLogSizeGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.value_log_size")
+	}
+
 	if err := sm.reset(); err != nil {
 		return nil, fmt.Errorf("storage manager reset error: %w", err)
 	}
+
+	// report storage so data is available immediately
+	sm.reportStorageMetrics(sm.Size())
 
 	return sm, nil
 }
@@ -180,6 +197,8 @@ func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration
 	var firstExceeded time.Time
 	checkAndFix := func() error {
 		lsm, vlog := s.Size()
+		s.reportStorageMetrics(lsm, vlog)
+
 		s.mu.RLock() // s.storage requires mutex RLock
 		pending := s.storage.pendingSize.Load()
 		s.mu.RUnlock()
@@ -222,6 +241,15 @@ func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration
 		case <-timer.C:
 			continue
 		}
+	}
+}
+
+func (s *StorageManager) reportStorageMetrics(lsm, vlog int64) {
+	if s.storageMetrics.lsmSizeGauge != nil {
+		s.storageMetrics.lsmSizeGauge.Record(context.Background(), lsm)
+	}
+	if s.storageMetrics.valueLogSizeGauge != nil {
+		s.storageMetrics.valueLogSizeGauge.Record(context.Background(), vlog)
 	}
 }
 
