@@ -121,6 +121,7 @@ resource "local_file" "enable_features" {
     enable_pprof                = var.apm_server_pprof
     enable_tail_sampling        = var.apm_server_tail_sampling
     tail_sampling_storage_limit = var.apm_server_tail_sampling_storage_limit
+    tail_sampling_sample_rate   = var.apm_server_tail_sampling_sample_rate
   })
   filename = "${path.module}/scripts/enable_features.sh"
 }
