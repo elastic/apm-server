@@ -5,7 +5,7 @@ user_name = "USER"
 worker_instance_type = "c6i.4xlarge"
 
 # Elastic Cloud
-ess_region = "us-west-2"
+ess_region          = "us-west-2"
 deployment_template = "aws-cpu-optimized-faster-warm"
 # The number of AZs the APM Server should span.
 apm_server_zone_count = 1
