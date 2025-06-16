@@ -20,6 +20,11 @@ on:
         required: false
         type: string
         default: "10GB"
+      tailSamplingSampleRate:
+        description: 'Blanket sample rate used by tail-based sampling'
+        required: false
+        type: string
+        default: "0.1"
       profile:
         description: 'System profile for benchmark, e.g. system-profiles/8GBx1zone.tfvars'
         required: false
