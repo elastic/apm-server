@@ -188,6 +188,7 @@ func NewStorageManager(storageDir string, logger *logp.Logger, opts ...StorageMa
 
 // reset initializes db and storage.
 func (sm *StorageManager) reset() error {
+	// Configured db cache size is split between event DB and decision DB
 	eventDB, err := OpenEventPebble(sm.storageDir, sm.dbCacheSize/2, sm.logger)
 	if err != nil {
 		return fmt.Errorf("open event db error: %w", err)
