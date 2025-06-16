@@ -7,9 +7,15 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
+<<<<<<< HEAD
 	github.com/elastic/apm-aggregation v1.2.0
 	github.com/elastic/apm-data v1.19.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250611143021-f899db6b25f1
+=======
+	github.com/elastic/apm-aggregation v1.3.0
+	github.com/elastic/apm-data v1.19.2
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250610225910-dfdc12e33de0
+>>>>>>> 25c0a522 (dependency: Bump latest apm-data (#17231))
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
 	github.com/elastic/elastic-agent-libs v0.19.6
 	github.com/elastic/elastic-agent-system-metrics v0.11.11
@@ -236,8 +242,12 @@ require (
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.7.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
+<<<<<<< HEAD
 	go.opentelemetry.io/collector/semconv v0.126.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.36.0 // indirect
+=======
+	go.opentelemetry.io/collector/consumer v1.34.0 // indirect
+>>>>>>> 25c0a522 (dependency: Bump latest apm-data (#17231))
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.38.0 // indirect
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
