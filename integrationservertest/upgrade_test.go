@@ -158,7 +158,8 @@ func buildTestSteps(t *testing.T, versions ech.Versions, config upgradeTestConfi
 			preconditionFailed,
 			populateSourcemapFetcher403,
 			populateSourcemapServerShuttingDown,
-			syncSourcemapContextCanceled,
+			initialSearchQueryContextCanceled,
+			scrollSearchQueryContextCanceled,
 		},
 	})
 

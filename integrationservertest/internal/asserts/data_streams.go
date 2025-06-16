@@ -18,6 +18,7 @@
 package asserts
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -81,6 +82,10 @@ func checkSingleDataStream(t *testing.T, expected DataStreamExpectation, actual 
 		"data stream %s should have %d indices", actual.Name, len(expected.IndicesManagedBy),
 	)
 	for i, index := range actual.Indices {
+		if i >= len(expected.IndicesManagedBy) {
+			assert.Fail(t, fmt.Sprintf("index %s not in expectation", index.IndexName))
+			continue
+		}
 		assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name,
 			`index %s should be managed by "%s"`, index.IndexName,
 			expected.IndicesManagedBy[i],

@@ -1,5 +1,7 @@
 name: benchmarks
 
+# Secret access requires allowlist in https://github.com/elastic/oblt-infra/tree/main/conf/resources/repos/apm-server
+
 on:
   workflow_dispatch:
     inputs:
@@ -23,13 +25,8 @@ on:
         required: false
         type: string
         # defaults set below (TFVARS_SOURCE)
-      essRegion:
-        description: 'ESS region of deployment, e.g. gcp-us-west2'
-        required: false
-        type: string
-        # defaults set below
       runOnStable:
-        description: 'Benchmark on latest stable version'
+        description: 'Benchmark on latest stable version instead of SNAPSHOT'
         required: false
         type: boolean
         default: false
@@ -77,13 +74,8 @@ on:
         required: false
         type: string
         # defaults set below (TFVARS_SOURCE)
-      essRegion:
-        description: 'ESS region of deployment, e.g. gcp-us-west2'
-        required: false
-        type: string
-        # defaults set below
       runOnStable:
-        description: 'Benchmark on latest stable version'
+        description: 'Benchmark on latest stable version instead of SNAPSHOT'
         required: false
         type: boolean
         default: false
@@ -138,7 +130,6 @@ jobs:
       TF_VAR_apm_server_tail_sampling_storage_limit: ${{ inputs.tailSamplingStorageLimit || '10GB' }} # set the default again otherwise schedules won't work
       RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 0 1 * *' }}
       PGO_EXPORT: ${{ inputs.pgoExport || github.event.schedule=='0 0 1 * *' }}
-      TF_VAR_ess_region: ${{ inputs.essRegion || 'gcp-us-west2' }}
       TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # set the default again otherwise schedules won't work
       TF_VAR_BUILD_ID: ${{ github.run_id }}
       TF_VAR_ENVIRONMENT: ci
@@ -179,15 +170,6 @@ jobs:
             echo "BENCHMARK_WARMUP_TIME=3m" >> "$GITHUB_ENV"
           else
             echo "BENCHMARK_WARMUP_TIME=5m" >> "$GITHUB_ENV"
-          fi
-
-          # Set deployment template for different CSPs
-          if [ "${TF_VAR_ess_region:0:4}" = 'gcp-' ]; then
-            echo "TF_VAR_deployment_template=gcp-cpu-optimized" >> "$GITHUB_ENV"
-          elif [ "${TF_VAR_ess_region:0:6}" = 'azure-' ]; then
-            echo "TF_VAR_deployment_template=azure-cpu-optimized" >> "$GITHUB_ENV"
-          else
-            echo "TF_VAR_deployment_template=aws-cpu-optimized-faster-warm" >> "$GITHUB_ENV"
           fi
 
       # exclude BenchmarkTraces* from scheduled benchmarks
