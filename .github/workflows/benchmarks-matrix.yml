@@ -7,10 +7,6 @@ on:
         description: 'JSON list of system profiles for benchmark, e.g. ["system-profiles/8GBx1zone.tfvars"]'
         required: true
         type: string
-      essRegionsJSON:
-        description: 'JSON list of ESS regions, e.g. ["gcp-us-west2", "azure-westus2", "us-west-2"]'
-        required: true
-        type: string
       runStandalone:
         description: 'Benchmark against standalone APM Server with Moxy'
         required: false
@@ -26,7 +22,7 @@ on:
         required: false
         type: string
       runOnStable:
-        description: 'Benchmark on latest stable version'
+        description: 'Benchmark on latest stable version instead of SNAPSHOT'
         required: false
         type: boolean
         default: false
@@ -48,14 +44,15 @@ permissions:
 
 jobs:
   bench-matrix:
+    permissions:
+      contents: write
+      id-token: write
     strategy:
       matrix:
         profile: ${{ fromJSON(inputs.profilesJSON)}}
-        essRegion: ${{ fromJSON(inputs.essRegionsJSON)}}
     uses: ./.github/workflows/benchmarks.yml
     with:
       profile: ${{ matrix.profile }}
-      essRegion: ${{ matrix.essRegion }}
       benchmarkAgents: ${{ inputs.benchmarkAgents }}
       runStandalone: ${{ inputs.runStandalone }}
       enableTailSampling: ${{ inputs.enableTailSampling }}
@@ -63,3 +60,4 @@ jobs:
       runOnStable: ${{ inputs.runOnStable }}
       benchmarkRun: ${{ inputs.benchmarkRun }}
       warmupTime: ${{ inputs.warmupTime }}
+    secrets: inherit  # Requires allowlist in https://github.com/elastic/oblt-infra/tree/main/conf/resources/repos/apm-server
