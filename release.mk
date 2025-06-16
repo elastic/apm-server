@@ -61,48 +61,8 @@ endif
 
 ifeq ($(RELEASE_TYPE),major)
 	BASE_BRANCH ?= main
-	CHANGELOG_BRANCH = main
+	UPDATE_MERGIFY = true
 endif
-
-#######################
-## Templates
-#######################
-## Changelog template
-define CHANGELOG_TMPL
-[[release-notes-head]]
-== APM version HEAD
-
-https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...$(CHANGELOG_BRANCH)[View commits]
-
-[float]
-==== Breaking Changes
-
-[float]
-==== Bug fixes
-
-[float]
-==== Deprecations
-
-[float]
-==== Intake API Changes
-
-[float]
-==== Added
-endef
-
-## Changelog template for new minors
-define CHANGELOG_MINOR_TMPL
-[[apm-release-notes-$(RELEASE_BRANCH)]]
-== APM version $(RELEASE_BRANCH)
-* <<apm-release-notes-$(RELEASE_BRANCH).0>>
-
-[float]
-[[apm-release-notes-$(RELEASE_BRANCH).0]]
-=== APM version $(RELEASE_BRANCH).0
-
-https://github.com/elastic/apm-server/compare/v$(CURRENT_RELEASE)\...v$(RELEASE_BRANCH).0[View commits]
-
-endef
 
 #######################
 ## Public make goals
@@ -123,24 +83,17 @@ minor-release:
 	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)"
 
-	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
-	$(MAKE) create-branch NAME=changelog-$(RELEASE_BRANCH) BASE=$(RELEASE_BRANCH)
-	$(MAKE) update-changelog VERSION=$(RELEASE_BRANCH)
-	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH)
-	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
-
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
 	$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH)
 	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
 	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
-	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH)
+	$(MAKE) update-changelog VERSION=$(RELEASE_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update changelogs for $(RELEASE_BRANCH) release"
 
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
 	git push origin $(RELEASE_BRANCH)
 	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs" BODY="Merge as soon as the GitHub checks are green."
-	$(MAKE) create-pull-request BRANCH=changelog-$(RELEASE_BRANCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs" BODY="Merge as soon as $(TARGET_BRANCH) branch is created and the GitHub checks are green."
 
 # This is the contract with the GitHub action .github/workflows/run-major-release.yml.
 # The GitHub action will provide the below environment variables:
@@ -148,7 +101,7 @@ minor-release:
 #
 .PHONY: major-release
 major-release:
-# NOTE: major release uses minor-release with BASE_BRANCH=main and CHANGELOG_BRANCH=main
+# NOTE: major release uses minor-release with BASE_BRANCH=main
 	$(MAKE) minor-release
 
 # This is the contract with the GitHub action .github/workflows/run-patch-release.yml
@@ -166,42 +119,24 @@ patch-release:
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
 	$(MAKE) create-pull-request BRANCH=$(BRANCH_PATCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_VERSION): update versions" BODY="Merge on request by the Release Manager." BACKPORT_LABEL=backport-skip
 
+	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
+	$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH)
+	$(MAKE) update-changelog VERSION=$(RELEASE_VERSION)
+	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update changelogs for $(RELEASE_BRANCH) release"
+	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
+	git push origin update-$(RELEASE_VERSION)
+	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update release notes" BODY="Merge as soon as the GitHub checks are green."
+
 ############################################
 ## Internal make goals to bump versions
 ############################################
-
-# Rename changelog file to generate something similar to https://github.com/elastic/apm-server/pull/12172
-.PHONY: rename-changelog
-export CHANGELOG_TMPL
-rename-changelog: VERSION=$${VERSION}
-rename-changelog:
-	$(MAKE) common-changelog
-	@echo ">> rename-changelog"
-	echo "$$CHANGELOG_TMPL" > changelogs/head.asciidoc
-	@if ! grep -q 'apm-release-notes-$(VERSION)' CHANGELOG.asciidoc ; then \
-		awk "NR==2{print \"* <<apm-release-notes-$(VERSION)>>\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new; \
-		mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc ; \
-	fi
-	@if ! grep -q '$(VERSION).asciidoc' CHANGELOG.asciidoc ; then \
-		$(SED) -E -e 's#(head.asciidoc\[\])#\1\ninclude::.\/changelogs\/$(VERSION).asciidoc[]#g' CHANGELOG.asciidoc; \
-	fi
 
 # Update changelog file to generate something similar to https://github.com/elastic/apm-server/pull/12220
 .PHONY: update-changelog
 update-changelog: VERSION=$${VERSION}
 update-changelog:
-	$(MAKE) common-changelog
 	@echo ">> update-changelog"
-	$(SED) 's#head#$(VERSION)#g' CHANGELOG.asciidoc
-
-# Common changelog file steps
-.PHONY: common-changelog
-export CHANGELOG_MINOR_TMPL
-common-changelog: VERSION=$${VERSION}
-common-changelog:
-	@echo ">> common-changelog"
-	echo "$$CHANGELOG_MINOR_TMPL" > changelogs/$(VERSION).asciidoc
-	tail -n +6 changelogs/head.asciidoc >> changelogs/$(VERSION).asciidoc
+	bash ./tools/scripts/changelog.sh $(VERSION)
 
 ## Update the references on .mergify.yml with the new minor release.
 .PHONY: update-mergify
