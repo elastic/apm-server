@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v2"
+	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -31,6 +32,14 @@ const (
 var (
 	errDropAndRecreateInProgress = errors.New("db drop and recreate in progress")
 )
+
+type StorageManagerOptions func(*StorageManager)
+
+func WithMeterProvider(mp metric.MeterProvider) StorageManagerOptions {
+	return func(sm *StorageManager) {
+		sm.meterProvider = mp
+	}
+}
 
 // StorageManager encapsulates badger.DB.
 // It is to provide file system access, simplify synchronization and enable underlying db swaps.
@@ -51,19 +60,26 @@ type StorageManager struct {
 	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
 	runCh chan struct{}
+
+	meterProvider metric.MeterProvider
 }
 
 // NewStorageManager returns a new StorageManager with badger DB at storageDir.
-func NewStorageManager(storageDir string) (*StorageManager, error) {
+func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*StorageManager, error) {
 	sm := &StorageManager{
 		storageDir: storageDir,
 		runCh:      make(chan struct{}, 1),
 		logger:     logp.NewLogger(logs.Sampling),
 	}
-	err := sm.reset()
-	if err != nil {
-		return nil, err
+
+	for _, opt := range opts {
+		opt(sm)
 	}
+
+	if err := sm.reset(); err != nil {
+		return nil, fmt.Errorf("storage manager reset error: %w", err)
+	}
+
 	return sm, nil
 }
 
