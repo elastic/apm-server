@@ -56,6 +56,9 @@ func OpenEventPebble(storageDir string, cacheSize uint64, logger *logp.Logger) (
 		},
 		Comparer: eventComparer(),
 		Cache:    cache,
+		MaxConcurrentCompactions: func() int {
+			return 2
+		},
 	}
 	opts.Experimental.TableCacheShards = 128
 	return pebble.Open(filepath.Join(storageDir, "event"), opts)
@@ -78,6 +81,9 @@ func OpenDecisionPebble(storageDir string, cacheSize uint64, logger *logp.Logger
 			},
 		},
 		Cache: cache,
+		MaxConcurrentCompactions: func() int {
+			return 2
+		},
 	}
 	opts.Experimental.TableCacheShards = 128
 	return pebble.Open(filepath.Join(storageDir, "decision"), opts)
