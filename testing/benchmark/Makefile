@@ -175,7 +175,7 @@ cleanup-elasticsearch:
 
 docker_image.auto.tfvars:
 	@echo 'docker_image_override={"elasticsearch":"${ELASTICSEARCH_DOCKER_IMAGE}","kibana":"${KIBANA_DOCKER_IMAGE}","apm":"${CI_ELASTIC_AGENT_DOCKER_IMAGE}"}' > $@
-	@echo 'docker_image_tag_override={"elasticsearch":"${IMAGE_TAG}","kibana":"${IMAGE_TAG}","apm":"${CUSTOM_IMAGE_TAG}"}' >> $@
+	@echo 'docker_image_tag_override={"elasticsearch":"","kibana":"","apm":"${CUSTOM_IMAGE_TAG}"}' >> $@
 
 ##############################################################################
 # Targets for building and pushing a custom Elastic Agent image.
