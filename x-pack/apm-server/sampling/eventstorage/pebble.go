@@ -60,7 +60,7 @@ func OpenEventPebble(storageDir string, cacheSize uint64, logger *logp.Logger) (
 			return 2
 		},
 	}
-	opts.Experimental.TableCacheShards = 128
+	//opts.Experimental.TableCacheShards = 128
 	return pebble.Open(filepath.Join(storageDir, "event"), opts)
 }
 
@@ -85,6 +85,6 @@ func OpenDecisionPebble(storageDir string, cacheSize uint64, logger *logp.Logger
 			return 2
 		},
 	}
-	opts.Experimental.TableCacheShards = 128
+	//opts.Experimental.TableCacheShards = 128
 	return pebble.Open(filepath.Join(storageDir, "decision"), opts)
 }
