@@ -57,6 +57,7 @@ func OpenEventPebble(storageDir string, cacheSize uint64, logger *logp.Logger) (
 		Comparer: eventComparer(),
 		Cache:    cache,
 	}
+	opts.Experimental.TableCacheShards = 128
 	return pebble.Open(filepath.Join(storageDir, "event"), opts)
 }
 
@@ -64,7 +65,7 @@ func OpenDecisionPebble(storageDir string, cacheSize uint64, logger *logp.Logger
 	// Option values are picked and validated in https://github.com/elastic/apm-server/issues/15568
 	cache := pebble.NewCache(int64(cacheSize))
 	defer cache.Unref()
-	return pebble.Open(filepath.Join(storageDir, "decision"), &pebble.Options{
+	opts := &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logger.Named(logs.Sampling),
 		MemTableSize:       2 << 20, // big memtables are slow to scan, and significantly slow the hot path
@@ -77,5 +78,7 @@ func OpenDecisionPebble(storageDir string, cacheSize uint64, logger *logp.Logger
 			},
 		},
 		Cache: cache,
-	})
+	}
+	opts.Experimental.TableCacheShards = 128
+	return pebble.Open(filepath.Join(storageDir, "decision"), opts)
 }
