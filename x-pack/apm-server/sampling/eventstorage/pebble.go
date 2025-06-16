@@ -53,6 +53,9 @@ func OpenEventPebble(storageDir string, logger *logp.Logger) (*pebble.DB, error)
 			},
 		},
 		Comparer: eventComparer(),
+		MaxConcurrentCompactions: func() int {
+			return 3
+		},
 	}
 	return pebble.Open(filepath.Join(storageDir, "event"), opts)
 }
@@ -70,6 +73,9 @@ func OpenDecisionPebble(storageDir string, logger *logp.Logger) (*pebble.DB, err
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
 			},
+		},
+		MaxConcurrentCompactions: func() int {
+			return 3
 		},
 	})
 }
