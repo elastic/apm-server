@@ -35,12 +35,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-<<<<<<< HEAD
-	"go.elastic.co/apm/v2/apmtest"
-	"go.opentelemetry.io/otel/metric/noop"
-=======
-	"go.opentelemetry.io/otel/trace/noop"
->>>>>>> 512bfc93 (feat(sourcemap): replace apm tracer with otel tracing (#17137))
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
