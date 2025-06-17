@@ -128,7 +128,7 @@ func TestMetadataFetcher(t *testing.T) {
 
 			exporter := &manualExporter{}
 			tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporter)))
-			fetcher, _ := NewMetadataFetcher(ctx, esClient, ".apm-source-map", tp, logptest.NewTestingLogger(t, ""))
+			fetcher, invalidationChan := NewMetadataFetcher(ctx, esClient, ".apm-source-map", tp, logptest.NewTestingLogger(t, ""))
 
 			<-fetcher.ready()
 			if tc.expectErr {
@@ -144,6 +144,12 @@ func TestMetadataFetcher(t *testing.T) {
 			tp.ForceFlush(ctx)
 
 			assert.Greater(t, len(exporter.spans), 1)
+
+			cancel()
+			// wait for invalidationChan to be closed so
+			// the background goroutine created by NewMetadataFetcher is done
+			for range invalidationChan {
+			}
 		})
 	}
 }
