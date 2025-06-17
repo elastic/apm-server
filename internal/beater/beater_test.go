@@ -262,7 +262,7 @@ func TestAgentConfigFetcherDeprecation(t *testing.T) {
 				AgentName: "foo",
 			},
 		},
-	}, nil, func(c *elasticsearch.Config) (*elasticsearch.Client, error) { return nil, nil }, nil, metricnoop.NewMeterProvider(), logger)
+	}, nil, func(c *elasticsearch.Config) (*elasticsearch.Client, error) { return nil, nil }, tracenoop.NewTracerProvider(), metricnoop.NewMeterProvider(), logger)
 	require.NoError(t, err)
 
 	all := observed.All()

@@ -408,7 +408,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		s.config,
 		kibanaClient,
 		newElasticsearchClient,
-		tracer,
+		s.tracerProvider,
 		s.meterProvider,
 		s.logger,
 	)
