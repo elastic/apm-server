@@ -121,8 +121,9 @@ resource "local_file" "enable_features" {
     enable_pprof                = var.apm_server_pprof
     enable_tail_sampling        = var.apm_server_tail_sampling
     tail_sampling_storage_limit = var.apm_server_tail_sampling_storage_limit
+    tail_sampling_sample_rate   = var.apm_server_tail_sampling_sample_rate
   })
-  filename = "${path.module}/scripts/enable_features.sh"
+  filename = "${path.cwd}/scripts/enable_features.sh"
 }
 
 locals {
@@ -136,7 +137,7 @@ resource "local_file" "secret_token" {
     elastic_password  = ec_deployment.deployment.elasticsearch_password,
     secret_token_file = local.secret_token_file
   })
-  filename = "${path.module}/scripts/secret_token.sh"
+  filename = "${path.cwd}/scripts/secret_token.sh"
 }
 
 resource "local_file" "shard_settings" {
@@ -147,7 +148,7 @@ resource "local_file" "shard_settings" {
     elasticsearch_username = ec_deployment.deployment.elasticsearch_username,
     shards                 = var.apm_index_shards,
   })
-  filename = "${path.module}/scripts/index_shards.sh"
+  filename = "${path.cwd}/scripts/index_shards.sh"
 }
 
 resource "local_file" "custom_apm_integration_pkg" {
@@ -157,7 +158,7 @@ resource "local_file" "custom_apm_integration_pkg" {
     elastic_password                = ec_deployment.deployment.elasticsearch_password,
     custom_apm_integration_pkg_path = var.custom_apm_integration_pkg_path,
   })
-  filename = "${path.module}/scripts/custom-apm-integration-pkg.sh"
+  filename = "${path.cwd}/scripts/custom-apm-integration-pkg.sh"
 }
 
 resource "null_resource" "enable_features" {
@@ -168,7 +169,7 @@ resource "null_resource" "enable_features" {
   provisioner "local-exec" {
     command     = "scripts/enable_features.sh"
     interpreter = ["/bin/bash", "-c"]
-    working_dir = path.module
+    working_dir = path.cwd
   }
 }
 
@@ -181,7 +182,7 @@ resource "null_resource" "secret_token" {
   provisioner "local-exec" {
     command     = "scripts/secret_token.sh"
     interpreter = ["/bin/bash", "-c"]
-    working_dir = path.module
+    working_dir = path.cwd
   }
 }
 
@@ -204,7 +205,7 @@ resource "null_resource" "shard_settings" {
   provisioner "local-exec" {
     command     = "scripts/index_shards.sh"
     interpreter = ["/bin/bash", "-c"]
-    working_dir = path.module
+    working_dir = path.cwd
   }
 }
 
@@ -217,7 +218,7 @@ resource "null_resource" "custom_apm_integration_pkg" {
   provisioner "local-exec" {
     command     = "scripts/custom-apm-integration-pkg.sh"
     interpreter = ["/bin/bash", "-c"]
-    working_dir = path.module
+    working_dir = path.cwd
   }
 }
 
@@ -230,7 +231,7 @@ resource "null_resource" "drop_pipeline" {
   provisioner "local-exec" {
     command     = "scripts/drop_pipeline.sh"
     interpreter = ["/bin/bash", "-c"]
-    working_dir = path.module
+    working_dir = path.cwd
   }
 }
 
@@ -241,5 +242,5 @@ resource "local_file" "drop_pipeline" {
     elasticsearch_password = ec_deployment.deployment.elasticsearch_password,
     elasticsearch_username = ec_deployment.deployment.elasticsearch_username,
   })
-  filename = "${path.module}/scripts/drop_pipeline.sh"
+  filename = "${path.cwd}/scripts/drop_pipeline.sh"
 }
