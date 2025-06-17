@@ -114,7 +114,7 @@ func newElasticsearchFetcher(
 }
 
 type manualExporter struct {
-	mu sync.Mutex
+	mu    sync.Mutex
 	spans []sdktrace.ReadOnlySpan
 }
 
