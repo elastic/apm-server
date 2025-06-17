@@ -18,7 +18,11 @@ import (
 )
 
 func newEventPebble(t *testing.T) *pebble.DB {
+<<<<<<< HEAD
 	db, err := eventstorage.OpenEventPebble(t.TempDir())
+=======
+	db, err := eventstorage.OpenEventPebble(t.TempDir(), 8<<20, logptest.NewTestingLogger(t, ""))
+>>>>>>> 006c3aa0 (TBS: Optimize performance for instances with more CPU and memory (#17254))
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		db.Close()
@@ -27,7 +31,11 @@ func newEventPebble(t *testing.T) *pebble.DB {
 }
 
 func newDecisionPebble(t *testing.T) *pebble.DB {
+<<<<<<< HEAD
 	db, err := eventstorage.OpenDecisionPebble(t.TempDir())
+=======
+	db, err := eventstorage.OpenDecisionPebble(t.TempDir(), 8<<20, logptest.NewTestingLogger(t, ""))
+>>>>>>> 006c3aa0 (TBS: Optimize performance for instances with more CPU and memory (#17254))
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		db.Close()

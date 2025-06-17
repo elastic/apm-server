@@ -38,8 +38,14 @@ func eventComparer() *pebble.Comparer {
 	return &comparer
 }
 
+<<<<<<< HEAD
 func OpenEventPebble(storageDir string) (*pebble.DB, error) {
+=======
+func OpenEventPebble(storageDir string, cacheSize uint64, logger *logp.Logger) (*pebble.DB, error) {
+>>>>>>> 006c3aa0 (TBS: Optimize performance for instances with more CPU and memory (#17254))
 	// Option values are picked and validated in https://github.com/elastic/apm-server/issues/15568
+	cache := pebble.NewCache(int64(cacheSize))
+	defer cache.Unref()
 	opts := &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logp.NewLogger(logs.Sampling),
@@ -53,13 +59,23 @@ func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 			},
 		},
 		Comparer: eventComparer(),
+		Cache:    cache,
+		MaxConcurrentCompactions: func() int {
+			return 2
+		}, // Better utilizes CPU on larger instances
 	}
 	return pebble.Open(filepath.Join(storageDir, "event"), opts)
 }
 
+<<<<<<< HEAD
 func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
+=======
+func OpenDecisionPebble(storageDir string, cacheSize uint64, logger *logp.Logger) (*pebble.DB, error) {
+>>>>>>> 006c3aa0 (TBS: Optimize performance for instances with more CPU and memory (#17254))
 	// Option values are picked and validated in https://github.com/elastic/apm-server/issues/15568
-	return pebble.Open(filepath.Join(storageDir, "decision"), &pebble.Options{
+	cache := pebble.NewCache(int64(cacheSize))
+	defer cache.Unref()
+	opts := &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logp.NewLogger(logs.Sampling),
 		MemTableSize:       2 << 20, // big memtables are slow to scan, and significantly slow the hot path
@@ -71,5 +87,10 @@ func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
 				FilterType:   pebble.TableFilter,
 			},
 		},
-	})
+		Cache: cache,
+		MaxConcurrentCompactions: func() int {
+			return 2
+		}, // Better utilizes CPU on larger instances
+	}
+	return pebble.Open(filepath.Join(storageDir, "decision"), opts)
 }
