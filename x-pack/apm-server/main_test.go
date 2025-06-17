@@ -82,13 +82,6 @@ func TestMonitoring(t *testing.T) {
 
 		err = runServer(context.Background(), serverParams)
 		assert.Equal(t, runServerError, err)
-<<<<<<< HEAD
-		monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
-			"apm-server.sampling.tail.storage.lsm_size":       0,
-			"apm-server.sampling.tail.storage.value_log_size": 0,
-		})
-=======
->>>>>>> d147b7af (tbs: Update storage metrics to be reported synchronously in the existing `runDiskUsageLoop` method (#17154))
 	}
 }
 
