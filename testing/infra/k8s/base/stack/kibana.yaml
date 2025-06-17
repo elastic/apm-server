@@ -1,0 +1,58 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: kibana
+spec:
+  # TODO: replace with a pinned version such as 9.0.0-aaaaaaaa-SNAPSHOT
+  version: 9.0.3-0abc8588-SNAPSHOT
+  count: 1
+  elasticsearchRef:
+    name: elasticsearch
+    namespace: default
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+  monitoring:
+    metrics:
+      elasticsearchRefs:
+        - name: elasticsearch
+          namespace: default
+    logs:
+      elasticsearchRefs:
+        - name: elasticsearch
+          namespace: default
+  podTemplate:
+    spec:
+      containers:
+      - name: kibana
+        resources:
+          limits:
+            memory: "1Gi"
+          requests:
+            memory: "512Mi"
+        readinessProbe:
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+          httpGet:
+            path: /api/status
+            port: 5601
+            scheme: HTTP
+            httpHeaders:
+            - name: Authorization
+              value: Basic YWRtaW46Y2hhbmdlbWU= # admin:changeme
+  config:
+    xpack.banners.placement: top
+    xpack.banners.textContent: Log in credentials are `admin/changeme` by default
+    xpack.fleet.agents.elasticsearch.hosts: ["http://elasticsearch-es-http.default.svc:9200"]
+    xpack.fleet.packages:
+    - name: apm
+      version: latest
+    - name: system
+      version: latest
+    - name: elastic_agent
+      version: latest
+    - name: kubernetes
+      version: latest
