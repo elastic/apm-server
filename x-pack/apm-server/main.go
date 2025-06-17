@@ -108,11 +108,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	}
 
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
-<<<<<<< HEAD
-	db, err := getDB(storageDir, args.MeterProvider)
-=======
-	db, err := getDB(storageDir, tailSamplingConfig.DatabaseCacheSize, args.MeterProvider, args.Logger)
->>>>>>> 006c3aa0 (TBS: Optimize performance for instances with more CPU and memory (#17254))
+	db, err := getDB(storageDir, tailSamplingConfig.DatabaseCacheSize, args.MeterProvider)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tail-sampling database: %w", err)
 	}
@@ -158,11 +154,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	})
 }
 
-<<<<<<< HEAD
-func getDB(storageDir string, mp metric.MeterProvider) (*eventstorage.StorageManager, error) {
-=======
-func getDB(storageDir string, cacheSize uint64, mp metric.MeterProvider, logger *logp.Logger) (*eventstorage.StorageManager, error) {
->>>>>>> 006c3aa0 (TBS: Optimize performance for instances with more CPU and memory (#17254))
+func getDB(storageDir string, cacheSize uint64, mp metric.MeterProvider) (*eventstorage.StorageManager, error) {
 	dbMu.Lock()
 	defer dbMu.Unlock()
 	if db == nil {
