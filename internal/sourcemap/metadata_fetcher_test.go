@@ -128,8 +128,14 @@ func TestMetadataFetcher(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 			defer cancel()
 
+<<<<<<< HEAD
 			tracer, recorder := transporttest.NewRecorderTracer()
 			fetcher, _ := NewMetadataFetcher(ctx, esClient, ".apm-source-map", tracer)
+=======
+			exporter := &manualExporter{}
+			tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporter)))
+			fetcher, invalidationChan := NewMetadataFetcher(ctx, esClient, ".apm-source-map", tp, logptest.NewTestingLogger(t, ""))
+>>>>>>> 42567f2b (test(TestMetadataFetcher): wait for invalidation channel to be closed (#17259))
 
 			<-fetcher.ready()
 			if tc.expectErr {
@@ -144,8 +150,18 @@ func TestMetadataFetcher(t *testing.T) {
 			close(waitCh)
 			tracer.Flush(nil)
 
+<<<<<<< HEAD
 			assert.Len(t, recorder.Payloads().Transactions, 1)
 			assert.Greater(t, len(recorder.Payloads().Spans), 1)
+=======
+			assert.Greater(t, len(exporter.spans), 1)
+
+			cancel()
+			// wait for invalidationChan to be closed so
+			// the background goroutine created by NewMetadataFetcher is done
+			for range invalidationChan {
+			}
+>>>>>>> 42567f2b (test(TestMetadataFetcher): wait for invalidation channel to be closed (#17259))
 		})
 	}
 }
