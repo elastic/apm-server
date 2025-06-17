@@ -5,6 +5,7 @@
 package eventstorage
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -33,6 +34,14 @@ var (
 	errDropAndRecreateInProgress = errors.New("db drop and recreate in progress")
 )
 
+type StorageManagerOptions func(*StorageManager)
+
+func WithMeterProvider(mp metric.MeterProvider) StorageManagerOptions {
+	return func(sm *StorageManager) {
+		sm.meterProvider = mp
+	}
+}
+
 // StorageManager encapsulates badger.DB.
 // It is to provide file system access, simplify synchronization and enable underlying db swaps.
 // It assumes exclusive access to badger DB at storageDir.
@@ -53,7 +62,6 @@ type StorageManager struct {
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
 	runCh chan struct{}
 
-	// meterProvider is the OTel meter provider
 	meterProvider  metric.MeterProvider
 	storageMetrics storageMetrics
 }
@@ -86,6 +94,10 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 		return nil, fmt.Errorf("storage manager reset error: %w", err)
 	}
 
+	// report storage so data is available immediately
+	// without relying on the runDropLoop
+	sm.reportStorageMetrics(sm.Size())
+
 	return sm, nil
 }
 
@@ -99,6 +111,15 @@ func (s *StorageManager) reset() error {
 	s.storage = New(s, ProtobufCodec{})
 	s.rw = s.storage.NewShardedReadWriter()
 	return nil
+}
+
+func (s *StorageManager) reportStorageMetrics(lsm, vlog int64) {
+	if s.storageMetrics.lsmSizeGauge != nil {
+		s.storageMetrics.lsmSizeGauge.Record(context.Background(), lsm)
+	}
+	if s.storageMetrics.valueLogSizeGauge != nil {
+		s.storageMetrics.valueLogSizeGauge.Record(context.Background(), vlog)
+	}
 }
 
 // Close closes StorageManager's underlying ShardedReadWriter and badger DB
@@ -186,6 +207,8 @@ func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration
 	var firstExceeded time.Time
 	checkAndFix := func() error {
 		lsm, vlog := s.Size()
+		s.reportStorageMetrics(lsm, vlog)
+
 		s.mu.RLock() // s.storage requires mutex RLock
 		pending := s.storage.pendingSize.Load()
 		s.mu.RUnlock()
