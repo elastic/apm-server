@@ -97,6 +97,9 @@ RUN chown -R 1000:1000 /usr/share/apm-server
 # use rpm to ignore ubi images
 RUN rpm -v || (dpkg -P --force-depends libgssapi-krb5-2 libtirpc3 libnsl2 libkrb5-3 libk5crypto3 libkrb5support0 && \
     rm /var/log/dpkg.log)
+# remove unnecessary packages in ubi-based images
+# use dpkg to ignore ubuntu images
+RUN dpkg --version || (rpm -v -e --nodeps libxml2)
 
 USER apm-server
 EXPOSE 8200
