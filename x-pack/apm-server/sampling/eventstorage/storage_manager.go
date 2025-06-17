@@ -188,22 +188,14 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 
 // reset initializes db and storage.
 func (sm *StorageManager) reset() error {
-<<<<<<< HEAD
-	eventDB, err := OpenEventPebble(sm.storageDir)
-=======
 	// Configured db cache size is split between event DB and decision DB
-	eventDB, err := OpenEventPebble(sm.storageDir, sm.dbCacheSize/2, sm.logger)
->>>>>>> 006c3aa0 (TBS: Optimize performance for instances with more CPU and memory (#17254))
+	eventDB, err := OpenEventPebble(sm.storageDir, sm.dbCacheSize/2)
 	if err != nil {
 		return fmt.Errorf("open event db error: %w", err)
 	}
 	sm.eventDB = eventDB
 
-<<<<<<< HEAD
-	decisionDB, err := OpenDecisionPebble(sm.storageDir)
-=======
-	decisionDB, err := OpenDecisionPebble(sm.storageDir, sm.dbCacheSize/2, sm.logger)
->>>>>>> 006c3aa0 (TBS: Optimize performance for instances with more CPU and memory (#17254))
+	decisionDB, err := OpenDecisionPebble(sm.storageDir, sm.dbCacheSize/2)
 	if err != nil {
 		return fmt.Errorf("open decision db error: %w", err)
 	}
