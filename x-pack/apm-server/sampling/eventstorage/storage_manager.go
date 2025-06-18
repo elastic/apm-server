@@ -95,7 +95,7 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 	}
 
 	// report storage so data is available immediately
-	// without relying on the runDropLoop
+	// without relying on the reporting loop
 	sm.reportStorageMetrics(sm.Size())
 
 	return sm, nil
@@ -161,6 +161,9 @@ func (s *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration,
 	g.Go(func() error {
 		return s.runDropLoop(stopping, ttl, storageLimit, storageLimitThreshold)
 	})
+	g.Go(func() error {
+		return s.runDBSizeMetricLoop(stopping)
+	})
 	return g.Wait()
 }
 
@@ -207,8 +210,6 @@ func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration
 	var firstExceeded time.Time
 	checkAndFix := func() error {
 		lsm, vlog := s.Size()
-		s.reportStorageMetrics(lsm, vlog)
-
 		s.mu.RLock() // s.storage requires mutex RLock
 		pending := s.storage.pendingSize.Load()
 		s.mu.RUnlock()
@@ -249,6 +250,21 @@ func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration
 		case <-stopping:
 			return nil
 		case <-timer.C:
+			continue
+		}
+	}
+}
+
+// runDBSizeMetricLoop runs a loop to report the database size
+func (s *StorageManager) runDBSizeMetricLoop(stopping <-chan struct{}) error {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	for {
+		s.reportStorageMetrics(s.Size())
+		select {
+		case <-stopping:
+			return nil
+		case <-ticker.C:
 			continue
 		}
 	}
