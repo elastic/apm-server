@@ -19,7 +19,7 @@ import (
 )
 
 func newEventPebble(t *testing.T) *pebble.DB {
-	db, err := eventstorage.OpenEventPebble(t.TempDir(), logptest.NewTestingLogger(t, ""))
+	db, err := eventstorage.OpenEventPebble(t.TempDir(), 8<<20, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		db.Close()
@@ -28,7 +28,7 @@ func newEventPebble(t *testing.T) *pebble.DB {
 }
 
 func newDecisionPebble(t *testing.T) *pebble.DB {
-	db, err := eventstorage.OpenDecisionPebble(t.TempDir(), logptest.NewTestingLogger(t, ""))
+	db, err := eventstorage.OpenDecisionPebble(t.TempDir(), 8<<20, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		db.Close()
