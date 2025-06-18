@@ -9,10 +9,10 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.2.0
 	github.com/elastic/apm-data v1.16.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250515170043-69f406bc6466
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250618092302-e2d317776a7a
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
-	github.com/elastic/elastic-agent-libs v0.19.3
-	github.com/elastic/elastic-agent-system-metrics v0.11.10
+	github.com/elastic/elastic-agent-libs v0.20.0
+	github.com/elastic/elastic-agent-system-metrics v0.11.11
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.9.0
 	github.com/elastic/go-elasticsearch/v8 v8.17.1
@@ -99,7 +99,7 @@ require (
 	github.com/eapache/go-resiliency v1.7.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/ebitengine/purego v0.8.2 // indirect
+	github.com/ebitengine/purego v0.9.0-alpha.3.0.20250507171635-5047c08daa38 // indirect
 	github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 // indirect
 	github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.6.1 // indirect
@@ -111,7 +111,7 @@ require (
 	github.com/elastic/gosigar v0.14.3 // indirect
 	github.com/elastic/opentelemetry-lib v0.14.0 // indirect
 	github.com/elastic/pkcs8 v1.0.0 // indirect
-	github.com/elastic/sarama v1.19.1-0.20250304185506-df6449b5c996 // indirect
+	github.com/elastic/sarama v1.19.1-0.20250603175145-7672917f26b6 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect

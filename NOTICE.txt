@@ -455,11 +455,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.16.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20250515170043-69f406bc6466
+Version: v7.0.0-alpha2.0.20250618092302-e2d317776a7a
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250515170043-69f406bc6466/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250618092302-e2d317776a7a/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -711,11 +711,11 @@ SOFTWARE
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-libs
-Version: v0.19.3
+Version: v0.20.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.19.3/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.20.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -922,11 +922,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-l
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-system-metrics
-Version: v0.11.10
+Version: v0.11.11
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-system-metrics@v0.11.10/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-system-metrics@v0.11.11/LICENSE.txt:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -7892,11 +7892,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/ebitengine/purego
-Version: v0.8.2
+Version: v0.9.0-alpha.3.0.20250507171635-5047c08daa38
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/ebitengine/purego@v0.8.2/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/ebitengine/purego@v0.9.0-alpha.3.0.20250507171635-5047c08daa38/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -9401,11 +9401,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/sarama
-Version: v1.19.1-0.20250304185506-df6449b5c996
+Version: v1.19.1-0.20250603175145-7672917f26b6
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/sarama@v1.19.1-0.20250304185506-df6449b5c996/LICENSE.md:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/sarama@v1.19.1-0.20250603175145-7672917f26b6/LICENSE.md:
 
 # MIT License
 
