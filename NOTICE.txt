@@ -604,11 +604,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.19.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20250611143021-f899db6b25f1
+Version: v7.0.0-alpha2.0.20250618143110-9a51e5edbb5a
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250611143021-f899db6b25f1/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250618143110-9a51e5edbb5a/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -860,11 +860,11 @@ SOFTWARE
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-libs
-Version: v0.19.6
+Version: v0.20.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.19.6/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.20.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -10086,11 +10086,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/sarama
-Version: v1.19.1-0.20250304185506-df6449b5c996
+Version: v1.19.1-0.20250603175145-7672917f26b6
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/sarama@v1.19.1-0.20250304185506-df6449b5c996/LICENSE.md:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/sarama@v1.19.1-0.20250603175145-7672917f26b6/LICENSE.md:
 
 # MIT License
 
@@ -15281,11 +15281,11 @@ Contents of probable licence file $GOMODCACHE/github.com/prometheus/client_golan
 
 --------------------------------------------------------------------------------
 Dependency : github.com/prometheus/client_model
-Version: v0.6.1
+Version: v0.6.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/prometheus/client_model@v0.6.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/prometheus/client_model@v0.6.2/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -15990,11 +15990,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/shirou/gopsutil/v4
-Version: v4.25.3
+Version: v4.25.4
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/shirou/gopsutil/v4@v4.25.3/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/shirou/gopsutil/v4@v4.25.4/LICENSE:
 
 gopsutil is distributed under BSD license reproduced below.
 
