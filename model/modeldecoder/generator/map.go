@@ -94,19 +94,19 @@ if err := v.validate(); err != nil{
 	if typesValsValue, ok := vTag[tagInputTypesVals]; ok {
 		mapRuleTypesVals(w, f, vTag, validationRule{name: tagInputTypesVals, value: typesValsValue})
 	}
-	fmt.Fprintf(w, `
+	fmt.Fprint(w, `
 }
 `[1:])
 	return nil
 }
 
 func mapRuleTypesVals(w io.Writer, f structField, rules map[string]string, rule validationRule) {
-	fmt.Fprintf(w, `
+	fmt.Fprint(w, `
 switch t := v.(type){
 `[1:])
 	// if values are not required allow nil
 	if _, ok := rules[tagRequired]; !ok {
-		fmt.Fprintf(w, `
+		fmt.Fprint(w, `
 case nil:
 `[1:])
 	}

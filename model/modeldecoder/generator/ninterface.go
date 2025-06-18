@@ -117,7 +117,7 @@ case map[string]interface{}:
 		}
 	}
 	if !isRequired {
-		fmt.Fprintf(w, `
+		fmt.Fprint(w, `
 case nil:
 `[1:])
 	}
