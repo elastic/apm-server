@@ -28,6 +28,12 @@ import (
 )
 
 var (
+	doCleanup = flag.Bool(
+		"cleanup",
+		true,
+		"Whether to cleanup terraform resources or not.",
+	)
+
 	// cleanupOnFailure determines whether the created resources should be cleaned up on test failure.
 	cleanupOnFailure = flag.Bool(
 		"cleanup-on-failure",

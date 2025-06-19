@@ -175,14 +175,16 @@ func createCluster(
 	name := terraform.Var("name", deployName)
 	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, ver, integrations, name))
 
-	t.Cleanup(func() {
-		if !t.Failed() || cleanupOnFailure {
-			t.Log("cleanup terraform resources")
-			require.NoError(t, tf.Destroy(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, ver))
-		} else {
-			t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
-		}
-	})
+	if *doCleanup {
+		t.Cleanup(func() {
+			if !t.Failed() || cleanupOnFailure {
+				t.Log("cleanup terraform resources")
+				require.NoError(t, tf.Destroy(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, ver))
+			} else {
+				t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
+			}
+		})
+	}
 
 	var deploymentID string
 	require.NoError(t, tf.Output("deployment_id", &deploymentID))
