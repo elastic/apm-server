@@ -97,7 +97,7 @@ func TestOTLPGRPCTraces(t *testing.T) {
 
 	indices := "traces-apm*,logs-apm*"
 	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 3, indices, nil)
-	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, "error.id", "agent.version")
+	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, "error.id", "agent.version", "error.grouping_key")
 }
 
 func TestOTLPGRPCTraceSpanLinks(t *testing.T) {

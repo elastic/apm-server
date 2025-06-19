@@ -50,6 +50,7 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 				"@timestamp", "timestamp.us",
 				// RUM events have the source IP and port recorded, which are dynamic in the tests
 				"client.ip", "source.ip", "source.port",
+				"error.grouping_key",
 			)
 		}
 

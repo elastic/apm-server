@@ -53,7 +53,7 @@ func TestErrorIngest(t *testing.T) {
 	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm.error*", espoll.ExistsQuery{
 		Field: "transaction.name",
 	})
-	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, "error.grouping_key")
 }
 
 // TestErrorExceptionCause tests hierarchical exception causes,

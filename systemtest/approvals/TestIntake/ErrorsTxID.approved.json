@@ -58,7 +58,7 @@
             "ConnectionError"
         ],
         "error.grouping_key": [
-            "9a4054e958afe722b5877e8fac578ff3"
+            "dynamic"
         ],
         "error.grouping_name": [
             "Request method 'POST' not supported"
