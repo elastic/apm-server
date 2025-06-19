@@ -89,6 +89,16 @@ func (t *Runner) Destroy(ctx context.Context, vars ...tfexec.DestroyOption) erro
 }
 
 func (t *Runner) Output(name string, res any) error {
+	// try to load outputs from the terraform state if
+	// our cache is empty
+	if len(t.outputs) == 0 {
+		outputs, err := t.tf.Output(context.Background())
+		// only load if output command succeeded
+		if err == nil {
+			t.outputs = outputs
+		}
+	}
+
 	o, ok := t.outputs[name]
 	if !ok {
 		return fmt.Errorf("output named %s not found", name)
