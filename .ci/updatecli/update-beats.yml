@@ -60,7 +60,7 @@ targets:
     scmid: default
     kind: shell
     spec:
-      command: .ci/scripts/update-beats.sh
+      command: .ci/scripts/update-beats.sh {{ requiredEnv "BRANCH_NAME" }} #
       environments:
         - name: PATH
         - name: HOME
