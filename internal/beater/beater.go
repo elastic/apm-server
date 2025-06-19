@@ -109,6 +109,17 @@ type RunnerParams struct {
 
 // NewRunner returns a new Runner that runs APM Server with the given parameters.
 func NewRunner(args RunnerParams) (*Runner, error) {
+<<<<<<< HEAD
+=======
+	fips140.CheckFips()
+
+	// the default tracer is leaking and its background
+	// goroutine is spamming requests to this apm server (default endpoint)
+	// If TLS is enabled it causes "http request sent to https endpoint".
+	// Close the default tracer since it's not used.
+	apm.DefaultTracer().Close()
+
+>>>>>>> 26c5c562 (fix: close default apm tracer (#17293))
 	var unpackedConfig struct {
 		APMServer  *agentconfig.C        `config:"apm-server"`
 		Output     agentconfig.Namespace `config:"output"`
