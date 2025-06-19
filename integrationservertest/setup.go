@@ -186,6 +186,17 @@ func createCluster(
 		})
 	}
 
+	deploymentID, apmID, info := getDeploymentInfo(t, tf, deployName)
+
+	standaloneOrManaged := "standalone"
+	if enableIntegrations {
+		standaloneOrManaged = "managed"
+	}
+	t.Logf("created deployment %s (%s) with %s APM (%s)", deployName, deploymentID, standaloneOrManaged, apmID)
+	return info
+}
+
+func getDeploymentInfo(t *testing.T, tf *terraform.Runner, deployName string) (string, string, deploymentInfo) {
 	var deploymentID string
 	require.NoError(t, tf.Output("deployment_id", &deploymentID))
 	var apmID string
@@ -197,12 +208,7 @@ func createCluster(
 	require.NoError(t, tf.Output("password", &info.Password))
 	require.NoError(t, tf.Output("kb_url", &info.KibanaURL))
 
-	standaloneOrManaged := "standalone"
-	if enableIntegrations {
-		standaloneOrManaged = "managed"
-	}
-	t.Logf("created deployment %s (%s) with %s APM (%s)", deployName, deploymentID, standaloneOrManaged, apmID)
-	return info
+	return deploymentID, apmID, info
 }
 
 // upgradeCluster applies the terraform configuration from the test terraform folder.
