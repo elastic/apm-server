@@ -13,6 +13,7 @@ scms:
       token: '{{ requiredEnv "GITHUB_TOKEN" }}'
       branch: '{{ requiredEnv "BRANCH_NAME" }}'
       commitusingapi: true
+      force: false
 
 actions:
   default:
