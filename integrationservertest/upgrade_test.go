@@ -121,7 +121,10 @@ func buildTestSteps(t *testing.T, versions ech.Versions, config upgradeTestConfi
 		prev := versions[i-1]
 		oldIndicesManagedBy := slices.Clone(indicesManagedBy)
 		if config.HasLazyRollover(prev, ver) {
+			t.Logf("we will expect a lazy rollover happening between %s and %s", prev, ver)
 			indicesManagedBy = append(indicesManagedBy, lifecycle)
+		} else {
+			t.Logf("**no** lazy rollover expected between %s and %s", prev, ver)
 		}
 		steps = append(steps,
 			upgradeStep{
