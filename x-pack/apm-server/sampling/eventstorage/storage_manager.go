@@ -140,8 +140,6 @@ type StorageManager struct {
 	// meterProvider is the OTel meter provider
 	meterProvider  metric.MeterProvider
 	storageMetrics storageMetrics
-
-	metricRegistration metric.Registration
 }
 
 type storageMetrics struct {
@@ -335,11 +333,6 @@ func (sm *StorageManager) Close() error {
 }
 
 func (sm *StorageManager) close() error {
-	if sm.metricRegistration != nil {
-		if err := sm.metricRegistration.Unregister(); err != nil {
-			sm.logger.With(logp.Error(err)).Error("failed to unregister metric")
-		}
-	}
 	return errors.Join(
 		wrapNonNilErr("event db flush error: %w", sm.eventDB.Flush()),
 		wrapNonNilErr("decision db flush error: %w", sm.decisionDB.Flush()),
