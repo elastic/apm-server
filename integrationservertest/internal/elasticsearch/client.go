@@ -79,6 +79,10 @@ func formatDurationElasticsearch(d time.Duration) string {
 	return fmt.Sprintf("%dnanos", d)
 }
 
+func (c *Client) TypedClient() *elasticsearch.TypedClient {
+	return c.es
+}
+
 // CreateAPIKey creates an API Key, and returns it in the base64-encoded form
 // that agents should provide.
 //
