@@ -22,7 +22,7 @@
             "logs"
         ],
         "error.grouping_key": [
-            "0b9cba09845a097a271c6beb4c6207f3"
+            "dynamic"
         ],
         "error.grouping_name": [
             "error log message"
@@ -93,7 +93,7 @@
             "error exception message"
         ],
         "error.grouping_key": [
-            "3a1fb5609458fbb132b44d8fc7cde104"
+            "dynamic"
         ],
         "error.grouping_name": [
             "error exception message"
@@ -158,7 +158,7 @@
             "error exception type"
         ],
         "error.grouping_key": [
-            "fa405fa2bd848dab17207e7b544d9ad4"
+            "dynamic"
         ],
         "error.id": [
             "abcdef0123456791"

@@ -72,6 +72,7 @@ func TestIntake(t *testing.T) {
 				"client.geo.location",
 				"client.geo.region_iso_code",
 				"client.geo.region_name",
+				"error.grouping_key",
 			)
 			approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, tc.dynamicFields...)
 		})

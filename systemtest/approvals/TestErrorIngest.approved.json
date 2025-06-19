@@ -76,7 +76,7 @@
             "logs"
         ],
         "error.grouping_key": [
-            "d6b3f958dfea98dc9ed2b57d5f0c48bb"
+            "dynamic"
         ],
         "error.grouping_name": [
             "Cannot read property 'baz' of undefined"
