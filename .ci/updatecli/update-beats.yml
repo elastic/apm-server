@@ -17,7 +17,7 @@ scms:
 
 actions:
   default:
-    title: '[updatecli] Update to elastic/beats@{{ source "beats" }}'
+    title: '[updatecli][{{ requiredEnv "BRANCH_NAME" }}] Update to elastic/beats@{{ source "beats" }}'
     kind: github/pullrequest
     scmid: default
     spec:
@@ -27,7 +27,7 @@ actions:
         - backport-skip
       description: |-
         ### What
-        `elastic/beats` automatic sync
+        `elastic/beats@{{ requiredEnv "BRANCH_NAME" }}` automatic sync
 
         *Changeset*
         * https://github.com/elastic/beats/commit/{{ source "beats" }}
