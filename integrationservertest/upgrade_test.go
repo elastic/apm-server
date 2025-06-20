@@ -206,15 +206,28 @@ func (cfg upgradeTestConfig) ExpectedLifecycle(version ech.Version) string {
 
 // HasLazyRollover checks if the upgrade path is expected to have lazy rollover.
 func (cfg upgradeTestConfig) HasLazyRollover(from, to ech.Version) bool {
-	exceptions, ok := cfg.LazyRolloverWithExceptions[to.MajorMinor()]
+	// We first check if there is a config entry for the full version under test.
+	exceptions, ok := cfg.LazyRolloverWithExceptions[to.MajorMinorPatch()]
+	// If there is not, we check if there is an entry for the minor.
+	if !ok {
+		exceptions, ok = cfg.LazyRolloverWithExceptions[to.MajorMinor()]
+	}
+	// At this point if we didn't find anything there is no rollover expected.
 	if !ok {
 		return false
 	}
+	// Otherwise we match the exception list items with from major.minor.patch
+	// and, if not present, major.minor values to signal no rollovers expected.
 	for _, exception := range exceptions {
+		if strings.EqualFold(from.MajorMinorPatch(), exception) {
+			return false
+		}
 		if strings.EqualFold(from.MajorMinor(), exception) {
 			return false
 		}
 	}
+	// At this point we checked all keys and related fields a we know a rollover
+	// is expected.
 	return true
 }
 

@@ -4,27 +4,62 @@ data-stream-lifecycle:
   8.15: DSL
   8.16: DSL
 
-# Define versions that have lazy rollover, i.e. when upgrading from some older
-# version to the specified minor version, there will be lazy rollover.
-# Exceptions are specified as a list, i.e. no lazy rollover if upgrade is from
-# that minor version.
+# Define versions exceptions to lazy rollovers.
+#
+# All versions listed are expected to have a lazy rollover. An exception may be
+# needed, to specify that upgrading from a previous version does not trigger
+# a lazy rollover. In this case that version must be specified as a entry in the 
+# minor or patch release key.
+# Keys can be in the form of major.minor or major.minor.patch.
+# Values can be in the form of major.minor or major.minor.patch.
+#
+# Example: upgrading to 8.18 will trigger a lazy rollover from any previous
+#          version.
+# ```
+# 8.18:
+# ```
+#
+# Example: upgrading to 8.18 will trigger a lazy rollover from all previous
+#          versions except any 8.17 ones (all patches included).:
+# ```
+# 8.18:
+#   - 8.17
+# ```
+#
+# Example: upgrading to 8.18.1 will trigger a lazy rollover from any previous
+#              version.
+# ```
+# 8.18.1:
+# ```
+# 
+# Example: upgrading to 8.18 will trigger a lazy rollover from all previous
+#          versions except 8.17.8.
+# ```
+# 8.18:
+#   - 8.17.8
+# ```
+#
+# NOTE: If a version is not in this list it is **not** expected to rollover.
+# NOTE: quote major.minor when used as values or they'll be floats
 lazy-rollover-with-exceptions:
   8.16:
+    # No rollover expected when upgrading from any 8.17 to other 8.17. Exceptions are listed as top level keys.
+    - "8.16"
   8.17:
-    - "8.17.1"
-    - "8.17.2"
-    - "8.17.3"
-    - "8.17.4"
-    - "8.17.5"
-    - "8.17.6"
-    - "8.17.7"
-    # 8.17.8 forces a rollover as we updated the elasticsearch resource version number
+    # No rollover expected when upgrading from any 8.17 to other 8.17. Exceptions are listed as top level keys.
+    - "8.17"
+  # 8.17.8 forces a rollover as we updated the elasticsearch resource version number.
+  8.17.8:
   8.18:
-    - "8.17.8"
-    - "8.18.1"
-    - "8.18.2"
-    # 8.18.3 forces a rollover as we updated the elasticsearch resource version number
+    # No rollover expected when upgrading from any 8.18 to other 8.18. Exceptions are listed as top level keys.
+    - "8.18"
+  # 8.18.3 forces a rollover as we updated the elasticsearch resource version number.
+  8.18.3:
+    # 8.17.8 and 8.18.3 share the same templates.
+    - 8.17.8
   8.19:
+    # No rollover expected when upgrading from any 8.19 to other 8.19. Exceptions are listed as top level keys.
+    - "8.19"
   9.1:
     # 8.19 and 9.1 have the same template due to
     # https://github.com/elastic/elasticsearch/pull/123166.
