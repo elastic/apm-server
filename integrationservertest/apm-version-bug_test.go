@@ -138,14 +138,41 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 		from := vsCache.GetLatestSnapshot(t, "8.18")
 		to := vsCache.GetLatestSnapshot(t, "8.19")
 		versions := []ech.Version{start, from, to}
-		steps := buildteststepsForBug(t, versions, config)
-		steps = append(steps, checkFieldExistsInDocsStep{
+		steps := buildTestSteps(t, versions, config, false)
+		someEventIngestedDocs := checkFieldExistsInDocsStep{
 			dataStreamName: "traces-apm-default",
-			fieldName:      "event.success_count",
-		})
+			fieldName:      "event.ingested",
+		}
+		eventIngestedHasMappings := checkMappingStep{
+			datastreamname: "traces-apm-default",
+			indexName:      regexp.MustCompile(".ds-traces-apm-default-[0-9.]+-000002"),
+			checkFn: func(mappings types.TypeMapping) error {
+				if hasNestedField(mappings, "event.ingested") {
+					return nil
+				}
+				return fmt.Errorf("there should be an event.ingested here")
+			},
+		}
+
+		newSteps := []testStep{
+			steps[0], // create
+			steps[1], // ingest
+			steps[2], // upgrade
+			steps[3], // ingest
+			someEventIngestedDocs,
+			eventIngestedHasMappings,
+			steps[4], // upgrade
+			steps[5], // upgrade
+			someEventIngestedDocs,
+			eventIngestedHasMappings,
+			checkFieldExistsInDocsStep{
+				dataStreamName: "traces-apm-default",
+				fieldName:      "event.success_count",
+			},
+		}
 		runner := testStepsRunner{
 			Target: *target,
-			Steps:  steps,
+			Steps:  newSteps,
 		}
 		runner.Run(t)
 
