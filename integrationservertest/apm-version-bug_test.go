@@ -128,12 +128,12 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 		}
 	}
 
-	version8162 := ech.NewVersion(8, 16, 2, "SNAPSHOT")
-	version8177 := ech.NewVersion(8, 17, 7, "SNAPSHOT")
-	version8178 := ech.NewVersion(8, 17, 8, "SNAPSHOT") // latest 8.17
-	version8182 := ech.NewVersion(8, 18, 2, "SNAPSHOT")
-	version8183 := ech.NewVersion(8, 18, 3, "SNAPSHOT") // latest 8.18
-	version8190 := ech.NewVersion(8, 19, 0, "SNAPSHOT") // latest 8.19
+	version8162 := vsCache.GetLatestVersionOrSkip(t, "8.16.2")
+	version8177 := vsCache.GetLatestVersionOrSkip(t, "8.17.7")
+	version8178 := vsCache.GetLatestBCOrSkip(t, "8.17.8") // latest 8.17 as of today
+	version8182 := vsCache.GetLatestVersionOrSkip(t, "8.18.2")
+	version8183 := vsCache.GetLatestBCOrSkip(t, "8.18.3") // latest 8.18 as of today
+	// version8190 := vsCache.GetLatestBCOrSkip(t, "8.19.0") // latest 8.19 as of today
 	// the event.ingested change was introduced in 8.16.3, as
 	// it only shows if we upgrade a cluster from a version with
 	// the bug we need to start from 8.16.2.
@@ -176,6 +176,10 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 	})
 
 	t.Run("8.18.3 to 8.19.0", func(t *testing.T) {
+		// FIXME: use 8.19.0 BC when it becomes available.
+		start := vsCache.GetLatestSnapshot(t, "8.16.2")
+		version8183 := vsCache.GetLatestSnapshot(t, "8.18.3")
+		version8190 := vsCache.GetLatestSnapshot(t, "8.19.0")
 		versions := []ech.Version{start, version8183, version8190}
 		steps := twoUpgradesSomeThenSome(t, versions, config)
 		steps = append(steps, checkFieldExistsInDocsStep{
@@ -187,6 +191,5 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 			Steps:  steps,
 		}
 		runner.Run(t)
-
 	})
 }
