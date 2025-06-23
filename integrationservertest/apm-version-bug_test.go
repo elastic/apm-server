@@ -74,33 +74,6 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 	}
 
 	// this wraps the usual steps build to add additional checks in between.
-	// Expect two upgrades, no ingested docs after the first upgrade, some after the second.
-	twoUpgradesZeroThenSome := func(t *testing.T, versions ech.Versions, config upgradeTestConfig) []testStep {
-		steps := buildTestSteps(t, versions, config, false)
-		return []testStep{
-			steps[0], // create
-			steps[1], // ingest
-			steps[2], // upgrade
-			steps[3], // ingest
-			zeroEventIngestedDocs,
-			noEventIngestedInMappings,
-			steps[4], // upgrade
-			steps[5], // upgrade
-			someEventIngestedDocs,
-			checkMappingStep{
-				datastreamname: "traces-apm-default",
-				indexName:      regexp.MustCompile(".ds-traces-apm-default-[0-9.]+-000003"),
-				checkFn: func(mappings types.TypeMapping) error {
-					if hasNestedField(mappings, "event.ingested") {
-						return nil
-					}
-					return fmt.Errorf("there should be an event.ingested here")
-				},
-			},
-		}
-	}
-
-	// this wraps the usual steps build to add additional checks in between.
 	// Expect two upgrades, some ingested docs after the first upgrade, some after the second.
 	twoUpgradesSomeThenSome := func(t *testing.T, versions ech.Versions, config upgradeTestConfig) []testStep {
 		steps := buildTestSteps(t, versions, config, false)
@@ -172,13 +145,12 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 	})
 
 	t.Run("8.17.7 to 8.17.8", func(t *testing.T) {
-		// NOTE: this test fails because event.ingested is present in 8.17.7-SNAPSHOT already.
 		from := ech.NewVersion(8, 17, 7, "SNAPSHOT")
 		to := vsCache.GetLatestSnapshot(t, "8.17")
 		versions := []ech.Version{start, from, to}
 		runner := testStepsRunner{
 			Target: *target,
-			Steps:  twoUpgradesZeroThenSome(t, versions, config),
+			Steps:  twoUpgradesSomeThenSome(t, versions, config),
 		}
 		runner.Run(t)
 	})
