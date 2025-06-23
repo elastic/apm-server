@@ -89,6 +89,7 @@ jobs:
 
   notify:
     name: Notify
+    if: always() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs:
       - run-upgrade
