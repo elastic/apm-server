@@ -7,7 +7,7 @@ require (
 	github.com/docker/go-connections v0.5.0
 	github.com/elastic/apm-perf v1.0.0
 	github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959
-	github.com/elastic/go-elasticsearch/v8 v8.18.0
+	github.com/elastic/go-elasticsearch/v8 v8.18.1
 	github.com/elastic/go-lumber v0.1.1
 	github.com/elastic/go-sysinfo v1.15.3
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
