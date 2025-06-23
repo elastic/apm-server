@@ -23,11 +23,6 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// the event.ingested change was introduced in 8.16.3, as
-	// it only shows if we upgrade a cluster from a version with
-	// the bug we need to start from 8.16.2.
-	start := ech.NewVersion(8, 16, 2, "SNAPSHOT")
-
 	zeroEventIngestedDocs := checkFieldExistsInDocsStep{
 		dataStreamName: "traces-apm-default",
 		fieldName:      "event.ingested",
@@ -133,10 +128,19 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 		}
 	}
 
+	version8162 := ech.NewVersion(8, 16, 2, "SNAPSHOT")
+	version8177 := ech.NewVersion(8, 17, 7, "SNAPSHOT")
+	version8178 := ech.NewVersion(8, 17, 8, "SNAPSHOT") // latest 8.17
+	version8182 := ech.NewVersion(8, 18, 2, "SNAPSHOT")
+	version8183 := ech.NewVersion(8, 18, 3, "SNAPSHOT") // latest 8.18
+	version8190 := ech.NewVersion(8, 19, 0, "SNAPSHOT") // latest 8.19
+	// the event.ingested change was introduced in 8.16.3, as
+	// it only shows if we upgrade a cluster from a version with
+	// the bug we need to start from 8.16.2.
+	start := version8162
+
 	t.Run("8.16.2 to 8.17.8", func(t *testing.T) {
-		from := start
-		to := ech.NewVersion(8, 17, 7, "SNAPSHOT")
-		versions := []ech.Version{from, to}
+		versions := []ech.Version{start, version8177}
 		runner := testStepsRunner{
 			Target: *target,
 			Steps:  oneUpgradeZeroThenSome(t, versions, config),
@@ -145,9 +149,7 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 	})
 
 	t.Run("8.17.7 to 8.17.8", func(t *testing.T) {
-		from := ech.NewVersion(8, 17, 7, "SNAPSHOT")
-		to := vsCache.GetLatestSnapshot(t, "8.17")
-		versions := []ech.Version{start, from, to}
+		versions := []ech.Version{start, version8177, version8178}
 		runner := testStepsRunner{
 			Target: *target,
 			Steps:  twoUpgradesSomeThenSome(t, versions, config),
@@ -156,9 +158,7 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 	})
 
 	t.Run("8.17.8 to 8.18.3", func(t *testing.T) {
-		from := vsCache.GetLatestSnapshot(t, "8.17")
-		to := vsCache.GetLatestSnapshot(t, "8.18")
-		versions := []ech.Version{from, to}
+		versions := []ech.Version{version8178, version8183}
 		runner := testStepsRunner{
 			Target: *target,
 			Steps:  buildTestSteps(t, versions, config, false),
@@ -167,9 +167,7 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 	})
 
 	t.Run("8.18.2 to 8.18.3", func(t *testing.T) {
-		from := ech.NewVersion(8, 18, 2, "SNAPSHOT")
-		to := vsCache.GetLatestSnapshot(t, "8.18")
-		versions := []ech.Version{start, from, to}
+		versions := []ech.Version{start, version8182, version8183}
 		runner := testStepsRunner{
 			Target: *target,
 			Steps:  twoUpgradesSomeThenSome(t, versions, config),
@@ -178,9 +176,7 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 	})
 
 	t.Run("8.18.3 to 8.19.0", func(t *testing.T) {
-		from := vsCache.GetLatestSnapshot(t, "8.18")
-		to := vsCache.GetLatestSnapshot(t, "8.19")
-		versions := []ech.Version{start, from, to}
+		versions := []ech.Version{start, version8183, version8190}
 		steps := twoUpgradesSomeThenSome(t, versions, config)
 		steps = append(steps, checkFieldExistsInDocsStep{
 			dataStreamName: "traces-apm-default",
