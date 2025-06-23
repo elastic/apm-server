@@ -17,4 +17,4 @@ runs:
       run: |
         echo "upgrade_paths=$(./bc.sh)" >> "${GITHUB_OUTPUT}"
       shell: 'bash'
-      working-directory: ./.github/workflows
+      working-directory: ./.github/workflows/generate-bc-upgrade-paths
