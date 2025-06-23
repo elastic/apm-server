@@ -1,11 +1,35 @@
 [[apm-release-notes-8.18]]
 == APM version 8.18
 
+* <<apm-release-notes-8.18.3>>
 * <<apm-release-notes-8.18.2>>
 * <<apm-release-notes-8.18.1>>
 * <<apm-release-notes-8.18.0>>
 
 [float]
+[[apm-release-notes-8.18.3]]
+=== APM version 8.18.3
+
+https://github.com/elastic/apm-server/compare/v8.18.2\...v8.18.3[View commits]
+
+[float]
+==== Bug fixes
+- Log Tail Based Sampling pubsub errors at error or warn level instead of debug {pull}17178[17178]
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Deprecations
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
+
+[float]
+
 [[apm-release-notes-8.18.2]]
 === APM version 8.18.2
 
