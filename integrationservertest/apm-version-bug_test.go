@@ -47,54 +47,117 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 		dataStreamName: "traces-apm-default",
 		fieldName:      "event.ingested",
 	}
-	eventIngestedHasMappings := checkMappingStep{
-		datastreamname: "traces-apm-default",
-		indexName:      regexp.MustCompile(".ds-traces-apm-default-[0-9.]+-000002"),
-		checkFn: func(mappings types.TypeMapping) error {
-			if hasNestedField(mappings, "event.ingested") {
-				return nil
-			}
-			return fmt.Errorf("there should be an event.ingested here")
-		},
+
+	// this wraps the usual steps build to add additional checks in between.
+	// Expect one upgrade, no ingested docs before, some after.
+	oneUpgradeZeroThenSome := func(t *testing.T, versions ech.Versions, config upgradeTestConfig) []testStep {
+		steps := buildTestSteps(t, versions, config, false)
+		return []testStep{
+			steps[0], // create
+			steps[1], // ingest
+			zeroEventIngestedDocs,
+			noEventIngestedInMappings,
+			steps[2], // upgrade
+			steps[3], // ingest
+			someEventIngestedDocs,
+			checkMappingStep{
+				datastreamname: "traces-apm-default",
+				indexName:      regexp.MustCompile(".ds-traces-apm-default-[0-9.]+-000002"),
+				checkFn: func(mappings types.TypeMapping) error {
+					if hasNestedField(mappings, "event.ingested") {
+						return nil
+					}
+					return fmt.Errorf("there should be an event.ingested here")
+				},
+			},
+		}
 	}
 
 	// this wraps the usual steps build to add additional checks in between.
-	// Is a bit brittle, maybe we should consider allowing this as a first class citizen.
-	buildteststepsForBug := func(t *testing.T, versions ech.Versions, config upgradeTestConfig) []testStep {
+	// Expect two upgrades, no ingested docs after the first upgrade, some after the second.
+	twoUpgradesZeroThenSome := func(t *testing.T, versions ech.Versions, config upgradeTestConfig) []testStep {
 		steps := buildTestSteps(t, versions, config, false)
-
-		if len(versions) == 3 {
-			eventIngestedHasMappings.indexName = regexp.MustCompile(".ds-traces-apm-default-[0-9.]+-000003")
+		return []testStep{
+			steps[0], // create
+			steps[1], // ingest
+			steps[2], // upgrade
+			steps[3], // ingest
+			zeroEventIngestedDocs,
+			noEventIngestedInMappings,
+			steps[4], // upgrade
+			steps[5], // upgrade
+			someEventIngestedDocs,
+			checkMappingStep{
+				datastreamname: "traces-apm-default",
+				indexName:      regexp.MustCompile(".ds-traces-apm-default-[0-9.]+-000003"),
+				checkFn: func(mappings types.TypeMapping) error {
+					if hasNestedField(mappings, "event.ingested") {
+						return nil
+					}
+					return fmt.Errorf("there should be an event.ingested here")
+				},
+			},
 		}
+	}
 
-		if len(versions) == 2 { // if 2 versions we expect the first to be bugged and the second to be not
-			return []testStep{
-				steps[0], // create
-				steps[1], // ingest
-				zeroEventIngestedDocs,
-				noEventIngestedInMappings,
-				steps[2], // upgrade
-				steps[3], // ingest
-				someEventIngestedDocs,
-				eventIngestedHasMappings,
-			}
-
-		} else if len(versions) == 3 { // if 3 versions we expect the first to be bugged on create, the second on upgrade, the third to be not
-			return []testStep{
-				steps[0], // create
-				steps[1], // ingest
-				steps[2], // upgrade
-				steps[3], // ingest
-				zeroEventIngestedDocs,
-				noEventIngestedInMappings,
-				steps[4], // upgrade
-				steps[5], // upgrade
-				someEventIngestedDocs,
-				eventIngestedHasMappings,
-			}
+	// this wraps the usual steps build to add additional checks in between.
+	// Expect two upgrades, some ingested docs after the first upgrade, some after the second.
+	twoUpgradesSomeThenSome := func(t *testing.T, versions ech.Versions, config upgradeTestConfig) []testStep {
+		steps := buildTestSteps(t, versions, config, false)
+		howmany := int64(0)
+		return []testStep{
+			steps[0], // create
+			steps[1], // ingest
+			steps[2], // upgrade
+			steps[3], // ingest
+			checkFieldExistsInDocsStep{
+				dataStreamName: "traces-apm-default",
+				fieldName:      "event.ingested",
+				checkFn: func(i int64) bool {
+					if i == 0 {
+						return false
+					}
+					// Store howmany to cross check it's higher after next upgrade/ingest cycle.
+					howmany = i
+					return true
+				},
+			},
+			checkMappingStep{
+				datastreamname: "traces-apm-default",
+				indexName:      regexp.MustCompile(".ds-traces-apm-default-[0-9.]+-000002"),
+				checkFn: func(mappings types.TypeMapping) error {
+					if hasNestedField(mappings, "event.ingested") {
+						return nil
+					}
+					return fmt.Errorf("there should be an event.ingested here")
+				},
+			},
+			steps[4], // upgrade
+			steps[5], // upgrade
+			checkFieldExistsInDocsStep{
+				dataStreamName: "traces-apm-default",
+				fieldName:      "event.ingested",
+				checkFn: func(i int64) bool {
+					if i == 0 {
+						return false
+					}
+					if i <= howmany {
+						return false
+					}
+					return true
+				},
+			},
+			checkMappingStep{
+				datastreamname: "traces-apm-default",
+				indexName:      regexp.MustCompile(".ds-traces-apm-default-[0-9.]+-000003"),
+				checkFn: func(mappings types.TypeMapping) error {
+					if hasNestedField(mappings, "event.ingested") {
+						return nil
+					}
+					return fmt.Errorf("there should be an event.ingested here")
+				},
+			},
 		}
-
-		return []testStep{}
 	}
 
 	t.Run("8.16.2 to 8.17.8", func(t *testing.T) {
@@ -103,7 +166,7 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 		versions := []ech.Version{from, to}
 		runner := testStepsRunner{
 			Target: *target,
-			Steps:  buildteststepsForBug(t, versions, config),
+			Steps:  oneUpgradeZeroThenSome(t, versions, config),
 		}
 		runner.Run(t)
 	})
@@ -115,7 +178,7 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 		versions := []ech.Version{start, from, to}
 		runner := testStepsRunner{
 			Target: *target,
-			Steps:  buildteststepsForBug(t, versions, config),
+			Steps:  twoUpgradesZeroThenSome(t, versions, config),
 		}
 		runner.Run(t)
 	})
@@ -135,23 +198,9 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 		from := ech.NewVersion(8, 18, 2, "SNAPSHOT")
 		to := vsCache.GetLatestSnapshot(t, "8.18")
 		versions := []ech.Version{start, from, to}
-		steps := buildTestSteps(t, versions, config, false)
-
-		newSteps := []testStep{
-			steps[0], // create
-			steps[1], // ingest
-			steps[2], // upgrade
-			steps[3], // ingest
-			someEventIngestedDocs,
-			eventIngestedHasMappings,
-			steps[4], // upgrade
-			steps[5], // upgrade
-			someEventIngestedDocs,
-			eventIngestedHasMappings,
-		}
 		runner := testStepsRunner{
 			Target: *target,
-			Steps:  newSteps,
+			Steps:  twoUpgradesSomeThenSome(t, versions, config),
 		}
 		runner.Run(t)
 	})
@@ -160,27 +209,14 @@ func TestAPMResourcesVersionBug(t *testing.T) {
 		from := vsCache.GetLatestSnapshot(t, "8.18")
 		to := vsCache.GetLatestSnapshot(t, "8.19")
 		versions := []ech.Version{start, from, to}
-		steps := buildTestSteps(t, versions, config, false)
-
-		newSteps := []testStep{
-			steps[0], // create
-			steps[1], // ingest
-			steps[2], // upgrade
-			steps[3], // ingest
-			someEventIngestedDocs,
-			eventIngestedHasMappings,
-			steps[4], // upgrade
-			steps[5], // upgrade
-			someEventIngestedDocs,
-			eventIngestedHasMappings,
-			checkFieldExistsInDocsStep{
-				dataStreamName: "traces-apm-default",
-				fieldName:      "event.success_count",
-			},
-		}
+		steps := twoUpgradesSomeThenSome(t, versions, config)
+		steps = append(steps, checkFieldExistsInDocsStep{
+			dataStreamName: "traces-apm-default",
+			fieldName:      "event.success_count",
+		})
 		runner := testStepsRunner{
 			Target: *target,
-			Steps:  newSteps,
+			Steps:  steps,
 		}
 		runner.Run(t)
 
