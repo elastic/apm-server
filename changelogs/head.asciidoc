@@ -5,7 +5,6 @@ https://github.com/elastic/apm-server/compare/8.17\...8.x[View commits]
 
 [float]
 ==== Bug fixes
-- Fix overflow in validation of `apm-server.agent.config.cache.expiration` on 32-bit architectures {pull}15216[15216]
 
 [float]
 ==== Breaking Changes
