@@ -3,7 +3,7 @@ module github.com/elastic/apm-server
 go 1.24.4
 
 require (
-	github.com/KimMachineGun/automemlimit v0.7.0
+	github.com/KimMachineGun/automemlimit v0.7.3
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
@@ -11,17 +11,17 @@ require (
 	github.com/elastic/apm-data v1.19.2
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250623043720-a4cb4b4aeadb
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
-	github.com/elastic/elastic-agent-libs v0.20.0
-	github.com/elastic/elastic-agent-system-metrics v0.11.11
+	github.com/elastic/elastic-agent-libs v0.20.1
+	github.com/elastic/elastic-agent-system-metrics v0.11.16
 	github.com/elastic/elastic-transport-go/v8 v8.7.0
 	github.com/elastic/gmux v0.3.2
-	github.com/elastic/go-docappender/v2 v2.9.0
+	github.com/elastic/go-docappender/v2 v2.10.0
 	github.com/elastic/go-freelru v0.16.0
 	github.com/elastic/go-sysinfo v1.15.3
 	github.com/elastic/go-ucfg v0.8.8
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
 	github.com/gofrs/flock v0.12.1
-	github.com/gofrs/uuid/v5 v5.3.0
+	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.7.0
 	github.com/gorilla/mux v1.8.1
@@ -34,11 +34,11 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.6.3
-	go.elastic.co/apm/module/apmgorilla/v2 v2.6.3
-	go.elastic.co/apm/module/apmgrpc/v2 v2.6.3
-	go.elastic.co/apm/module/apmhttp/v2 v2.6.3
-	go.elastic.co/apm/module/apmotel/v2 v2.6.3
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.1
+	go.elastic.co/apm/module/apmgorilla/v2 v2.7.1
+	go.elastic.co/apm/module/apmgrpc/v2 v2.7.1
+	go.elastic.co/apm/module/apmhttp/v2 v2.7.1
+	go.elastic.co/apm/module/apmotel/v2 v2.7.1
 	go.elastic.co/apm/v2 v2.7.1
 	go.elastic.co/fastjson v1.5.1
 	go.opentelemetry.io/collector/consumer v1.34.0
@@ -54,7 +54,7 @@ require (
 	golang.org/x/net v0.41.0
 	golang.org/x/sync v0.15.0
 	golang.org/x/term v0.32.0
-	golang.org/x/time v0.10.0
+	golang.org/x/time v0.12.0
 	google.golang.org/grpc v1.73.0
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v3 v3.0.1
@@ -233,7 +233,6 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zclconf/go-cty v1.15.0 // indirect
 	gitlab.com/digitalxero/go-conventional-commit v1.0.7 // indirect
-	go.elastic.co/apm/module/apmzap/v2 v2.7.0 // indirect
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.7.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
