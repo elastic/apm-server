@@ -1,8 +1,8 @@
 # newer versions go on top
 #
 # change type can be one of: enhancement, bugfix, breaking-change
-# 
-- version: "7.17.29"
+#
+- version: "7.17.30"
   changes:
     - description: Placeholder
       type: enhancement
