@@ -166,3 +166,50 @@ APM UI::
 **Title** Topic...
 ```
 </details>
+
+# Release 8.x
+
+There will be no more minor versions in the `8.x` line, apart from `8.19.0.`, but only patch releases.
+
+## 8.17 patch releases
+
+Run the `run-patch-release` with any `8.17.x` version.
+
+**NOTE**: This automation does not handle the changelog, which should be manually handled.
+
+## 8.18 patch releases
+
+Run the `run-patch-release` with any `8.18.x` version.
+
+**NOTE**: This automation does not handle the changelog, which should be manually handled.
+
+## 8.19.0
+
+This is technically a minor release, but it's the last minor we will ever create on the 8.x line.
+The trunk branch `8.x` does not exist anymore (as expected) and has been renamed to `8.19`. This
+makes our current minor release automation broken.
+
+The `run-minor-release` automation is currently not working, and fixing it is not worth for a single release.
+As such for this release we should do it manually.
+
+What does that include?
+- update the changelog in `8.19` branch
+- update versions to `8.19.1`
+
+The process:
+- switch to `8.19` branch
+- create a new branch: `release-8.19.0`
+- update the changelog, manually
+- update versions with `make update-version VERSION=8.19.1`
+- push the branch and create a Pull Request named: `8.19.0: update changelog, versions`
+
+An example PR for the changelog update can be seen here: https://github.com/elastic/apm-server/pull/14382/files  
+An example PR for the other changes can be seen here, but note that this time `8.x` branch is `8.19`: https://github.com/elastic/apm-server/pull/14381/files
+
+Refer to `release.mk` and the `minor-release` target for further details.
+
+## 8.19 patch releases
+
+Run the `run-patch-release` with any `8.19.x` version.
+
+**NOTE**: This automation does not handle the changelog, which should be manually handled.

@@ -8,14 +8,14 @@ mapped_pages:
 
 Breaking changes can impact your Elastic applications, potentially disrupting normal operations. Before you upgrade, carefully review the Elastic APM breaking changes and take the necessary steps to mitigate any issues. To learn how to upgrade, check [Upgrade](docs-content://deploy-manage/upgrade.md).
 
-% ## Next version [next-version]
+## Next version [next-version]
 
 % ::::{dropdown} Title of breaking change
 % Description of the breaking change.
 % For more information, check [#PR-number]({{apm-pull}}PR-number).
-
+%
 % **Impact**<br> Impact of the breaking change.
-
+%
 % **Action**<br> Steps for mitigating deprecation impact.
 % ::::
 
