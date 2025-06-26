@@ -62,25 +62,23 @@ func NewProcessor(config Config, logger *logp.Logger) (*Processor, error) {
 		return nil, errors.Wrap(err, "invalid tail-sampling config")
 	}
 
-	meter := config.MeterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
-
 	logger = logger.Named(logs.Sampling)
 	p := &Processor{
 		config:            config,
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
-		groups:            newTraceGroups(meter, config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
+		groups:            newTraceGroups(config.Meter, config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
 		eventStore:        config.Storage,
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
 	}
 
-	p.eventMetrics.processed, _ = meter.Int64Counter("apm-server.sampling.tail.events.processed")
-	p.eventMetrics.dropped, _ = meter.Int64Counter("apm-server.sampling.tail.events.dropped")
-	p.eventMetrics.stored, _ = meter.Int64Counter("apm-server.sampling.tail.events.stored")
-	p.eventMetrics.sampled, _ = meter.Int64Counter("apm-server.sampling.tail.events.sampled")
-	p.eventMetrics.headUnsampled, _ = meter.Int64Counter("apm-server.sampling.tail.events.head_unsampled")
-	p.eventMetrics.failedWrites, _ = meter.Int64Counter("apm-server.sampling.tail.events.failed_writes")
+	p.eventMetrics.processed, _ = config.Meter.Int64Counter("apm-server.sampling.tail.events.processed")
+	p.eventMetrics.dropped, _ = config.Meter.Int64Counter("apm-server.sampling.tail.events.dropped")
+	p.eventMetrics.stored, _ = config.Meter.Int64Counter("apm-server.sampling.tail.events.stored")
+	p.eventMetrics.sampled, _ = config.Meter.Int64Counter("apm-server.sampling.tail.events.sampled")
+	p.eventMetrics.headUnsampled, _ = config.Meter.Int64Counter("apm-server.sampling.tail.events.head_unsampled")
+	p.eventMetrics.failedWrites, _ = config.Meter.Int64Counter("apm-server.sampling.tail.events.failed_writes")
 
 	return p, nil
 }

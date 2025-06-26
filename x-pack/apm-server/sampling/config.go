@@ -22,9 +22,9 @@ type Config struct {
 	// tail-sampled trace events.
 	BatchProcessor modelpb.BatchProcessor
 
-	// MeterProvider holds a metric.MeterProvider that can be used for
-	// creating metrics.
-	MeterProvider metric.MeterProvider
+	// Meter holds a metric.Meter that can be used for
+	// creating metrics
+	Meter metric.Meter
 
 	LocalSamplingConfig
 	RemoteSamplingConfig

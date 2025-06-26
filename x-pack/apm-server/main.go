@@ -13,6 +13,7 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/noop"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/common/reload"
@@ -107,8 +108,17 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 		return nil, fmt.Errorf("failed to create Elasticsearch client for tail-sampling: %w", err)
 	}
 
+	// create a common meter for the tail-sampling processor
+	// so multiple metrics with the prefix 'apm-server.sampling'
+	// in the name can be created without conflicts
+	// and without renaming them.
+	if args.MeterProvider == nil {
+		args.MeterProvider = noop.NewMeterProvider()
+	}
+	samplingMeter := args.MeterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server")
+
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
-	db, err := getDB(storageDir, tailSamplingConfig.DatabaseCacheSize, args.MeterProvider, args.Logger)
+	db, err := getDB(storageDir, tailSamplingConfig.DatabaseCacheSize, samplingMeter, args.Logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tail-sampling database: %w", err)
 	}
@@ -128,7 +138,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 
 	return sampling.NewProcessor(sampling.Config{
 		BatchProcessor: args.BatchProcessor,
-		MeterProvider:  args.MeterProvider,
+		Meter:          samplingMeter,
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
 			FlushInterval:         tailSamplingConfig.Interval,
 			MaxDynamicServices:    1000,
@@ -154,15 +164,15 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	}, args.Logger)
 }
 
-func getDB(storageDir string, cacheSize uint64, mp metric.MeterProvider, logger *logp.Logger) (*eventstorage.StorageManager, error) {
+func getDB(storageDir string, cacheSize uint64, meter metric.Meter, logger *logp.Logger) (*eventstorage.StorageManager, error) {
 	dbMu.Lock()
 	defer dbMu.Unlock()
 	if db == nil {
 		opts := []eventstorage.StorageManagerOptions{
 			eventstorage.WithDBCacheSize(cacheSize),
 		}
-		if mp != nil {
-			opts = append(opts, eventstorage.WithMeterProvider(mp))
+		if meter != nil {
+			opts = append(opts, eventstorage.WithMeter(meter))
 		}
 		sm, err := eventstorage.NewStorageManager(storageDir, logger, opts...)
 		if err != nil {
