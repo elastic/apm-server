@@ -124,6 +124,12 @@ type RunnerParams struct {
 func NewRunner(args RunnerParams) (*Runner, error) {
 	fips140.CheckFips()
 
+	// the default tracer is leaking and its background
+	// goroutine is spamming requests to this apm server (default endpoint)
+	// If TLS is enabled it causes "http request sent to https endpoint".
+	// Close the default tracer since it's not used.
+	apm.DefaultTracer().Close()
+
 	var unpackedConfig struct {
 		APMServer  *agentconfig.C        `config:"apm-server"`
 		Output     agentconfig.Namespace `config:"output"`
@@ -237,6 +243,14 @@ func (s *Runner) Run(ctx context.Context) error {
 		s.config.Aggregation.ServiceDestinations.MaxGroups = linearScaledValue(5_000, memLimitGB, 5_000)
 		s.logger.Infof("Aggregation.ServiceDestinations.MaxGroups set to %d based on %0.1fgb of memory",
 			s.config.Aggregation.ServiceDestinations.MaxGroups, memLimitGB,
+		)
+	}
+
+	if s.config.Sampling.Tail.Enabled && s.config.Sampling.Tail.DatabaseCacheSize == 0 {
+		// 1GB=16MB, 2GB=24MB, 4GB=40MB, ..., 32GB=264MB, 64GB=520MB
+		s.config.Sampling.Tail.DatabaseCacheSize = uint64(linearScaledValue(8<<20, memLimitGB, 8<<20))
+		s.logger.Infof("Sampling.Tail.DatabaseCacheSize set to %d based on %0.1fgb of memory",
+			s.config.Sampling.Tail.DatabaseCacheSize, memLimitGB,
 		)
 	}
 

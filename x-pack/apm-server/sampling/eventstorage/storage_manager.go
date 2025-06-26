@@ -88,6 +88,13 @@ func WithGetDiskUsage(getDiskUsage func() (DiskUsage, error)) StorageManagerOpti
 	}
 }
 
+// WithDBCacheSize sets the total size in bytes of in-memory cache of all databases managed by StorageManager.
+func WithDBCacheSize(size uint64) StorageManagerOptions {
+	return func(sm *StorageManager) {
+		sm.dbCacheSize = size
+	}
+}
+
 // DiskUsage is the struct returned by getDiskUsage.
 type DiskUsage struct {
 	UsedBytes, TotalBytes uint64
@@ -96,8 +103,9 @@ type DiskUsage struct {
 // StorageManager encapsulates pebble.DB.
 // It assumes exclusive access to pebble DB at storageDir.
 type StorageManager struct {
-	storageDir string
-	logger     *logp.Logger
+	storageDir  string
+	dbCacheSize uint64
+	logger      *logp.Logger
 
 	eventDB         *pebble.DB
 	decisionDB      *pebble.DB
@@ -132,8 +140,6 @@ type StorageManager struct {
 	// meterProvider is the OTel meter provider
 	meterProvider  metric.MeterProvider
 	storageMetrics storageMetrics
-
-	metricRegistration metric.Registration
 }
 
 type storageMetrics struct {
@@ -155,6 +161,7 @@ func NewStorageManager(storageDir string, logger *logp.Logger, opts ...StorageMa
 				TotalBytes: usage.TotalBytes,
 			}, err
 		},
+		dbCacheSize: 16 << 20, // default to 16MB cache shared between event and decision DB
 	}
 	sm.getDBSize = func() uint64 {
 		return sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage()
@@ -179,13 +186,14 @@ func NewStorageManager(storageDir string, logger *logp.Logger, opts ...StorageMa
 
 // reset initializes db and storage.
 func (sm *StorageManager) reset() error {
-	eventDB, err := OpenEventPebble(sm.storageDir, sm.logger)
+	// Configured db cache size is split between event DB and decision DB
+	eventDB, err := OpenEventPebble(sm.storageDir, sm.dbCacheSize/2, sm.logger)
 	if err != nil {
 		return fmt.Errorf("open event db error: %w", err)
 	}
 	sm.eventDB = eventDB
 
-	decisionDB, err := OpenDecisionPebble(sm.storageDir, sm.logger)
+	decisionDB, err := OpenDecisionPebble(sm.storageDir, sm.dbCacheSize/2, sm.logger)
 	if err != nil {
 		return fmt.Errorf("open decision db error: %w", err)
 	}
@@ -325,11 +333,6 @@ func (sm *StorageManager) Close() error {
 }
 
 func (sm *StorageManager) close() error {
-	if sm.metricRegistration != nil {
-		if err := sm.metricRegistration.Unregister(); err != nil {
-			sm.logger.With(logp.Error(err)).Error("failed to unregister metric")
-		}
-	}
 	return errors.Join(
 		wrapNonNilErr("event db flush error: %w", sm.eventDB.Flush()),
 		wrapNonNilErr("decision db flush error: %w", sm.decisionDB.Flush()),

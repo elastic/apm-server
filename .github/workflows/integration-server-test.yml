@@ -88,7 +88,8 @@ jobs:
           SCENARIO="${{ matrix.scenario }}" make integration-server-standalone-test
 
   notify:
-    if: always()
+    name: Notify
+    if: always() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs:
       - run-upgrade
