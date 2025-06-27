@@ -7,7 +7,7 @@ Over time, certain Elastic functionality becomes outdated and is replaced or rem
 
 Review the deprecated functionality for Elastic APM. While deprecations have no immediate impact, we strongly encourage you update your implementation after you upgrade. To learn how to upgrade, check out [Upgrade](docs-content://deploy-manage/upgrade.md).
 
-% ## Next version [next-version]
+## Next version [next-version]
 
 % ::::{dropdown} Deprecation title
 % Description of the deprecation.
@@ -16,6 +16,18 @@ Review the deprecated functionality for Elastic APM. While deprecations have no 
 % **Action**<br> Steps for mitigating deprecation impact.
 % ::::
 
-% ## 9.0.0 [9-0-0]
+## 9.1.0 [9-1-0]
+
+_No deprecations_ 
+
+## 9.0.2 [9-0-2]
+
+_No deprecations_
+
+## 9.0.1 [9-0-1]
+
+_No deprecations_
+
+## 9.0.0 [9-0-0]
 
 _No deprecations_
