@@ -19,8 +19,19 @@ env:
   TERRAFORM_VERSION: 1.10.2
 
 jobs:
+  prepare:
+    name: Prepare tests
+    runs-on: ubuntu-latest
+    outputs:
+      upgrade_paths: ${{ steps.generate.outputs.upgrade_paths }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: generate
+        name: Generate BC upgrade paths
+        uses: ./.github/workflows/generate-bc-upgrade-paths
+
   run-upgrade:
-    name: Upgrade tests
+    name: Upgrade tests (Snapshot)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -54,7 +65,39 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          SCENARIO="${{ matrix.scenario }}" UPGRADE_PATH="${{ matrix.upgrade-path }}" make integration-server-upgrade-test
+          SCENARIO="${{ matrix.scenario }}" UPGRADE_PATH="${{ matrix.upgrade-path }}" SNAPSHOT=true make integration-server-test/upgrade
+
+  run-upgrade-bc:
+    name: Upgrade tests (BC)
+    runs-on: ubuntu-latest
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        upgrade-path: ${{ fromJSON(needs.prepare.outputs.upgrade_paths) }}
+        scenario:
+          - 'Default'
+          - 'Reroute'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: "${{ env.TERRAFORM_VERSION }}"
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'integrationservertest/go.mod'
+          cache: false
+      - uses: elastic/oblt-actions/google/auth@v1
+      - uses: google-github-actions/get-secretmanager-secrets@a8440875e1c2892062aef9061228d4f1af8f919b # v2.2.3
+        with:
+          export_to_environment: true
+          secrets: |-
+            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
+      - name: "Run upgrade tests"
+        working-directory: ${{ github.workspace }}
+        run: |
+          export TF_VAR_CREATED_DATE=$(date +%s)
+          SCENARIO="${{ matrix.scenario }}" UPGRADE_PATH="${{ matrix.upgrade-path }}" make integration-server-test/upgrade
 
   run-standalone:
     name: Standalone-to-managed tests
@@ -85,7 +128,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          SCENARIO="${{ matrix.scenario }}" make integration-server-standalone-test
+          SCENARIO="${{ matrix.scenario }}" make integration-server-test/standalone
 
   notify:
     name: Notify
@@ -93,6 +136,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - run-upgrade
+      - run-upgrade-bc
       - run-standalone
     steps:
       - id: check

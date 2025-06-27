@@ -39,19 +39,27 @@ func formatUpgradePath(p string) string {
 }
 
 func TestUpgrade_UpgradePath_Snapshot(t *testing.T) {
+	testUpgrade(t, *upgradePath, vsCache.GetLatestSnapshot)
+}
+
+func TestUpgrade_UpgradePath_Version(t *testing.T) {
+	testUpgrade(t, *upgradePath, vsCache.GetLatestVersion)
+}
+
+func testUpgrade(t *testing.T, upgradePathStr string, versionFetcher func(*testing.T, string) ech.Version) {
 	// The versions are separated by commas.
-	if strings.TrimSpace(*upgradePath) == "" {
+	if strings.TrimSpace(upgradePathStr) == "" {
 		t.Fatal("no upgrade versions specified")
 	}
-	splits := strings.Split(*upgradePath, ",")
+	splits := strings.Split(upgradePathStr, ",")
 	if len(splits) < 2 {
 		t.Fatal("need to specify at least 2 upgrade versions")
 	}
 
-	// Get all snapshot versions based on input.
+	// Get all versions based on input.
 	var versions ech.Versions
 	for i, s := range splits {
-		curr := vsCache.GetLatestSnapshot(t, strings.TrimSpace(s))
+		curr := versionFetcher(t, strings.TrimSpace(s))
 		if i != 0 {
 			prev := versions[len(versions)-1]
 			if !vsCache.CanUpgradeTo(prev, curr) {
