@@ -90,6 +90,7 @@ type Runner struct {
 	tracerProvider trace.TracerProvider
 	meterProvider  metric.MeterProvider
 	metricGatherer *apmotel.Gatherer
+	beatMonitoring beat.Monitoring
 	listener       net.Listener
 }
 
@@ -112,6 +113,9 @@ type RunnerParams struct {
 
 	// MetricsGatherer holds an apmotel.Gatherer
 	MetricsGatherer *apmotel.Gatherer
+
+	// BeatMonitoring holds beat monitoring
+	BeatMonitoring beat.Monitoring
 
 	// WrapServer holds an optional WrapServerFunc, for wrapping the
 	// ServerParams and RunServerFunc used to run the APM Server.
@@ -172,6 +176,7 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		tracerProvider: args.TracerProvider,
 		meterProvider:  args.MeterProvider,
 		metricGatherer: args.MetricsGatherer,
+		beatMonitoring: args.BeatMonitoring,
 		listener:       listener,
 	}, nil
 }
@@ -255,7 +260,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 
 	// Send config to telemetry.
-	recordAPMServerConfig(s.config)
+	recordAPMServerConfig(s.config, s.beatMonitoring.StateRegistry())
 
 	var kibanaClient *kibana.Client
 	if s.config.Kibana.Enabled {
@@ -690,7 +695,7 @@ func (s *Runner) waitReady(
 			})
 		}
 		preconditions = append(preconditions, func(ctx context.Context) error {
-			return queryClusterUUID(ctx, esOutputClient)
+			return queryClusterUUID(ctx, esOutputClient, s.beatMonitoring.StateRegistry())
 		})
 	}
 
@@ -720,18 +725,14 @@ func (s *Runner) newFinalBatchProcessor(
 	mp metric.MeterProvider,
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
 	if s.elasticsearchOutputConfig == nil {
-		monitoring.Default.Remove("libbeat")
-		libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
+		s.beatMonitoring.StatsRegistry().Remove("libbeat")
+		libbeatMonitoringRegistry := s.beatMonitoring.StatsRegistry().NewRegistry("libbeat")
 		return s.newLibbeatFinalBatchProcessor(tracer, libbeatMonitoringRegistry, logger)
 	}
 
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
-	outputRegistry := stateRegistry.GetRegistry("output")
-	if outputRegistry != nil {
-		outputRegistry.Clear()
-	} else {
-		outputRegistry = stateRegistry.NewRegistry("output")
-	}
+	stateRegistry := s.beatMonitoring.StateRegistry()
+	outputRegistry := stateRegistry.GetOrCreateRegistry("output")
+	outputRegistry.Clear()
 	monitoring.NewString(outputRegistry, "name").Set("elasticsearch")
 
 	// Create the docappender and Elasticsearch config
@@ -866,7 +867,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		Logger:      logger,
 	}
 
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	stateRegistry := s.beatMonitoring.StateRegistry()
 	stateRegistry.Remove("queue")
 	monitors := pipeline.Monitors{
 		Metrics:   libbeatMonitoringRegistry,
@@ -959,8 +960,7 @@ func newSourcemapFetcher(
 // TODO: This is copying behavior from libbeat:
 // https://github.com/elastic/beats/blob/b9ced47dba8bb55faa3b2b834fd6529d3c4d0919/libbeat/cmd/instance/beat.go#L927-L950
 // Remove this when cluster_uuid no longer needs to be queried from ES.
-func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client) error {
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client, stateRegistry *monitoring.Registry) error {
 	outputES := "outputs.elasticsearch"
 	// Running under elastic-agent, the callback linked above is not
 	// registered until later, meaning we need to check and instantiate the
