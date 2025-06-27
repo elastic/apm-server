@@ -409,6 +409,7 @@ func (b *Beat) Run(ctx context.Context) error {
 			Config:          b.rawConfig,
 			Info:            b.Info,
 			Logger:          b.Info.Logger,
+			TracerProvider:  b.tracerProvider,
 			MeterProvider:   b.meterProvider,
 			MetricsGatherer: b.metricGatherer,
 		})

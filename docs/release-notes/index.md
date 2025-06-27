@@ -14,11 +14,24 @@ To check for security updates, go to [Security announcements for the Elastic sta
 % Release notes include only features, enhancements, and fixes. Add breaking changes, deprecations, and known issues to the applicable release notes sections.
 % For each new version section, include the Elastic APM and Kibana changes.
 
-% ## version.next [elastic-apm-next-release-notes]
+## Next version [elastic-apm-next-release-notes]
 
-% ### Features and enhancements [elastic-apm-next-features-enhancements]
+### Features and enhancements [elastic-apm-next-features-enhancements]
 
-% ### Fixes [elastic-apm-next-fixes]
+### Fixes [elastic-apm-next-fixes]
+
+## 9.0.3 [elastic-apm-9.0.3-release-notes]
+
+### Features and enhancements [elastic-apm-9.0.3-features-enhancements]
+
+* Optimize performance for instances with more CPU and memory when using Tail Based Sampling ([#17254](https://github.com/elastic/apm-server/pull/17254))
+
+### Fixes [elastic-apm-9.0.3-fixes]
+
+* Fix decrease dynamic group metric count ([#17042](https://github.com/elastic/apm-server/pull/17042))
+* Fix incorrectly large pebble database `lsm_size` monitoring metric for Tail Based Sampling ([#17149](https://github.com/elastic/apm-server/pull/17149))
+* Log Tail Based Sampling pubsub errors at error or warn level ([#17135](https://github.com/elastic/apm-server/pull/17135))
+* Update Tail Based Sampling storage metrics to be reported synchronously in the existing `runDiskUsageLoop` method ([#17154](https://github.com/elastic/apm-server/pull/17154))
 
 ## 9.0.2 [elastic-apm-9.0.2-release-notes]
 
