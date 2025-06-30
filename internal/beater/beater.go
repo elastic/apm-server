@@ -304,7 +304,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	publishReady := make(chan struct{})
 	drain := make(chan struct{})
 	g.Go(func() error {
-		if err := s.waitReady(ctx, tracer); err != nil {
+		if err := s.waitReady(ctx); err != nil {
 			// One or more preconditions failed; drop events.
 			close(drain)
 			return fmt.Errorf("error waiting for server to be ready: %w", err)
@@ -644,7 +644,6 @@ func linearScaledValue(perGBIncrement, memLimitGB, constant float64) int {
 // waitReady waits until the server is ready to index events.
 func (s *Runner) waitReady(
 	ctx context.Context,
-	tracer *apm.Tracer,
 ) error {
 	var preconditions []func(context.Context) error
 	var esOutputClient *elasticsearch.Client
@@ -705,7 +704,7 @@ func (s *Runner) waitReady(
 		}
 		return nil
 	}
-	return waitReady(ctx, s.config.WaitReadyInterval, tracer, s.logger, check)
+	return waitReady(ctx, s.config.WaitReadyInterval, s.tracerProvider, s.logger, check)
 }
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,

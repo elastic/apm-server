@@ -23,7 +23,7 @@ import (
 	"net/http"
 	"time"
 
-	"go.elastic.co/apm/v2"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 )
@@ -33,14 +33,14 @@ import (
 func waitReady(
 	ctx context.Context,
 	interval time.Duration,
-	tracer *apm.Tracer,
+	tp trace.TracerProvider,
 	logger *logp.Logger,
 	check func(context.Context) error,
 ) error {
+	tracer := tp.Tracer("github.com/elastic/apm-server/internal/beater")
 	logger.Info("blocking ingestion until all preconditions are satisfied")
-	tx := tracer.StartTransaction("wait_for_preconditions", "init")
-	defer tx.End()
-	ctx = apm.ContextWithTransaction(ctx, tx)
+	ctx, span := tracer.Start(ctx, "wait_for_preconditions")
+	defer span.End()
 	var ticker *time.Ticker
 	for {
 		if ticker == nil {
