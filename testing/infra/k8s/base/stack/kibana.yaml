@@ -4,7 +4,7 @@ metadata:
   name: kibana
 spec:
   # TODO: replace with a pinned version such as 9.0.0-aaaaaaaa-SNAPSHOT
-  version: 9.0.3-639180bf-SNAPSHOT
+  version: 9.0.3-b2f071e7-SNAPSHOT
   count: 1
   elasticsearchRef:
     name: elasticsearch
