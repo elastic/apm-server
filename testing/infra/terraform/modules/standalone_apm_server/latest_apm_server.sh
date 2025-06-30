@@ -4,13 +4,9 @@ set -eo pipefail
 
 VERSION=${1}
 if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
-<<<<<<< HEAD
-    VERSION=$(curl -s "https://artifacts-api.elastic.co/v1/versions" | jq -r '[.versions[] | select(. | startswith("8"))] | last')
-=======
   LATEST_VERSION_INFO=$(curl -s "https://snapshots.elastic.co/latest/master.json")
 else
   LATEST_VERSION_INFO=$(curl -s "https://snapshots.elastic.co/latest/${VERSION}.json")
->>>>>>> b5e8eb59 (smoke: update scripts to use `snapshots.elastic.co` instead `artifacts-api.elastic.co`to get the apm-server and elastic agent download urls (#17377))
 fi
 
 # change to the snapshot version
