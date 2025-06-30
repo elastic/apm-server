@@ -26,6 +26,7 @@ import (
 
 	"github.com/elastic/apm-server/internal/version"
 	"github.com/elastic/beats/v7/libbeat/common/cli"
+	beatVersion "github.com/elastic/beats/v7/libbeat/version"
 )
 
 var versionCommand = &cobra.Command{
@@ -40,9 +41,9 @@ var versionCommand = &cobra.Command{
 		}
 
 		fmt.Fprintf(cmd.OutOrStdout(),
-			"apm-server version %s (%s/%s) [%s]\n",
+			"apm-server version %s (%s/%s) [%s] (FIPS-distribution: %v)\n",
 			version.VersionWithQualifier(), runtime.GOOS, runtime.GOARCH,
-			buf.String(),
+			buf.String(), beatVersion.FIPSDistribution,
 		)
 		return nil
 	}),
