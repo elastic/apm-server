@@ -19,17 +19,18 @@ This documentation is for 9.x releases. If you are releasing a 8.x look [here](.
 
 * Trigger release workflow manually
   * For **patch releases**: run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the **upcoming** patch release version - es: on `8.14.2` feature freeze you will use `8.14.2`).
-    This workflow will: create the `update-<VERSION>` branch, update version constants across the codebase and create a PR targeting the release branch.
-    Release notes for patch releases **must be manually added** at least one day before release.
-    Create a PR targeting the `main` branch and add the backport label for the release branch.
-    To add release notes:
-    * Add a new section to the existing release notes file ([Sample PR](https://github.com/elastic/apm-server/pull/12680)).
-    * Review the [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) file and move relevant changelog entries from `head.asciidoc` to `release_version.asciidoc` if the change is backported to release_version. If changes do not apply to the version being released, keep them in the `head.asciidoc` file.
-    * Review the commits in the release to ensure all changes are reflected in the release notes. Check for backported changes without release notes in `release_version.asciidoc`.
+    This workflow will: create a PR to update versions in release branch; create a PR to add release notes onto `main` branch.
+    You should manually verify release notes for correctness and to make sure all relevant changes have been included.
+    To verify release notes:
+    * Review the commits in the release to ensure all changes are reflected in the release notes. Check for backported changes without release notes.
     * Add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2485)).
     * The PR should be merged the day before release.
   * For **minor releases**: run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the minor release version the release is for).
-    This workflow will: create a new release branch using the stack version (X.Y); update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`; create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`. Before merging them compare commits between latest minor and the new minor versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging. After it's merged add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2895)).
+    This workflow will: create a backport label; create a new release branch using the stack version (X.Y) and update versions; update the release notes.
+    You should manually verify release notes for correctness and to make sure all relevant changes have been included.
+    To verify release notes:
+    * Review the commits in the release to ensure all changes are reflected in the release notes. Check for backported changes without release notes.
+    * Add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2485)).
   * For **major releases**: run the [`run-major-release`](https://github.com/elastic/apm-server/actions/workflows/run-major-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the major release version the release is for).
     This workflow will: create a new release branch using the stack version (X.Y); update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`; create a PR on `main` titled `<major>.0: update docs, mergify, versions and changelogs`. Before merging them compare commits between latest minor and the new major versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging. After it's merged add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2895)).
 * The Release Manager will ping the team to align the release process
@@ -94,124 +95,3 @@ This documentation is for 9.x releases. If you are releasing a 8.x look [here](.
 ## When compatibility between Agents & Server changes
 
 * Update the [agent/server compatibility matrix](https://github.com/elastic/observability-docs/blob/main/docs/en/observability/apm/agent-server-compatibility.asciidoc) in the elastic/observability repo.
-
-## Templates
-
-Templates for adding release notes, breaking changes, and highlights.
-
-<details><summary><code>/changelogs/*.asciidoc</code> template</summary>
-
-```asciidoc
-[[apm-release-notes-8.1]]
-== APM Server version 8.1
-
-https://github.com/elastic/apm-server/compare/8.0\...8.1[View commits]
-
-* <<apm-release-notes-8.1.0>>
-
-[[apm-release-notes-8.1.0]]
-=== APM Server version 8.1.0
-
-https://github.com/elastic/apm-server/compare/v8.0.1\...v8.1.0[View commits]
-
-No significant changes.
-////
-[float]
-==== Breaking Changes
-
-[float]
-==== Bug fixes
-
-[float]
-==== Intake API Changes
-
-[float]
-==== Added
-////
-```
-</details>
-
-<details><summary><code>apm-release-notes.asciidoc</code> template</summary>
-
-```asciidoc
-* <<release-highlights-8.1.0>>
-
-[[release-highlights-8.1.0]]
-=== APM version 8.1.0
-
-No new features
-////
-[float]
-==== New features
-
-* Feature name and explanation...
-////
-```
-</details>
-
-<details><summary><code>apm-breaking-changes.asciidoc</code> template</summary>
-
-```asciidoc
-* <<breaking-8.0.0, APM version 8.0.0>>
-
-[[breaking-8.0.0]]
-=== Breaking changes in 8.0.0
-
-APM Server::
-+
-[[slug]]
-**Title** Topic...
-
-APM UI::
-+
-[[slug]]
-**Title** Topic...
-```
-</details>
-
-# Release 8.x
-
-There will be no more minor versions in the `8.x` line, apart from `8.19.0.`, but only patch releases.
-
-## 8.17 patch releases
-
-Run the `run-patch-release` with any `8.17.x` version.
-
-**NOTE**: This automation does not handle the changelog, which should be manually handled.
-
-## 8.18 patch releases
-
-Run the `run-patch-release` with any `8.18.x` version.
-
-**NOTE**: This automation does not handle the changelog, which should be manually handled.
-
-## 8.19.0
-
-This is technically a minor release, but it's the last minor we will ever create on the 8.x line.
-The trunk branch `8.x` does not exist anymore (as expected) and has been renamed to `8.19`. This
-makes our current minor release automation broken.
-
-The `run-minor-release` automation is currently not working, and fixing it is not worth for a single release.
-As such for this release we should do it manually.
-
-What does that include?
-- update the changelog in `8.19` branch
-- update versions to `8.19.1`
-
-The process:
-- switch to `8.19` branch
-- create a new branch: `release-8.19.0`
-- update the changelog, manually
-- update versions with `make update-version VERSION=8.19.1`
-- push the branch and create a Pull Request named: `8.19.0: update changelog, versions`
-
-An example PR for the changelog update can be seen here: https://github.com/elastic/apm-server/pull/14382/files  
-An example PR for the other changes can be seen here, but note that this time `8.x` branch is `8.19`: https://github.com/elastic/apm-server/pull/14381/files
-
-Refer to `release.mk` and the `minor-release` target for further details.
-
-## 8.19 patch releases
-
-Run the `run-patch-release` with any `8.19.x` version.
-
-**NOTE**: This automation does not handle the changelog, which should be manually handled.
