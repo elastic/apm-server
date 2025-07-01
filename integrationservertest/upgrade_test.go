@@ -69,7 +69,7 @@ func testUpgrade(t *testing.T, upgradePathStr string, versionFetcher func(*testi
 		// Subsequent versions should first check if they can be upgraded to from
 		// the previous version. Then, fetch the full version and add to list.
 		prev := versions[len(versions)-1]
-		upgradeToVersion, ok := vsCache.GetUpgradableVersions(prev).LatestFor(s)
+		upgradeToVersion, ok := vsCache.GetUpgradeToVersions(prev).LatestFor(s)
 		if !ok {
 			t.Fatalf("%s is not upgradable to %s", prev, s)
 		}
