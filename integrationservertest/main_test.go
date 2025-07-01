@@ -46,7 +46,7 @@ var (
 	upgradePath = flag.String(
 		"upgrade-path",
 		"",
-		"Versions to be used in TestUpgrade_UpgradePath_Snapshot in upgrade_test.go, separated by commas",
+		"Versions to be used in TestUpgrade_UpgradePath_* in upgrade_test.go, separated by commas",
 	)
 )
 
