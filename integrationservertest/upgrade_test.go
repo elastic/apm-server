@@ -58,14 +58,22 @@ func testUpgrade(t *testing.T, upgradePathStr string, versionFetcher func(*testi
 
 	// Get all versions based on input.
 	var versions ech.Versions
-	for i, s := range splits {
-		curr := versionFetcher(t, strings.TrimSpace(s))
-		if i != 0 {
-			prev := versions[len(versions)-1]
-			if !vsCache.CanUpgradeTo(prev, curr) {
-				t.Fatalf("%s is not upgradable to %s", prev, curr)
-			}
+	for i, split := range splits {
+		s := strings.TrimSpace(split)
+		if i == 0 {
+			// First version in the list, simply fetch full version and add to list.
+			curr := versionFetcher(t, s)
+			versions = append(versions, curr)
+			continue
 		}
+		// Subsequent versions should first check if they can be upgraded to from
+		// the previous version. Then, fetch the full version and add to list.
+		prev := versions[len(versions)-1]
+		upgradeToVersion, ok := vsCache.GetUpgradableVersions(prev).LatestFor(s)
+		if !ok {
+			t.Fatalf("%s is not upgradable to %s", prev, s)
+		}
+		curr := versionFetcher(t, upgradeToVersion.MajorMinorPatch())
 		versions = append(versions, curr)
 	}
 
