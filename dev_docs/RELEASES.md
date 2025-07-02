@@ -1,11 +1,6 @@
-# APM Server release checklist
+# APM Server Release Checklist
 
-The APM Server follows the Elastic Stack release schedule and versions.
-A release starts with a Feature Freeze period, during which only bug fixes
-are allowed to be merged into the specific release branch.
-We generally follow [semver](https://semver.org/) for release versions.
-For major and minor releases a new branch is cut off the main branch.
-For patch releases, only the version on the existing major and minor version branch is updated.
+The APM Server follows the Elastic Stack release schedule and versions. A release starts with a Feature Freeze period, during which only bug fixes are allowed to be merged into the specific release branch. We generally follow [semver](https://semver.org/) for release versions. For major and minor releases a new branch is cut off the main branch. For patch releases, only the version on the existing major and minor version branch is updated.
 
 ## Feature Freeze
 
@@ -14,7 +9,10 @@ All release workflows (patch, minor, major) has to be triggered manually. The Re
 ### Patch Releases
 
 - Ensure all relevant backport PRs are merged. We use backport labels on PRs and automation to ensure labels are set.
-- Run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the **upcoming** patch release version - es: on `8.14.2` feature freeze you will use `8.14.2`). This workflow will:
+- Run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow
+    - In "Use workflow from", select `main` branch.
+    - Then in "The version", specify the **upcoming** patch release version - es: on `8.14.2` feature freeze you will use `8.14.2`).
+-This workflow will:
     - Create the `update-<VERSION>` branch.
     - Update version constants across the codebase and create a PR targeting the release branch.
 - Release notes for patch releases **must be manually added** at least one day before release.
