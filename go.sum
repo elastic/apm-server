@@ -322,8 +322,6 @@ github.com/gorilla/securecookie v1.1.1 h1:miw7JPhV+b/lAHSXz4qd/nN9jRiAFV5FwjeKyC
 github.com/gorilla/securecookie v1.1.1/go.mod h1:ra0sb63/xPlUeL+yeDciTfxMRAA+MP+HVt/4epWDjd4=
 github.com/gorilla/sessions v1.2.1 h1:DHd3rPN5lE3Ts3D8rKkQ8x/0kqfeNmBAaiSi+o7FsgI=
 github.com/gorilla/sessions v1.2.1/go.mod h1:dk2InVEVJ0sfLlnXv9EAgkf6ecYs/i80K/zI+bUmuGM=
-github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 h1:UH//fgunKIs4JdUbpDl1VZCDaL56wXCB/5+wF6uHfaI=
-github.com/grpc-ecosystem/go-grpc-middleware v1.4.0/go.mod h1:g5qyo/la0ALbONm6Vbp88Yd8NsDy6rZz+RcrMPxvld8=
 github.com/h2non/filetype v1.1.3 h1:FKkx9QbD7HR/zjK1Ia5XiBsq9zdLi5Kf3zGyFTAFkGg=
 github.com/h2non/filetype v1.1.3/go.mod h1:319b3zT68BvV+WRj7cwy856M2ehB3HqNOt6sy1HndBY=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
@@ -624,8 +622,6 @@ go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.1 h1:nA7I325lIxf6hlVN1SdoOuVJG
 go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.1/go.mod h1:+Xna0uioc2zNzfQzal40RfZ5PPLd2jRBsv49TGHmF8Y=
 go.elastic.co/apm/module/apmgorilla/v2 v2.7.1 h1:Yh16Pi+zZPRqFU7ZyHke2boqYzOgO6ryZw+mstp84ac=
 go.elastic.co/apm/module/apmgorilla/v2 v2.7.1/go.mod h1:Fkt6jdtWQd2WirbSQK49mNu16EHalsE7J/E29NiKmL4=
-go.elastic.co/apm/module/apmgrpc/v2 v2.7.1 h1:VXWyHV0zNknrPkmSdRBpUvdLXp6DYLQoWmoWRcgM18w=
-go.elastic.co/apm/module/apmgrpc/v2 v2.7.1/go.mod h1:4Vdwg4F63ZnX7M2jwLRgkW8Sx+gjLe5prW4eOYf7Cd4=
 go.elastic.co/apm/module/apmhttp/v2 v2.7.1 h1:1uPHesdm9nKytQ/N0bPmlS7F69oXvkzW+IlvzQuDUs8=
 go.elastic.co/apm/module/apmhttp/v2 v2.7.1/go.mod h1:DlBnNivf+eArsEI1QtUx7fygo/JDbdMIcU9+i/Wid1U=
 go.elastic.co/apm/module/apmotel/v2 v2.7.1 h1:9MPo0NM1yvBe2bzII9zS27fWfik+WL4DVTiKCbgty2o=
