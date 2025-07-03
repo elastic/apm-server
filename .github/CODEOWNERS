@@ -1,1 +1,5 @@
+# Default owner
 * @elastic/obs-ds-intake-services
+
+# Sub-directories/files ownership
+/.github @elastic/obs-ds-intake-services @elastic/observablt-ci
