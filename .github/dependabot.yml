@@ -39,9 +39,15 @@ updates:
 
   # GitHub actions
   - package-ecosystem: "github-actions"
+<<<<<<< HEAD
     directory: "/"
     reviewers:
       - "elastic/observablt-ci"
+=======
+    directories:
+      - "/"
+      - "/.github/workflows/*"
+>>>>>>> d5f89b78 (ci: move from dependabot reviewers to CODEOWNERS (#17408))
     schedule:
       interval: "weekly"
       day: "sunday"
