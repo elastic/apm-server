@@ -395,7 +395,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	systemRegistry := statsRegistry.GetOrCreateRegistry("system")
 	processRegistry := statsRegistry.GetOrCreateRegistry("beat")
 
-	if err := metricreport.SetupMetrics(b.Info.Logger.Named("metrics"), b.Info.Beat, b.Info.Version, metricreport.WithSystemRegistry(systemRegistry), metricreport.WithProcessRegistry(processRegistry)); err != nil {
+	if err := metricreport.SetupMetrics(b.Info.Logger.Named("metrics"), b.Info.Beat, b.Info.Version, systemRegistry, processRegistry); err != nil {
 		return err
 	}
 
