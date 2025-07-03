@@ -80,7 +80,7 @@ $(APM_SERVER_BINARIES):
 
 .PHONY: apm-server-build
 apm-server-build:
-	env CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) \
+	env CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) MS_GOTOOLCHAIN_TELEMETRY_ENABLED=0 \
 	go build -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) -tags=grpcnotrace,$(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
 
 build/apm-server-linux-% build/apm-server-fips-linux-%: GOOS=linux
@@ -356,35 +356,43 @@ testing/rally/corpora:
 ##############################################################################
 
 # Run integration server upgrade test on one scenario - Default / Reroute
-.PHONY: integration-server-upgrade-test
-integration-server-upgrade-test:
+.PHONY: integration-server-test/upgrade
+integration-server-test/upgrade:
 ifndef UPGRADE_PATH
 	$(error UPGRADE_PATH is not set)
 endif
 ifndef SCENARIO
 	$(error SCENARIO is not set)
 endif
-	@cd integrationservertest && go test -run=TestUpgrade.*/.*/$(SCENARIO) -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
+ifeq ($(SNAPSHOT),true)
+	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath_Snapshot/.*/$(SCENARIO) -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
+else
+	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath_Version/.*/$(SCENARIO) -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
+endif
 
 # Run integration server upgrade test on all scenarios
-.PHONY: integration-server-upgrade-test-all
-integration-server-upgrade-test-all:
+.PHONY: integration-server-test/upgrade-all
+integration-server-test/upgrade-all:
 ifndef UPGRADE_PATH
 	$(error UPGRADE_PATH is not set)
 endif
-	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
+ifeq ($(SNAPSHOT),true)
+	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath_Snapshot -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
+else
+	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath_Version -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
+endif
 
 # Run integration server standalone test on one scenario - Managed7 / Managed8 / Managed9
-.PHONY: integration-server-standalone-test
-integration-server-standalone-test:
+.PHONY: integration-server-test/standalone
+integration-server-test/standalone:
 ifndef SCENARIO
 	$(error SCENARIO is not set)
 endif
 	@cd integrationservertest && go test -run=TestStandaloneManaged.*/$(SCENARIO) -v -timeout=60m -cleanup-on-failure=true -target="pro" ./
 
 # Run integration server standalone test on all scenarios
-.PHONY: integration-server-standalone-test-all
-integration-server-standalone-test-all:
+.PHONY: integration-server-test/standalone-all
+integration-server-test/standalone-all:
 	@cd integrationservertest && go test -run=TestStandaloneManaged -v -timeout=60m -cleanup-on-failure=true -target="pro" ./
 
 ##############################################################################

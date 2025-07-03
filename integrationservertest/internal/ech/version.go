@@ -190,6 +190,10 @@ func (v Version) String() string {
 	return fmt.Sprintf("%d.%d.%d%s", v.Major, v.Minor, v.Patch, suffix)
 }
 
+func (v Version) MajorMinorPatch() string {
+	return fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
+}
+
 func (v Version) MajorMinor() string {
 	return fmt.Sprintf("%d.%d", v.Major, v.Minor)
 }

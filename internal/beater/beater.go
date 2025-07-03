@@ -32,7 +32,6 @@ import (
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/dustin/go-humanize"
-	"go.elastic.co/apm/module/apmgrpc/v2"
 	"go.elastic.co/apm/module/apmotel/v2"
 	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel"
@@ -309,7 +308,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	publishReady := make(chan struct{})
 	drain := make(chan struct{})
 	g.Go(func() error {
-		if err := s.waitReady(ctx, tracer); err != nil {
+		if err := s.waitReady(ctx); err != nil {
 			// One or more preconditions failed; drop events.
 			close(drain)
 			return fmt.Errorf("error waiting for server to be ready: %w", err)
@@ -382,7 +381,8 @@ func (s *Runner) Run(ctx context.Context) error {
 	// even if TLS is enabled, as TLS is handled by the net/http server.
 	gRPCLogger := s.logger.Named("grpc")
 	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
-		apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer)),
+		interceptors.Tracing(s.tracerProvider),
+		interceptors.Recover(),
 		interceptors.ClientMetadata(),
 		interceptors.Logging(gRPCLogger),
 		interceptors.Metrics(gRPCLogger, s.meterProvider),
@@ -649,7 +649,6 @@ func linearScaledValue(perGBIncrement, memLimitGB, constant float64) int {
 // waitReady waits until the server is ready to index events.
 func (s *Runner) waitReady(
 	ctx context.Context,
-	tracer *apm.Tracer,
 ) error {
 	var preconditions []func(context.Context) error
 	var esOutputClient *elasticsearch.Client
@@ -710,7 +709,7 @@ func (s *Runner) waitReady(
 		}
 		return nil
 	}
-	return waitReady(ctx, s.config.WaitReadyInterval, tracer, s.logger, check)
+	return waitReady(ctx, s.config.WaitReadyInterval, s.tracerProvider, s.logger, check)
 }
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,

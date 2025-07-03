@@ -42,8 +42,6 @@ updates:
     directories:
       - "/"
       - "/.github/workflows/*"
-    reviewers:
-      - "elastic/observablt-ci"
     schedule:
       interval: "weekly"
       day: "sunday"

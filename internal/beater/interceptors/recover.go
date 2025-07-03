@@ -15,7 +15,31 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package version
+package interceptors
 
-// Version holds the APM Server version.
-const Version = "9.2.0"
+import (
+	"context"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+func Recover() grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (a any, err error) {
+		defer func() {
+			r := recover()
+			if r != nil {
+				err = status.Errorf(codes.Internal, "%s", r)
+			}
+		}()
+
+		resp, err := handler(ctx, req)
+		return resp, err
+	}
+}
