@@ -40,10 +40,10 @@ _No new fixes_
 
 ### Fixes [elastic-apm-9.0.3-fixes]
 
-* Tail-based sampling: Fix ever-increasing dynamic group count monitoring metrics ([#17042](https://github.com/elastic/apm-server/pull/17042))
-* Tail-based sampling: Fix incorrectly large pebble database `lsm_size` monitoring metric for ([#17149](https://github.com/elastic/apm-server/pull/17149))
+* Tail-based sampling: Fix ever-increasing dynamic group count monitoring metric ([#17042](https://github.com/elastic/apm-server/pull/17042))
+* Tail-based sampling: Fix incorrectly large pebble database `lsm_size` monitoring metric in edge cases which causes TBS to be bypassed ([#17149](https://github.com/elastic/apm-server/pull/17149))
 * Tail-based sampling: Log pubsub errors at error or warn level ([#17135](https://github.com/elastic/apm-server/pull/17135))
-* Tail-based sampling: Fix infrequent storage monitoring metrics ([#17154](https://github.com/elastic/apm-server/pull/17154))
+* Tail-based sampling: Fix infrequent storage monitoring metric ([#17154](https://github.com/elastic/apm-server/pull/17154))
 
 ## 9.0.2 [elastic-apm-9.0.2-release-notes]
 
