@@ -61,12 +61,17 @@ $(DOCKER_IMAGES):
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		$(DOCKER_BUILD_ARGS) \
-		--tag $(INTERNAL_DOCKER_IMAGE):$(VERSION)$(if $(findstring arm64,$(GOARCH)),-arm64)$(if $(findstring wolfi,$(@)),-wolfi)$(if $(findstring fips,$(@)),-fips) \
+		--tag $(INTERNAL_DOCKER_IMAGE):$(VERSION)-$(GOARCH)$(if $(findstring wolfi,$(@)),-wolfi)$(if $(findstring fips,$(@)),-fips) \
 		$(DOCKER_FILE_ARGS) .
 
 # Docker image tarballs. We distribute UBI Docker images only for AMD64.
+<<<<<<< HEAD
 DOCKER_IMAGE_SUFFIX := docker-image$(if $(findstring arm64,$(GOARCH)),-arm64).tar.gz
 DOCKER_IMAGE_PREFIXES := apm-server $(if $(findstring amd64,$(GOARCH)), apm-server-ubi)
+=======
+DOCKER_IMAGE_SUFFIX := docker-image-$(GOARCH).tar.gz
+DOCKER_IMAGE_PREFIXES := apm-server
+>>>>>>> 543bba34 (feat: standardize image artifact name (#17417))
 # If GENERATE_WOLFI_IMAGES is set then generate wolfi docker images.
 ifdef GENERATE_WOLFI_IMAGES
 DOCKER_IMAGE_PREFIXES := $(DOCKER_IMAGE_PREFIXES) apm-server-wolfi
