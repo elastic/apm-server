@@ -1,40 +1,38 @@
 # APM Server Release Checklist
 
-The APM Server follows the Elastic Stack release schedule and versions. A release starts with a Feature Freeze period, during which only bug fixes are allowed to be merged into the specific release branch. We generally follow [semver](https://semver.org/) for release versions. For major and minor releases a new branch is cut off the main branch. For patch releases, only the version on the existing major and minor version branch is updated.
+The APM Server follows the Elastic Stack release schedule and versions. A release starts with a Feature Freeze period, during which only bug fixes are allowed to be merged into the specific release branch. We generally follow [semver](https://semver.org/) for release versions. For major and minor releases a new branch is cut off the main branch. For patch releases, only the version on the existing major and minor version branch is updated. All release workflows (patch, minor, major) has to be triggered manually. The Release Manager will ping the team to align the release process.
 
-## Feature Freeze
+## Patch Releases
 
-All release workflows (patch, minor, major) has to be triggered manually. The Release Manager will ping the team to align the release process.
-
-### Patch Releases
-
-- Ensure all relevant backport PRs are merged. We use backport labels on PRs and automation to ensure labels are set.
-- Run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow
+1. Ensure all relevant backport PRs are merged. We use backport labels on PRs and automation to ensure labels are set.
+2. Run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow
     - In "Use workflow from", select `main` branch.
     - Then in "The version", specify the **upcoming** patch release version - es: on `8.14.2` feature freeze you will use `8.14.2`).
--This workflow will:
-    - Create the `update-<VERSION>` branch.
-    - Update version constants across the codebase and create a PR targeting the release branch.
-- Release notes for patch releases **must be manually added** at least one day before release.
-- Create a PR targeting the `main` branch and add the backport label for the release branch. To add release notes:
+    - This workflow will:
+        - Create the `update-<VERSION>` branch.
+        - Update version constants across the codebase and create a PR targeting the release branch.
+3. Release notes for patch releases **must be manually added** at least one day before release.
+4. Create a PR targeting the `main` branch and add the backport label for the release branch. To add release notes:
     - Add a new section to the existing release notes file ([Sample PR](https://github.com/elastic/apm-server/pull/12680)).
     - Review the [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) file and move relevant changelog entries from `head.asciidoc` to `release_version.asciidoc` if the change is backported to release_version. If changes do not apply to the version being released, keep them in the `head.asciidoc` file.
     - Review the commits in the release to ensure all changes are reflected in the release notes. Check for backported changes without release notes in `release_version.asciidoc`.
     - Add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2485)).
     - The PR should be merged the day before release.
 
-### Minor Releases
+## Minor Releases
 
-- Run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the minor release version the release is for). This workflow will:
+1. Create a Test Plan.
+2. Run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the minor release version the release is for). This workflow will:
     - Create a new release branch using the stack version (X.Y).
     - Update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`.
     - Create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`.
 
 Before merging them compare commits between latest minor and the new minor versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging. After it's merged add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2895)).
 
-### Major Releases
+## Major Releases
 
-- Run the [`run-major-release`](https://github.com/elastic/apm-server/actions/workflows/run-major-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the major release version the release is for). This workflow will:
+1. Create a Test Plan.
+2. Run the [`run-major-release`](https://github.com/elastic/apm-server/actions/workflows/run-major-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the major release version the release is for). This workflow will:
     - Create a new release branch using the stack version (X.Y).
     - Update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`.
     - Create a PR on `main` titled `<major>.0: update docs, mergify, versions and changelogs`.
@@ -52,7 +50,7 @@ Before merging them compare commits between latest minor and the new major versi
 - [go-elasticsearch](https://github.com/elastic/go-elasticsearch):
     - If no branch or tag is available, ping the go-elasticsearch team, `go get github.com/elastic/go-elasticsearch/v$major@$major.$minor`.
 
-## Test plan
+## Test Plan
 
 Create a github issue for testing the release branch ([use the GitHub issue `test plan` template](https://github.com/elastic/apm-server/issues/new?assignees=&labels=test-plan&projects=&template=test-plan.md)), It should contain:
 
