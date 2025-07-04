@@ -15,40 +15,31 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beatcmd
+package interceptors
 
 import (
 	"context"
-	"log/slog"
-	"time"
 
-	"github.com/KimMachineGun/automemlimit/memlimit"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
-func adjustMemlimit(ctx context.Context, d time.Duration, logger *slog.Logger) error {
-	setMemLimit := func() {
-		memlimit.SetGoMemLimitWithOpts(
-			memlimit.WithProvider(
-				memlimit.ApplyFallback(
-					memlimit.FromCgroup,
-					memlimit.FromSystem,
-				),
-			),
-			memlimit.WithLogger(logger),
-			memlimit.WithRefreshInterval(0),
-			memlimit.WithRatio(0.9),
-		)
-	}
+func Recover() grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (a any, err error) {
+		defer func() {
+			r := recover()
+			if r != nil {
+				err = status.Errorf(codes.Internal, "%s", r)
+			}
+		}()
 
-	setMemLimit()
-	ticker := time.NewTicker(d)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-ticker.C:
-			setMemLimit()
-		}
+		resp, err := handler(ctx, req)
+		return resp, err
 	}
 }

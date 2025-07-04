@@ -15,40 +15,41 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beatcmd
+package interceptors
 
 import (
 	"context"
-	"log/slog"
-	"time"
 
-	"github.com/KimMachineGun/automemlimit/memlimit"
+	otelcodes "go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
-func adjustMemlimit(ctx context.Context, d time.Duration, logger *slog.Logger) error {
-	setMemLimit := func() {
-		memlimit.SetGoMemLimitWithOpts(
-			memlimit.WithProvider(
-				memlimit.ApplyFallback(
-					memlimit.FromCgroup,
-					memlimit.FromSystem,
-				),
-			),
-			memlimit.WithLogger(logger),
-			memlimit.WithRefreshInterval(0),
-			memlimit.WithRatio(0.9),
-		)
-	}
+func Tracing(tp trace.TracerProvider) grpc.UnaryServerInterceptor {
+	tracer := tp.Tracer("github.com/elastic/apm-server/internal/beater/interceptors")
+	return func(
+		ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (any, error) {
+		ctx, span := tracer.Start(ctx, info.FullMethod)
+		defer span.End()
 
-	setMemLimit()
-	ticker := time.NewTicker(d)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-ticker.C:
-			setMemLimit()
+		resp, err := handler(ctx, req)
+		if err != nil {
+			s, ok := status.FromError(err)
+			if ok {
+				if s.Code() == codes.OK {
+					span.SetStatus(otelcodes.Ok, "")
+				} else {
+					span.SetStatus(otelcodes.Error, s.Code().String())
+				}
+			}
 		}
+
+		return resp, err
 	}
 }
