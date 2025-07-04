@@ -30,10 +30,6 @@ on:
         required: false
         type: string
         # defaults set below (TFVARS_SOURCE)
-      stackVersion:
-        description: 'Stack version'
-        required: false
-        type: string
       runOnStable:
         description: 'Benchmark on latest stable version instead of a build from commit'
         required: false
@@ -88,10 +84,6 @@ on:
         required: false
         type: string
         # defaults set below (TFVARS_SOURCE)
-      stackVersion:
-        description: 'Stack version'
-        required: false
-        type: string
       runOnStable:
         description: 'Benchmark on latest stable version instead of a build from commit'
         required: false
@@ -147,7 +139,6 @@ jobs:
       TF_VAR_apm_server_tail_sampling: ${{ inputs.enableTailSampling || 'false' }} # set the default again otherwise schedules won't work
       TF_VAR_apm_server_tail_sampling_storage_limit: ${{ inputs.tailSamplingStorageLimit || '10GB' }} # set the default again otherwise schedules won't work
       TF_VAR_apm_server_tail_sampling_sample_rate: ${{ inputs.tailSamplingSampleRate || '0.1' }} # set the default again otherwise schedules won't work
-      TF_VAR_stack_version: ${{ inputs.stackVersion }}
       RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 0 1 * *' }}
       PGO_EXPORT: ${{ inputs.pgoExport || github.event.schedule=='0 0 1 * *' }}
       TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # set the default again otherwise schedules won't work
