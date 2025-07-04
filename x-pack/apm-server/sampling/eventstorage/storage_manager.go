@@ -66,9 +66,9 @@ func WithCodec(codec Codec) StorageManagerOptions {
 	}
 }
 
-func WithMeterProvider(mp metric.MeterProvider) StorageManagerOptions {
+func WithMeter(meter metric.Meter) StorageManagerOptions {
 	return func(sm *StorageManager) {
-		sm.meterProvider = mp
+		sm.meter = meter
 	}
 }
 
@@ -137,8 +137,8 @@ type StorageManager struct {
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
 	runCh chan struct{}
 
-	// meterProvider is the OTel meter provider
-	meterProvider  metric.MeterProvider
+	// meter is an OTel meter used to record storage metrics.
+	meter          metric.Meter
 	storageMetrics storageMetrics
 }
 
@@ -170,11 +170,9 @@ func NewStorageManager(storageDir string, logger *logp.Logger, opts ...StorageMa
 		opt(sm)
 	}
 
-	if sm.meterProvider != nil {
-		meter := sm.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
-
-		sm.storageMetrics.lsmSizeGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
-		sm.storageMetrics.valueLogSizeGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.value_log_size")
+	if sm.meter != nil {
+		sm.storageMetrics.lsmSizeGauge, _ = sm.meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
+		sm.storageMetrics.valueLogSizeGauge, _ = sm.meter.Int64Gauge("apm-server.sampling.tail.storage.value_log_size")
 	}
 
 	if err := sm.reset(); err != nil {

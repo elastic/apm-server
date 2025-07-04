@@ -846,8 +846,9 @@ func newTempdirConfig(tb testing.TB) testConfig {
 		},
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+	meter := mp.Meter("test-meter-sampling")
 
-	db, err := eventstorage.NewStorageManager(tempdir, logptest.NewTestingLogger(tb, ""), eventstorage.WithMeterProvider(mp))
+	db, err := eventstorage.NewStorageManager(tempdir, logptest.NewTestingLogger(tb, ""), eventstorage.WithMeter(meter))
 	require.NoError(tb, err)
 	tb.Cleanup(func() { db.Close() })
 
@@ -856,7 +857,7 @@ func newTempdirConfig(tb testing.TB) testConfig {
 		metricReader: reader,
 		Config: sampling.Config{
 			BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
-			MeterProvider:  mp,
+			Meter:          meter,
 			LocalSamplingConfig: sampling.LocalSamplingConfig{
 				FlushInterval:         time.Second,
 				MaxDynamicServices:    1000,
