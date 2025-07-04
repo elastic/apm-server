@@ -83,8 +83,13 @@ type VersionsCache struct {
 	region string
 }
 
-func (c *VersionsCache) CanUpgradeTo(from, to Version) bool {
+func (c *VersionsCache) GetUpgradeToVersions(from Version) Versions {
 	upgradableVersions := c.upgradeInfo[from]
+	return upgradableVersions
+}
+
+func (c *VersionsCache) CanUpgradeTo(from, to Version) bool {
+	upgradableVersions := c.GetUpgradeToVersions(from)
 	return upgradableVersions.Has(to)
 }
 
