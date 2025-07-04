@@ -36,14 +36,14 @@ _No new fixes_
 
 ### Features and enhancements [elastic-apm-9.0.3-features-enhancements]
 
-* Optimize performance for instances with more CPU and memory when using Tail Based Sampling ([#17254](https://github.com/elastic/apm-server/pull/17254))
+* Tail-based sampling: Optimize performance for instances with more CPU and memory ([#17254](https://github.com/elastic/apm-server/pull/17254))
 
 ### Fixes [elastic-apm-9.0.3-fixes]
 
-* Fix decrease dynamic group metric count ([#17042](https://github.com/elastic/apm-server/pull/17042))
-* Fix incorrectly large pebble database `lsm_size` monitoring metric for Tail Based Sampling ([#17149](https://github.com/elastic/apm-server/pull/17149))
-* Log Tail Based Sampling pubsub errors at error or warn level ([#17135](https://github.com/elastic/apm-server/pull/17135))
-* Update Tail Based Sampling storage metrics to be reported synchronously in the existing `runDiskUsageLoop` method ([#17154](https://github.com/elastic/apm-server/pull/17154))
+* Tail-based sampling: Fix ever-increasing dynamic group count monitoring metrics ([#17042](https://github.com/elastic/apm-server/pull/17042))
+* Tail-based sampling: Fix incorrectly large pebble database `lsm_size` monitoring metric for ([#17149](https://github.com/elastic/apm-server/pull/17149))
+* Tail-based sampling: Log pubsub errors at error or warn level ([#17135](https://github.com/elastic/apm-server/pull/17135))
+* Tail-based sampling: Fix infrequent storage monitoring metrics ([#17154](https://github.com/elastic/apm-server/pull/17154))
 
 ## 9.0.2 [elastic-apm-9.0.2-release-notes]
 
