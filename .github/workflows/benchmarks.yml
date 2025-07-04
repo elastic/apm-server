@@ -1,5 +1,7 @@
 name: benchmarks
 
+# Secret access requires allowlist in https://github.com/elastic/oblt-infra/tree/main/conf/resources/repos/apm-server
+
 on:
   workflow_dispatch:
     inputs:
@@ -24,7 +26,7 @@ on:
         type: string
         # defaults set below (TFVARS_SOURCE)
       runOnStable:
-        description: 'Benchmark on latest stable version'
+        description: 'Benchmark on latest stable version instead of SNAPSHOT'
         required: false
         type: boolean
         default: false
