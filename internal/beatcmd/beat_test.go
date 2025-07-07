@@ -32,6 +32,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.elastic.co/apm/module/apmotel/v2"
+	"go.opentelemetry.io/otel"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -267,6 +270,7 @@ func TestLibbeatMetrics(t *testing.T) {
 	}, snapshot)
 }
 
+// TestAddAPMServerMetrics tests basic functionality of the addAPMServerMetrics
 func TestAddAPMServerMetrics(t *testing.T) {
 	r := monitoring.NewRegistry()
 	sm := metricdata.ScopeMetrics{
@@ -295,7 +299,7 @@ func TestAddAPMServerMetrics(t *testing.T) {
 	}
 
 	monitoring.NewFunc(r, "apm-server", func(m monitoring.Mode, v monitoring.Visitor) {
-		addAPMServerMetrics(v, sm)
+		addAPMServerMetrics(v, sm.Metrics)
 	})
 
 	snapshot := monitoring.CollectStructSnapshot(r, monitoring.Full, false)
@@ -303,6 +307,60 @@ func TestAddAPMServerMetrics(t *testing.T) {
 		"foo": map[string]any{
 			"request":  int64(1),
 			"response": int64(1),
+		},
+	}, snapshot)
+}
+
+// TestMonitoringApmServer test apm-server metrics are correctly collected
+// from multiple meters
+func TestMonitoringApmServer(t *testing.T) {
+	exporter, err := apmotel.NewGatherer()
+	if err != nil {
+		t.Logf("Unable to create Gatherer: %v", err)
+	}
+
+	metricReader := sdkmetric.NewManualReader()
+	meterProvider := sdkmetric.NewMeterProvider(
+		sdkmetric.WithReader(exporter),
+		sdkmetric.WithReader(metricReader),
+	)
+	otel.SetMeterProvider(meterProvider)
+
+	// add metrics similar to lsm_size in storage_manager.go and events.processed in processor.go
+	meter := meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
+	lsmSizeGauge, _ := meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
+	lsmSizeGauge.Record(context.Background(), 123)
+
+	meter2 := meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
+	processedCounter, _ := meter2.Int64Counter("apm-server.sampling.tail.events.processed")
+	processedCounter.Add(context.Background(), 456)
+
+	meter3 := meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/foo")
+	otherCounter, _ := meter3.Int64Counter("apm-server.sampling.foo.request")
+	otherCounter.Add(context.Background(), 1)
+
+	// collect metrics
+	r := monitoring.NewRegistry()
+	monitoring.NewFunc(r, "apm-server", apmServerMonitoringFunc(metricReader))
+	snapshot := monitoring.CollectStructSnapshot(r, monitoring.Full, false)
+
+	// assert that the snapshot contains data for all scoped metrics
+	// with the same metric name prefix 'apm-server.sampling'
+	assert.Equal(t, map[string]any{
+		"apm-server": map[string]any{
+			"sampling": map[string]any{
+				"foo": map[string]any{
+					"request": int64(1),
+				},
+				"tail": map[string]any{
+					"storage": map[string]any{
+						"lsm_size": int64(123),
+					},
+					"events": map[string]any{
+						"processed": int64(456),
+					},
+				},
+			},
 		},
 	}, snapshot)
 }

@@ -528,22 +528,41 @@ func (b *Beat) registerStatsMetrics() {
 			}
 		}
 	})
-	monitoring.NewFunc(monitoring.Default, "apm-server", func(_ monitoring.Mode, v monitoring.Visitor) {
+	monitoring.NewFunc(monitoring.Default, "apm-server", apmServerMonitoringFunc(b.metricReader))
+}
+
+// apmServerMonitoringFunc returns a monitoring function that tracks apm-server metrics.
+//
+// Note: Unit test with the global otel meter provider are difficult to test due to interference from other test cases or
+// monitoring functions (such libbeat or output.elasticsearch) that collect metrics.
+// This function accepts a metric reader to avoid a dependency on the global otel meter provider.
+func apmServerMonitoringFunc(metricReader *sdkmetric.ManualReader) func(_ monitoring.Mode, v monitoring.Visitor) {
+	return func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
-		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
+		if err := metricReader.Collect(context.Background(), &rm); err != nil {
 			return
 		}
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
+
+		// first collect all apm-server metrics
+		apmServerMetrics := make([]metricdata.Metrics, 0)
 		for _, sm := range rm.ScopeMetrics {
 			switch {
 			case strings.HasPrefix(sm.Scope.Name, "github.com/elastic/apm-server"):
 				// All simple scalar metrics that begin with the name "apm-server."
 				// in github.com/elastic/apm-server/... scopes are mapped directly.
-				addAPMServerMetrics(v, sm)
+				apmServerMetrics = append(apmServerMetrics, sm.Metrics...)
 			}
 		}
-	})
+
+		// add all metrics once
+		// this prevents metrics with the same prefix in the name
+		// from different scoped meters from overwriting each other
+		if len(apmServerMetrics) > 0 {
+			addAPMServerMetrics(v, apmServerMetrics)
+		}
+	}
 }
 
 // getScalarInt64 returns a single-value, dimensionless
@@ -565,9 +584,9 @@ func getScalarInt64(data metricdata.Aggregation) (int64, bool) {
 	return 0, false
 }
 
-func addAPMServerMetrics(v monitoring.Visitor, sm metricdata.ScopeMetrics) {
+func addAPMServerMetrics(v monitoring.Visitor, metrics []metricdata.Metrics) {
 	beatsMetrics := make(map[string]any)
-	for _, m := range sm.Metrics {
+	for _, m := range metrics {
 		if suffix, ok := strings.CutPrefix(m.Name, "apm-server."); ok {
 			if value, ok := getScalarInt64(m.Data); ok {
 				current := beatsMetrics
