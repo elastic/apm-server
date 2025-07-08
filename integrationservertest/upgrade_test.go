@@ -30,6 +30,8 @@ import (
 	"github.com/elastic/apm-server/integrationservertest/internal/ech"
 )
 
+const upgradeConfigFileName = "upgrade-config.yaml"
+
 func formatUpgradePath(p string) string {
 	splits := strings.Split(p, ",")
 	for i := range splits {
@@ -72,7 +74,7 @@ func testUpgrade(t *testing.T, upgradePathStr string, versionFetcher func(*testi
 		versions = append(versions, curr)
 	}
 
-	config, err := parseConfig("upgrade-config.yaml")
+	config, err := parseConfig(upgradeConfigFileName)
 	if err != nil {
 		t.Fatal(err)
 	}
