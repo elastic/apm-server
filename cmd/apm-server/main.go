@@ -39,6 +39,7 @@ func main() {
 				TracerProvider:  args.TracerProvider,
 				MeterProvider:   args.MeterProvider,
 				MetricsGatherer: args.MetricsGatherer,
+				BeatMonitoring:  args.BeatMonitoring,
 			})
 		},
 	})
