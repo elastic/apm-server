@@ -23,26 +23,39 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestRecordConfigs(t *testing.T) {
-	resetCounters()
-	defer resetCounters()
+	stateRegistry := monitoring.NewRegistry()
 
 	apmCfg := config.DefaultConfig()
 	apmCfg.AgentAuth.APIKey.Enabled = true
 	apmCfg.Kibana.Enabled = true
-	recordAPMServerConfig(apmCfg)
+	recordAPMServerConfig(apmCfg, stateRegistry)
 
-	assert.Equal(t, configMonitors.rumEnabled.Get(), false)
-	assert.Equal(t, configMonitors.apiKeysEnabled.Get(), true)
-	assert.Equal(t, configMonitors.kibanaEnabled.Get(), true)
-	assert.Equal(t, configMonitors.sslEnabled.Get(), false)
-}
+	fs := monitoring.CollectStructSnapshot(stateRegistry, monitoring.Full, false)
 
-func resetCounters() {
-	configMonitors.rumEnabled.Set(false)
-	configMonitors.apiKeysEnabled.Set(false)
-	configMonitors.kibanaEnabled.Set(false)
-	configMonitors.sslEnabled.Set(false)
+	assert.Equal(t, map[string]any{
+		"apm-server": map[string]any{
+			"rum": map[string]any{
+				"enabled": false,
+			},
+			"api_key": map[string]any{
+				"enabled": true,
+			},
+			"kibana": map[string]any{
+				"enabled": true,
+			},
+			"ssl": map[string]any{
+				"enabled": false,
+			},
+			"sampling": map[string]any{
+				"tail": map[string]any{
+					"enabled":  false,
+					"policies": int64(0),
+				},
+			},
+		},
+	}, fs)
 }

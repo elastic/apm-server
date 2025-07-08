@@ -195,7 +195,8 @@ func TestLibbeatMetrics(t *testing.T) {
 	require.NoError(t, appender.Add(context.Background(), "index", strings.NewReader("{}")))
 	require.NoError(t, appender.Add(context.Background(), "index", strings.NewReader("{}")))
 
-	libbeatRegistry := monitoring.Default.GetRegistry("libbeat")
+	statsRegistry := beat.Monitoring.StatsRegistry()
+	libbeatRegistry := statsRegistry.GetRegistry("libbeat")
 	snapshot := monitoring.CollectStructSnapshot(libbeatRegistry, monitoring.Full, false)
 	assert.Equal(t, map[string]any{
 		"output": map[string]any{
@@ -250,7 +251,7 @@ func TestLibbeatMetrics(t *testing.T) {
 		},
 	}, snapshot)
 
-	snapshot = monitoring.CollectStructSnapshot(monitoring.Default.GetRegistry("output"), monitoring.Full, false)
+	snapshot = monitoring.CollectStructSnapshot(statsRegistry.GetRegistry("output"), monitoring.Full, false)
 	assert.Equal(t, map[string]any{
 		"elasticsearch": map[string]any{
 			"bulk_requests": map[string]any{
@@ -369,7 +370,7 @@ func TestRunManager_Reloader(t *testing.T) {
 			}
 			return nil
 		}), nil
-	}, nil, nil, nil)
+	}, nil, nil, nil, beat.NewMonitoring())
 	require.NoError(t, err)
 
 	agentInfo := &proto.AgentInfo{
@@ -499,7 +500,7 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 		Logger: logptest.NewTestingLogger(t, ""),
 	}, registry, func(_ RunnerParams) (Runner, error) {
 		return nil, errors.New("newRunner error")
-	}, nil, nil, nil)
+	}, nil, nil, nil, beat.NewMonitoring())
 	require.NoError(t, err)
 
 	onObserved := func(observed *proto.CheckinObserved, currentIdx int) {
@@ -600,7 +601,6 @@ func newNopBeat(t testing.TB, configYAML string) *Beat {
 }
 
 func newBeat(t testing.TB, configYAML string, newRunner NewRunnerFunc) *Beat {
-	resetGlobals()
 	initCfgfile(t, configYAML)
 	beat, err := NewBeat(BeatParams{
 		NewRunner:       newRunner,
@@ -608,18 +608,6 @@ func newBeat(t testing.TB, configYAML string, newRunner NewRunnerFunc) *Beat {
 	})
 	require.NoError(t, err)
 	return beat
-}
-
-func resetGlobals() {
-	// Clear monitoring registries to allow the new Beat to populate them.
-	monitoring.GetNamespace("info").SetRegistry(nil)
-	monitoring.GetNamespace("state").SetRegistry(nil)
-	for _, name := range []string{"system", "beat", "libbeat", "apm-server", "output"} {
-		registry := monitoring.Default.GetRegistry(name)
-		if registry != nil {
-			registry.Clear()
-		}
-	}
 }
 
 type runnerFunc func(ctx context.Context) error
