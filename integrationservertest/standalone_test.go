@@ -56,21 +56,28 @@ func TestStandaloneManaged_7_17_to_8_x_to_9_x_Snapshot(t *testing.T) {
 	})
 }
 
-func managed7Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsRunner {
-	expectILM := asserts.DataStreamExpectation{
+var (
+	expectILM = asserts.DataStreamExpectation{
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
 		IndicesManagedBy: []string{managedByILM},
 	}
-	expectILMRollover := asserts.DataStreamExpectation{
+	expectILMRollover = asserts.DataStreamExpectation{
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
 		IndicesManagedBy: []string{managedByILM, managedByILM},
 	}
+	expectILMRolloverTwice = asserts.DataStreamExpectation{
+		PreferIlm:        true,
+		DSManagedBy:      managedByILM,
+		IndicesManagedBy: []string{managedByILM, managedByILM, managedByILM},
+	}
+)
 
-	expect := map[string]asserts.DataStreamExpectation{
+func managed7Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsRunner {
+	expect8 := map[string]asserts.DataStreamExpectation{
 		// These data streams are created in 7.x as well, so when we ingest
-		// again in 8.x, they will be rolled-over.
+		// again in 8.x, they will be rolled over.
 		"traces-apm-%s":                     expectILMRollover,
 		"metrics-apm.app.opbeans_python-%s": expectILMRollover,
 		"metrics-apm.internal-%s":           expectILMRollover,
@@ -81,6 +88,20 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsR
 		"metrics-apm.service_transaction.1m-%s": expectILM,
 		"metrics-apm.service_summary.1m-%s":     expectILM,
 		"metrics-apm.transaction.1m-%s":         expectILM,
+	}
+	expect9 := map[string]asserts.DataStreamExpectation{
+		// These data streams are created in 7.x as well, so after ingestion in
+		// 8.x and 9.x, we will have 2 rollovers.
+		"traces-apm-%s":                     expectILMRolloverTwice,
+		"metrics-apm.app.opbeans_python-%s": expectILMRolloverTwice,
+		"metrics-apm.internal-%s":           expectILMRolloverTwice,
+		"logs-apm.error-%s":                 expectILMRolloverTwice,
+		// These data streams are only created in 8.x, and they roll over again
+		// in 9.x.
+		"metrics-apm.service_destination.1m-%s": expectILMRollover,
+		"metrics-apm.service_transaction.1m-%s": expectILMRollover,
+		"metrics-apm.service_summary.1m-%s":     expectILMRollover,
+		"metrics-apm.transaction.1m-%s":         expectILMRollover,
 	}
 
 	// These data streams are created in 7.x, but not used in 8.x and 9.x,
@@ -107,18 +128,18 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsR
 			upgradeV7Step{NewVersion: toVersion8},
 			ingestStep{
 				IgnoreDataStreams: ignoredDataStreams,
-				CheckDataStreams:  expect,
+				CheckDataStreams:  expect8,
 			},
 			// Resolve deprecations and upgrade to 9.x.
 			resolveDeprecationsStep{},
 			upgradeStep{
 				NewVersion:        toVersion9,
 				IgnoreDataStreams: ignoredDataStreams,
-				CheckDataStreams:  expect,
+				CheckDataStreams:  expect8,
 			},
 			ingestStep{
 				IgnoreDataStreams: ignoredDataStreams,
-				CheckDataStreams:  expect,
+				CheckDataStreams:  expect9,
 			},
 			checkErrorLogsStep{
 				ESErrorLogsIgnored: esErrorLogs{
@@ -143,11 +164,8 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsR
 }
 
 func managed8Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsRunner {
-	expect := dataStreamsExpectations(asserts.DataStreamExpectation{
-		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
-		IndicesManagedBy: []string{managedByILM},
-	})
+	expect8 := dataStreamsExpectations(expectILM)
+	expect9 := dataStreamsExpectations(expectILMRollover)
 
 	// These data streams are created in 7.x, but not used in 8.x and 9.x,
 	// so we ignore them to avoid wrong assertions.
@@ -169,20 +187,20 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsR
 			ingestV7Step{},
 			// Upgrade to 8.x.
 			upgradeV7Step{NewVersion: toVersion8},
-			ingestStep{CheckDataStreams: expect},
+			ingestStep{CheckDataStreams: expect8},
 			// Migrate to managed
 			migrateManagedStep{},
-			ingestStep{CheckDataStreams: expect},
+			ingestStep{CheckDataStreams: expect8},
 			// Resolve deprecations and upgrade to 9.x.
 			resolveDeprecationsStep{},
 			upgradeStep{
 				NewVersion:        toVersion9,
 				IgnoreDataStreams: ignoredDataStreams,
-				CheckDataStreams:  expect,
+				CheckDataStreams:  expect8,
 			},
 			ingestStep{
 				IgnoreDataStreams: ignoredDataStreams,
-				CheckDataStreams:  expect,
+				CheckDataStreams:  expect9,
 			},
 			checkErrorLogsStep{
 				ESErrorLogsIgnored: esErrorLogs{
@@ -203,12 +221,8 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsR
 }
 
 func managed9Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsRunner {
-	// Data streams created in latest 8.x and 9.x should be all ILM.
-	expect := dataStreamsExpectations(asserts.DataStreamExpectation{
-		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
-		IndicesManagedBy: []string{managedByILM},
-	})
+	expect8 := dataStreamsExpectations(expectILM)
+	expect9 := dataStreamsExpectations(expectILMRollover)
 
 	return testStepsRunner{
 		Target: *target,
@@ -222,17 +236,17 @@ func managed9Runner(fromVersion7, toVersion8, toVersion9 ech.Version) testStepsR
 			ingestV7Step{},
 			// Upgrade to 8.x.
 			upgradeV7Step{NewVersion: toVersion8},
-			ingestStep{CheckDataStreams: expect},
+			ingestStep{CheckDataStreams: expect8},
 			// Resolve deprecations and upgrade to 9.x.
 			resolveDeprecationsStep{},
 			upgradeStep{
 				NewVersion:       toVersion9,
-				CheckDataStreams: expect,
+				CheckDataStreams: expect8,
 			},
-			ingestStep{CheckDataStreams: expect},
+			ingestStep{CheckDataStreams: expect9},
 			// Migrate to managed.
 			migrateManagedStep{},
-			ingestStep{CheckDataStreams: expect},
+			ingestStep{CheckDataStreams: expect9},
 			checkErrorLogsStep{
 				ESErrorLogsIgnored: esErrorLogs{
 					eventLoopShutdown,
