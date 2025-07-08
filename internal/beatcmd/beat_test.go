@@ -267,6 +267,96 @@ func TestLibbeatMetrics(t *testing.T) {
 	}, snapshot)
 }
 
+<<<<<<< HEAD
+=======
+// TestAddAPMServerMetrics tests basic functionality of the metrics collection and reporting
+func TestAddAPMServerMetrics(t *testing.T) {
+	r := monitoring.NewRegistry()
+	sm := metricdata.ScopeMetrics{
+		Metrics: []metricdata.Metrics{
+			{
+				Name: "apm-server.foo.request",
+				Data: metricdata.Sum[int64]{
+					DataPoints: []metricdata.DataPoint[int64]{
+						{
+							Value: 1,
+						},
+					},
+				},
+			},
+			{
+				Name: "apm-server.foo.response",
+				Data: metricdata.Sum[int64]{
+					DataPoints: []metricdata.DataPoint[int64]{
+						{
+							Value: 1,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	monitoring.NewFunc(r, "apm-server", func(m monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+
+		beatsMetrics := make(map[string]any)
+		addAPMServerMetricsToMap(beatsMetrics, sm.Metrics)
+		reportOnKey(v, beatsMetrics)
+	})
+
+	snapshot := monitoring.CollectStructSnapshot(r, monitoring.Full, false)
+	assert.Equal(t, map[string]any{
+		"foo": map[string]any{
+			"request":  int64(1),
+			"response": int64(1),
+		},
+	}, snapshot["apm-server"])
+}
+
+func TestMonitoringApmServer(t *testing.T) {
+	b := newNopBeat(t, "")
+	b.registerStatsMetrics()
+
+	// add metrics similar to lsm_size in storage_manager.go and events.processed in processor.go
+	meter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
+	lsmSizeGauge, _ := meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
+	lsmSizeGauge.Record(context.Background(), 123)
+
+	meter2 := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
+	processedCounter, _ := meter2.Int64Counter("apm-server.sampling.tail.events.processed")
+	processedCounter.Add(context.Background(), 456)
+
+	meter3 := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/foo")
+	otherCounter, _ := meter3.Int64Counter("apm-server.sampling.foo.request")
+	otherCounter.Add(context.Background(), 1)
+
+	// collect metrics
+	snapshot := monitoring.CollectStructSnapshot(b.Monitoring.StatsRegistry(), monitoring.Full, false)
+
+	// assert that the snapshot contains data for all scoped metrics
+	// with the same metric name prefix 'apm-server.sampling'
+	assert.Equal(t, map[string]any{
+		"apm-server": map[string]any{
+			"sampling": map[string]any{
+				"foo": map[string]any{
+					"request": int64(1),
+				},
+				"tail": map[string]any{
+					"storage": map[string]any{
+						"lsm_size": int64(123),
+					},
+					"events": map[string]any{
+						"processed": int64(456),
+					},
+				},
+			},
+		},
+	}, snapshot)
+}
+
+>>>>>>> f1c279b6 (monitoring: update apm-server metrics collection to avoid conflicts (#17512))
 func TestUnmanagedOutputRequired(t *testing.T) {
 	b := newBeat(t, "", func(args RunnerParams) (Runner, error) {
 		panic("unreachable")
