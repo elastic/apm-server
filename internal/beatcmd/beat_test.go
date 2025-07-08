@@ -268,7 +268,7 @@ func TestLibbeatMetrics(t *testing.T) {
 	}, snapshot)
 }
 
-// TestAddAPMServerMetrics tests basic functionality of the addAPMServerMetrics
+// TestAddAPMServerMetrics tests basic functionality of the metrics collection and reporting
 func TestAddAPMServerMetrics(t *testing.T) {
 	r := monitoring.NewRegistry()
 	sm := metricdata.ScopeMetrics{
@@ -297,7 +297,12 @@ func TestAddAPMServerMetrics(t *testing.T) {
 	}
 
 	monitoring.NewFunc(r, "apm-server", func(m monitoring.Mode, v monitoring.Visitor) {
-		addAPMServerMetrics(v, sm.Metrics)
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+
+		beatsMetrics := make(map[string]any)
+		addAPMServerMetricsToMap(beatsMetrics, sm.Metrics)
+		reportOnKey(v, beatsMetrics)
 	})
 
 	snapshot := monitoring.CollectStructSnapshot(r, monitoring.Full, false)
@@ -306,7 +311,7 @@ func TestAddAPMServerMetrics(t *testing.T) {
 			"request":  int64(1),
 			"response": int64(1),
 		},
-	}, snapshot)
+	}, snapshot["apm-server"])
 }
 
 func TestMonitoringApmServer(t *testing.T) {
