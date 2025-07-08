@@ -547,14 +547,22 @@ func (b *Beat) registerStatsMetrics() {
 		}
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
+
+		// first collect all apm-server metrics
+		beatsMetrics := make(map[string]any)
 		for _, sm := range rm.ScopeMetrics {
 			switch {
 			case strings.HasPrefix(sm.Scope.Name, "github.com/elastic/apm-server"):
 				// All simple scalar metrics that begin with the name "apm-server."
 				// in github.com/elastic/apm-server/... scopes are mapped directly.
-				addAPMServerMetrics(v, sm)
+				addAPMServerMetricsToMap(beatsMetrics, sm.Metrics)
 			}
 		}
+
+		// register all metrics once
+		// this prevents metrics with the same prefix in the name
+		// from different scoped meters from overwriting each other
+		reportOnKey(v, beatsMetrics)
 	})
 }
 
@@ -577,9 +585,10 @@ func getScalarInt64(data metricdata.Aggregation) (int64, bool) {
 	return 0, false
 }
 
-func addAPMServerMetrics(v monitoring.Visitor, sm metricdata.ScopeMetrics) {
-	beatsMetrics := make(map[string]any)
-	for _, m := range sm.Metrics {
+// addAPMServerMetricsToMap adds simple scalar metrics with the "apm-server." prefix
+// to the map.
+func addAPMServerMetricsToMap(beatsMetrics map[string]any, metrics []metricdata.Metrics) {
+	for _, m := range metrics {
 		if suffix, ok := strings.CutPrefix(m.Name, "apm-server."); ok {
 			if value, ok := getScalarInt64(m.Data); ok {
 				current := beatsMetrics
@@ -597,8 +606,6 @@ func addAPMServerMetrics(v monitoring.Visitor, sm metricdata.ScopeMetrics) {
 			}
 		}
 	}
-
-	reportOnKey(v, beatsMetrics)
 }
 
 func reportOnKey(v monitoring.Visitor, m map[string]any) {
