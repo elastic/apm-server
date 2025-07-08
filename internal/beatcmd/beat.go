@@ -149,6 +149,7 @@ func NewBeat(args BeatParams) (*Beat, error) {
 			Config:     &beat.BeatConfig{Output: cfg.Output},
 			BeatConfig: cfg.APMServer,
 			Registry:   reload.NewRegistry(),
+			Monitoring: beat.NewMonitoring(),
 		},
 		Config:         cfg,
 		newRunner:      args.NewRunner,
@@ -327,7 +328,16 @@ func (b *Beat) Run(ctx context.Context) error {
 	var apiServer *api.Server
 	if b.Config.HTTP.Enabled() {
 		var err error
+<<<<<<< HEAD
 		apiServer, err = api.NewWithDefaultRoutes(logp.NewLogger(""), b.Config.HTTP, api.NamespaceLookupFunc())
+=======
+		apiServer, err = api.NewWithDefaultRoutes(b.Info.Logger, b.Config.HTTP,
+			b.Monitoring.InfoRegistry(),
+			b.Monitoring.StateRegistry(),
+			b.Monitoring.StatsRegistry(),
+			b.Monitoring.InputsRegistry(),
+		)
+>>>>>>> 5c0b8e70 (feat: bump beats and drop global beat registries (#17376))
 		if err != nil {
 			return fmt.Errorf("could not start the HTTP server for the API: %w", err)
 		}
@@ -395,12 +405,20 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 	defer cleanup()
 
+<<<<<<< HEAD
 	if err := metricreport.SetupMetrics(logp.NewLogger("metrics"), b.Info.Beat, b.Info.Version); err != nil {
+=======
+	statsRegistry := b.Monitoring.StatsRegistry()
+	systemRegistry := statsRegistry.GetOrCreateRegistry("system")
+	processRegistry := statsRegistry.GetOrCreateRegistry("beat")
+
+	if err := metricreport.SetupMetrics(b.Info.Logger.Named("metrics"), b.Info.Beat, b.Info.Version, systemRegistry, processRegistry); err != nil {
+>>>>>>> 5c0b8e70 (feat: bump beats and drop global beat registries (#17376))
 		return err
 	}
 
 	if b.Manager.Enabled() {
-		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer, b.tracerProvider)
+		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer, b.tracerProvider, b.Monitoring)
 		if err != nil {
 			return err
 		}
@@ -421,6 +439,7 @@ func (b *Beat) Run(ctx context.Context) error {
 			Logger:          logp.NewLogger(""),
 			MeterProvider:   b.meterProvider,
 			MetricsGatherer: b.metricGatherer,
+			BeatMonitoring:  b.Monitoring,
 		})
 		if err != nil {
 			return err
@@ -444,7 +463,7 @@ func (b *Beat) registerMetrics() {
 }
 
 func (b *Beat) registerInfoMetrics() {
-	infoRegistry := monitoring.GetNamespace("info").GetRegistry()
+	infoRegistry := b.Monitoring.InfoRegistry()
 	monitoring.NewString(infoRegistry, "version").Set(b.Info.Version)
 	monitoring.NewString(infoRegistry, "beat").Set(b.Info.Beat)
 	monitoring.NewString(infoRegistry, "name").Set(b.Info.Name)
@@ -472,7 +491,7 @@ func (b *Beat) registerInfoMetrics() {
 }
 
 func (b *Beat) registerStateMetrics() {
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	stateRegistry := b.Monitoring.StateRegistry()
 
 	// state.service
 	serviceRegistry := stateRegistry.NewRegistry("service")
@@ -493,7 +512,8 @@ func (b *Beat) registerStateMetrics() {
 }
 
 func (b *Beat) registerStatsMetrics() {
-	libbeatRegistry := monitoring.Default.GetRegistry("libbeat")
+	statsRegistry := b.Monitoring.StatsRegistry()
+	libbeatRegistry := statsRegistry.GetOrCreateRegistry("libbeat")
 	monitoring.NewFunc(libbeatRegistry, "output", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
 		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
@@ -523,7 +543,7 @@ func (b *Beat) registerStatsMetrics() {
 			}
 		}
 	})
-	monitoring.NewFunc(monitoring.Default, "output.elasticsearch", func(_ monitoring.Mode, v monitoring.Visitor) {
+	monitoring.NewFunc(statsRegistry, "output.elasticsearch", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
 		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
 			return
@@ -537,7 +557,7 @@ func (b *Beat) registerStatsMetrics() {
 			}
 		}
 	})
-	monitoring.NewFunc(monitoring.Default, "apm-server", func(_ monitoring.Mode, v monitoring.Visitor) {
+	monitoring.NewFunc(statsRegistry, "apm-server", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
 		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
 			return
@@ -765,7 +785,7 @@ func (b *Beat) registerClusterUUIDFetching() (func(), error) {
 
 // Build and return a callback to fetch the Elasticsearch cluster_uuid for monitoring
 func (b *Beat) clusterUUIDFetchingCallback() elasticsearch.ConnectCallback {
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	stateRegistry := b.Monitoring.StateRegistry()
 	elasticsearchRegistry := stateRegistry.NewRegistry("outputs.elasticsearch")
 	clusterUUIDRegVar := monitoring.NewString(elasticsearchRegistry, "cluster_uuid")
 
@@ -803,7 +823,7 @@ func (b *Beat) setupMonitoring() (report.Reporter, error) {
 
 	// Expose monitoring.cluster_uuid in state API
 	if monitoringClusterUUID != "" {
-		stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+		stateRegistry := b.Monitoring.StateRegistry()
 		monitoringRegistry := stateRegistry.NewRegistry("monitoring")
 		clusterUUIDRegVar := monitoring.NewString(monitoringRegistry, "cluster_uuid")
 		clusterUUIDRegVar.Set(monitoringClusterUUID)
@@ -818,7 +838,7 @@ func (b *Beat) setupMonitoring() (report.Reporter, error) {
 			DefaultUsername: defaultMonitoringUsername,
 			ClusterUUID:     monitoringClusterUUID,
 		}
-		reporter, err := report.New(b.Info, settings, monitoringCfg, b.Config.Output)
+		reporter, err := report.New(b.Info, b.Monitoring, settings, monitoringCfg, b.Config.Output)
 		if err != nil {
 			return nil, err
 		}

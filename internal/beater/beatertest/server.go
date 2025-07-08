@@ -37,6 +37,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/internal/beater"
+	"github.com/elastic/beats/v7/libbeat/beat"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
@@ -118,6 +119,7 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 		WrapServer:     options.wrapServer,
 		TracerProvider: options.tracerProvider,
 		MeterProvider:  options.meterProvider,
+		BeatMonitoring: beat.NewMonitoring(),
 	})
 	require.NoError(t, err)
 

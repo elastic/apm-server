@@ -69,6 +69,8 @@ type RunnerParams struct {
 	MeterProvider metric.MeterProvider
 
 	MetricsGatherer *apmotel.Gatherer
+
+	BeatMonitoring beat.Monitoring
 }
 
 // Runner is an interface returned by NewRunnerFunc.
@@ -79,7 +81,7 @@ type Runner interface {
 
 // NewReloader returns a new Reloader which creates Runners using the provided
 // beat.Info and NewRunnerFunc.
-func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricGatherer *apmotel.Gatherer, tracerProvider trace.TracerProvider) (*Reloader, error) {
+func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricGatherer *apmotel.Gatherer, tracerProvider trace.TracerProvider, beatMonitoring beat.Monitoring) (*Reloader, error) {
 	r := &Reloader{
 		info:      info,
 		logger:    logp.NewLogger(""),
@@ -89,6 +91,7 @@ func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerF
 		tracerProvider: tracerProvider,
 		meterProvider:  meterProvider,
 		metricGatherer: metricGatherer,
+		beatMonitoring: beatMonitoring,
 	}
 	if err := registry.RegisterList(reload.InputRegName, reloadableListFunc(r.reloadInputs)); err != nil {
 		return nil, fmt.Errorf("failed to register inputs reloader: %w", err)
@@ -112,6 +115,7 @@ type Reloader struct {
 	tracerProvider trace.TracerProvider
 	meterProvider  metric.MeterProvider
 	metricGatherer *apmotel.Gatherer
+	beatMonitoring beat.Monitoring
 
 	runner     Runner
 	stopRunner func() error
@@ -266,6 +270,7 @@ func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C)
 		TracerProvider:  r.tracerProvider,
 		MeterProvider:   r.meterProvider,
 		MetricsGatherer: r.metricGatherer,
+		BeatMonitoring:  r.beatMonitoring,
 	})
 	if err != nil {
 		return err

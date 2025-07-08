@@ -7,12 +7,22 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/cockroachdb/pebble/v2 v2.0.5
 	github.com/dustin/go-humanize v1.0.1
+<<<<<<< HEAD
 	github.com/elastic/apm-aggregation v1.2.0
 	github.com/elastic/apm-data v1.16.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250704082446-dbfa04d3e8da
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
 	github.com/elastic/elastic-agent-libs v0.20.0
 	github.com/elastic/elastic-agent-system-metrics v0.11.11
+=======
+	github.com/elastic/apm-aggregation v1.3.0
+	github.com/elastic/apm-data v1.19.2
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250706101013-77cd2393e723
+	github.com/elastic/elastic-agent-client/v7 v7.17.2
+	github.com/elastic/elastic-agent-libs v0.21.0
+	github.com/elastic/elastic-agent-system-metrics v0.11.18
+	github.com/elastic/elastic-transport-go/v8 v8.7.0
+>>>>>>> 5c0b8e70 (feat: bump beats and drop global beat registries (#17376))
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.9.0
 	github.com/elastic/go-elasticsearch/v8 v8.17.1
@@ -102,7 +112,11 @@ require (
 	github.com/ebitengine/purego v0.9.0-alpha.3.0.20250507171635-5047c08daa38 // indirect
 	github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 // indirect
 	github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe // indirect
+<<<<<<< HEAD
 	github.com/elastic/elastic-transport-go/v8 v8.6.1 // indirect
+=======
+	github.com/elastic/go-elasticsearch/v8 v8.18.1 // indirect
+>>>>>>> 5c0b8e70 (feat: bump beats and drop global beat registries (#17376))
 	github.com/elastic/go-licenser v0.4.2 // indirect
 	github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f // indirect
 	github.com/elastic/go-structform v0.0.12 // indirect
@@ -190,17 +204,28 @@ require (
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20220216144756-c35f1ee13d7c // indirect
+<<<<<<< HEAD
 	github.com/prometheus/client_golang v1.20.5 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
+=======
+	github.com/prometheus/client_golang v1.22.0 // indirect
+	github.com/prometheus/client_model v0.6.2 // indirect
+	github.com/prometheus/common v0.65.0 // indirect
+	github.com/prometheus/procfs v0.16.1 // indirect
+>>>>>>> 5c0b8e70 (feat: bump beats and drop global beat registries (#17376))
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.6.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
+<<<<<<< HEAD
 	github.com/shirou/gopsutil/v4 v4.25.1 // indirect
+=======
+	github.com/shirou/gopsutil/v4 v4.25.5 // indirect
+>>>>>>> 5c0b8e70 (feat: bump beats and drop global beat registries (#17376))
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/skeema/knownhosts v1.3.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
@@ -231,19 +256,30 @@ require (
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.7.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
+<<<<<<< HEAD
 	go.opentelemetry.io/collector/consumer v1.28.0 // indirect
 	go.opentelemetry.io/collector/semconv v0.121.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.35.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.39.0 // indirect
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c // indirect
+=======
+	go.opentelemetry.io/collector/consumer v1.35.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+	golang.org/x/crypto v0.39.0 // indirect
+	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
+>>>>>>> 5c0b8e70 (feat: bump beats and drop global beat registries (#17376))
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
 	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
 	golang.org/x/tools v0.33.0 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
+<<<<<<< HEAD
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
+=======
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250519155744-55703ea1f237 // indirect
+>>>>>>> 5c0b8e70 (feat: bump beats and drop global beat registries (#17376))
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
