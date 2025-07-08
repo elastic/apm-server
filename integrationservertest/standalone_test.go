@@ -73,11 +73,6 @@ var (
 		DSManagedBy:      managedByILM,
 		IndicesManagedBy: []string{managedByILM, managedByILM},
 	}
-	expectILMRolloverTwice = asserts.DataStreamExpectation{
-		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
-		IndicesManagedBy: []string{managedByILM, managedByILM, managedByILM},
-	}
 )
 
 func expectationsFor9x(
