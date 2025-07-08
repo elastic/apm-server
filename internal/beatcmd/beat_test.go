@@ -32,9 +32,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.elastic.co/apm/module/apmotel/v2"
-	"go.opentelemetry.io/otel"
-	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -312,38 +309,25 @@ func TestAddAPMServerMetrics(t *testing.T) {
 	}, snapshot)
 }
 
-// TestMonitoringApmServer test apm-server metrics are correctly collected
-// from multiple meters
 func TestMonitoringApmServer(t *testing.T) {
-	exporter, err := apmotel.NewGatherer()
-	if err != nil {
-		t.Logf("Unable to create Gatherer: %v", err)
-	}
-
-	metricReader := sdkmetric.NewManualReader()
-	meterProvider := sdkmetric.NewMeterProvider(
-		sdkmetric.WithReader(exporter),
-		sdkmetric.WithReader(metricReader),
-	)
-	otel.SetMeterProvider(meterProvider)
+	b := newNopBeat(t, "")
+	b.registerStatsMetrics()
 
 	// add metrics similar to lsm_size in storage_manager.go and events.processed in processor.go
-	meter := meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
+	meter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
 	lsmSizeGauge, _ := meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
 	lsmSizeGauge.Record(context.Background(), 123)
 
-	meter2 := meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
+	meter2 := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
 	processedCounter, _ := meter2.Int64Counter("apm-server.sampling.tail.events.processed")
 	processedCounter.Add(context.Background(), 456)
 
-	meter3 := meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/foo")
+	meter3 := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/foo")
 	otherCounter, _ := meter3.Int64Counter("apm-server.sampling.foo.request")
 	otherCounter.Add(context.Background(), 1)
 
 	// collect metrics
-	r := monitoring.NewRegistry()
-	monitoring.NewFunc(r, "apm-server", apmServerMonitoringFunc(metricReader))
-	snapshot := monitoring.CollectStructSnapshot(r, monitoring.Full, false)
+	snapshot := monitoring.CollectStructSnapshot(b.Monitoring.StatsRegistry(), monitoring.Full, false)
 
 	// assert that the snapshot contains data for all scoped metrics
 	// with the same metric name prefix 'apm-server.sampling'

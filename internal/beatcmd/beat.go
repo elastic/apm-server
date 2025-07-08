@@ -541,18 +541,8 @@ func (b *Beat) registerStatsMetrics() {
 		}
 	})
 	monitoring.NewFunc(statsRegistry, "apm-server", func(_ monitoring.Mode, v monitoring.Visitor) {
-	monitoring.NewFunc(monitoring.Default, "apm-server", apmServerMonitoringFunc(b.metricReader))
-}
-
-// apmServerMonitoringFunc returns a monitoring function that tracks apm-server metrics.
-//
-// Note: Unit test with the global otel meter provider are difficult to test due to interference from other test cases or
-// monitoring functions (such libbeat or output.elasticsearch) that collect metrics.
-// This function accepts a metric reader to avoid a dependency on the global otel meter provider.
-func apmServerMonitoringFunc(metricReader *sdkmetric.ManualReader) func(_ monitoring.Mode, v monitoring.Visitor) {
-	return func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
-		if err := metricReader.Collect(context.Background(), &rm); err != nil {
+		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
 			return
 		}
 		v.OnRegistryStart()
@@ -575,7 +565,7 @@ func apmServerMonitoringFunc(metricReader *sdkmetric.ManualReader) func(_ monito
 		if len(apmServerMetrics) > 0 {
 			addAPMServerMetrics(v, apmServerMetrics)
 		}
-	}
+	})
 }
 
 // getScalarInt64 returns a single-value, dimensionless
