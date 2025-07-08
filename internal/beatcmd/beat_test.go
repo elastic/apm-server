@@ -330,7 +330,36 @@ func TestMonitoringApmServer(t *testing.T) {
 	otherCounter.Add(context.Background(), 1)
 
 	// collect metrics
-	snapshot := monitoring.CollectStructSnapshot(b.Monitoring.StatsRegistry(), monitoring.Full, false)
+	// note: to avoid interference from other monitoring funcs, we are creating a new registry
+	// here and duplicating the logic from beat.go.
+	// This is not needed in other branches where the global registries have been removed
+	// in PR: https://github.com/elastic/apm-server/pull/17376.
+	r := monitoring.NewRegistry()
+	monitoring.NewFunc(r, "apm-server", func(m monitoring.Mode, v monitoring.Visitor) {
+		var rm metricdata.ResourceMetrics
+		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
+			return
+		}
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+
+		// first collect all apm-server metrics
+		beatsMetrics := make(map[string]any)
+		for _, sm := range rm.ScopeMetrics {
+			switch {
+			case strings.HasPrefix(sm.Scope.Name, "github.com/elastic/apm-server"):
+				// All simple scalar metrics that begin with the name "apm-server."
+				// in github.com/elastic/apm-server/... scopes are mapped directly.
+				addAPMServerMetricsToMap(beatsMetrics, sm.Metrics)
+			}
+		}
+
+		// register all metrics once
+		// this prevents metrics with the same prefix in the name
+		// from different scoped meters from overwriting each other
+		reportOnKey(v, beatsMetrics)
+	})
+	snapshot := monitoring.CollectStructSnapshot(r, monitoring.Full, false)
 
 	// assert that the snapshot contains data for all scoped metrics
 	// with the same metric name prefix 'apm-server.sampling'
