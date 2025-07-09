@@ -37,3 +37,9 @@ List of changes: https://github.com/elastic/apm-data/compare/v1.16.0...v1.19.2
 <!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/apm-server/pulls-->
 
 List of changes: https://github.com/elastic/apm-server/compare/v9.0.0...main
+
+## Test cases from the GitHub board
+
+<!-- Replace MAJOR.MINOR with the appropriate versions below -->
+<!-- Label the relevant MAJOR.MINOR Issues / PRs with the `test-plan` label https://github.com/elastic/apm-server/issues?page=1&q=-label%3Atest-plan+label%3AvMAJOR.MINOR.0+-label%3Atest-plan-ok-->
+<!-- [apm-server MAJOR.MINOR test-plan](https://github.com/elastic/apm-server/issues?q=is%3Aissue+label%3Atest-plan+-label%3Atest-plan-ok+is%3Aclosed+label%3AvMAJOR.MINOR.0) -->
