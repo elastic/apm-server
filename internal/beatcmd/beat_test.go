@@ -32,6 +32,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -267,8 +268,6 @@ func TestLibbeatMetrics(t *testing.T) {
 	}, snapshot)
 }
 
-<<<<<<< HEAD
-=======
 // TestAddAPMServerMetrics tests basic functionality of the metrics collection and reporting
 func TestAddAPMServerMetrics(t *testing.T) {
 	r := monitoring.NewRegistry()
@@ -356,7 +355,6 @@ func TestMonitoringApmServer(t *testing.T) {
 	}, snapshot)
 }
 
->>>>>>> f1c279b6 (monitoring: update apm-server metrics collection to avoid conflicts (#17512))
 func TestUnmanagedOutputRequired(t *testing.T) {
 	b := newBeat(t, "", func(args RunnerParams) (Runner, error) {
 		panic("unreachable")
