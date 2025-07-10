@@ -1,6 +1,6 @@
 # APM Server Release Checklist
 
-The APM Server follows the Elastic Stack release schedule and versions. A release starts with a Feature Freeze period, during which only bug fixes are allowed to be merged into the specific release branch. We generally follow [semver](https://semver.org/) for release versions. For major and minor releases a new branch is cut off the main branch. For patch releases, only the version on the existing major and minor version branch is updated. All release workflows (patch, minor, major) has to be triggered manually. The Release Manager will ping the team to align the release process.
+The APM Server follows the Elastic Stack release schedule and versions. A release starts with a Feature Freeze period, during which only bug fixes are allowed to be merged into the specific release branch. We generally follow [semver](https://semver.org/) for release versions. For major and minor releases, a new branch is cut from the main branch. For patch releases, only the version on the existing major and minor version branch gets updated. All release workflows (patch, minor, major) has to be triggered manually. The Release Manager will ping the team to align the release process.
 
 ## Patch Releases
 
@@ -21,7 +21,7 @@ The APM Server follows the Elastic Stack release schedule and versions. A releas
 
 ## Minor Releases
 
-1. Create a Test Plan.
+1. Create a *Test Plan*.
 2. Run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the minor release version the release is for). This workflow will:
     - Create a new release branch using the stack version (X.Y).
     - Update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`.
@@ -31,7 +31,7 @@ Before merging them compare commits between latest minor and the new minor versi
 
 ## Major Releases
 
-1. Create a Test Plan.
+1. Create a *Test Plan*.
 2. Run the [`run-major-release`](https://github.com/elastic/apm-server/actions/workflows/run-major-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the major release version the release is for). This workflow will:
     - Create a new release branch using the stack version (X.Y).
     - Update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`.
@@ -52,12 +52,15 @@ Before merging them compare commits between latest minor and the new major versi
 
 ## Test Plan
 
-Create a github issue for testing the release branch ([use the GitHub issue `test plan` template](https://github.com/elastic/apm-server/issues/new?assignees=&labels=test-plan&projects=&template=test-plan.md)), It should contain:
+Create a [GitHub Issue](https://github.com/elastic/apm-server/issues/new?assignees=&labels=test-plan&projects=&template=test-plan.md) to track testing of the release branch. The issue should include:
 
-- A link to all PRs in the APM Server repository that need to be tested manually to create an overview over the PRs that need testing.
-    - Use the `test-plan` label and the version label (create it if it does not exist). For example, [this was 8.13.0 test plan](https://github.com/elastic/apm-server/issues/12822) and here you can find [all previous test plans](https://github.com/elastic/apm-server/issues?q=label%3Atest-plan+is%3Aclosed).
-    - What we aim for is testing all functional changes applied to the new version. Review any PR updating `elastic/go-docappender` and `elastic/apm-data` dependencies, as some functional changes happens through these dependencies.
-    - Any non-functional change or any change already covered by automated tests must not be included.
+- Link to PRs in the APM Server repository that need to be tested *manually*.
+    - Apply both the `test-plan` label and the appropriate *version label* to the issue - create the version label if it does not already exist.
+    - For reference, see the [9.1 Test Plan](https://github.com/elastic/apm-server/issues/17263).
+    - For additional examples, you can also view all [previous](https://github.com/elastic/apm-server/issues?q=label%3Atest-plan+is%3Aclosed) test plans.
+- Aim for is testing all functional changes applied to the new version.
+    - Review any PRs updating dependencies, as some functional changes happens through these dependencies.
+- Any non-functional change or any change already covered by automated tests must not be included.
 - Add other test cases that require manual testing, such as test scenarios on ESS, that are not covered by automated tests or OS compatibility smoke tests for supporting new operating systems.
 
 ## Between feature freeze and release
