@@ -2,7 +2,7 @@
 
 The APM Server follows the Elastic Stack release schedule and versions. A release starts with a Feature Freeze period, during which only bug fixes are allowed to be merged into the specific release branch. We generally follow [semver](https://semver.org/) for release versions. For major and minor releases, a new branch is cut from the main branch. For patch releases, only the version on the existing major and minor version branch gets updated. All release workflows (patch, minor, major) has to be triggered manually. The Release Manager will ping the team to align the release process.
 
-## Patch Releases
+## Patch Release
 
 1. Ensure all relevant backport PRs are merged. We use backport labels on PRs and automation to ensure labels are set.
 2. Run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow
@@ -19,7 +19,7 @@ The APM Server follows the Elastic Stack release schedule and versions. A releas
     - Add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2485)).
     - The PR should be merged the day before release.
 
-## Minor Releases
+## Minor Release
 
 1. Create a *Test Plan*.
 2. Run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the minor release version the release is for). This workflow will:
@@ -29,7 +29,7 @@ The APM Server follows the Elastic Stack release schedule and versions. A releas
 
 Before merging them compare commits between latest minor and the new minor versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging. After it's merged add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2895)).
 
-## Major Releases
+## Major Release
 
 1. Create a *Test Plan*.
 2. Run the [`run-major-release`](https://github.com/elastic/apm-server/actions/workflows/run-major-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the major release version the release is for). This workflow will:
@@ -50,39 +50,36 @@ Before merging them compare commits between latest minor and the new major versi
 - [go-elasticsearch](https://github.com/elastic/go-elasticsearch):
     - If no branch or tag is available, ping the go-elasticsearch team, `go get github.com/elastic/go-elasticsearch/v$major@$major.$minor`.
 
-## Test Plan
+## Create a Test Plan
 
 Create a [GitHub Issue](https://github.com/elastic/apm-server/issues/new?assignees=&labels=test-plan&projects=&template=test-plan.md) to track testing of the release branch. The issue should include:
 
+- Test all functional changes applied to the new version.
+- Any non-functional change or any change already covered by automated tests must not be included.
+- Review any PRs updating dependencies, as some functional changes happens through these dependencies.
 - Link to PRs in the APM Server repository that need to be tested *manually*.
     - Apply both the `test-plan` label and the appropriate *version label* to the issue - create the version label if it does not already exist.
     - For reference, see the [9.1 Test Plan](https://github.com/elastic/apm-server/issues/17263).
     - For additional examples, you can also view all [previous](https://github.com/elastic/apm-server/issues?q=label%3Atest-plan+is%3Aclosed) test plans.
-- Aim for is testing all functional changes applied to the new version.
-    - Review any PRs updating dependencies, as some functional changes happens through these dependencies.
-- Any non-functional change or any change already covered by automated tests must not be included.
 - Add other test cases that require manual testing, such as test scenarios on ESS, that are not covered by automated tests or OS compatibility smoke tests for supporting new operating systems.
 
 ## Between feature freeze and release
 
-* Test the release branch
-
-  * Always use a build candidate (BC) when testing, to ensure we test with the distributed artifacts. The first BC is usually available the day after Feature Freeze.
-  * Identify which changes require testing via the created test labels, e.g. for [8.3.0](https://github.com/elastic/apm-server/issues?q=label%3Atest-plan+is%3Aclosed+label%3Av8.3.0+-label%3Atest-plan-ok).
-  * Grab a PR that hasn't been verified and assign yourself to prevent other devs from re-testing the same change.
-  * Test the PR following the Author's how to test this section.
-  * Post your testing scenarios on the PR as a comment (for tracking down details in case we run into regressions).
-  * Add the `test-plan-ok` or the `test-plan-regression` label to the PR. In case of regression, either open a PR with a fix or open an issue with the details.
-
-* Collaborate with the docs team on any release highlights or breaking changes that should be included in the APM Server guide.
-
-* Run DRA for a given qualifier. The Release Team will say what qualifier to use in the the #mission-control channel.
-  * Go to https://buildkite.com/elastic/apm-server-package
+- Test the release branch by completing items in the *Test Plan*:
+  - Always use a build candidate (BC) when testing, to ensure we test with the distributed artifacts. The first BC is usually available the day after Feature Freeze.
+  - Identify which changes require testing via the created test labels, e.g. for [8.3.0](https://github.com/elastic/apm-server/issues?q=label%3Atest-plan+is%3Aclosed+label%3Av8.3.0+-label%3Atest-plan-ok).
+  - Grab a PR that hasn't been verified and assign yourself to prevent other devs from re-testing the same change.
+  - Test the PR following the Author's how to test this section.
+  - Post your testing scenarios on the PR as a comment (for tracking down details in case we run into regressions).
+  - Add the `test-plan-ok` or the `test-plan-regression` label to the PR. In case of regression, either open a PR with a fix or open an issue with the details.
+- Collaborate with the docs team on any release highlights or breaking changes that should be included in the APM Server guide.
+- Run DRA for a given qualifier. The Release Team will say what qualifier to use in the the #mission-control channel.
+  - Go to https://buildkite.com/elastic/apm-server-package
   * Click on `New Build`.
-  * Choose the `Branch` where the release should come from (either `main`, `8.x` or `[0-9].[0-9]+)`_
-  * Click on `options`
-  * Add `ELASTIC_QUALIFIER=<qualifier>` (`<qualifier` should be replaced with the given qualifier)
-  * Click on `Create Build`.
+  - Choose the `Branch` where the release should come from (either `main`, `8.x` or `[0-9].[0-9]+)`_
+  - Click on `options`
+  - Add `ELASTIC_QUALIFIER=<qualifier>` (`<qualifier` should be replaced with the given qualifier)
+  - Click on `Create Build`.
 
 ## On release day
 
