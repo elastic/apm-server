@@ -15,6 +15,12 @@ for bc in ${bcs}; do
     if [[ ${major} -lt 8 ]]; then
         continue
     fi
+    # Specifically for 9.0, we set the upgrade path to be from 8.18,
+    # since 8.19 cannot upgrade to 9.0.
+    if [[ "${major}.${minor}" == "9.0" ]]; then
+        upgrade_paths+=("8.18, ${bc}")
+        continue
+    fi
     # If minor is 0 i.e. brand new major version, upgrade from previous major.
     # Otherwise, upgrade from previous minor.
     if [[ ${minor} -eq 0 ]]; then
