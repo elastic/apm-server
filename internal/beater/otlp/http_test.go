@@ -46,6 +46,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestConsumeTracesHTTP(t *testing.T) {
@@ -183,6 +184,7 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) (string,
 		mp,
 		noop.NewTracerProvider(),
 		logptest.NewTestingLogger(t, ""),
+		monitoring.NewRegistry(),
 	)
 	require.NoError(t, err)
 	srv := http.Server{Handler: router}

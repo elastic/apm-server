@@ -30,6 +30,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
+	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/version"
 	"github.com/elastic/elastic-agent-libs/logp"
 
@@ -142,6 +143,9 @@ type ServerParams struct {
 	// Semaphore holds a shared semaphore used to limit the number of
 	// concurrently running requests
 	Semaphore input.Semaphore
+
+	// BeatMonitoring holds the beat monitoring registries
+	BeatMonitoring beat.Monitoring
 }
 
 // newBaseRunServer returns the base RunServerFunc.
@@ -186,6 +190,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		args.MeterProvider,
 		args.TracerProvider,
 		args.Logger,
+		args.BeatMonitoring.StatsRegistry(),
 	)
 	if err != nil {
 		return server{}, err
