@@ -30,7 +30,14 @@ _No new features or enhancements_
 
 ### Fixes [9-1-0-fixes]
 
-_No new fixes_ 
+_No new fixes_
+
+## 9.0.4 [elastic-apm-9.0.4-release-notes]
+
+### Fixes [elastic-apm-9.0.4-fixes]
+
+* Tail-based sampling: Fix missing or infrequent monitoring metric due to prefix conflicts ([#17512](https://github.com/elastic/apm-server/pull/17512))
+* Fix default tracer `http request sent to https endpoint` error when both self-instrumentation and TLS are enabled ([#17293](https://github.com/elastic/apm-server/pull/17293))
 
 ## 9.0.3 [elastic-apm-9.0.3-release-notes]
 
