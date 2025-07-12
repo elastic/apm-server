@@ -512,10 +512,7 @@ func prepareIronbankBuild() error {
 
 	err := filepath.Walk(templatesDir, func(path string, info os.FileInfo, _ error) error {
 		if !info.IsDir() {
-			target := strings.TrimSuffix(
-				filepath.Join(buildDir, filepath.Base(path)),
-				".tmpl",
-			)
+			target := filepath.Join(buildDir, filepath.Base(path))
 
 			err := mage.ExpandFile(path, target, data)
 			if err != nil {
