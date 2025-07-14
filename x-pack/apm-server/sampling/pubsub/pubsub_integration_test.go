@@ -9,7 +9,10 @@ import (
 	"context"
 	"encoding/json"
 	"net"
+	"net/http"
+	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -19,8 +22,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
@@ -52,6 +55,7 @@ func TestElasticsearchIntegration_PublishSampledTraceIDs(t *testing.T) {
 		ServerID:       localServerID,
 		FlushInterval:  100 * time.Millisecond,
 		SearchInterval: time.Minute,
+		Logger:         logptest.NewTestingLogger(t, ""),
 	})
 	require.NoError(t, err)
 
@@ -93,13 +97,17 @@ func TestElasticsearchIntegration_PublishSampledTraceIDs(t *testing.T) {
 	}
 
 	for {
-		size := len(input) + 1
-		resp, err := esapi.SearchRequest{
-			Index: []string{dataStream.String()},
-			Size:  &size,
-		}.Do(context.Background(), client)
+		req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "/"+dataStream.String()+"/_search", nil)
 		require.NoError(t, err)
-		if resp.IsError() {
+		q := req.URL.Query()
+		size := len(input) + 1
+		q.Set("size", strconv.FormatInt(int64(size), 10))
+		req.URL.RawQuery = q.Encode()
+		req.Header.Add("Content-Type", "application/json")
+
+		resp, err := client.Perform(req)
+		require.NoError(t, err)
+		if resp.StatusCode > 299 {
 			resp.Body.Close()
 			time.Sleep(100 * time.Millisecond)
 			continue
@@ -141,6 +149,7 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 		ServerID:       localServerID,
 		FlushInterval:  time.Minute,
 		SearchInterval: 100 * time.Millisecond,
+		Logger:         logptest.NewTestingLogger(t, ""),
 	})
 	require.NoError(t, err)
 
@@ -177,12 +186,11 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 			assert.NoError(t, enc.Encode(indexAction{}))
 			assert.NoError(t, enc.Encode(&doc))
 		}
-		resp, err := esapi.BulkRequest{
-			Index: dataStream.String(),
-			Body:  &body,
-		}.Do(context.Background(), client)
+		req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "/"+dataStream.String()+"/_bulk", &body)
 		require.NoError(t, err)
-		assert.False(t, resp.IsError())
+		resp, err := client.Perform(req)
+		require.NoError(t, err)
+		assert.Equal(t, resp.StatusCode, 299)
 		resp.Body.Close()
 	}
 
@@ -212,7 +220,7 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 	}
 }
 
-func recreateDataStream(tb testing.TB, client *elasticsearch.Client, dataStream pubsub.DataStreamConfig) {
+func recreateDataStream(tb testing.TB, client *elastictransport.Client, dataStream pubsub.DataStreamConfig) {
 	body := strings.NewReader(`{
   "settings": {
     "index.number_of_shards": 1
@@ -239,22 +247,21 @@ func recreateDataStream(tb testing.TB, client *elasticsearch.Client, dataStream 
 	// and will pick up any resulting discrepancies.
 
 	name := dataStream.String()
-	resp, err := esapi.IndicesDeleteRequest{
-		Index: []string{dataStream.String()},
-	}.Do(context.Background(), client)
+	req, err := http.NewRequest(http.MethodDelete, "/"+name, nil)
+	require.NoError(tb, err)
+	resp, err := client.Perform(req)
 	require.NoError(tb, err)
 	resp.Body.Close()
 
-	resp, err = esapi.IndicesCreateRequest{
-		Index: name,
-		Body:  body,
-	}.Do(context.Background(), client)
+	req, err = http.NewRequest(http.MethodPut, "/"+dataStream.String(), body)
 	require.NoError(tb, err)
-	require.False(tb, resp.IsError())
+	resp, err = client.Perform(req)
+	require.NoError(tb, err)
+	require.Less(tb, resp.StatusCode, 299)
 	resp.Body.Close()
 }
 
-func newElasticsearchClient(tb testing.TB) *elasticsearch.Client {
+func newElasticsearchClient(tb testing.TB) *elastictransport.Client {
 	switch strings.ToLower(os.Getenv("INTEGRATION_TESTS")) {
 	case "1", "true":
 	default:
@@ -265,10 +272,12 @@ func newElasticsearchClient(tb testing.TB) *elasticsearch.Client {
 		getenvDefault("ES_HOST", defaultElasticsearchHost),
 		getenvDefault("ES_PORT", defaultElasticsearchPort),
 	)
-	client, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: []string{"http://" + esHost},
-		Username:  getenvDefault("ES_USER", defaultElasticsearchUser),
-		Password:  getenvDefault("ES_PASS", defaultElasticsearchPass),
+	u, err := url.Parse(esHost)
+	require.NoError(tb, err)
+	client, err := elastictransport.New(elastictransport.Config{
+		URLs:     []*url.URL{u},
+		Username: getenvDefault("ES_USER", defaultElasticsearchUser),
+		Password: getenvDefault("ES_PASS", defaultElasticsearchPass),
 	})
 	require.NoError(tb, err)
 	return client

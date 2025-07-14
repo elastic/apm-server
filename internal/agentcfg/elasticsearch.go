@@ -23,18 +23,18 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/pkg/errors"
-	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
 const ElasticsearchIndexName = ".apm-agent-configuration"
@@ -71,7 +71,7 @@ type ElasticsearchFetcher struct {
 
 	logger, rateLimitedLogger *logp.Logger
 
-	tracer *apm.Tracer
+	tracer trace.Tracer
 
 	esCacheEntriesCount     metric.Int64Gauge
 	esFetchCount            metric.Int64Counter
@@ -86,8 +86,9 @@ func NewElasticsearchFetcher(
 	client *elasticsearch.Client,
 	cacheDuration time.Duration,
 	fetcher Fetcher,
-	tracer *apm.Tracer,
+	tp trace.TracerProvider,
 	mp metric.MeterProvider,
+	logger *logp.Logger,
 ) *ElasticsearchFetcher {
 	meter := mp.Meter("github.com/elastic/apm-server/internal/agentcfg")
 
@@ -99,7 +100,8 @@ func NewElasticsearchFetcher(
 	esCacheRefreshSuccesses, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.cache.refresh.successes")
 	esCacheRefreshFailures, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.cache.refresh.failures")
 
-	logger := logp.NewLogger("agentcfg")
+	logger = logger.Named("agentcfg")
+	tracer := tp.Tracer("github.com/elastic/apm-server/internal/agentcfg")
 	return &ElasticsearchFetcher{
 		client:            client,
 		cacheDuration:     cacheDuration,
@@ -150,14 +152,11 @@ func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
 	refresh := func() bool {
 		// refresh returns a bool that indicates whether Run should return
 		// immediately without error, e.g. due to invalid Elasticsearch config.
-		tx := f.tracer.StartTransaction("ElasticsearchFetcher.refresh", "")
+		ctx, tx := f.tracer.Start(ctx, "ElasticsearchFetcher.refresh")
 		defer tx.End()
-		ctx = apm.ContextWithTransaction(ctx, tx)
 
 		if err := f.refreshCache(ctx); err != nil {
-			if e := apm.CaptureError(ctx, err); e != nil {
-				e.Send()
-			}
+			tx.RecordError(err)
 
 			// Do not log as error when there is a fallback.
 			var logFunc func(string, ...interface{})
@@ -221,7 +220,7 @@ type cacheResult struct {
 }
 
 func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
-	span, ctx := apm.StartSpan(ctx, "ElasticsearchFetcher.refreshCache", "")
+	ctx, span := f.tracer.Start(ctx, "ElasticsearchFetcher.refreshCache")
 	defer span.End()
 
 	scrollID := ""
@@ -273,16 +272,24 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 }
 
 func (f *ElasticsearchFetcher) clearScroll(ctx context.Context, scrollID string) {
-	resp, err := esapi.ClearScrollRequest{
-		ScrollID: []string{scrollID},
-	}.Do(ctx, f.client)
+	if scrollID == "" {
+		return
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, "/_search/scroll/"+scrollID, nil)
 	if err != nil {
 		f.logger.Warnf("failed to clear scroll: %v", err)
 		return
 	}
 
-	if resp.IsError() {
-		f.logger.Warnf("clearscroll request returned error: %s", resp.Status())
+	resp, err := f.client.Perform(req)
+	if err != nil {
+		f.logger.Warnf("failed to clear scroll: %v", err)
+		return
+	}
+
+	if resp.StatusCode > 299 {
+		f.logger.Warnf("clearscroll request returned error: %s", resp.Status)
 	}
 
 	resp.Body.Close()
@@ -290,21 +297,33 @@ func (f *ElasticsearchFetcher) clearScroll(ctx context.Context, scrollID string)
 
 func (f *ElasticsearchFetcher) singlePageRefresh(ctx context.Context, scrollID string) (cacheResult, error) {
 	var result cacheResult
+	var req *http.Request
 	var err error
-	var resp *esapi.Response
+	var resp *http.Response
 
 	switch scrollID {
 	case "":
-		resp, err = esapi.SearchRequest{
-			Index:  []string{ElasticsearchIndexName},
-			Size:   &f.searchSize,
-			Scroll: f.cacheDuration,
-		}.Do(ctx, f.client)
+		req, err = http.NewRequestWithContext(ctx, http.MethodPost, "/"+ElasticsearchIndexName+"/_search", nil)
+		if err != nil {
+			return result, err
+		}
+		q := req.URL.Query()
+		q.Set("scroll", strconv.FormatInt(f.cacheDuration.Milliseconds(), 10)+"ms")
+		q.Set("size", strconv.FormatInt(int64(f.searchSize), 10))
+		req.URL.RawQuery = q.Encode()
+
+		resp, err = f.client.Perform(req)
 	default:
-		resp, err = esapi.ScrollRequest{
-			ScrollID: scrollID,
-			Scroll:   f.cacheDuration,
-		}.Do(ctx, f.client)
+		req, err = http.NewRequestWithContext(ctx, http.MethodPost, "/_search/scroll", nil)
+		if err != nil {
+			return result, err
+		}
+		q := req.URL.Query()
+		q.Set("scroll", strconv.FormatInt(f.cacheDuration.Milliseconds(), 10)+"ms")
+		q.Set("scroll_id", scrollID)
+		req.URL.RawQuery = q.Encode()
+
+		resp, err = f.client.Perform(req)
 	}
 	if err != nil {
 		return result, err

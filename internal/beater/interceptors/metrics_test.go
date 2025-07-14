@@ -20,8 +20,10 @@ package interceptors
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"google.golang.org/grpc"
@@ -30,7 +32,7 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestMetrics(t *testing.T) {
@@ -51,17 +53,6 @@ func TestMetrics(t *testing.T) {
 			prefix:     "apm-server.otlp.grpc.logs.",
 		},
 	} {
-		reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
-			func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
-				return metricdata.DeltaTemporality
-			},
-		))
-		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
-
-		logger := logp.NewLogger("interceptor.metrics.test")
-
-		interceptor := Metrics(logger, mp)
-
 		ctx := context.Background()
 		info := &grpc.UnaryServerInfo{
 			FullMethod: metrics.methodName,
@@ -157,6 +148,16 @@ func TestMetrics(t *testing.T) {
 			},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
+				reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+					func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+						return metricdata.DeltaTemporality
+					},
+				))
+
+				mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+				logger := logptest.NewTestingLogger(t, "interceptor.metrics.test")
+				interceptor := Metrics(logger, mp)
+
 				interceptor(ctx, nil, info, tc.f)
 
 				expectedMetrics := make(map[string]any, 2*len(tc.expectedOtel))
@@ -175,4 +176,52 @@ func TestMetrics(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestMetrics_ConcurrentSafe(t *testing.T) {
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+	logger := logptest.NewTestingLogger(t, "interceptor.metrics.test")
+	interceptor := Metrics(logger, mp)
+
+	ctx := context.Background()
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "/opentelemetry.proto.collector.trace.v1.TraceService/Export",
+	}
+
+	doNothing := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return req, nil
+	}
+
+	type respAndErr struct {
+		resp interface{}
+		err  error
+	}
+
+	const numG = 10
+	ch := make(chan respAndErr, numG)
+	var wg sync.WaitGroup
+	for range numG {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			resp, err := interceptor(ctx, "hello", info, doNothing)
+			ch <- respAndErr{resp: resp, err: err}
+		}()
+	}
+
+	wg.Wait()
+	close(ch)
+	for r := range ch {
+		assert.Equal(t, "hello", r.resp, "unexpected response")
+		assert.NoError(t, r.err, "unexpected error")
+	}
+
+	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
+		"grpc.server.request.count": numG,
+	})
 }

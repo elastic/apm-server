@@ -38,9 +38,8 @@ SHELL = /bin/bash
 
 # export AWS_PROFILE if CI is not defined
 ifeq ($(CI),)
-	export AWS_PROFILE ?= default
+	export AWS_PROFILE ?= elastic-observability
 endif
-
 
 .default: all
 
@@ -54,17 +53,8 @@ REPO_ROOT:=$(abspath ${MAKEFILE_DIR}/../../)
 include ${MAKEFILE_DIR}/../../go.mk
 
 .PHONY: auth
-auth: init-aws-profile
-	@okta-awscli --profile $(AWS_PROFILE)
-
-.PHONY: init-aws-profile
-init-aws-profile: ~/.aws/credentials
-	@grep $(AWS_PROFILE) ~/.aws/credentials > /dev/null || \
-		echo "[$(AWS_PROFILE)]\naws_access_key_id = x\naws_secret_access_key = x" >> ~/.aws/credentials
-
-~/.aws/credentials:
-	@mkdir -p ~/.aws
-	@touch $@
+auth:
+	@okta-aws-cli --profile $(AWS_PROFILE) --write-aws-credentials --short-user-agent
 
 terraform.tfvars:
 	@sed "s/USER/$(USER)/" $(TFVARS_SOURCE) > terraform.tfvars
@@ -122,7 +112,7 @@ run-benchmark-autotuned:
 
 .PHONY: index-benchmark-results
 index-benchmark-results: _default-gobench-vars
-	@cat $(BENCHMARK_RESULT) | go run -modfile=$(GITROOT)/tools/go.mod github.com/elastic/gobench -es $(GOBENCH_HOST) -es-username $(GOBENCH_USERNAME) -es-password $(GOBENCH_PASSWORD) \
+	@cat $(BENCHMARK_RESULT) | go tool -modfile=$(GITROOT)/go.mod github.com/elastic/gobench -es $(GOBENCH_HOST) -es-username $(GOBENCH_USERNAME) -es-password $(GOBENCH_PASSWORD) \
 	-index $(GOBENCH_INDEX) -tag "$(GOBENCH_DEFAULT_TAGS),$(GOBENCH_TAGS)"
 
 .PHONY: _default-gobench-vars

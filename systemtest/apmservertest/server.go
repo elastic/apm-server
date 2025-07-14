@@ -20,18 +20,24 @@ package apmservertest
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -59,6 +65,11 @@ type Server struct {
 	// empty apm-server.yml, and the pipeline definition, will be created.
 	// The temporary directory will be removed when the server is closed.
 	Dir string
+
+	// CertDir is the directory of the TLS certificates.
+	//
+	// If Dir is empty the current directory is used
+	CertDir string
 
 	// Log holds an optional io.Writer to which the process's Stderr will
 	// be written, in addition to being available through the Server.Logs
@@ -125,6 +136,7 @@ func NewServerTB(tb testing.TB, args ...string) *Server {
 // will be written under apm-server/systemtest/logs/<test-name>/.
 func NewUnstartedServerTB(tb testing.TB, args ...string) *Server {
 	s := NewUnstartedServer(args...)
+	s.CertDir = tb.TempDir()
 	logfile := createLogfile(tb, "apm-server")
 	s.Log = logfile
 	tb.Cleanup(func() {
@@ -253,14 +265,8 @@ func (s *Server) start(tls bool) error {
 }
 
 func (s *Server) initTLS() (serverCertPath, serverKeyPath, caCertPath string, _ error) {
-	repoRoot, err := getRepoRoot()
-	if err != nil {
-		panic(err)
-	}
-
+	serverCertPath, serverKeyPath, err := generateCerts(s.CertDir, true, x509.ExtKeyUsageServerAuth, "127.0.0.1", "::1")
 	// Load a self-signed server certificate for testing TLS encryption.
-	serverCertPath = filepath.Join(repoRoot, "systemtest", "apmservertest", "cert.pem")
-	serverKeyPath = filepath.Join(repoRoot, "systemtest", "apmservertest", "key.pem")
 	serverCertBytes, err := os.ReadFile(serverCertPath)
 	if err != nil {
 		return "", "", "", err
@@ -270,9 +276,12 @@ func (s *Server) initTLS() (serverCertPath, serverKeyPath, caCertPath string, _ 
 		panic("failed to add CA certificate to cert pool")
 	}
 
+	clientCertPath, clientKeyPath, err := generateCerts(s.CertDir, false, x509.ExtKeyUsageClientAuth, "")
+	if err != nil {
+		return "", "", "", err
+	}
+
 	// Load a self-signed client certificate for testing TLS client certificate auth.
-	clientCertPath := filepath.Join(repoRoot, "systemtest", "apmservertest", "client_cert.pem")
-	clientKeyPath := filepath.Join(repoRoot, "systemtest", "apmservertest", "client_key.pem")
 	clientCertBytes, err := os.ReadFile(clientCertPath)
 	if err != nil {
 		return "", "", "", err
@@ -289,9 +298,81 @@ func (s *Server) initTLS() (serverCertPath, serverKeyPath, caCertPath string, _ 
 	s.TLS = &tls.Config{
 		Certificates: []tls.Certificate{clientCert},
 		RootCAs:      certpool,
-		MinVersion:   tls.VersionTLS12,
 	}
 	return serverCertPath, serverKeyPath, clientCertPath, nil
+}
+
+func generateCerts(dir string, ca bool, keyUsage x509.ExtKeyUsage, hosts ...string) (string, string, error) {
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return "", "", fmt.Errorf("Failed to generate serial number: %w", err)
+	}
+	notBefore := time.Now()
+	notAfter := notBefore.Add(24 * time.Hour)
+	template := x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			Organization: []string{"Org"},
+		},
+		NotBefore: notBefore,
+		NotAfter:  notAfter,
+
+		KeyUsage:              x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{keyUsage},
+		BasicConstraintsValid: true,
+	}
+
+	for _, h := range hosts {
+		if ip := net.ParseIP(h); ip != nil {
+			template.IPAddresses = append(template.IPAddresses, ip)
+		}
+	}
+
+	if ca {
+		template.IsCA = true
+		template.KeyUsage |= x509.KeyUsageCertSign
+	}
+
+	clientKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate client key: %w", err)
+	}
+	privBytes, err := x509.MarshalPKCS8PrivateKey(clientKey)
+	if err != nil {
+		return "", "", fmt.Errorf("unable to marshal private key: %w", err)
+	}
+
+	h := sha256.Sum256(privBytes)
+	template.SubjectKeyId = h[:]
+
+	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, clientKey.Public(), clientKey)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to create certificate: %w", err)
+	}
+	certOut, err := os.CreateTemp(dir, "client_cert.pem")
+	if err != nil {
+		return "", "", fmt.Errorf("failed to open client_cert.pem for writing: %w", err)
+	}
+	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes}); err != nil {
+		return "", "", fmt.Errorf("failed to write data to client_cert.pem: %w", err)
+	}
+	if err := certOut.Close(); err != nil {
+		return "", "", fmt.Errorf("error closing client_cert.pem: %w", err)
+	}
+
+	keyOut, err := os.CreateTemp(dir, "client_key.pem")
+	if err != nil {
+		return "", "", fmt.Errorf("failed to open client_key.pem for writing: %w", err)
+	}
+	if err := pem.Encode(keyOut, &pem.Block{Type: "PRIVATE KEY", Bytes: privBytes}); err != nil {
+		return "", "", fmt.Errorf("failed to write data to client_key.pem: %w", err)
+	}
+	if err := keyOut.Close(); err != nil {
+		return "", "", fmt.Errorf("error closing client_key.pem: %w", err)
+	}
+
+	return certOut.Name(), keyOut.Name(), nil
 }
 
 func (s *Server) printCmdline(w io.Writer, args []string) {

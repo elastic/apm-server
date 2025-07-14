@@ -15,10 +15,11 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func newEventPebble(t *testing.T) *pebble.DB {
-	db, err := eventstorage.OpenEventPebble(t.TempDir())
+	db, err := eventstorage.OpenEventPebble(t.TempDir(), 8<<20, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		db.Close()
@@ -27,7 +28,7 @@ func newEventPebble(t *testing.T) *pebble.DB {
 }
 
 func newDecisionPebble(t *testing.T) *pebble.DB {
-	db, err := eventstorage.OpenDecisionPebble(t.TempDir())
+	db, err := eventstorage.OpenDecisionPebble(t.TempDir(), 8<<20, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		db.Close()

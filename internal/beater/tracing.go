@@ -22,9 +22,11 @@ import (
 	"net/http"
 
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/noop"
+	noopmetric "go.opentelemetry.io/otel/metric/noop"
+	nooptrace "go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -53,7 +55,10 @@ func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Log
 		nil,                         // no sourcemap store
 		func() bool { return true }, // ready for publishing
 		semaphore,
-		noop.NewMeterProvider(),
+		noopmetric.NewMeterProvider(),
+		nooptrace.NewTracerProvider(),
+		logger,
+		monitoring.NewRegistry(), // unused
 	)
 	if err != nil {
 		return nil, err

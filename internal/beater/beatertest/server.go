@@ -30,14 +30,16 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/noop"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/internal/beater"
+	"github.com/elastic/beats/v7/libbeat/beat"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 // Server runs the core APM Server that, by default, listens on a system-chosen port
@@ -80,7 +82,7 @@ func NewServer(t testing.TB, opts ...option) *Server {
 // The server's Start method should be called to start the server.
 func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 	core, observedLogs := observer.New(zapcore.DebugLevel)
-	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+	logger := logptest.NewTestingLogger(t, "", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(in, core)
 	}))
 
@@ -106,18 +108,18 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 	err = cfg.Unpack(&outputConfig)
 	require.NoError(t, err)
 	if !outputConfig.Output.IsSet() {
-		err = cfg.Merge(map[string]any{
-			"output.null":                map[string]any{},
-			"queue.mem.flush.min_events": 0,
-		})
+		esCfg, _ := ElasticsearchOutputConfig(t)
+		err = cfg.Merge(esCfg)
 		require.NoError(t, err)
 	}
 
 	runner, err := beater.NewRunner(beater.RunnerParams{
-		Config:        cfg,
-		Logger:        logger,
-		WrapServer:    options.wrapServer,
-		MeterProvider: options.meterProvider,
+		Config:         cfg,
+		Logger:         logger,
+		WrapServer:     options.wrapServer,
+		TracerProvider: options.tracerProvider,
+		MeterProvider:  options.meterProvider,
+		BeatMonitoring: beat.NewMonitoring(),
 	})
 	require.NoError(t, err)
 
@@ -194,9 +196,10 @@ func (s *Server) Close() error {
 }
 
 type options struct {
-	config        []*agentconfig.C
-	wrapServer    beater.WrapServerFunc
-	meterProvider metric.MeterProvider
+	config         []*agentconfig.C
+	wrapServer     beater.WrapServerFunc
+	tracerProvider trace.TracerProvider
+	meterProvider  metric.MeterProvider
 }
 
 type option func(*options)

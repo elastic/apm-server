@@ -33,23 +33,32 @@ import (
 	"github.com/elastic/apm-server/internal/beater/middleware"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestOPTIONS(t *testing.T) {
 	ratelimitStore, _ := ratelimit.NewStore(1, 1, 1)
 	requestTaken := make(chan struct{}, 1)
 	done := make(chan struct{}, 1)
+	handled := make(chan struct{}, 2) // 2 expected request
 
 	cfg := cfgEnabledRUM()
 	cfg.RumConfig.AllowOrigins = []string{"*"}
 	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
+
+	lastMiddleware := func(h request.Handler) (request.Handler, error) {
+		return func(c *request.Context) {
+			h(c)
+			handled <- struct{}{}
+		}, nil
+	}
 
 	h, _ := middleware.Wrap(
 		func(c *request.Context) {
 			requestTaken <- struct{}{}
 			<-done
 		},
-		rumMiddleware(cfg, authenticator, ratelimitStore, "", noop.NewMeterProvider())...)
+		append([]middleware.Middleware{lastMiddleware}, rumMiddleware(cfg, authenticator, ratelimitStore, "", noop.NewMeterProvider(), logptest.NewTestingLogger(t, ""))...)...)
 
 	// use this to block the single allowed concurrent requests
 	go func() {
@@ -67,20 +76,23 @@ func TestOPTIONS(t *testing.T) {
 	h(c)
 
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
-	done <- struct{}{}
+	done <- struct{}{} // unblock first request
+	// wait for both request middlewares to complete
+	<-handled
+	<-handled
 }
 
 func TestRUMHandler_NoAuthorizationRequired(t *testing.T) {
 	cfg := cfgEnabledRUM()
 	cfg.AgentAuth.SecretToken = "1234"
-	rec, err := requestToMuxerWithPattern(cfg, IntakeRUMPath)
+	rec, err := requestToMuxerWithPattern(t, cfg, IntakeRUMPath)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusAccepted, rec.Code)
 }
 
 func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
 	t.Run("OffRum", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(config.DefaultConfig(), IntakeRUMPath)
+		rec, err := requestToMuxerWithPattern(t, config.DefaultConfig(), IntakeRUMPath)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusForbidden, rec.Code)
 
@@ -90,7 +102,7 @@ func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
 	})
 
 	t.Run("On", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(cfgEnabledRUM(), IntakeRUMPath)
+		rec, err := requestToMuxerWithPattern(t, cfgEnabledRUM(), IntakeRUMPath)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusAccepted, rec.Code)
 	})

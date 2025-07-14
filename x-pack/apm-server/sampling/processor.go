@@ -7,7 +7,6 @@ package sampling
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -58,14 +57,14 @@ type eventMetrics struct {
 }
 
 // NewProcessor returns a new Processor, for tail-sampling trace events.
-func NewProcessor(config Config) (*Processor, error) {
+func NewProcessor(config Config, logger *logp.Logger) (*Processor, error) {
 	if err := config.Validate(); err != nil {
 		return nil, errors.Wrap(err, "invalid tail-sampling config")
 	}
 
 	meter := config.MeterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
 
-	logger := logp.NewLogger(logs.Sampling)
+	logger = logger.Named(logs.Sampling)
 	p := &Processor{
 		config:            config,
 		logger:            logger,
@@ -297,10 +296,7 @@ func (p *Processor) Run() error {
 		bulkIndexerFlushInterval = p.config.FlushInterval
 	}
 
-	initialSubscriberPosition, err := readSubscriberPosition(p.logger, p.config.DB)
-	if err != nil {
-		return err
-	}
+	initialSubscriberPosition := readSubscriberPosition(p.logger, p.config.DB)
 	subscriberPositions := make(chan pubsub.SubscriberPosition)
 	pubsub, err := pubsub.New(pubsub.Config{
 		ServerID:   p.config.UUID,
@@ -337,7 +333,7 @@ func (p *Processor) Run() error {
 				return context.Canceled
 			case pos := <-subscriberPositions:
 				if err := writeSubscriberPosition(p.config.DB, pos); err != nil {
-					p.rateLimitedLogger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Warn(
+					p.rateLimitedLogger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Warnf(
 						"failed to write subscriber position: %s", err,
 					)
 				}
@@ -502,20 +498,22 @@ func (p *Processor) Run() error {
 	return nil
 }
 
-func readSubscriberPosition(logger *logp.Logger, s *eventstorage.StorageManager) (pubsub.SubscriberPosition, error) {
+func readSubscriberPosition(logger *logp.Logger, s *eventstorage.StorageManager) pubsub.SubscriberPosition {
 	var pos pubsub.SubscriberPosition
 	data, err := s.ReadSubscriberPosition()
 	if errors.Is(err, os.ErrNotExist) {
-		return pos, nil
+		return pos
 	} else if err != nil {
-		return pos, fmt.Errorf("error reading subscriber position file: %w", err)
+		logger.With(logp.Error(err)).Warn("error reading subscriber position file; proceeding as empty")
+		return pos
 	}
 	err = json.Unmarshal(data, &pos)
 	if err != nil {
 		logger.With(logp.Error(err)).With(logp.ByteString("file", data)).Debug("failed to read subscriber position")
-		return pos, fmt.Errorf("error parsing subscriber position file: %w", err)
+		logger.With(logp.Error(err)).Warn("error parsing subscriber position file; proceeding as empty")
+		return pos
 	}
-	return pos, nil
+	return pos
 }
 
 func writeSubscriberPosition(s *eventstorage.StorageManager, pos pubsub.SubscriberPosition) error {

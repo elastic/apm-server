@@ -25,10 +25,12 @@ import (
 	"go.elastic.co/apm/module/apmgorilla/v2"
 	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
+	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/version"
 	"github.com/elastic/elastic-agent-libs/logp"
 
@@ -80,6 +82,9 @@ type ServerParams struct {
 	// Tracer is an apm.Tracer that the APM Server may use
 	// for self-instrumentation.
 	Tracer *apm.Tracer
+
+	// TracerProvider is the TracerProvider
+	TracerProvider trace.TracerProvider
 
 	// MeterProvider is the MeterProvider
 	MeterProvider metric.MeterProvider
@@ -138,6 +143,9 @@ type ServerParams struct {
 	// Semaphore holds a shared semaphore used to limit the number of
 	// concurrently running requests
 	Semaphore input.Semaphore
+
+	// BeatMonitoring holds the beat monitoring registries
+	BeatMonitoring beat.Monitoring
 }
 
 // newBaseRunServer returns the base RunServerFunc.
@@ -180,6 +188,9 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		publishReady,
 		args.Semaphore,
 		args.MeterProvider,
+		args.TracerProvider,
+		args.Logger,
+		args.BeatMonitoring.StatsRegistry(),
 	)
 	if err != nil {
 		return server{}, err
@@ -199,7 +210,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		}
 	}
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
-	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore, args.MeterProvider)
+	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore, args.MeterProvider, args.TracerProvider)
 
 	return server{
 		logger:     args.Logger,
@@ -237,8 +248,9 @@ func newAgentConfigFetcher(
 	cfg *config.Config,
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
-	tracer *apm.Tracer,
+	tp trace.TracerProvider,
 	mp metric.MeterProvider,
+	logger *logp.Logger,
 ) (agentcfg.Fetcher, func(context.Context) error, error) {
 	// Always use ElasticsearchFetcher, and as a fallback, use:
 	// 1. no fallback if Elasticsearch is explicitly configured
@@ -251,7 +263,7 @@ func newAgentConfigFetcher(
 		// Disable fallback because agent config Elasticsearch is explicitly configured.
 	case kibanaClient != nil:
 		var err error
-		fallbackFetcher, err = agentcfg.NewKibanaFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
+		fallbackFetcher, err = agentcfg.NewKibanaFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration, logger)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -263,6 +275,6 @@ func newAgentConfigFetcher(
 	if err != nil {
 		return nil, nil, err
 	}
-	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tracer, mp)
+	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tp, mp, logger)
 	return agentcfg.SanitizingFetcher{Fetcher: esFetcher}, esFetcher.Run, nil
 }

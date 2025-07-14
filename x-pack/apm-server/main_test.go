@@ -9,6 +9,7 @@ package main
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +19,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/paths"
 
 	"github.com/elastic/apm-server/internal/beater"
@@ -52,25 +53,30 @@ func TestMonitoring(t *testing.T) {
 
 	// Wrap & run the server twice, to ensure metric registration does not panic.
 	runServerError := errors.New("runServer")
+	runServerFunc := func(ctx context.Context, args beater.ServerParams) error {
+		// run server for some time until storage metrics are reported by the storage manager
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			monitoringtest.ExpectContainOtelMetricsKeys(t, reader, []string{
+				"apm-server.sampling.tail.storage.lsm_size",
+				"apm-server.sampling.tail.storage.value_log_size",
+			})
+		}, time.Second, 10*time.Millisecond)
+
+		return runServerError
+	}
 	for i := 0; i < 2; i++ {
 		serverParams, runServer, err := wrapServer(beater.ServerParams{
 			Config:                 cfg,
-			Logger:                 logp.NewLogger(""),
+			Logger:                 logptest.NewTestingLogger(t, ""),
 			Tracer:                 apmtest.DiscardTracer,
 			MeterProvider:          mp,
 			BatchProcessor:         modelpb.ProcessBatchFunc(func(ctx context.Context, b *modelpb.Batch) error { return nil }),
 			Namespace:              "default",
 			NewElasticsearchClient: elasticsearch.NewClient,
-		}, func(ctx context.Context, args beater.ServerParams) error {
-			return runServerError
-		})
+		}, runServerFunc)
 		require.NoError(t, err)
 
 		err = runServer(context.Background(), serverParams)
 		assert.Equal(t, runServerError, err)
-		monitoringtest.ExpectContainOtelMetricsKeys(t, reader, []string{
-			"apm-server.sampling.tail.storage.lsm_size",
-			"apm-server.sampling.tail.storage.value_log_size",
-		})
 	}
 }

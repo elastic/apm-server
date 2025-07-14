@@ -1,0 +1,18 @@
+# Define the expected data stream lifecycle of the minor version.
+# If not defined, defaults to ILM.
+data-stream-lifecycle:
+  8.15: DSL
+  8.16: DSL
+
+# Define versions that have lazy rollover, i.e. when upgrading from some older
+# version to the specified minor version, there will be lazy rollover.
+# Exceptions are specified as a list, i.e. no lazy rollover if upgrade is from
+# that minor version.
+lazy-rollover-with-exceptions:
+  8.16:
+  8.17:
+  8.19:
+  9.0:
+  9.1:
+  9.2:
+    - "9.1"

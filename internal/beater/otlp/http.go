@@ -22,11 +22,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -37,9 +39,12 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-var unsupportedHTTPMetricRegistration metric.Registration
+var (
+	httpMetricRegistrationMu          sync.Mutex
+	unsupportedHTTPMetricRegistration metric.Registration
+)
 
-func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semaphore input.Semaphore, mp metric.MeterProvider) HTTPHandlers {
+func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semaphore input.Semaphore, mp metric.MeterProvider, tp trace.TracerProvider) HTTPHandlers {
 	// TODO(axw) stop assuming we have only one OTLP HTTP consumer running
 	// at any time, and instead aggregate metrics from consumers that are
 	// dynamically registered and unregistered.
@@ -48,6 +53,7 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 		Logger:           logger,
 		Semaphore:        semaphore,
 		RemapOTelMetrics: true,
+		TraceProvider:    tp,
 	})
 
 	meter := mp.Meter("github.com/elastic/apm-server/internal/beater/otlp")
@@ -55,10 +61,13 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 		"apm-server.otlp.http.metrics.consumer.unsupported_dropped",
 	)
 
+	httpMetricRegistrationMu.Lock()
+	defer httpMetricRegistrationMu.Unlock()
+
 	// TODO we should add an otel counter metric directly in the
 	// apm-data consumer, then we could get rid of the callback.
 	if unsupportedHTTPMetricRegistration != nil {
-		unsupportedHTTPMetricRegistration.Unregister()
+		_ = unsupportedHTTPMetricRegistration.Unregister()
 	}
 	unsupportedHTTPMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
 		stats := consumer.Stats()

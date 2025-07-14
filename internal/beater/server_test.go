@@ -52,9 +52,9 @@ import (
 	_ "github.com/elastic/beats/v7/libbeat/outputs/console"
 	_ "github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-data/model/modelpb"
+
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/beatertest"
@@ -440,7 +440,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		// We must send a valid JSON response for the libbeat
 		// elasticsearch client to send bulk requests.
-		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
+		_, _ = fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
 	})
 
 	done := make(chan struct{})
@@ -463,13 +463,25 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
+	// The `max_requests` setting is the max number of concurrent bulk requests in docappender.
+	// The `elasticsearch.bulk_requests.available` metric below will be equal to `max_requests - x` where x is
+	// the number of times the mux handler "/_bulk" above is called.
+	//
+	// If `max_requests` > 1, the "/_bulk" mux handler may be called multiple times by docappender due to low
+	// flush interval of 1ms. This causes flaky tests below as `elasticsearch.bulk_requests.available` metric
+	// can be `max_requests - 1` or `max_requests - 2` depending on race conditions.
+	//
+	// To solve this, we can either increase the flush interval, or simply set `max_requests` to 1 such that
+	// there will not be multiple calls to "/_bulk". In this case, we chose the latter solution since it is
+	// more consistent (than relying on flush timing).
+	const maxRequests = 1
 	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"output.elasticsearch": map[string]interface{}{
 			"hosts":          []string{elasticsearchServer.URL},
 			"flush_interval": "1ms",
 			"backoff":        map[string]interface{}{"init": "1ms", "max": "1ms"},
 			"max_retries":    0,
-			"max_requests":   10,
+			"max_requests":   maxRequests,
 		},
 	})))
 
@@ -492,7 +504,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
 		"elasticsearch.events.count":            5,
 		"elasticsearch.events.queued":           5,
-		"elasticsearch.bulk_requests.available": 9,
+		"elasticsearch.bulk_requests.available": maxRequests - 1,
 	})
 }
 
@@ -555,7 +567,6 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 
 	// Enable self instrumentation, simulate a client disconnecting when sending intakev2 request
 	// Check that tracer records the correct http status code
-	found := make(chan struct{})
 	reqCtx, reqCancel := context.WithCancel(context.Background())
 
 	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
@@ -565,8 +576,8 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
-	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
-	_ = logp.DevelopmentSetup(logp.ToObserverOutput())
+	escfg, docs := beatertest.ElasticsearchOutputConfig(t)
+
 	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
 		map[string]interface{}{
 			"instrumentation.enabled": true,
@@ -582,14 +593,6 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 					assert.ErrorIs(t, ctx.Err(), context.Canceled)
 					return errors.New("foobar")
 				}
-				for _, i := range *batch {
-					// Perform assertions on the event sent by the apmgorilla tracer
-					if i.Transaction.Id != "" && i.Transaction.Name == "POST /intake/v2/events" {
-						assert.Equal(t, "HTTP 5xx", i.Transaction.Result)
-						assert.Equal(t, http.StatusServiceUnavailable, int(i.Http.Response.StatusCode))
-						close(found)
-					}
-				}
 				return nil
 			})
 			return args, runServer, nil
@@ -604,17 +607,33 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	require.Nil(t, resp)
 
 	select {
-	case <-time.After(time.Second): // go apm agent takes time to send trace events
+	case <-time.After(time.Second):
 		assert.Fail(t, "timeout waiting for trace doc")
-	case <-found:
-		// Have to wait a bit here to avoid racing on the order of metrics middleware and the batch processor from above.
-		time.Sleep(10 * time.Millisecond)
+	case doc := <-docs:
+		var out struct {
+			Transaction struct {
+				ID     string
+				Name   string
+				Result string
+			}
+			HTTP struct {
+				Response struct {
+					StatusCode int
+				}
+			}
+		}
+		require.NoError(t, json.Unmarshal(doc, &out))
+		if out.Transaction.ID != "" && out.Transaction.Name == "POST /intake/v2/events" {
+			assert.Equal(t, "HTTP 5xx", out.Transaction.Result)
+			assert.Equal(t, http.StatusServiceUnavailable, out.HTTP.Response.StatusCode)
+			break
+		}
 	}
 
 	// Assert that logs contain expected values:
 	// - Original error with the status code.
 	// - Request timeout is logged separately with the the original error status code.
-	logs := logp.ObserverLogs().Filter(func(l observer.LoggedEntry) bool {
+	logs := srv.Logs.Filter(func(l observer.LoggedEntry) bool {
 		return l.Level == zapcore.ErrorLevel
 	}).AllUntimed()
 	assert.Len(t, logs, 1)

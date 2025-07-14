@@ -38,12 +38,32 @@ APM_SERVER_BINARIES:= \
 	build/apm-server-darwin-amd64 \
 	build/apm-server-darwin-arm64
 
+APM_SERVER_FIPS_BINARIES:= \
+	build/apm-server-fips-linux-amd64 \
+	build/apm-server-fips-linux-arm64
+
 # Strip binary and inject the Git commit hash and timestamp.
 LDFLAGS := \
 	-s \
 	-X github.com/elastic/apm-server/internal/version.qualifier=$(ELASTIC_QUALIFIER) \
 	-X github.com/elastic/beats/v7/libbeat/version.commit=$(GITCOMMIT) \
 	-X github.com/elastic/beats/v7/libbeat/version.buildTime=$(GITCOMMITTIMESTAMP)
+
+# Rule to build apm-server fips binaries
+.PHONY: $(APM_SERVER_FIPS_BINARIES)
+$(APM_SERVER_FIPS_BINARIES):
+	docker run --privileged --rm "tonistiigi/binfmt:latest@sha256:1b804311fe87047a4c96d38b4b3ef6f62fca8cd125265917a9e3dc3c996c39e6" --install arm64,amd64
+	# remove any leftover container from a failed task
+	docker container rm apm-server-fips-cont || true
+	docker image rm apm-server-fips-image-temp || true
+	# rely on Dockerfile.fips to use the go fips toolchain
+	docker buildx build --load --platform "$(GOOS)/$(GOARCH)" --build-arg GOLANG_VERSION="$(shell go list -m -f '{{.Version}}' go)" -f ./packaging/docker/Dockerfile.fips -t apm-server-fips-image-temp .
+	docker container create --name apm-server-fips-cont apm-server-fips-image-temp
+	mkdir -p build
+	docker cp apm-server-fips-cont:/usr/share/apm-server/apm-server "build/apm-server-fips-$(GOOS)-$(GOARCH)"
+	# cleanup running container
+	docker container rm apm-server-fips-cont
+	docker image rm apm-server-fips-image-temp
 
 # Rule to build apm-server binaries, using Go's native cross-compilation.
 #
@@ -53,12 +73,20 @@ LDFLAGS := \
 # the apm-server binaries.
 .PHONY: $(APM_SERVER_BINARIES)
 $(APM_SERVER_BINARIES):
-	env CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) \
-	go build -o $@ -trimpath $(GOFLAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" ./x-pack/apm-server
+	# call make instead of using a prerequisite to force it to run the task when
+	# multiple targets are specified
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) NOCP=1 \
+		    $(MAKE) apm-server
 
-build/apm-server-linux-%: GOOS=linux
+.PHONY: apm-server-build
+apm-server-build:
+	env CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) MS_GOTOOLCHAIN_TELEMETRY_ENABLED=0 \
+	go build -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) -tags=grpcnotrace,$(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
+
+build/apm-server-linux-% build/apm-server-fips-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
 build/apm-server-windows-%: GOOS=windows
+build/apm-server-windows-%: EXTENSION=.exe
 build/apm-server-%-amd64 build/apm-server-%-amd64.exe: GOARCH=amd64
 build/apm-server-%-arm64 build/apm-server-%-arm64.exe: GOARCH=arm64
 
@@ -70,27 +98,44 @@ GOVERSIONINFO_FLAGS := \
 build/apm-server-windows-amd64.exe: x-pack/apm-server/versioninfo_windows_amd64.syso
 x-pack/apm-server/versioninfo_windows_amd64.syso: GOVERSIONINFO_FLAGS+=-64
 x-pack/apm-server/versioninfo_%.syso: $(GITREFFILE) packaging/versioninfo.json
-	go run -modfile=tools/go.mod github.com/josephspurrier/goversioninfo/cmd/goversioninfo -o $@ $(GOVERSIONINFO_FLAGS) packaging/versioninfo.json
+	# this task is only used when building apm-server for windows (GOOS=windows)
+	# but it could be run from any OS so use the host os and arch.
+	GOOS=$(GOHOSTOS) GOARCH=$(GOHOSTARCH) go tool github.com/josephspurrier/goversioninfo/cmd/goversioninfo -o $@ $(GOVERSIONINFO_FLAGS) packaging/versioninfo.json
 
-.PHONY: apm-server
-apm-server: build/apm-server-$(shell go env GOOS)-$(shell go env GOARCH)
-	@cp $^ $@
+.PHONY: apm-server apm-server-oss apm-server-fips apm-server-fips-msft
 
-.PHONY: apm-server-oss
-apm-server-oss:
-	@go build $(GOMODFLAG) -o $@ ./cmd/apm-server
+apm-server-oss: PKG=./cmd/apm-server
+apm-server apm-server-fips apm-server-fips-msft: PKG=./x-pack/apm-server
+
+apm-server-fips apm-server-fips-msft: CGO_ENABLED=1
+apm-server apm-server-oss: CGO_ENABLED=0
+
+apm-server-fips: GOTAGS=requirefips
+apm-server-fips-msft: GOTAGS=requirefips,ms_tls13kdf,relaxfips
+
+apm-server-oss: SUFFIX=-oss
+apm-server-fips apm-server-fips-msft: SUFFIX=-fips
+
+apm-server apm-server-oss apm-server-fips apm-server-fips-msft:
+	# call make instead of using a prerequisite to force it to run the task when
+	# multiple targets are specified
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) \
+		    $(MAKE) apm-server-build
+	@[ "${NOCP}" ] || cp "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" "apm-server$(SUFFIX)"
 
 .PHONY: test
 test:
-	@go test $(GOMODFLAG) $(GOTESTFLAGS) ./...
+	@go test $(GOMODFLAG) $(GOTESTFLAGS) -race ./...
 
 .PHONY: system-test
 system-test:
-	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -timeout=20m ./...)
+	# CGO is disabled when building APM Server binary, so the race detector in this case
+	# would only work on the parts that don't involve APM Server binary.
+	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -race -timeout=20m ./...)
 
 .PHONY:
 clean:
-	@rm -rf build apm-server apm-server.exe
+	@rm -rf build apm-server apm-server.exe apm-server-oss apm-server-fips
 
 ##############################################################################
 # Checks/tests.
@@ -101,7 +146,7 @@ check-full: update check staticcheck
 
 .PHONY: check-approvals
 check-approvals:
-	@go run -modfile=tools/go.mod github.com/elastic/apm-tools/cmd/check-approvals
+	@go tool github.com/elastic/apm-tools/cmd/check-approvals
 
 check: check-fmt check-headers check-git-diff
 
@@ -134,8 +179,8 @@ go-generate:
 .PHONY: add-headers
 add-headers:
 ifndef CHECK_HEADERS_DISABLED
-	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -exclude x-pack
-	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -license Elasticv2 x-pack
+	@go tool github.com/elastic/go-licenser -exclude x-pack
+	@go tool github.com/elastic/go-licenser -license Elasticv2 x-pack
 endif
 
 ## get-version : Get the apm server version
@@ -168,7 +213,7 @@ docs: tf-docs
 tf-docs: $(addsuffix /README.md,$(wildcard testing/infra/terraform/modules/*))
 
 testing/infra/terraform/modules/%/README.md: .FORCE
-	go run -modfile=tools/go.mod github.com/terraform-docs/terraform-docs markdown --hide-empty --header-from header.md --output-file=README.md --output-mode replace $(subst README.md,,$@)
+	go tool github.com/terraform-docs/terraform-docs markdown --hide-empty --header-from header.md --output-file=README.md --output-mode replace $(subst README.md,,$@)
 
 .PHONY: .FORCE
 .FORCE:
@@ -208,13 +253,13 @@ STATICCHECK_CHECKS?=all,-ST1000
 
 .PHONY: staticcheck
 staticcheck:
-	go run -modfile=tools/go.mod honnef.co/go/tools/cmd/staticcheck -checks=$(STATICCHECK_CHECKS) ./...
+	go tool honnef.co/go/tools/cmd/staticcheck -checks=$(STATICCHECK_CHECKS) ./...
 
 .PHONY: check-headers
 check-headers:
 ifndef CHECK_HEADERS_DISABLED
-	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -d -exclude build -exclude x-pack
-	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -d -exclude build -license Elasticv2 x-pack
+	@go tool github.com/elastic/go-licenser -d -exclude build -exclude x-pack
+	@go tool github.com/elastic/go-licenser -d -exclude build -license Elasticv2 x-pack
 endif
 
 .PHONY: check-docker-compose
@@ -237,10 +282,13 @@ gofmt: add-headers
 MODULE_DEPS=$(sort $(shell \
   go list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
 
-notice: NOTICE.txt
-NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
+MODULE_DEPS_FIPS=$(sort $(shell \
+  go list -deps -tags=darwin,linux,windows,requirefips -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
+
+notice: NOTICE.txt NOTICE-fips.txt
+NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod
 	mkdir -p build/
-	go list -m -json $(MODULE_DEPS) | go run -modfile=tools/go.mod go.elastic.co/go-licence-detector \
+	go list -m -json $(MODULE_DEPS) | go tool go.elastic.co/go-licence-detector \
 		-includeIndirect \
 		-overrides tools/notice/overrides.json \
 		-rules tools/notice/rules.json \
@@ -248,6 +296,17 @@ NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
 		-noticeOut NOTICE.txt \
 		-depsTemplate tools/notice/dependencies.csv.tmpl \
 		-depsOut build/dependencies-$(APM_SERVER_VERSION).csv
+
+NOTICE-fips.txt build/dependencies-$(APM_SERVER_VERSION)-fips.csv: go.mod
+	mkdir -p build/
+	go list -tags=requirefips -m -json $(MODULE_DEPS_FIPS) | go tool go.elastic.co/go-licence-detector \
+		-includeIndirect \
+		-overrides tools/notice/overrides.json \
+		-rules tools/notice/rules.json \
+		-noticeTemplate tools/notice/NOTICE.txt.tmpl \
+		-noticeOut NOTICE-fips.txt \
+		-depsTemplate tools/notice/dependencies.csv.tmpl \
+		-depsOut build/dependencies-$(APM_SERVER_VERSION)-fips.csv
 
 ##############################################################################
 # Rules for creating and installing build tools.
@@ -293,48 +352,52 @@ testing/rally/corpora:
 	@cd systemtest/cmd/gencorpora && go run . -write-dir $(CURRENT_DIR)/testing/rally/corpora/ -replay-count $(RALLY_GENCORPORA_REPLAY_COUNT)
 
 ##############################################################################
-# Smoke tests -- Basic smoke tests for APM Server.
+# Integration Server Tests -- Upgrade tests for APM Server in ECH.
 ##############################################################################
 
-SMOKETEST_VERSIONS ?= latest
-# supported-os tests are exclude and hence they are not running as part of this process
-# since they are required to run against different versions in a different CI pipeline.
-SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d | grep -v supported-os | grep -v /managed)
+# Run integration server upgrade test on one scenario - Default / Reroute
+.PHONY: integration-server-test/upgrade
+integration-server-test/upgrade:
+ifndef UPGRADE_PATH
+	$(error UPGRADE_PATH is not set)
+endif
+ifndef SCENARIO
+	$(error SCENARIO is not set)
+endif
+ifeq ($(SNAPSHOT),true)
+	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath_Snapshot/.*/$(SCENARIO) -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
+else
+	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath_Version/.*/$(SCENARIO) -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
+endif
 
-.PHONY: smoketest/discover
-smoketest/discover:
-	@ echo "$(SMOKETEST_DIRS)" | jq -cnR '[inputs | select(length > 0)]'
+# Run integration server upgrade test on all scenarios
+.PHONY: integration-server-test/upgrade-all
+integration-server-test/upgrade-all:
+ifndef UPGRADE_PATH
+	$(error UPGRADE_PATH is not set)
+endif
+ifeq ($(SNAPSHOT),true)
+	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath_Snapshot -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
+else
+	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath_Version -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
+endif
 
-.PHONY: smoketest/run-version
-smoketest/run-version:
-	@ echo "-> Running $(TEST_DIR) smoke tests for version $${SMOKETEST_VERSION}..."
-	@ cd $(TEST_DIR) && ./test.sh "$(SMOKETEST_VERSION)"
+# Run integration server standalone test on one scenario - Managed7 / Managed8 / Managed9
+.PHONY: integration-server-test/standalone
+integration-server-test/standalone:
+ifndef SCENARIO
+	$(error SCENARIO is not set)
+endif
+	@cd integrationservertest && go test -run=TestStandaloneManaged.*/$(SCENARIO) -v -timeout=60m -cleanup-on-failure=true -target="pro" ./
 
-.PHONY: smoketest/run
-smoketest/run:
-	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do \
-		$(MAKE) smoketest/run-version SMOKETEST_VERSION=$${version}; \
-	done
+# Run integration server standalone test on all scenarios
+.PHONY: integration-server-test/standalone-all
+integration-server-test/standalone-all:
+	@cd integrationservertest && go test -run=TestStandaloneManaged -v -timeout=60m -cleanup-on-failure=true -target="pro" ./
 
-.PHONY: smoketest/cleanup
-smoketest/cleanup:
-	@ cd $(TEST_DIR); \
-	if [ -f "./cleanup.sh" ]; then \
-		./cleanup.sh; \
-	fi
-
-.PHONY: smoketest/all
-smoketest/all:
-	@ for test_dir in $(SMOKETEST_DIRS); do \
-		$(MAKE) smoketest/run TEST_DIR=$${test_dir}; \
-	done
-
-.PHONY: smoketest/all/cleanup
-smoketest/all/cleanup:
-	@ for test_dir in $(SMOKETEST_DIRS); do \
-		echo "-> Cleanup $${test_dir} smoke tests..."; \
-		$(MAKE) smoketest/cleanup TEST_DIR=$${test_dir}; \
-	done
+##############################################################################
+# Generating and linting API documentation
+##############################################################################
 
 .PHONY: api-docs
 api-docs: ## Generate bundled OpenAPI documents

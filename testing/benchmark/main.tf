@@ -102,6 +102,7 @@ module "ec_deployment" {
   apm_server_pprof                       = true
   apm_server_tail_sampling               = var.apm_server_tail_sampling
   apm_server_tail_sampling_storage_limit = var.apm_server_tail_sampling_storage_limit
+  apm_server_tail_sampling_sample_rate   = var.apm_server_tail_sampling_sample_rate
 
   elasticsearch_size              = var.elasticsearch_size
   elasticsearch_zone_count        = var.elasticsearch_zone_count
@@ -163,6 +164,7 @@ module "standalone_apm_server" {
 
   apm_server_tail_sampling               = var.apm_server_tail_sampling
   apm_server_tail_sampling_storage_limit = var.apm_server_tail_sampling_storage_limit
+  apm_server_tail_sampling_sample_rate   = var.apm_server_tail_sampling_sample_rate
 
   aws_provisioner_key_name = var.private_key
 

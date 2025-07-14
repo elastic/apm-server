@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
@@ -180,19 +181,6 @@ func TestUnpackConfig(t *testing.T) {
 	}{
 		"default config": {
 			inpCfg: map[string]interface{}{},
-			outCfg: DefaultConfig(),
-		},
-		"invalid java-attacher config": {
-			inpCfg: map[string]interface{}{
-				"java_attacher": map[string]interface{}{
-					"enabled": true,
-					"discovery-rules": []map[string]interface{}{
-						map[string]interface{}{
-							"disallowed-key": "opbeans",
-						},
-					},
-				},
-			},
 			outCfg: DefaultConfig(),
 		},
 		"overwrite default": {
@@ -650,7 +638,7 @@ func TestUnpackConfig(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			cfg, err := NewConfig(inpCfg, inpOutputESCfg)
+			cfg, err := NewConfig(inpCfg, inpOutputESCfg, logptest.NewTestingLogger(t, ""))
 			require.NoError(t, err)
 			require.NotNil(t, cfg)
 
@@ -715,7 +703,7 @@ func TestTLSSettings(t *testing.T) {
 				ucfgCfg, err := config.NewConfigFrom(tc.config)
 				require.NoError(t, err)
 
-				cfg, err := NewConfig(ucfgCfg, nil)
+				cfg, err := NewConfig(ucfgCfg, nil, logptest.NewTestingLogger(t, ""))
 				require.NoError(t, err)
 				assert.Equal(t, tc.tls.ClientAuth, cfg.TLS.ClientAuth)
 			})
@@ -752,7 +740,7 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	// no es config given
-	cfg, err := NewConfig(ucfg, nil)
+	cfg, err := NewConfig(ucfg, nil, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.RumConfig.SourceMapping.ESConfig)
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.AgentAuth.APIKey.ESConfig)
@@ -760,7 +748,7 @@ func TestNewConfig_ESConfig(t *testing.T) {
 
 	// with es config
 	outputESCfg := config.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"]}`)
-	cfg, err = NewConfig(ucfg, outputESCfg)
+	cfg, err = NewConfig(ucfg, outputESCfg, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	assert.NotNil(t, cfg.RumConfig.SourceMapping.ESConfig)
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.RumConfig.SourceMapping.ESConfig.Hosts))

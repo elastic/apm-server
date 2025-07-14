@@ -31,6 +31,7 @@ import (
 	"github.com/stretchr/testify/require"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+	"go.opentelemetry.io/otel/trace/noop"
 	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -41,6 +42,9 @@ import (
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/sourcemap"
+	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestBackendRequestMetadata(t *testing.T) {
@@ -76,14 +80,14 @@ func TestRUMRequestMetadata(t *testing.T) {
 	assert.Equal(t, &modelpb.UserAgent{Original: c.UserAgent}, event.UserAgent)
 }
 
-func requestToMuxerWithPattern(cfg *config.Config, pattern string) (*httptest.ResponseRecorder, error) {
+func requestToMuxerWithPattern(t *testing.T, cfg *config.Config, pattern string) (*httptest.ResponseRecorder, error) {
 	r := httptest.NewRequest(http.MethodPost, pattern, nil)
-	return requestToMuxer(cfg, r)
+	return requestToMuxer(t, cfg, r)
 }
 
-func requestToMuxerWithHeader(cfg *config.Config, pattern string, method string, header map[string]string) (*httptest.ResponseRecorder, error) {
+func requestToMuxerWithHeader(t *testing.T, cfg *config.Config, pattern string, method string, header map[string]string) (*httptest.ResponseRecorder, error) {
 	r := httptest.NewRequest(method, pattern, nil)
-	return requestToMuxer(cfg, requestWithHeader(r, header))
+	return requestToMuxer(t, cfg, requestWithHeader(r, header))
 }
 
 func requestWithHeader(r *http.Request, header map[string]string) *http.Request {
@@ -103,6 +107,7 @@ func requestWithQueryString(r *http.Request, queryString map[string]string) *htt
 }
 
 func requestToMuxerWithHeaderAndQueryString(
+	t *testing.T,
 	cfg *config.Config,
 	pattern, method string,
 	header, queryString map[string]string,
@@ -110,11 +115,13 @@ func requestToMuxerWithHeaderAndQueryString(
 	r := httptest.NewRequest(method, pattern, nil)
 	r = requestWithQueryString(r, queryString)
 	r = requestWithHeader(r, header)
-	return requestToMuxer(cfg, r)
+	return requestToMuxer(t, cfg, r)
 }
 
-func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseRecorder, error) {
-	_, mux, err := muxBuilder{}.build(cfg)
+func requestToMuxer(t *testing.T, cfg *config.Config, r *http.Request) (*httptest.ResponseRecorder, error) {
+	_, mux, err := muxBuilder{
+		Logger: logptest.NewTestingLogger(t, ""),
+	}.build(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +150,9 @@ func testMonitoringMiddleware(t *testing.T, urlPath string, expectedMetrics map[
 }
 
 func newTestMux(t *testing.T, cfg *config.Config) (http.Handler, sdkmetric.Reader) {
-	reader, mux, err := muxBuilder{}.build(cfg)
+	reader, mux, err := muxBuilder{
+		Logger: logptest.NewTestingLogger(t, ""),
+	}.build(cfg)
 	require.NoError(t, err)
 	return mux, reader
 }
@@ -151,6 +160,7 @@ func newTestMux(t *testing.T, cfg *config.Config) (http.Handler, sdkmetric.Reade
 type muxBuilder struct {
 	SourcemapFetcher sourcemap.Fetcher
 	Managed          bool
+	Logger           *logp.Logger
 }
 
 func (m muxBuilder) build(cfg *config.Config) (sdkmetric.Reader, http.Handler, error) {
@@ -174,6 +184,9 @@ func (m muxBuilder) build(cfg *config.Config) (sdkmetric.Reader, http.Handler, e
 		func() bool { return true },
 		semaphore.NewWeighted(1),
 		mp,
+		noop.NewTracerProvider(),
+		m.Logger,
+		monitoring.NewRegistry(),
 	)
 	return reader, r, err
 }

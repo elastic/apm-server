@@ -1,5 +1,5 @@
 [![ci](https://github.com/elastic/apm-server/actions/workflows/ci.yml/badge.svg)](https://github.com/elastic/apm-server/actions/workflows/ci.yml)
-[![Smoke Tests](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-schedule.yml/badge.svg)](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-schedule.yml)
+[![Smoke Tests](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-os-sched.yml/badge.svg)](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-os-sched.yml)
 [![Package status](https://badge.buildkite.com/fc4aa824ffecf245db871971507275aa3c35904e380fef449c.svg?branch=main)](https://buildkite.com/elastic/apm-server-package)
 
 # APM Server
@@ -117,14 +117,6 @@ You can specify an alternative branch or commit by specifying the `BEATS_VERSION
 make update-beats BEATS_VERSION=7.x
 make update-beats BEATS_VERSION=f240148065af94d55c5149e444482b9635801f27
 ```
-
-### Updating go-elasticsearch
-
-It is important to keep the [go-elasticsearch client](https://github.com/elastic/go-elasticsearch) in sync
-with the according major version. We also recommend to use the latest available client for minor versions.
-
-You can use `go get -u -m github.com/elastic/go-elasticsearch/v7@7.x` to update to the latest commit on the
-7.x branch.
 
 ## Packaging
 

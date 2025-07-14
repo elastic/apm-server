@@ -32,11 +32,13 @@ import (
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/dustin/go-humanize"
-	"go.elastic.co/apm/module/apmgrpc/v2"
 	"go.elastic.co/apm/module/apmotel/v2"
 	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
+	metricnoop "go.opentelemetry.io/otel/metric/noop"
+	"go.opentelemetry.io/otel/trace"
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
@@ -63,10 +65,9 @@ import (
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
-	javaattacher "github.com/elastic/apm-server/internal/beater/java_attacher"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
-	"github.com/elastic/apm-server/internal/idxmgmt"
+	"github.com/elastic/apm-server/internal/fips140"
 	"github.com/elastic/apm-server/internal/kibana"
 	srvmodelprocessor "github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/publish"
@@ -85,8 +86,10 @@ type Runner struct {
 	outputConfig              agentconfig.Namespace
 	elasticsearchOutputConfig *agentconfig.C
 
+	tracerProvider trace.TracerProvider
 	meterProvider  metric.MeterProvider
 	metricGatherer *apmotel.Gatherer
+	beatMonitoring beat.Monitoring
 	listener       net.Listener
 }
 
@@ -99,12 +102,19 @@ type RunnerParams struct {
 	// Logger holds a logger to use for logging throughout the APM Server.
 	Logger *logp.Logger
 
+	// TracerProvider holds a trace.TracerProvider that can be used for
+	// creating traces.
+	TracerProvider trace.TracerProvider
+
 	// MeterProvider holds a metric.MeterProvider that can be used for
 	// creating metrics.
 	MeterProvider metric.MeterProvider
 
 	// MetricsGatherer holds an apmotel.Gatherer
 	MetricsGatherer *apmotel.Gatherer
+
+	// BeatMonitoring holds beat monitoring
+	BeatMonitoring beat.Monitoring
 
 	// WrapServer holds an optional WrapServerFunc, for wrapping the
 	// ServerParams and RunServerFunc used to run the APM Server.
@@ -115,6 +125,14 @@ type RunnerParams struct {
 
 // NewRunner returns a new Runner that runs APM Server with the given parameters.
 func NewRunner(args RunnerParams) (*Runner, error) {
+	fips140.CheckFips()
+
+	// the default tracer is leaking and its background
+	// goroutine is spamming requests to this apm server (default endpoint)
+	// If TLS is enabled it causes "http request sent to https endpoint".
+	// Close the default tracer since it's not used.
+	apm.DefaultTracer().Close()
+
 	var unpackedConfig struct {
 		APMServer  *agentconfig.C        `config:"apm-server"`
 		Output     agentconfig.Namespace `config:"output"`
@@ -130,7 +148,7 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 	if unpackedConfig.Output.Name() == "elasticsearch" {
 		elasticsearchOutputConfig = unpackedConfig.Output.Config()
 	}
-	cfg, err := config.NewConfig(unpackedConfig.APMServer, elasticsearchOutputConfig)
+	cfg, err := config.NewConfig(unpackedConfig.APMServer, elasticsearchOutputConfig, args.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -154,8 +172,10 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		outputConfig:              unpackedConfig.Output,
 		elasticsearchOutputConfig: elasticsearchOutputConfig,
 
+		tracerProvider: args.TracerProvider,
 		meterProvider:  args.MeterProvider,
 		metricGatherer: args.MetricsGatherer,
+		beatMonitoring: args.BeatMonitoring,
 		listener:       listener,
 	}, nil
 }
@@ -230,8 +250,16 @@ func (s *Runner) Run(ctx context.Context) error {
 		)
 	}
 
+	if s.config.Sampling.Tail.Enabled && s.config.Sampling.Tail.DatabaseCacheSize == 0 {
+		// 1GB=16MB, 2GB=24MB, 4GB=40MB, ..., 32GB=264MB, 64GB=520MB
+		s.config.Sampling.Tail.DatabaseCacheSize = uint64(linearScaledValue(8<<20, memLimitGB, 8<<20))
+		s.logger.Infof("Sampling.Tail.DatabaseCacheSize set to %d based on %0.1fgb of memory",
+			s.config.Sampling.Tail.DatabaseCacheSize, memLimitGB,
+		)
+	}
+
 	// Send config to telemetry.
-	recordAPMServerConfig(s.config)
+	recordAPMServerConfig(s.config, s.beatMonitoring.StateRegistry())
 
 	var kibanaClient *kibana.Client
 	if s.config.Kibana.Enabled {
@@ -254,24 +282,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		}
 	}
 
-	if s.config.JavaAttacherConfig.Enabled {
-		if !inElasticCloud {
-			go func() {
-				attacher, err := javaattacher.New(s.config.JavaAttacherConfig)
-				if err != nil {
-					s.logger.Errorf("failed to start java attacher: %v", err)
-					return
-				}
-				if err := attacher.Run(ctx); err != nil {
-					s.logger.Errorf("failed to run java attacher: %v", err)
-				}
-			}()
-		} else {
-			s.logger.Error("java attacher not supported in cloud environments")
-		}
-	}
-
-	instrumentation, err := newInstrumentation(s.rawConfig)
+	instrumentation, err := newInstrumentation(s.rawConfig, s.logger)
 	if err != nil {
 		return err
 	}
@@ -288,6 +299,8 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 	otel.SetTracerProvider(tracerProvider)
 
+	s.tracerProvider = tracerProvider
+
 	tracer.RegisterMetricsGatherer(s.metricGatherer)
 
 	// Ensure the libbeat output and go-elasticsearch clients do not index
@@ -295,7 +308,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	publishReady := make(chan struct{})
 	drain := make(chan struct{})
 	g.Go(func() error {
-		if err := s.waitReady(ctx, tracer); err != nil {
+		if err := s.waitReady(ctx); err != nil {
 			// One or more preconditions failed; drop events.
 			close(drain)
 			return fmt.Errorf("error waiting for server to be ready: %w", err)
@@ -337,7 +350,8 @@ func (s *Runner) Run(ctx context.Context) error {
 		fetcher, cancel, err := newSourcemapFetcher(
 			s.config.RumConfig.SourceMapping,
 			kibanaClient, newElasticsearchClient,
-			tracer,
+			s.tracerProvider,
+			s.logger,
 		)
 		if err != nil {
 			return err
@@ -367,7 +381,8 @@ func (s *Runner) Run(ctx context.Context) error {
 	// even if TLS is enabled, as TLS is handled by the net/http server.
 	gRPCLogger := s.logger.Named("grpc")
 	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
-		apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer)),
+		interceptors.Tracing(s.tracerProvider),
+		interceptors.Recover(),
 		interceptors.ClientMetadata(),
 		interceptors.Logging(gRPCLogger),
 		interceptors.Metrics(gRPCLogger, s.meterProvider),
@@ -379,7 +394,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the BatchProcessor chain that is used to process all events,
 	// including the metrics aggregated by APM Server.
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
-		tracer, newElasticsearchClient, memLimitGB,
+		tracer, newElasticsearchClient, memLimitGB, s.logger, s.tracerProvider, s.meterProvider,
 	)
 	if err != nil {
 		return err
@@ -413,8 +428,9 @@ func (s *Runner) Run(ctx context.Context) error {
 		s.config,
 		kibanaClient,
 		newElasticsearchClient,
-		tracer,
+		s.tracerProvider,
 		s.meterProvider,
+		s.logger,
 	)
 	if err != nil {
 		return err
@@ -428,6 +444,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	agentConfigReporter := agentcfg.NewReporter(
 		agentConfigFetcher,
 		batchProcessor, 30*time.Second,
+		s.logger,
 	)
 	g.Go(func() error {
 		return agentConfigReporter.Run(ctx)
@@ -440,6 +457,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		Namespace:              s.config.DataStreams.Namespace,
 		Logger:                 s.logger,
 		Tracer:                 tracer,
+		TracerProvider:         s.tracerProvider,
 		MeterProvider:          s.meterProvider,
 		Authenticator:          authenticator,
 		RateLimitStore:         ratelimitStore,
@@ -451,6 +469,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		NewElasticsearchClient: newElasticsearchClient,
 		GRPCServer:             grpcServer,
 		Semaphore:              semaphore.NewWeighted(int64(s.config.MaxConcurrentDecoders)),
+		BeatMonitoring:         s.beatMonitoring,
 	}
 	if s.wrapServer != nil {
 		// Wrap the serverParams and runServer function, enabling
@@ -496,31 +515,50 @@ func (s *Runner) Run(ctx context.Context) error {
 	g.Go(func() error {
 		return runServer(ctx, serverParams)
 	})
+	closeTracerProcessor := func(context.Context) error { return nil }
 	if tracerServerListener != nil {
-		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor, serverParams.Semaphore, serverParams.MeterProvider)
+		// use a batch processor without tracing to prevent the tracing processor from sending traces to itself
+		finalTracerBatchProcessor, closeTracerFinalBatchProcessor, err := s.newFinalBatchProcessor(
+			tracer, newElasticsearchClient, memLimitGB, s.logger, tracenoop.NewTracerProvider(), metricnoop.NewMeterProvider(),
+		)
+		if err != nil {
+			return err
+		}
+
+		tracerBatchProcessor := modelprocessor.Chained{
+			newObserverBatchProcessor(),
+			&modelprocessor.SetDataStream{Namespace: s.config.DataStreams.Namespace},
+			finalTracerBatchProcessor,
+		}
+
+		tracerProcessor := append(preBatchProcessors, tracerBatchProcessor)
+		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, tracerProcessor, serverParams.Semaphore, serverParams.MeterProvider)
 		if err != nil {
 			return fmt.Errorf("failed to create self-instrumentation server: %w", err)
 		}
-		g.Go(func() error {
-			if err := tracerServer.Serve(tracerServerListener); err != http.ErrServerClosed {
-				return err
-			}
-			return nil
-		})
 		go func() {
-			<-ctx.Done()
-			tracerServer.Shutdown(backgroundContext)
+			if err := tracerServer.Serve(tracerServerListener); err != http.ErrServerClosed {
+				s.logger.With(logp.Error(err)).Error("failed to shutdown tracer server")
+			}
 		}()
+
+		closeTracerProcessor = func(ctx context.Context) error {
+			return errors.Join(
+				closeTracerFinalBatchProcessor(ctx),
+				tracerServer.Shutdown(backgroundContext),
+			)
+		}
 	}
 
 	result := g.Wait()
 	closeErr := closeFinalBatchProcessor(backgroundContext)
-	return errors.Join(result, closeErr)
+	closeTracerErr := closeTracerProcessor(backgroundContext)
+	return errors.Join(result, closeErr, closeTracerErr)
 }
 
 // newInstrumentation is a thin wrapper around libbeat instrumentation that
 // sets missing tracer configuration from elastic agent.
-func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentation, error) {
+func newInstrumentation(rawConfig *agentconfig.C, logger *logp.Logger) (instrumentation.Instrumentation, error) {
 	// This config struct contains missing fields from elastic agent APMConfig
 	// https://github.com/elastic/elastic-agent/blob/main/internal/pkg/core/monitoring/config/config.go#L127
 	// that are not directly handled by libbeat instrumentation below.
@@ -542,7 +580,7 @@ func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentati
 	cfg, err := rawConfig.Child("instrumentation", -1)
 	if err != nil || !cfg.Enabled() {
 		// Fallback to instrumentation.New if the configs are not present or disabled.
-		return instrumentation.New(rawConfig, "apm-server", version.VersionWithQualifier())
+		return instrumentation.New(rawConfig, "apm-server", version.VersionWithQualifier(), logger)
 	}
 	if err := cfg.Unpack(&apmCfg); err != nil {
 		return nil, err
@@ -585,7 +623,7 @@ func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentati
 		os.Setenv(envSamplingRate, strconv.FormatFloat(float64(r), 'f', -1, 32))
 		defer os.Unsetenv(envSamplingRate)
 	}
-	return instrumentation.New(rawConfig, "apm-server", version.VersionWithQualifier())
+	return instrumentation.New(rawConfig, "apm-server", version.VersionWithQualifier(), logger)
 }
 
 func maxConcurrentDecoders(memLimitGB float64) uint {
@@ -612,7 +650,6 @@ func linearScaledValue(perGBIncrement, memLimitGB, constant float64) int {
 // waitReady waits until the server is ready to index events.
 func (s *Runner) waitReady(
 	ctx context.Context,
-	tracer *apm.Tracer,
 ) error {
 	var preconditions []func(context.Context) error
 	var esOutputClient *elasticsearch.Client
@@ -658,7 +695,7 @@ func (s *Runner) waitReady(
 			})
 		}
 		preconditions = append(preconditions, func(ctx context.Context) error {
-			return queryClusterUUID(ctx, esOutputClient)
+			return queryClusterUUID(ctx, esOutputClient, s.beatMonitoring.StateRegistry())
 		})
 	}
 
@@ -673,7 +710,7 @@ func (s *Runner) waitReady(
 		}
 		return nil
 	}
-	return waitReady(ctx, s.config.WaitReadyInterval, tracer, s.logger, check)
+	return waitReady(ctx, s.config.WaitReadyInterval, s.tracerProvider, s.logger, check)
 }
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
@@ -683,24 +720,23 @@ func (s *Runner) newFinalBatchProcessor(
 	tracer *apm.Tracer,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
 	memLimit float64,
+	logger *logp.Logger,
+	tp trace.TracerProvider,
+	mp metric.MeterProvider,
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
 	if s.elasticsearchOutputConfig == nil {
-		monitoring.Default.Remove("libbeat")
-		libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
-		return s.newLibbeatFinalBatchProcessor(tracer, libbeatMonitoringRegistry)
+		s.beatMonitoring.StatsRegistry().Remove("libbeat")
+		libbeatMonitoringRegistry := s.beatMonitoring.StatsRegistry().NewRegistry("libbeat")
+		return s.newLibbeatFinalBatchProcessor(tracer, libbeatMonitoringRegistry, logger)
 	}
 
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
-	outputRegistry := stateRegistry.GetRegistry("output")
-	if outputRegistry != nil {
-		outputRegistry.Clear()
-	} else {
-		outputRegistry = stateRegistry.NewRegistry("output")
-	}
+	stateRegistry := s.beatMonitoring.StateRegistry()
+	outputRegistry := stateRegistry.GetOrCreateRegistry("output")
+	outputRegistry.Clear()
 	monitoring.NewString(outputRegistry, "name").Set("elasticsearch")
 
 	// Create the docappender and Elasticsearch config
-	appenderCfg, esCfg, err := s.newDocappenderConfig(tracer, s.meterProvider, memLimit)
+	appenderCfg, esCfg, err := s.newDocappenderConfig(tp, mp, memLimit)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -716,7 +752,7 @@ func (s *Runner) newFinalBatchProcessor(
 	return newDocappenderBatchProcessor(appender), appender.Close, nil
 }
 
-func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, mp metric.MeterProvider, memLimit float64) (
+func (s *Runner) newDocappenderConfig(tp trace.TracerProvider, mp metric.MeterProvider, memLimit float64) (
 	docappender.Config, *elasticsearch.Config, error,
 ) {
 	esConfig := struct {
@@ -757,15 +793,16 @@ func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, mp metric.MeterProvide
 		scalingCfg.Disabled = !*enabled
 	}
 	cfg := docappenderConfig(docappender.Config{
-		CompressionLevel:  esConfig.CompressionLevel,
-		FlushBytes:        flushBytes,
-		FlushInterval:     esConfig.FlushInterval,
-		Tracer:            tracer,
-		MeterProvider:     mp,
-		MaxRequests:       esConfig.MaxRequests,
-		Scaling:           scalingCfg,
-		Logger:            zap.New(s.logger.Core(), zap.WithCaller(true)),
-		RequireDataStream: true,
+		CompressionLevel:     esConfig.CompressionLevel,
+		FlushBytes:           flushBytes,
+		FlushInterval:        esConfig.FlushInterval,
+		TracerProvider:       tp,
+		MeterProvider:        mp,
+		MaxRequests:          esConfig.MaxRequests,
+		Scaling:              scalingCfg,
+		Logger:               zap.New(s.logger.Core(), zap.WithCaller(true)),
+		RequireDataStream:    true,
+		IncludeSourceOnError: docappender.False,
 		// Use the output's max_retries to configure the go-docappender's
 		// document level retries.
 		MaxDocumentRetries:    esConfig.MaxRetries,
@@ -813,6 +850,7 @@ func docappenderConfig(
 func (s *Runner) newLibbeatFinalBatchProcessor(
 	tracer *apm.Tracer,
 	libbeatMonitoringRegistry *monitoring.Registry,
+	logger *logp.Logger,
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
 	// When the publisher stops cleanly it will close its pipeline client,
 	// calling the acker's Close method and unblock Wait.
@@ -826,23 +864,23 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		Version:     version.VersionWithQualifier(),
 		Hostname:    hostname,
 		Name:        hostname,
+		Logger:      logger,
 	}
 
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	stateRegistry := s.beatMonitoring.StateRegistry()
 	stateRegistry.Remove("queue")
 	monitors := pipeline.Monitors{
 		Metrics:   libbeatMonitoringRegistry,
 		Telemetry: stateRegistry,
-		Logger:    logp.L().Named("publisher"),
+		Logger:    logger.Named("publisher"),
 		Tracer:    tracer,
 	}
 	outputFactory := func(stats outputs.Observer) (string, outputs.Group, error) {
 		if !s.outputConfig.IsSet() {
 			return "", outputs.Group{}, nil
 		}
-		indexSupporter := idxmgmt.NewSupporter(nil, s.rawConfig)
 		outputName := s.outputConfig.Name()
-		output, err := outputs.Load(indexSupporter, beatInfo, stats, outputName, s.outputConfig.Config())
+		output, err := outputs.Load(nil, beatInfo, stats, outputName, s.outputConfig.Config())
 		return outputName, output, err
 	}
 	var pipelineConfig pipeline.Config
@@ -881,7 +919,8 @@ func newSourcemapFetcher(
 	cfg config.SourceMapping,
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
-	tracer *apm.Tracer,
+	tp trace.TracerProvider,
+	logger *logp.Logger,
 ) (sourcemap.Fetcher, context.CancelFunc, error) {
 	esClient, err := newElasticsearchClient(cfg.ESConfig)
 	if err != nil {
@@ -891,25 +930,29 @@ func newSourcemapFetcher(
 	var fetchers []sourcemap.Fetcher
 
 	// start background sync job
-	ctx, cancel := context.WithCancel(context.Background())
-	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex, tracer)
+	ctx, ctxCancel := context.WithCancel(context.Background())
+	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex, tp, logger)
+	cancel := func() {
+		ctxCancel()
+		<-invalidationChan
+	}
 
-	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, sourcemapIndex)
+	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, sourcemapIndex, logger)
 	size := 128
-	cachingFetcher, err := sourcemap.NewBodyCachingFetcher(esFetcher, size, invalidationChan)
+	cachingFetcher, err := sourcemap.NewBodyCachingFetcher(esFetcher, size, invalidationChan, logger)
 	if err != nil {
 		cancel()
 		return nil, nil, err
 	}
-	sourcemapFetcher := sourcemap.NewSourcemapFetcher(metadataFetcher, cachingFetcher)
+	sourcemapFetcher := sourcemap.NewSourcemapFetcher(metadataFetcher, cachingFetcher, logger)
 
 	fetchers = append(fetchers, sourcemapFetcher)
 
 	if kibanaClient != nil {
-		fetchers = append(fetchers, sourcemap.NewKibanaFetcher(kibanaClient))
+		fetchers = append(fetchers, sourcemap.NewKibanaFetcher(kibanaClient, logger))
 	}
 
-	chained := sourcemap.NewChainedFetcher(fetchers)
+	chained := sourcemap.NewChainedFetcher(fetchers, logger)
 
 	return chained, cancel, nil
 }
@@ -917,8 +960,7 @@ func newSourcemapFetcher(
 // TODO: This is copying behavior from libbeat:
 // https://github.com/elastic/beats/blob/b9ced47dba8bb55faa3b2b834fd6529d3c4d0919/libbeat/cmd/instance/beat.go#L927-L950
 // Remove this when cluster_uuid no longer needs to be queried from ES.
-func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client) error {
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client, stateRegistry *monitoring.Registry) error {
 	outputES := "outputs.elasticsearch"
 	// Running under elastic-agent, the callback linked above is not
 	// registered until later, meaning we need to check and instantiate the

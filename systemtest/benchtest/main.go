@@ -220,7 +220,8 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		agents := agentsList[0]
 		serverURL := loadgencfg.Config.ServerURL.String()
 		secretToken := loadgencfg.Config.SecretToken
-		if err := warmup(agents, benchConfig.WarmupTime, serverURL, secretToken); err != nil {
+		apiKey := loadgencfg.Config.APIKey
+		if err := warmup(agents, benchConfig.WarmupTime, serverURL, secretToken, apiKey); err != nil {
 			return fmt.Errorf("warm-up failed with %d agents: %v", agents, err)
 		}
 	}
@@ -255,7 +256,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 
 // warmup sends events to the remote APM Server using the specified number of
 // agents for the specified duration.
-func warmup(agents int, duration time.Duration, url, token string) error {
+func warmup(agents int, duration time.Duration, url, token, apiKey string) error {
 	rl := loadgen.GetNewLimiter(loadgencfg.Config.EventRate.Burst, loadgencfg.Config.EventRate.Interval)
 	h, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
 		Logger:   zap.NewNop(),
@@ -263,22 +264,30 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 		Path:     `apm-*.ndjson`,
 		URL:      url,
 		Token:    token,
+		APIKey:   apiKey,
 		Limiter:  rl,
 	})
 	if err != nil {
 		return fmt.Errorf("unable to create warm-up handler: %w", err)
 	}
-	var wg sync.WaitGroup
+
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
+
+	var wg sync.WaitGroup
+	wg.Add(agents)
 	for i := 0; i < agents; i++ {
-		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			h.SendBatchesInLoop(ctx)
+			sendErr := h.SendBatchesInLoop(ctx)
+			if sendErr != nil && !errors.Is(sendErr, context.DeadlineExceeded) {
+				log.Printf("failed to send batches: %v", sendErr)
+			}
 		}()
 	}
+
 	wg.Wait()
+
 	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
 	defer cancel()
 	if err := expvar.WaitUntilServerInactive(ctx, url); err != nil {

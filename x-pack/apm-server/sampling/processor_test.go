@@ -27,10 +27,11 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub/pubsubtest"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestProcessUnsampled(t *testing.T) {
-	processor, err := sampling.NewProcessor(newTempdirConfig(t).Config)
+	processor, err := sampling.NewProcessor(newTempdirConfig(t).Config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -73,7 +74,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 
 	require.NoError(t, config.DB.Flush())
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -159,7 +160,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			published := make(chan string)
 			config.Elasticsearch = pubsubtest.Client(pubsubtest.PublisherChan(published), nil)
 
-			processor, err := sampling.NewProcessor(config)
+			processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 			require.NoError(t, err)
 
 			trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
@@ -274,7 +275,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	tempdirConfig := newTempdirConfig(t)
 	config := tempdirConfig.Config
 	config.FlushInterval = time.Minute
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -341,7 +342,7 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 	published := make(chan string)
 	config.Elasticsearch = pubsubtest.Client(pubsubtest.PublisherChan(published), nil)
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	// Send transactions which would match either policy defined above.
@@ -417,7 +418,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 		}
 	})
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -525,7 +526,7 @@ func TestProcessDiscardOnWriteFailure(t *testing.T) {
 			config := newTempdirConfig(t).Config
 			config.DiscardOnWriteFailure = discard
 			config.Storage = errorRW{err: errors.New("boom")}
-			processor, err := sampling.NewProcessor(config)
+			processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 			require.NoError(t, err)
 			go processor.Run()
 			defer processor.Stop(context.Background())
@@ -561,7 +562,7 @@ func TestGroupsMonitoring(t *testing.T) {
 	config.FlushInterval = time.Minute
 	config.Policies[0].SampleRate = 0.99
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -589,28 +590,35 @@ func TestGroupsMonitoring(t *testing.T) {
 	})
 }
 
-func getGauge(t testing.TB, reader sdkmetric.Reader, name string) int64 {
+// getGaugeValues collects metrics and searches for gauge values that match the provided names.
+// Values will be returned in the same order as the names.
+//
+// It is helpful to provide multiple names for synchronous metrics to avoid losing data when collecting.
+// Observable metrics report everytime Collect is called, so there will be no data loss.
+func getGaugeValues(t testing.TB, reader sdkmetric.Reader, names ...string) []int64 {
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
 	assert.NotEqual(t, 0, len(rm.ScopeMetrics))
 
-	for _, sm := range rm.ScopeMetrics {
-		for _, m := range sm.Metrics {
-			if m.Name == name {
-				return m.Data.(metricdata.Gauge[int64]).DataPoints[0].Value
+	values := make([]int64, len(names))
+	for i, name := range names {
+		for _, sm := range rm.ScopeMetrics {
+			for _, m := range sm.Metrics {
+				if m.Name == name {
+					values[i] = m.Data.(metricdata.Gauge[int64]).DataPoints[0].Value
+				}
 			}
 		}
 	}
-
-	return 0
+	return values
 }
 
 func TestStorageMonitoring(t *testing.T) {
 	tempdirConfig := newTempdirConfig(t)
 	config := tempdirConfig.Config
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	for i := 0; i < 100; i++ {
@@ -635,9 +643,14 @@ func TestStorageMonitoring(t *testing.T) {
 
 	require.NoError(t, config.DB.Flush())
 
-	lsmSize := getGauge(t, tempdirConfig.metricReader, "apm-server.sampling.tail.storage.lsm_size")
+	metricsNames := []string{"apm-server.sampling.tail.storage.lsm_size", "apm-server.sampling.tail.storage.value_log_size"}
+	gaugeValues := getGaugeValues(t, tempdirConfig.metricReader, metricsNames...)
+	assert.Len(t, gaugeValues, 2)
+
+	lsmSize := gaugeValues[0]
 	assert.NotZero(t, lsmSize)
-	vlogSize := getGauge(t, tempdirConfig.metricReader, "apm-server.sampling.tail.storage.value_log_size")
+
+	vlogSize := gaugeValues[1]
 	assert.Zero(t, vlogSize)
 }
 
@@ -648,7 +661,7 @@ func TestStorageLimit(t *testing.T) {
 	// minute, we store some span events, close and re-open the database, so
 	// the size is updated.
 	writeBatch := func(n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
-		processor, err := sampling.NewProcessor(c)
+		processor, err := sampling.NewProcessor(c, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		go processor.Run()
 		defer processor.Stop(context.Background())
@@ -712,7 +725,7 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	subscriber := pubsubtest.SubscriberChan(subscriberChan)
 	config.Elasticsearch = pubsubtest.Client(nil, subscriber)
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -727,13 +740,62 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	assert.Equal(t, `{"index_name":1}`, string(data))
 }
 
+func TestReadSubscriberPositionFile(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		setupFile func(path string) error
+	}{
+		{
+			name: "file not exist",
+			setupFile: func(_ string) error {
+				return nil
+			},
+		},
+		{
+			name: "valid json",
+			setupFile: func(path string) error {
+				return os.WriteFile(path, []byte(`{}`), 0644)
+			},
+		},
+		{
+			name: "invalid json",
+			setupFile: func(path string) error {
+				return os.WriteFile(path, []byte(`not_json`), 0644)
+			},
+		},
+		{
+			name: "bad perm",
+			setupFile: func(path string) error {
+				return os.WriteFile(path, []byte{}, 0000)
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			tempdirConfig := newTempdirConfig(t)
+
+			err := tc.setupFile(filepath.Join(tempdirConfig.tempDir, "subscriber_position.json"))
+			require.NoError(t, err)
+
+			processor, err := sampling.NewProcessor(tempdirConfig.Config, logptest.NewTestingLogger(t, ""))
+			require.NoError(t, err)
+
+			ret := make(chan error)
+			go func() {
+				ret <- processor.Run()
+			}()
+			processor.Stop(context.Background())
+			assert.NoError(t, <-ret)
+		})
+	}
+}
+
 func TestGracefulShutdown(t *testing.T) {
 	config := newTempdirConfig(t).Config
 	sampleRate := 0.5
 	config.Policies = []sampling.Policy{{SampleRate: sampleRate}}
 	config.FlushInterval = time.Minute // disable finalize
 
-	processor, err := sampling.NewProcessor(config)
+	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
 
@@ -785,7 +847,7 @@ func newTempdirConfig(tb testing.TB) testConfig {
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
-	db, err := eventstorage.NewStorageManager(tempdir, eventstorage.WithMeterProvider(mp))
+	db, err := eventstorage.NewStorageManager(tempdir, logptest.NewTestingLogger(tb, ""), eventstorage.WithMeterProvider(mp))
 	require.NoError(tb, err)
 	tb.Cleanup(func() { db.Close() })
 

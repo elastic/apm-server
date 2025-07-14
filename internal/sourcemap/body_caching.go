@@ -22,18 +22,23 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/go-sourcemap/sourcemap"
-	lru "github.com/hashicorp/golang-lru"
 
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/go-freelru"
 )
 
 // BodyCachingFetcher wraps a Fetcher, caching source maps in memory and fetching from the wrapped Fetcher on cache misses.
 type BodyCachingFetcher struct {
-	cache   *lru.Cache
+	cache   *freelru.ShardedLRU[identifier, *sourcemap.Consumer]
 	backend Fetcher
 	logger  *logp.Logger
+}
+
+func hashStringXXHASH(id identifier) uint32 {
+	return uint32(xxhash.Sum64String(id.name + id.version + id.path))
 }
 
 // NewBodyCachingFetcher returns a CachingFetcher that wraps backend, caching results for the configured cacheExpiration.
@@ -41,20 +46,21 @@ func NewBodyCachingFetcher(
 	backend Fetcher,
 	cacheSize int,
 	invalidationChan <-chan []identifier,
+	logger *logp.Logger,
 ) (*BodyCachingFetcher, error) {
-	logger := logp.NewLogger(logs.Sourcemap)
+	logger = logger.Named(logs.Sourcemap)
 
-	lruCache, err := lru.NewWithEvict(cacheSize, func(key, value interface{}) {
-		logger.Debugf("Removed id %v", key)
-	})
-
+	lruCache, err := freelru.NewSharded[identifier, *sourcemap.Consumer](uint32(cacheSize), hashStringXXHASH)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create lru cache for caching fetcher: %w", err)
 	}
+	lruCache.SetOnEvict(func(key identifier, _ *sourcemap.Consumer) {
+		logger.Debugf("Removed id %v", key)
+	})
+
+	logger.Debug("listening for invalidation...")
 
 	go func() {
-		logger.Debug("listening for invalidation...")
-
 		for arr := range invalidationChan {
 			for _, id := range arr {
 				logger.Debugf("Invalidating id %v", id)
@@ -80,8 +86,7 @@ func (s *BodyCachingFetcher) Fetch(ctx context.Context, name, version, path stri
 
 	// fetch from cache
 	if val, found := s.cache.Get(key); found {
-		consumer, _ := val.(*sourcemap.Consumer)
-		return consumer, nil
+		return val, nil
 	}
 
 	// fetch from the store and ensure caching for all non-temporary results

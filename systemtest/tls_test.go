@@ -29,11 +29,45 @@ import (
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 )
 
-func TestTLSConfig(t *testing.T) {
+func TestDefaultTLSConfig(t *testing.T) {
+	srv := apmservertest.NewUnstartedServerTB(t)
+	require.NoError(t, srv.StartTLS())
+
+	attemptRequest := func(t *testing.T, minVersion, maxVersion uint16, cipherSuites ...uint16) error {
+		tlsConfig := &tls.Config{RootCAs: srv.TLS.RootCAs}
+		tlsConfig.MinVersion = minVersion
+		tlsConfig.MaxVersion = maxVersion
+		tlsConfig.CipherSuites = cipherSuites
+		httpClient := &http.Client{Transport: &http.Transport{TLSClientConfig: tlsConfig}}
+		resp, err := httpClient.Get(srv.URL)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		return nil
+	}
+
+	t.Run("compatible_cipher_suite", func(t *testing.T) {
+		err := attemptRequest(t, 0, 0, tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256)
+		require.NoError(t, err)
+	})
+
+	t.Run("compatible_protocol TLSv1.2", func(t *testing.T) {
+		err := attemptRequest(t, tls.VersionTLS12, tls.VersionTLS12)
+		require.NoError(t, err)
+	})
+
+	t.Run("compatible_protocol TLSv1.3", func(t *testing.T) {
+		err := attemptRequest(t, tls.VersionTLS13, tls.VersionTLS13)
+		require.NoError(t, err)
+	})
+}
+
+func TestCustomTLSConfig(t *testing.T) {
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.TLS = &apmservertest.TLSConfig{
-		SupportedProtocols: []string{"TLSv1.2", "TLSv1.3"},
-		CipherSuites:       []string{"ECDHE-RSA-AES-128-GCM-SHA256"},
+		SupportedProtocols: []string{"TLSv1.2"},
+		CipherSuites:       []string{"ECDHE-ECDSA-AES-128-GCM-SHA256"},
 	}
 	require.NoError(t, srv.StartTLS())
 
@@ -52,7 +86,7 @@ func TestTLSConfig(t *testing.T) {
 	}
 
 	t.Run("compatible_cipher_suite", func(t *testing.T) {
-		err := attemptRequest(t, 0, 0, tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256)
+		err := attemptRequest(t, 0, 0, tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256)
 		require.NoError(t, err)
 	})
 
@@ -61,19 +95,14 @@ func TestTLSConfig(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("compatible_protocol TLSv1.3", func(t *testing.T) {
-		err := attemptRequest(t, tls.VersionTLS13, tls.VersionTLS13)
-		require.NoError(t, err)
-	})
-
 	t.Run("incompatible_cipher_suite", func(t *testing.T) {
-		err := attemptRequest(t, tls.VersionTLS12, tls.VersionTLS12, tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384)
+		err := attemptRequest(t, tls.VersionTLS12, tls.VersionTLS12, tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384)
 		require.Error(t, err)
 		assert.Regexp(t, ".*tls: handshake failure", err.Error())
 	})
 
 	t.Run("incompatible_protocol", func(t *testing.T) {
-		err := attemptRequest(t, tls.VersionTLS10, tls.VersionTLS10)
+		err := attemptRequest(t, tls.VersionTLS13, tls.VersionTLS13)
 		require.Error(t, err)
 		assert.Regexp(t, ".*tls: protocol version not supported", err.Error())
 	})

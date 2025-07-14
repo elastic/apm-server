@@ -22,15 +22,6 @@ updates:
       go-agent:
         patterns:
         - "go.elastic.co/apm*"
-  # go tools
-  - package-ecosystem: "gomod"
-    directory: "tools/"
-    schedule:
-      interval: "weekly"
-    groups:
-      dependencies:
-        patterns:
-          - "*"
   # go systemtest
   - package-ecosystem: "gomod"
     directory: "systemtest/"
@@ -48,39 +39,13 @@ updates:
 
   # GitHub actions
   - package-ecosystem: "github-actions"
-    directory: "/"
-    reviewers:
-      - "elastic/observablt-ci"
+    directories:
+      - "/"
+      - "/.github/workflows/*"
     schedule:
       interval: "weekly"
       day: "sunday"
       time: "22:00"
-    groups:
-      github-actions:
-        patterns:
-          - "*"
-
-  # GitHub composite actions
-  - package-ecosystem: "github-actions"
-    directory: "/.github/workflows/generate-smoke-tests-list"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "22:00"
-    reviewers:
-      - "elastic/observablt-ci"
-    groups:
-      github-actions:
-        patterns:
-          - "*"
-  - package-ecosystem: "github-actions"
-    directory: "/.github/workflows/setup-cluster-env"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "22:00"
-    reviewers:
-      - "elastic/observablt-ci"
     groups:
       github-actions:
         patterns:

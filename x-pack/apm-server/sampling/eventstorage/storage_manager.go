@@ -52,6 +52,9 @@ const (
 	// that applies when disk usage threshold cannot be enforced due to an error.
 	dbStorageLimitFallback = 3 << 30
 
+	// defaultValueLogSize default is 0 because pebble does not have a vlog.
+	defaultValueLogSize = 0
+
 	gb = float64(1 << 30)
 )
 
@@ -85,6 +88,13 @@ func WithGetDiskUsage(getDiskUsage func() (DiskUsage, error)) StorageManagerOpti
 	}
 }
 
+// WithDBCacheSize sets the total size in bytes of in-memory cache of all databases managed by StorageManager.
+func WithDBCacheSize(size uint64) StorageManagerOptions {
+	return func(sm *StorageManager) {
+		sm.dbCacheSize = size
+	}
+}
+
 // DiskUsage is the struct returned by getDiskUsage.
 type DiskUsage struct {
 	UsedBytes, TotalBytes uint64
@@ -93,8 +103,9 @@ type DiskUsage struct {
 // StorageManager encapsulates pebble.DB.
 // It assumes exclusive access to pebble DB at storageDir.
 type StorageManager struct {
-	storageDir string
-	logger     *logp.Logger
+	storageDir  string
+	dbCacheSize uint64
+	logger      *logp.Logger
 
 	eventDB         *pebble.DB
 	decisionDB      *pebble.DB
@@ -127,17 +138,21 @@ type StorageManager struct {
 	runCh chan struct{}
 
 	// meterProvider is the OTel meter provider
-	meterProvider metric.MeterProvider
+	meterProvider  metric.MeterProvider
+	storageMetrics storageMetrics
+}
 
-	metricRegistration metric.Registration
+type storageMetrics struct {
+	lsmSizeGauge      metric.Int64Gauge
+	valueLogSizeGauge metric.Int64Gauge
 }
 
 // NewStorageManager returns a new StorageManager with pebble DB at storageDir.
-func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*StorageManager, error) {
+func NewStorageManager(storageDir string, logger *logp.Logger, opts ...StorageManagerOptions) (*StorageManager, error) {
 	sm := &StorageManager{
 		storageDir: storageDir,
 		runCh:      make(chan struct{}, 1),
-		logger:     logp.NewLogger(logs.Sampling),
+		logger:     logger.Named(logs.Sampling),
 		codec:      ProtobufCodec{},
 		getDiskUsage: func() (DiskUsage, error) {
 			usage, err := vfs.Default.GetDiskUsage(storageDir)
@@ -146,6 +161,7 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 				TotalBytes: usage.TotalBytes,
 			}, err
 		},
+		dbCacheSize: 16 << 20, // default to 16MB cache shared between event and decision DB
 	}
 	sm.getDBSize = func() uint64 {
 		return sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage()
@@ -156,15 +172,9 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 
 	if sm.meterProvider != nil {
 		meter := sm.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
-		lsmSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.lsm_size")
-		valueLogSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.value_log_size")
 
-		sm.metricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
-			lsmSize, valueLogSize := sm.Size()
-			o.ObserveInt64(lsmSizeGauge, lsmSize)
-			o.ObserveInt64(valueLogSizeGauge, valueLogSize)
-			return nil
-		}, lsmSizeGauge, valueLogSizeGauge)
+		sm.storageMetrics.lsmSizeGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
+		sm.storageMetrics.valueLogSizeGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.value_log_size")
 	}
 
 	if err := sm.reset(); err != nil {
@@ -176,13 +186,14 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 
 // reset initializes db and storage.
 func (sm *StorageManager) reset() error {
-	eventDB, err := OpenEventPebble(sm.storageDir)
+	// Configured db cache size is split between event DB and decision DB
+	eventDB, err := OpenEventPebble(sm.storageDir, sm.dbCacheSize/2, sm.logger)
 	if err != nil {
 		return fmt.Errorf("open event db error: %w", err)
 	}
 	sm.eventDB = eventDB
 
-	decisionDB, err := OpenDecisionPebble(sm.storageDir)
+	decisionDB, err := OpenDecisionPebble(sm.storageDir, sm.dbCacheSize/2, sm.logger)
 	if err != nil {
 		return fmt.Errorf("open decision db error: %w", err)
 	}
@@ -249,7 +260,7 @@ func (sm *StorageManager) Size() (lsm, vlog int64) {
 	// Also remember to update
 	// - x-pack/apm-server/sampling/processor.go:CollectMonitoring
 	// - systemtest/benchtest/expvar/metrics.go
-	return int64(sm.dbSize()), 0
+	return int64(sm.dbSize()), defaultValueLogSize
 }
 
 // dbSize returns the disk usage of databases in bytes.
@@ -259,7 +270,15 @@ func (sm *StorageManager) dbSize() uint64 {
 }
 
 func (sm *StorageManager) updateDiskUsage() {
-	sm.cachedDBSize.Store(sm.getDBSize())
+	lsmSize := sm.getDBSize()
+	sm.cachedDBSize.Store(lsmSize)
+
+	if sm.storageMetrics.lsmSizeGauge != nil {
+		sm.storageMetrics.lsmSizeGauge.Record(context.Background(), int64(lsmSize))
+	}
+	if sm.storageMetrics.valueLogSizeGauge != nil {
+		sm.storageMetrics.valueLogSizeGauge.Record(context.Background(), int64(defaultValueLogSize))
+	}
 
 	if sm.getDiskUsageFailed.Load() {
 		// Skip GetDiskUsage under the assumption that
@@ -285,8 +304,11 @@ func (sm *StorageManager) diskUsed() uint64 {
 	return sm.cachedDiskStat.used.Load()
 }
 
-// runDiskUsageLoop runs a loop that updates cached disk usage regularly.
+// runDiskUsageLoop runs a loop that updates cached disk usage regularly and reports usage.
 func (sm *StorageManager) runDiskUsageLoop(stopping <-chan struct{}) error {
+	// initial disk usage update so data is available immediately
+	sm.updateDiskUsage()
+
 	ticker := time.NewTicker(diskUsageFetchInterval)
 	defer ticker.Stop()
 	for {
@@ -311,11 +333,6 @@ func (sm *StorageManager) Close() error {
 }
 
 func (sm *StorageManager) close() error {
-	if sm.metricRegistration != nil {
-		if err := sm.metricRegistration.Unregister(); err != nil {
-			sm.logger.With(logp.Error(err)).Error("failed to unregister metric")
-		}
-	}
 	return errors.Join(
 		wrapNonNilErr("event db flush error: %w", sm.eventDB.Flush()),
 		wrapNonNilErr("decision db flush error: %w", sm.decisionDB.Flush()),

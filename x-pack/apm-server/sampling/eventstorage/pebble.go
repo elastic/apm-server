@@ -38,11 +38,13 @@ func eventComparer() *pebble.Comparer {
 	return &comparer
 }
 
-func OpenEventPebble(storageDir string) (*pebble.DB, error) {
+func OpenEventPebble(storageDir string, cacheSize uint64, logger *logp.Logger) (*pebble.DB, error) {
 	// Option values are picked and validated in https://github.com/elastic/apm-server/issues/15568
+	cache := pebble.NewCache(int64(cacheSize))
+	defer cache.Unref()
 	opts := &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
-		Logger:             logp.NewLogger(logs.Sampling),
+		Logger:             logger.Named(logs.Sampling),
 		MemTableSize:       16 << 20,
 		Levels: []pebble.LevelOptions{
 			{
@@ -53,15 +55,21 @@ func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 			},
 		},
 		Comparer: eventComparer(),
+		Cache:    cache,
+		MaxConcurrentCompactions: func() int {
+			return 2
+		}, // Better utilizes CPU on larger instances
 	}
 	return pebble.Open(filepath.Join(storageDir, "event"), opts)
 }
 
-func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
+func OpenDecisionPebble(storageDir string, cacheSize uint64, logger *logp.Logger) (*pebble.DB, error) {
 	// Option values are picked and validated in https://github.com/elastic/apm-server/issues/15568
-	return pebble.Open(filepath.Join(storageDir, "decision"), &pebble.Options{
+	cache := pebble.NewCache(int64(cacheSize))
+	defer cache.Unref()
+	opts := &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
-		Logger:             logp.NewLogger(logs.Sampling),
+		Logger:             logger.Named(logs.Sampling),
 		MemTableSize:       2 << 20, // big memtables are slow to scan, and significantly slow the hot path
 		Levels: []pebble.LevelOptions{
 			{
@@ -71,5 +79,10 @@ func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
 				FilterType:   pebble.TableFilter,
 			},
 		},
-	})
+		Cache: cache,
+		MaxConcurrentCompactions: func() int {
+			return 2
+		}, // Better utilizes CPU on larger instances
+	}
+	return pebble.Open(filepath.Join(storageDir, "decision"), opts)
 }

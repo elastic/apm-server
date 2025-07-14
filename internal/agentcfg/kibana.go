@@ -52,15 +52,19 @@ type KibanaFetcher struct {
 // NewKibanaFetcher returns a KibanaFetcher instance.
 //
 // NewKibanaFetcher will return an error if passed a nil client.
-func NewKibanaFetcher(client *kibana.Client, cacheExpiration time.Duration) (*KibanaFetcher, error) {
+func NewKibanaFetcher(client *kibana.Client, cacheExpiration time.Duration, logger *logp.Logger) (*KibanaFetcher, error) {
 	if client == nil {
 		return nil, errors.New("client is required")
 	}
-	logger := logp.NewLogger("agentcfg")
+	logger = logger.Named("agentcfg")
+	cache, err := newCache(logger, cacheExpiration)
+	if err != nil {
+		return nil, err
+	}
 	return &KibanaFetcher{
 		client: client,
 		logger: logger,
-		cache:  newCache(logger, cacheExpiration),
+		cache:  cache,
 	}, nil
 }
 

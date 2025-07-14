@@ -13,14 +13,15 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
-	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 )
 
 func TestNewProcessorConfigInvalid(t *testing.T) {
 	var config sampling.Config
 	assertInvalidConfigError := func(expectedError string) {
 		t.Helper()
-		agg, err := sampling.NewProcessor(config)
+		agg, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 		require.Error(t, err)
 		require.Nil(t, agg)
 		assert.EqualError(t, err, "invalid tail-sampling config: "+expectedError)
@@ -58,7 +59,7 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	config.CompressionLevel = 0
 
 	assertInvalidConfigError("invalid remote sampling config: Elasticsearch unspecified")
-	config.Elasticsearch = &elasticsearch.Client{}
+	config.Elasticsearch = &elastictransport.Client{}
 
 	assertInvalidConfigError("invalid remote sampling config: SampledTracesDataStream unspecified or invalid")
 	config.SampledTracesDataStream = sampling.DataStreamConfig{

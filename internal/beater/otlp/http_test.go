@@ -35,6 +35,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+	"go.opentelemetry.io/otel/trace/noop"
 	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -44,6 +45,8 @@ import (
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestConsumeTracesHTTP(t *testing.T) {
@@ -179,6 +182,9 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) (string,
 		func() bool { return true },
 		semaphore.NewWeighted(1),
 		mp,
+		noop.NewTracerProvider(),
+		logptest.NewTestingLogger(t, ""),
+		monitoring.NewRegistry(),
 	)
 	require.NoError(t, err)
 	srv := http.Server{Handler: router}

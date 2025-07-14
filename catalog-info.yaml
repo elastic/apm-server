@@ -49,3 +49,8 @@ spec:
         observablt-robots: {}
         everyone:
           access_level: READ_ONLY
+      schedules:
+        Weekly 7.17:
+          branch: "7.17"
+          cronline: "@weekly"
+          message: Builds `7.17` DRA

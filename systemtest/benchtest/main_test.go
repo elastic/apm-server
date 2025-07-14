@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -48,16 +49,35 @@ func Test_warmup(t *testing.T) {
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("%d_agent_%s", c.agents, c.duration.String()), func(t *testing.T) {
 			var received atomic.Uint64
+			var ongoingRequests atomic.Int64
+			var closeOnce sync.Once
+			atLeastOneRequest := make(chan struct{})
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.URL.Path == "/debug/vars" {
-					// Report idle APM Server.
-					w.Write([]byte(`{"libbeat.output.events.active":0}`))
+					// NOTE: There were cases in CI environment where this test handler reports idle
+					// before any previous requests were even completed.
+					select {
+					case <-atLeastOneRequest:
+						// Wait until there is at least one received request.
+						output := fmt.Sprintf(`{"libbeat.output.events.active":%d}`, ongoingRequests.Load())
+						_, _ = w.Write([]byte(output))
+					default:
+						// Prevent stopping the warmup before any requests are even received.
+						_, _ = w.Write([]byte(`{"libbeat.output.events.active":1}`))
+					}
 					return
 				}
 
 				if !strings.HasPrefix(r.URL.Path, "/intake") {
 					return
 				}
+
+				// Signal that there is at least one request received.
+				closeOnce.Do(func() { close(atLeastOneRequest) })
+				ongoingRequests.Add(1)
+				defer func() {
+					ongoingRequests.Add(-1)
+				}()
 
 				var reader io.Reader
 				switch r.Header.Get("Content-Encoding") {
@@ -89,8 +109,9 @@ func Test_warmup(t *testing.T) {
 				received.Add(localReceive)
 				w.WriteHeader(http.StatusAccepted)
 			}))
+
 			t.Cleanup(srv.Close)
-			err := warmup(c.agents, c.duration, srv.URL, "")
+			err := warmup(c.agents, c.duration, srv.URL, "", "")
 			assert.NoError(t, err)
 			assert.Greater(t, received.Load(), uint64(c.agents))
 		})

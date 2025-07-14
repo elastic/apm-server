@@ -73,8 +73,8 @@ func (m *monitoringMiddleware) getCounter(prefix, name string) metric.Int64Count
 		return met.(metric.Int64Counter)
 	}
 	nm, _ := m.meter.Int64Counter(name)
-	m.counters.LoadOrStore(name, nm)
-	return nm
+	met, _ := m.counters.LoadOrStore(name, nm)
+	return met.(metric.Int64Counter)
 }
 
 func (m *monitoringMiddleware) getHistogram(n string, opts ...metric.Int64HistogramOption) metric.Int64Histogram {
@@ -84,8 +84,8 @@ func (m *monitoringMiddleware) getHistogram(n string, opts ...metric.Int64Histog
 	}
 
 	nm, _ := m.meter.Int64Histogram(name, opts...)
-	m.histograms.LoadOrStore(name, nm)
-	return nm
+	met, _ := m.histograms.LoadOrStore(name, nm)
+	return met.(metric.Int64Histogram)
 }
 
 // MonitoringMiddleware returns a middleware that increases monitoring counters for collecting metrics

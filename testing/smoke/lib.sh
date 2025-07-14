@@ -22,12 +22,20 @@ get_versions() {
 }
 
 get_latest_version() {
+    if [[ -z "${VERSIONS}" ]]; then
+        echo "-> Version not set, call get_versions first"
+        return 1
+    fi
     local version
     version=$(echo ${VERSIONS} | jq -r -c "max_by(. | select(. | startswith(\"${1}\")) | if endswith(\"-SNAPSHOT\") then .[:-9] else . end | split(\".\") | map(tonumber))")
     echo "${version}"
 }
 
 get_latest_patch() {
+    if [[ -z "${1}" ]]; then
+        echo "-> Version not set"
+        return 1
+    fi
     LATEST_PATCH=$(get_latest_version "${1}" | cut -d '.' -f3)
 }
 
@@ -131,7 +139,7 @@ assert_entry() {
     if [[ ${HITS} -ne ${ENTRIES} ]]; then
         echo "Didn't find ${ENTRIES} indexed documents ${MSG}, total hits ${HITS}"
         echo ${RESULT}
-        exit 2
+        return 2
     else
         echo "-> Asserted ${ENTRIES} ${MSG} exists"
     fi
@@ -147,7 +155,7 @@ send_events() {
     curl_fail --data-binary @${INTAKE_DATA} -H "${APM_AUTH_HEADER}" -H "${INTAKE_HEADER}" ${APM_SERVER_INTAKE}
 
     # TODO(marclop). It would be best to query Elasticsearch until at least X documents have been ingested.
-    sleep 10
+    sleep 5
 }
 
 delete_all() {
@@ -175,10 +183,10 @@ data_stream_assert_events() {
     local METRICS_INDEX="metrics-apm.internal-*"
     local VERSION=${1}
     local ENTRIES=${2}
-    assert_document ${ERRORS_INDEX} "error.id" "9876543210abcdeffedcba0123456789" ${VERSION} ${ENTRIES}
-    assert_document ${TRACES_INDEX} "span.id" "1234567890aaaade" ${VERSION} ${ENTRIES}
-    assert_document ${TRACES_INDEX} "transaction.id" "4340a8e0df1906ecbfa9" ${VERSION} ${ENTRIES}
-    assert_document ${METRICS_INDEX} "transaction.type" "request" ${VERSION} ${ENTRIES}
+    retry 6 assert_document ${ERRORS_INDEX} "error.id" "9876543210abcdeffedcba0123456789" ${VERSION} ${ENTRIES}
+    retry 6 assert_document ${TRACES_INDEX} "span.id" "1234567890aaaade" ${VERSION} ${ENTRIES}
+    retry 6 assert_document ${TRACES_INDEX} "transaction.id" "4340a8e0df1906ecbfa9" ${VERSION} ${ENTRIES}
+    retry 6 assert_document ${METRICS_INDEX} "transaction.type" "request" ${VERSION} ${ENTRIES}
 }
 
 healthcheck() {
@@ -419,4 +427,24 @@ is_curl_fail_with_body() {
         HAS_FAIL_WITH_BODY=$?
     fi
     return $HAS_FAIL_WITH_BODY
+}
+
+retry() {
+  local retries=$1
+  shift
+
+  local count=0
+  until "$@"; do
+    exit=$?
+    wait=$((2 ** count))
+    count=$((count + 1))
+    if [ $count -lt "$retries" ]; then
+      echo "-> Retry cmd: '$*';  $count/$retries exited $exit, retrying in $wait seconds..."
+      sleep $wait
+    else
+      echo "-> Retry cmd: '$*'; $count/$retries exited $exit, no more retries left."
+      return $exit
+    fi
+  done
+  return 0
 }
