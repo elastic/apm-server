@@ -44,6 +44,7 @@ import (
 	"github.com/elastic/apm-server/internal/sourcemap"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestBackendRequestMetadata(t *testing.T) {
@@ -185,6 +186,7 @@ func (m muxBuilder) build(cfg *config.Config) (sdkmetric.Reader, http.Handler, e
 		mp,
 		noop.NewTracerProvider(),
 		m.Logger,
+		monitoring.NewRegistry(),
 	)
 	return reader, r, err
 }
