@@ -30,6 +30,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/elasticapm"
@@ -93,6 +94,7 @@ func NewMux(
 	meterProvider metric.MeterProvider,
 	traceProvider trace.TracerProvider,
 	logger *logp.Logger,
+	statsRegistry *monitoring.Registry,
 ) (*mux.Router, error) {
 	pool := request.NewContextPool()
 	logger = logger.Named(logs.Handler)
@@ -147,7 +149,7 @@ func NewMux(
 	if beaterConfig.Expvar.Enabled {
 		path := beaterConfig.Expvar.URL
 		logger.Infof("Path %s added to request handler", path)
-		router.Handle(path, http.HandlerFunc(debugVarsHandler))
+		router.Handle(path, debugVarsHandler(statsRegistry))
 	}
 	if beaterConfig.Pprof.Enabled {
 		const path = "/debug/pprof"

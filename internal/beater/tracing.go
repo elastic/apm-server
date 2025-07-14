@@ -26,6 +26,7 @@ import (
 	nooptrace "go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -58,6 +59,7 @@ func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Log
 		noopmetric.NewMeterProvider(),
 		nooptrace.NewTracerProvider(),
 		logger,
+		monitoring.NewRegistry(), // unused
 	)
 	if err != nil {
 		return nil, err
