@@ -41,7 +41,7 @@ jobs:
   test:
     strategy:
       matrix:
-        os: ['macos-latest', 'ubuntu-latest', 'windows-latest', 'windows-2025']
+        os: ['macos-latest', 'ubuntu-latest', 'windows-2025']
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
