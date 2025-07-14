@@ -30,26 +30,28 @@ import (
 // TODO(axw) this is copied from libbeat/service. We should move the
 // handler to libbeat/monitoring, and export it for libbeat/service and
 // apm-server to use.
-func debugVarsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+func debugVarsHandler(statsRegistry *monitoring.Registry) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-	first := true
-	report := func(key string, value interface{}) {
-		if !first {
-			fmt.Fprintf(w, ",\n")
+		first := true
+		report := func(key string, value interface{}) {
+			if !first {
+				fmt.Fprintf(w, ",\n")
+			}
+			first = false
+			if str, ok := value.(string); ok {
+				fmt.Fprintf(w, "%q: %q", key, str)
+			} else {
+				fmt.Fprintf(w, "%q: %v", key, value)
+			}
 		}
-		first = false
-		if str, ok := value.(string); ok {
-			fmt.Fprintf(w, "%q: %q", key, str)
-		} else {
-			fmt.Fprintf(w, "%q: %v", key, value)
-		}
+
+		fmt.Fprintf(w, "{\n")
+		statsRegistry.Do(monitoring.Full, report)
+		expvar.Do(func(kv expvar.KeyValue) {
+			report(kv.Key, kv.Value)
+		})
+		fmt.Fprintf(w, "\n}\n")
 	}
-
-	fmt.Fprintf(w, "{\n")
-	monitoring.Do(monitoring.Full, report)
-	expvar.Do(func(kv expvar.KeyValue) {
-		report(kv.Key, kv.Value)
-	})
-	fmt.Fprintf(w, "\n}\n")
 }
