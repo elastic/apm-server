@@ -892,7 +892,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		return nil, nil, fmt.Errorf("failed to create libbeat output pipeline: %w", err)
 	}
 	pipelineConnector := pipetool.WithACKer(pipeline, acker)
-	publisher, err := publish.NewPublisher(pipelineConnector, tracer)
+	publisher, err := publish.NewPublisher(pipelineConnector)
 	if err != nil {
 		return nil, nil, err
 	}
