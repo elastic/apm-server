@@ -1,6 +1,8 @@
 [[apm-release-notes-8.17]]
 == APM version 8.17
 
+* <<apm-release-notes-8.17.9>>
+* <<apm-release-notes-8.17.8>>
 * <<apm-release-notes-8.17.7>>
 * <<apm-release-notes-8.17.6>>
 * <<apm-release-notes-8.17.5>>
@@ -9,6 +11,48 @@
 * <<apm-release-notes-8.17.2>>
 * <<apm-release-notes-8.17.1>>
 * <<apm-release-notes-8.17.0>>
+
+[float]
+[[apm-release-notes-8.17.9]]
+=== APM version 8.17.9
+
+https://github.com/elastic/apm-server/compare/v8.17.8\...v8.17.9[View commits]
+
+[float]
+==== Bug fixes
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Deprecations
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
+
+[float]
+[[apm-release-notes-8.17.8]]
+=== APM version 8.17.8
+
+https://github.com/elastic/apm-server/compare/v8.17.7\...v8.17.8[View commits]
+
+[float]
+==== Bug fixes
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Deprecations
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
 
 [float]
 [[apm-release-notes-8.17.7]]
