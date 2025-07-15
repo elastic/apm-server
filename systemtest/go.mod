@@ -3,7 +3,7 @@ module github.com/elastic/apm-server/systemtest
 go 1.24.5
 
 require (
-	github.com/docker/docker v28.3.1+incompatible
+	github.com/docker/docker v28.3.2+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/elastic/apm-perf v1.0.0
 	github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959
@@ -17,7 +17,7 @@ require (
 	github.com/tidwall/gjson v1.18.0
 	go.elastic.co/apm/v2 v2.7.1
 	go.elastic.co/fastjson v1.5.1
-	go.opentelemetry.io/collector/pdata v1.35.0
+	go.opentelemetry.io/collector/pdata v1.36.0
 	go.opentelemetry.io/collector/semconv v0.128.0
 	go.opentelemetry.io/otel v1.37.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.37.0
@@ -30,8 +30,8 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.37.0
 	go.opentelemetry.io/otel/trace v1.37.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/sync v0.15.0
-	golang.org/x/sys v0.33.0
+	golang.org/x/sync v0.16.0
+	golang.org/x/sys v0.34.0
 	golang.org/x/time v0.12.0
 	google.golang.org/grpc v1.73.0
 	gopkg.in/yaml.v3 v3.0.1
