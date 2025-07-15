@@ -1704,11 +1704,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.3.2/LIC
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-docappender/v2
-Version: v2.10.0
+Version: v2.11.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender/v2@v2.10.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender/v2@v2.11.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
