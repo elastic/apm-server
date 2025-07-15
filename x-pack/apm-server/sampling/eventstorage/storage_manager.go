@@ -5,7 +5,6 @@
 package eventstorage
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -16,7 +15,6 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v2"
-	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -33,14 +31,6 @@ const (
 var (
 	errDropAndRecreateInProgress = errors.New("db drop and recreate in progress")
 )
-
-type StorageManagerOptions func(*StorageManager)
-
-func WithMeterProvider(mp metric.MeterProvider) StorageManagerOptions {
-	return func(sm *StorageManager) {
-		sm.meterProvider = mp
-	}
-}
 
 // StorageManager encapsulates badger.DB.
 // It is to provide file system access, simplify synchronization and enable underlying db swaps.
@@ -61,43 +51,19 @@ type StorageManager struct {
 	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
 	runCh chan struct{}
-
-	meterProvider  metric.MeterProvider
-	storageMetrics storageMetrics
 }
 
-type storageMetrics struct {
-	lsmSizeGauge      metric.Int64Gauge
-	valueLogSizeGauge metric.Int64Gauge
-}
-
-// NewStorageManager returns a new StorageManager with pebble DB at storageDir.
-func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*StorageManager, error) {
+// NewStorageManager returns a new StorageManager with badger DB at storageDir.
+func NewStorageManager(storageDir string) (*StorageManager, error) {
 	sm := &StorageManager{
 		storageDir: storageDir,
 		runCh:      make(chan struct{}, 1),
 		logger:     logp.NewLogger(logs.Sampling),
 	}
-
-	for _, opt := range opts {
-		opt(sm)
+	err := sm.reset()
+	if err != nil {
+		return nil, err
 	}
-
-	if sm.meterProvider != nil {
-		meter := sm.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
-
-		sm.storageMetrics.lsmSizeGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
-		sm.storageMetrics.valueLogSizeGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.value_log_size")
-	}
-
-	if err := sm.reset(); err != nil {
-		return nil, fmt.Errorf("storage manager reset error: %w", err)
-	}
-
-	// report storage so data is available immediately
-	// without relying on the reporting loop
-	sm.reportStorageMetrics(sm.Size())
-
 	return sm, nil
 }
 
@@ -111,15 +77,6 @@ func (s *StorageManager) reset() error {
 	s.storage = New(s, ProtobufCodec{})
 	s.rw = s.storage.NewShardedReadWriter()
 	return nil
-}
-
-func (s *StorageManager) reportStorageMetrics(lsm, vlog int64) {
-	if s.storageMetrics.lsmSizeGauge != nil {
-		s.storageMetrics.lsmSizeGauge.Record(context.Background(), lsm)
-	}
-	if s.storageMetrics.valueLogSizeGauge != nil {
-		s.storageMetrics.valueLogSizeGauge.Record(context.Background(), vlog)
-	}
 }
 
 // Close closes StorageManager's underlying ShardedReadWriter and badger DB
@@ -160,9 +117,6 @@ func (s *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration,
 	})
 	g.Go(func() error {
 		return s.runDropLoop(stopping, ttl, storageLimit, storageLimitThreshold)
-	})
-	g.Go(func() error {
-		return s.runDBSizeMetricLoop(stopping)
 	})
 	return g.Wait()
 }
@@ -250,21 +204,6 @@ func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration
 		case <-stopping:
 			return nil
 		case <-timer.C:
-			continue
-		}
-	}
-}
-
-// runDBSizeMetricLoop runs a loop to report the database size
-func (s *StorageManager) runDBSizeMetricLoop(stopping <-chan struct{}) error {
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
-	for {
-		s.reportStorageMetrics(s.Size())
-		select {
-		case <-stopping:
-			return nil
-		case <-ticker.C:
 			continue
 		}
 	}
