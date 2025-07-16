@@ -215,7 +215,7 @@ func TestLibbeatMetrics(t *testing.T) {
 	}, snapshot)
 
 	assert.Eventually(t, func() bool {
-		return appender.Stats().IndexersActive > 1
+		return appender.IndexersActive() > 1
 	}, 10*time.Second, 50*time.Millisecond)
 
 	for i := 0; i < 4; i++ {
