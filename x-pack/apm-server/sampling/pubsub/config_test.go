@@ -23,12 +23,12 @@ func TestConfigInvalid(t *testing.T) {
 
 	for _, test := range []test{{
 		config: pubsub.Config{},
-		err:    "Client unspecified",
+		err:    "client unspecified",
 	}, {
 		config: pubsub.Config{
 			Client: &elastictransport.Client{},
 		},
-		err: "DataStream unspecified or invalid: Type unspecified",
+		err: "DataStream unspecified or invalid: type unspecified",
 	}, {
 		config: pubsub.Config{
 			Client: &elastictransport.Client{},
@@ -36,7 +36,7 @@ func TestConfigInvalid(t *testing.T) {
 				Type: "type",
 			},
 		},
-		err: "DataStream unspecified or invalid: Dataset unspecified",
+		err: "DataStream unspecified or invalid: dataset unspecified",
 	}, {
 		config: pubsub.Config{
 			Client: &elastictransport.Client{},
@@ -45,7 +45,7 @@ func TestConfigInvalid(t *testing.T) {
 				Dataset: "dataset",
 			},
 		},
-		err: "DataStream unspecified or invalid: Namespace unspecified",
+		err: "DataStream unspecified or invalid: namespace unspecified",
 	}, {
 		config: pubsub.Config{
 			Client: &elastictransport.Client{},

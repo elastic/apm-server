@@ -36,11 +36,11 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	assertInvalidConfigError("invalid local sampling config: MaxDynamicServices unspecified or negative")
 	config.MaxDynamicServices = 1
 
-	assertInvalidConfigError("invalid local sampling config: Policies unspecified")
+	assertInvalidConfigError("invalid local sampling config: policies unspecified")
 	config.Policies = []sampling.Policy{{
 		PolicyCriteria: sampling.PolicyCriteria{ServiceName: "foo"},
 	}}
-	assertInvalidConfigError("invalid local sampling config: Policies does not contain a default (empty criteria) policy")
+	assertInvalidConfigError("invalid local sampling config: policies does not contain a default (empty criteria) policy")
 	config.Policies[0].PolicyCriteria = sampling.PolicyCriteria{}
 	for _, invalid := range []float64{-1, 2.0} {
 		config.Policies[0].SampleRate = invalid
@@ -58,7 +58,7 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	assertInvalidConfigError("invalid remote sampling config: CompressionLevel out of range [-1,9]")
 	config.CompressionLevel = 0
 
-	assertInvalidConfigError("invalid remote sampling config: Elasticsearch unspecified")
+	assertInvalidConfigError("invalid remote sampling config: elasticsearch unspecified")
 	config.Elasticsearch = &elastictransport.Client{}
 
 	assertInvalidConfigError("invalid remote sampling config: SampledTracesDataStream unspecified or invalid")
@@ -74,7 +74,7 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	assertInvalidConfigError("invalid storage config: DB unspecified")
 	config.DB = &eventstorage.StorageManager{}
 
-	assertInvalidConfigError("invalid storage config: Storage unspecified")
+	assertInvalidConfigError("invalid storage config: storage unspecified")
 	config.Storage = &eventstorage.SplitReadWriter{}
 
 	assertInvalidConfigError("invalid storage config: TTL unspecified or negative")
