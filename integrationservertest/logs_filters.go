@@ -75,6 +75,11 @@ var (
 			"message": {Query: "failed to populate sourcemap metadata: fetcher unavailable: 403 Forbidden:"},
 		},
 	})
+	syncSourcemapFetcher403 = apmErrorLog(types.Query{
+		MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
+			"message": {Query: "failed to sync sourcemaps metadata: fetcher unavailable: 403 Forbidden:"},
+		},
+	})
 
 	refreshCache403 = apmErrorLog(types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
