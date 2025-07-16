@@ -68,7 +68,7 @@ type DataStreamConfig struct {
 // Validate validates the configuration.
 func (config Config) Validate() error {
 	if config.Client == nil {
-		return errors.New("Client unspecified")
+		return errors.New("client unspecified")
 	}
 	if err := config.DataStream.Validate(); err != nil {
 		return fmt.Errorf("DataStream unspecified or invalid: %w", err)
@@ -88,13 +88,13 @@ func (config Config) Validate() error {
 // Validate validates the configuration.
 func (config DataStreamConfig) Validate() error {
 	if config.Type == "" {
-		return errors.New("Type unspecified")
+		return errors.New("type unspecified")
 	}
 	if config.Dataset == "" {
-		return errors.New("Dataset unspecified")
+		return errors.New("dataset unspecified")
 	}
 	if config.Namespace == "" {
-		return errors.New("Namespace unspecified")
+		return errors.New("namespace unspecified")
 	}
 	return nil
 }
