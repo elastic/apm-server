@@ -37,12 +37,10 @@ jobs:
       fail-fast: false
       matrix:
         upgrade-path:
-          # Latest 8.15 cannot upgrade to latest 8.17, it can only go to 8.17.3.
-          # With our current setup (only latest patch), we have to upgrade to intermediate latest 8.16 instead.
-          # TODO: Maybe add support for upgrading to latest upgradable instead of absolute latest?
-          - '8.15, 8.16, 8.17'
-          - '8.17, 8.18, 9.0'
-          - '8.17, 8.19, 9.1'
+          - '8.16, 8.17, 8.18'
+          - '8.18, 8.19, 9.2'
+          - '8.18, 9.0, 9.2'
+          - '8.19, 9.1, 9.2'
         scenario:
           - 'Default'
           - 'Reroute'
