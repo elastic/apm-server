@@ -19,8 +19,8 @@ package ratelimit
 
 import (
 	"context"
+	"errors"
 
-	"github.com/pkg/errors"
 	"golang.org/x/time/rate"
 )
 

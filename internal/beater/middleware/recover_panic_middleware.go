@@ -18,9 +18,8 @@
 package middleware
 
 import (
+	"fmt"
 	"runtime/debug"
-
-	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/internal/beater/request"
 )
@@ -49,7 +48,7 @@ func RecoverPanicMiddleware() Middleware {
 					var ok bool
 					var err error
 					if err, ok = r.(error); ok {
-						err = errors.Wrap(err, status.Keyword)
+						err = fmt.Errorf(status.Keyword+": %w", err)
 					}
 					c.Result.Set(id, status.Code, status.Keyword, keywordPanic, err)
 					c.Result.Stacktrace = string(debug.Stack())

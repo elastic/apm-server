@@ -5,9 +5,10 @@
 package sampling
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -172,13 +173,13 @@ func (config Config) Validate() error {
 		return errors.New("BatchProcessor unspecified")
 	}
 	if err := config.LocalSamplingConfig.validate(); err != nil {
-		return errors.Wrap(err, "invalid local sampling config")
+		return fmt.Errorf("invalid local sampling config: %w", err)
 	}
 	if err := config.RemoteSamplingConfig.validate(); err != nil {
-		return errors.Wrap(err, "invalid remote sampling config")
+		return fmt.Errorf("invalid remote sampling config: %w", err)
 	}
 	if err := config.StorageConfig.validate(); err != nil {
-		return errors.Wrap(err, "invalid storage config")
+		return fmt.Errorf("invalid storage config: %w", err)
 	}
 	return nil
 }
@@ -196,7 +197,7 @@ func (config LocalSamplingConfig) validate() error {
 	var anyDefaultPolicy bool
 	for i, policy := range config.Policies {
 		if err := policy.validate(); err != nil {
-			return errors.Wrapf(err, "Policy %d invalid", i)
+			return fmt.Errorf("Policy %d invalid: %w", i, err)
 		}
 		if policy.PolicyCriteria == (PolicyCriteria{}) {
 			anyDefaultPolicy = true
