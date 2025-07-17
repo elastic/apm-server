@@ -89,16 +89,7 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version, in
 		return fmt.Errorf("cannot run generator: %w", err)
 	}
 
-	// With Fleet managed APM server, we can trigger metrics flush.
-	if integrations {
-		g.logger.Info("flush apm metrics")
-		if err := g.flushAPMMetrics(ctx, version); err != nil {
-			return fmt.Errorf("cannot flush apm metrics: %w", err)
-		}
-		return nil
-	}
-
-	// With standalone, we don't have Fleet, so simply just wait for some arbitrary time.
+	// Simply wait for some arbitrary time, for the data to be flushed.
 	time.Sleep(180 * time.Second)
 	return nil
 }
@@ -171,22 +162,6 @@ func (g *Generator) reapplyAPMPolicy(ctx context.Context, version ech.Version) e
 		)
 	}
 
-	return nil
-}
-
-// flushAPMMetrics sends an update to the Fleet APM package policy in order
-// to trigger the flushing of in-flight APM metrics.
-func (g *Generator) flushAPMMetrics(ctx context.Context, version ech.Version) error {
-	// Re-applying the Elastic APM policy is enough to trigger final aggregations
-	// in APM Server and flush of in-flight metrics.
-	if err := g.reapplyAPMPolicy(ctx, version); err != nil {
-		return err
-	}
-
-	// APM Server needs some time to flush all metrics, and we don't have any
-	// visibility on when this completes.
-	// NOTE: This value comes from empirical observations.
-	time.Sleep(120 * time.Second)
 	return nil
 }
 
