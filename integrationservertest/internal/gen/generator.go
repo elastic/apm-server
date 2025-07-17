@@ -85,12 +85,12 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version, in
 	}
 
 	g.logger.Info("ingest data")
-	if err := g.runBlocking(ctx, version); err != nil {
+	if err := g.retryRunBlocking(ctx, version, 2); err != nil {
 		return fmt.Errorf("cannot run generator: %w", err)
 	}
 
 	// Simply wait for some arbitrary time, for the data to be flushed.
-	time.Sleep(180 * time.Second)
+	time.Sleep(200 * time.Second)
 	return nil
 }
 
@@ -149,6 +149,32 @@ func (g *Generator) runBlocking(ctx context.Context, version ech.Version) error 
 
 	gen.Logger = g.logger
 	return gen.RunBlocking(ctx)
+}
+
+// retryRunBlocking executes runBlocking. If it fails, it will retry up to retryTimes.
+func (g *Generator) retryRunBlocking(ctx context.Context, version ech.Version, retryTimes int) error {
+	// No error, don't need to retry.
+	if err := g.runBlocking(ctx, version); err == nil {
+		return nil
+	}
+
+	// Otherwise, retry until success or run out of attempts.
+	var finalErr error
+	for i := 0; i < retryTimes; i++ {
+		// Wait for some time before retrying.
+		time.Sleep(time.Duration(i) * 30 * time.Second)
+
+		g.logger.Info(fmt.Sprintf("retrying ingest data attempt %d", i+1))
+		err := g.runBlocking(ctx, version)
+		// Retry success, simply return.
+		if err == nil {
+			return nil
+		}
+
+		finalErr = err
+	}
+
+	return finalErr
 }
 
 func (g *Generator) reapplyAPMPolicy(ctx context.Context, version ech.Version) error {
