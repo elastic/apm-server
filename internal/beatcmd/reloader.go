@@ -143,8 +143,8 @@ func (r *Reloader) Run(ctx context.Context) error {
 }
 
 // reloadInput (re)loads input configuration.
-// It returns a *multierror.MultiError as libbeat manager error handling is tightly coupled
-// with its own reloadable list implementation in libbeat/cfgfile/list.go.
+// It has to return a joined error similar to the libbeat reloadable list implementation in libbeat/cfgfile/list.go,
+// such that the returned error is corrected parsed by libbeat managerV2.
 //
 // Note: reloadInputs may be called before the Reloader is running.
 func (r *Reloader) reloadInputs(configs []*reload.ConfigWithMeta) error {
