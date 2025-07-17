@@ -31,7 +31,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"go.elastic.co/apm/v2/apmtest"
 	"go.elastic.co/fastjson"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -54,7 +53,7 @@ func TestPublisherStop(t *testing.T) {
 	// Create a pipeline with a limited queue size and no outputs,
 	// so we can simulate a pipeline that blocks indefinitely.
 	pipeline, client := newBlockingPipeline(t)
-	publisher, err := publish.NewPublisher(pipeline, apmtest.DiscardTracer)
+	publisher, err := publish.NewPublisher(pipeline)
 	require.NoError(t, err)
 	defer func() {
 		cancelledContext, cancel := context.WithCancel(context.Background())
@@ -90,7 +89,7 @@ func TestPublisherStop(t *testing.T) {
 
 func TestPublisherStopShutdownInactive(t *testing.T) {
 	pipeline, _ := newBlockingPipeline(t)
-	publisher, err := publish.NewPublisher(pipeline, apmtest.DiscardTracer)
+	publisher, err := publish.NewPublisher(pipeline)
 	require.NoError(t, err)
 
 	// There are no active events, so the publisher should stop immediately
@@ -192,7 +191,6 @@ func BenchmarkPublisher(b *testing.B) {
 	acker.Open()
 	publisher, err := publish.NewPublisher(
 		pipetool.WithACKer(pipeline, acker),
-		apmtest.DiscardTracer,
 	)
 	require.NoError(b, err)
 
