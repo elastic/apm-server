@@ -4,15 +4,16 @@ The APM Server follows the Elastic Stack release schedule and versions. A releas
 
 ## Patch Release
 
-1. Ensure all relevant backport PRs are merged. We use backport labels on PRs and automation to ensure labels are set.
-2. Run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow
+1. Create a *Test Plan*.
+2. Ensure all relevant backport PRs are merged. We use backport labels on PRs and automation to ensure labels are set.
+3. Run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow
     - In "Use workflow from", select `main` branch.
     - Then in "The version", specify the **upcoming** patch release version - es: on `8.14.2` feature freeze you will use `8.14.2`).
     - This workflow will:
         - Create the `update-<VERSION>` branch.
         - Update version constants across the codebase and create a PR targeting the release branch.
-3. Release notes for patch releases **must be manually added** at least one day before release.
-4. Create a PR targeting the `main` branch and add the backport label for the release branch. To add release notes:
+4. Release notes for patch releases **must be manually added** at least one day before release.
+5. Create a PR targeting the `main` branch and add the backport label for the release branch. To add release notes:
     - Add a new section to the existing release notes file ([Sample PR](https://github.com/elastic/apm-server/pull/12680)).
     - Review the [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) file and move relevant changelog entries from `head.asciidoc` to `release_version.asciidoc` if the change is backported to release_version. If changes do not apply to the version being released, keep them in the `head.asciidoc` file.
     - Review the commits in the release to ensure all changes are reflected in the release notes. Check for backported changes without release notes in `release_version.asciidoc`.
