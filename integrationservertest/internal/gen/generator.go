@@ -75,6 +75,7 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version, in
 		if !integrations {
 			return fmt.Errorf("failed to wait for apm server: %w", err)
 		}
+		g.logger.Info("re-apply apm policy")
 		if err = g.reapplyAPMPolicy(ctx, version); err != nil {
 			return fmt.Errorf("failed to re-apply apm policy: %w", err)
 		}
@@ -161,7 +162,7 @@ func (g *Generator) runBlocking(ctx context.Context, version ech.Version) error 
 
 func (g *Generator) reapplyAPMPolicy(ctx context.Context, version ech.Version) error {
 	policyID := "elastic-cloud-apm"
-	description := fmt.Sprintf("%s %s", version, rand.Text()[5:])
+	description := fmt.Sprintf("%s %s", version, rand.Text()[:10])
 
 	if err := g.kbc.UpdatePackagePolicyDescriptionByID(ctx, policyID, version, description); err != nil {
 		return fmt.Errorf(
