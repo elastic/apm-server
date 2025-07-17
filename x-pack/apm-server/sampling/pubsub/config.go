@@ -4,6 +4,7 @@
 
 package pubsub
 
+//lint:file-ignore ST1005 ignore for now to keep error messages consistent
 import (
 	"errors"
 	"fmt"

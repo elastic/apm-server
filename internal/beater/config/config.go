@@ -82,7 +82,7 @@ func NewConfig(ucfg *config.C, outputESCfg *config.C, logger *logp.Logger) (*Con
 	logger = logger.Named(logs.Config)
 	c := DefaultConfig()
 	if err := ucfg.Unpack(c); err != nil {
-		return nil, fmt.Errorf("Error processing configuration: %w", err)
+		return nil, fmt.Errorf("error processing configuration: %w", err)
 	}
 
 	if err := c.AgentConfig.setup(logger, outputESCfg); err != nil {
