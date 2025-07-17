@@ -63,10 +63,10 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 	}
 
 	if _, err := regexp.Compile(c.LibraryPattern); err != nil {
-		return fmt.Errorf("invalid regex for `library_pattern`: %w", err)
+		return fmt.Errorf("Invalid regex for `library_pattern`: %w", err)
 	}
 	if _, err := regexp.Compile(c.ExcludeFromGrouping); err != nil {
-		return fmt.Errorf("invalid regex for `exclude_from_grouping`: %w", err)
+		return fmt.Errorf("Invalid regex for `exclude_from_grouping`: %w", err)
 	}
 
 	if outputESCfg == nil {

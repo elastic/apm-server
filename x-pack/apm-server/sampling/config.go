@@ -192,7 +192,7 @@ func (config LocalSamplingConfig) validate() error {
 		return errors.New("MaxDynamicServices unspecified or negative")
 	}
 	if len(config.Policies) == 0 {
-		return errors.New("policies unspecified")
+		return errors.New("Policies unspecified")
 	}
 	var anyDefaultPolicy bool
 	for i, policy := range config.Policies {
@@ -204,7 +204,7 @@ func (config LocalSamplingConfig) validate() error {
 		}
 	}
 	if !anyDefaultPolicy {
-		return errors.New("policies does not contain a default (empty criteria) policy")
+		return errors.New("Policies does not contain a default (empty criteria) policy")
 	}
 	if config.IngestRateDecayFactor <= 0 || config.IngestRateDecayFactor > 1 {
 		return errors.New("IngestRateDecayFactor unspecified or out of range (0,1]")
@@ -217,7 +217,7 @@ func (config RemoteSamplingConfig) validate() error {
 		return errors.New("CompressionLevel out of range [-1,9]")
 	}
 	if config.Elasticsearch == nil {
-		return errors.New("elasticsearch unspecified")
+		return errors.New("Elasticsearch unspecified")
 	}
 	if err := config.SampledTracesDataStream.validate(); err != nil {
 		return errors.New("SampledTracesDataStream unspecified or invalid")
@@ -237,7 +237,7 @@ func (config StorageConfig) validate() error {
 		return errors.New("DB unspecified")
 	}
 	if config.Storage == nil {
-		return errors.New("storage unspecified")
+		return errors.New("Storage unspecified")
 	}
 	if config.TTL <= 0 {
 		return errors.New("TTL unspecified or negative")
