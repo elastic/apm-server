@@ -19,15 +19,15 @@ for bc in ${bcs}; do
     # 8.19 cannot upgrade to 9.0 due to ES chronological upgrade policy.
     # See issue: https://elasticco.atlassian.net/browse/CP-10254.
     if [[ "${major}.${minor}" == "9.0" ]]; then
-        upgrade_paths+=("8.18, ${bc}")
+        upgrade_paths+=("8.18 -> ${bc}")
         continue
     fi
     # If minor is 0 i.e. brand new major version, upgrade from previous major.
     # Otherwise, upgrade from previous minor.
     if [[ ${minor} -eq 0 ]]; then
-        upgrade_paths+=("$(( major - 1 )), ${bc}")
+        upgrade_paths+=("$(( major - 1 )) -> ${bc}")
     else
-        upgrade_paths+=("${major}.$(( minor - 1 )), ${bc}")
+        upgrade_paths+=("${major}.$(( minor - 1 )) -> ${bc}")
     fi
 done
 

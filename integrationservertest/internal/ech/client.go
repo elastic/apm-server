@@ -194,7 +194,7 @@ func (c *Client) getVersions(
 		if preFilter != nil && !preFilter(s) {
 			continue
 		}
-		v, err := NewFromString(s.Version)
+		v, err := NewVersionFromString(s.Version)
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse stack version '%v': %w", s.Version, err)
 		}
@@ -219,7 +219,7 @@ func (c *Client) getVersions(
 func sortedStackVersionsForStrs(strs []string) ([]Version, error) {
 	versions := make(Versions, 0, len(strs))
 	for _, s := range strs {
-		v, err := NewFromString(s)
+		v, err := NewVersionFromString(s)
 		if err != nil {
 			return nil, err
 		}

@@ -167,7 +167,7 @@ func NewVersion(major, minor, patch uint64, suffix string) Version {
 	}
 }
 
-func NewFromString(versionStr string) (Version, error) {
+func NewVersionFromString(versionStr string) (Version, error) {
 	splits := strings.SplitN(versionStr, ".", 3)
 	if len(splits) != 3 {
 		return Version{}, errors.New("invalid format")

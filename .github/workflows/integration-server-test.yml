@@ -23,26 +23,24 @@ jobs:
     name: Prepare tests
     runs-on: ubuntu-latest
     outputs:
-      upgrade_paths: ${{ steps.generate.outputs.upgrade_paths }}
+      bc_upgrade_paths: ${{ steps.generate_bc.outputs.upgrade_paths }}
+      snapshot_upgrade_paths: ${{ steps.generate_snapshot.outputs.upgrade_paths }}
     steps:
       - uses: actions/checkout@v4
-      - id: generate
+      - id: generate_snapshot
+        name: Generate SNAPSHOT upgrade paths
+        uses: ./.github/workflows/generate-upgrade-paths
+      - id: generate_bc
         name: Generate BC upgrade paths
         uses: ./.github/workflows/generate-bc-upgrade-paths
 
   run-upgrade:
-    name: Upgrade tests (Snapshot)
+    name: Upgrade
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        upgrade-path:
-          # Latest 8.15 cannot upgrade to latest 8.17, it can only go to 8.17.3.
-          # With our current setup (only latest patch), we have to upgrade to intermediate latest 8.16 instead.
-          # TODO: Maybe add support for upgrading to latest upgradable instead of absolute latest?
-          - '8.15, 8.16, 8.17'
-          - '8.17, 8.18, 9.0'
-          - '8.17, 8.19, 9.1'
+        upgrade-path: ${{ fromJSON(needs.prepare.outputs.snapshot_upgrade_paths) }}
         scenario:
           - 'Default'
           - 'Reroute'
@@ -68,13 +66,13 @@ jobs:
           SCENARIO="${{ matrix.scenario }}" UPGRADE_PATH="${{ matrix.upgrade-path }}" SNAPSHOT=true make integration-server-test/upgrade
 
   run-upgrade-bc:
-    name: Upgrade tests (BC)
+    name: Upgrade BC
     runs-on: ubuntu-latest
     needs: prepare
     strategy:
       fail-fast: false
       matrix:
-        upgrade-path: ${{ fromJSON(needs.prepare.outputs.upgrade_paths) }}
+        upgrade-path: ${{ fromJSON(needs.prepare.outputs.bc_upgrade_paths) }}
         scenario:
           - 'Default'
           - 'Reroute'
@@ -100,7 +98,7 @@ jobs:
           SCENARIO="${{ matrix.scenario }}" UPGRADE_PATH="${{ matrix.upgrade-path }}" make integration-server-test/upgrade
 
   run-standalone:
-    name: Standalone-to-managed tests
+    name: Standalone-to-managed
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

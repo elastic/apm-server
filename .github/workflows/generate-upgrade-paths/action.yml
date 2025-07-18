@@ -1,0 +1,30 @@
+---
+
+name: generate-upgrade-paths
+description: Generate upgrade paths
+
+inputs:
+  snapshots:
+    description: "Use SNAPSHOT versions for test"
+    required: false
+    default: 'false'
+
+outputs:
+  upgrade_paths:
+    description: "List of SNAPSHOT upgrade paths"
+    value: ${{ steps.generate.outputs.upgrade_paths }}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: './integrationservertest/go.mod'
+        cache: false
+    - id: generate
+      name: Generate upgrade paths
+      run: |
+        echo "upgrade_paths=$(go run ./scripts/genpath --target='pro' --snapshots=${{ inputs.snapshots }})" >> "${GITHUB_OUTPUT}"
+      shell: 'bash'
+      working-directory: ./integrationservertest/
