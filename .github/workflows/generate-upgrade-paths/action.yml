@@ -9,9 +9,12 @@ inputs:
     default: 'false'
 
 outputs:
-  upgrade_paths:
+  snapshot_upgrade_paths:
     description: "List of SNAPSHOT upgrade paths"
-    value: ${{ steps.generate.outputs.upgrade_paths }}
+    value: ${{ steps.generate.outputs.snapshot_upgrade_paths }}
+  bc_upgrade_paths:
+    description: "List of BC upgrade paths"
+    value: ${{ steps.generate.outputs.bc_upgrade_paths }}
 
 runs:
   using: "composite"
@@ -21,10 +24,7 @@ runs:
     - id: generate
       name: Generate upgrade paths
       run: |
-        if [[ ${{ inputs.snapshots }} ]]; then
-          echo "snapshot_upgrade_paths=$(go run ./scripts/genpath --target='pro' --snapshots=true)" >> "${GITHUB_OUTPUT}"
-        else
-          echo "bc_upgrade_paths=$(go run ./scripts/genpath --target='pro' --snapshots=false)" >> "${GITHUB_OUTPUT}"
-        fi
+        echo "snapshot_upgrade_paths=$(go run ./scripts/genpath --target='pro' --snapshots=true)" >> "${GITHUB_OUTPUT}"
+        echo "bc_upgrade_paths=''" >> "${GITHUB_OUTPUT}"
       shell: 'bash'
       working-directory: ./integrationservertest/
