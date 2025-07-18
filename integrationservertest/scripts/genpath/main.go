@@ -130,8 +130,8 @@ func fetchTestVersions(ctx context.Context, vsCache *ech.VersionsCache) (ech.Ver
 func getUpgradeFromVersions(version ech.Version, vsCache *ech.VersionsCache) ech.Versions {
 	upgradeFromVersions := vsCache.GetUpgradeFromVersions(version).
 		Filter(func(v ech.Version) bool {
-			// Filter out non-SNAPSHOTs if we are testing SNAPSHOTs.
-			snapshotFilter := true
+			// Filter out non-SNAPSHOTs if we are testing SNAPSHOTs and vice-versa.
+			snapshotFilter := !v.IsSnapshot()
 			if *useSnapshots {
 				snapshotFilter = v.IsSnapshot()
 			}
@@ -185,7 +185,7 @@ type upgradePair struct {
 	From, To ech.Version
 }
 
-// constructUpgradePaths constructs upgrade paths from provided versions.
+// constructUpgradePaths constructs upgrade paths for provided versions.
 func constructUpgradePaths(versions ech.Versions, vsCache *ech.VersionsCache) []string {
 	// For each provided version, randomly select some from-versions to form
 	// upgrade pairs.
