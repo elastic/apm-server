@@ -55,10 +55,7 @@ const (
 	targetProd = "pro"
 )
 
-// regionFrom returns the appropriate region to run test
-// against based on specified target.
-// https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html
-func regionFrom(target string) string {
+func RegionFrom(target string) string {
 	switch target {
 	case targetQA:
 		return "aws-eu-west-1"
@@ -69,7 +66,7 @@ func regionFrom(target string) string {
 	}
 }
 
-func endpointFrom(target string) string {
+func EndpointFrom(target string) string {
 	switch target {
 	case targetQA:
 		return "https://public-api.qa.cld.elstc.co"
@@ -80,7 +77,7 @@ func endpointFrom(target string) string {
 	}
 }
 
-func deploymentTemplateFrom(region string) string {
+func DeploymentTemplateFrom(region string) string {
 	switch region {
 	case "aws-eu-west-1":
 		return "aws-storage-optimized"
@@ -168,8 +165,8 @@ func createCluster(
 	deployName := deploymentName(t)
 	t.Logf("creating deployment version %s", fromVersion)
 	ecTarget := terraform.Var("ec_target", target)
-	ecRegion := terraform.Var("ec_region", regionFrom(target))
-	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
+	ecRegion := terraform.Var("ec_region", RegionFrom(target))
+	ecDeploymentTpl := terraform.Var("ec_deployment_template", DeploymentTemplateFrom(RegionFrom(target)))
 	ver := terraform.Var("stack_version", fromVersion.String())
 	integrations := terraform.Var("integrations_server", strconv.FormatBool(enableIntegrations))
 	name := terraform.Var("name", deployName)
@@ -216,8 +213,8 @@ func upgradeCluster(
 	t.Helper()
 	t.Logf("upgrade deployment to %s", toVersion)
 	ecTarget := terraform.Var("ec_target", target)
-	ecRegion := terraform.Var("ec_region", regionFrom(target))
-	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
+	ecRegion := terraform.Var("ec_region", RegionFrom(target))
+	ecDeploymentTpl := terraform.Var("ec_deployment_template", DeploymentTemplateFrom(RegionFrom(target)))
 	ver := terraform.Var("stack_version", toVersion.String())
 	integrations := terraform.Var("integrations_server", strconv.FormatBool(enableIntegrations))
 	name := terraform.Var("name", deployName)

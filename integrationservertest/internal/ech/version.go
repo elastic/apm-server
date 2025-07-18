@@ -138,6 +138,19 @@ func (vs Versions) Has(version Version) bool {
 	return false
 }
 
+// Filter filters the list of versions using the provided function.
+// If the function returns true on a version, it is added to the return list.
+// Otherwise, it is skipped.
+func (vs Versions) Filter(fn func(Version) bool) Versions {
+	var result Versions
+	for _, v := range vs {
+		if fn(v) {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
 type Version struct {
 	Major  uint64
 	Minor  uint64
@@ -208,6 +221,10 @@ func (v Version) IsMinor(major, minor uint64) bool {
 
 func (v Version) IsPatch(major, minor, patch uint64) bool {
 	return v.Major == major && v.Minor == minor && v.Patch == patch
+}
+
+func (v Version) IsSnapshot() bool {
+	return v.Suffix == "SNAPSHOT"
 }
 
 func (v Version) Compare(other Version) int {

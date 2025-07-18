@@ -24,6 +24,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
 	"github.com/elastic/apm-server/integrationservertest/internal/asserts"
@@ -41,11 +42,11 @@ func formatUpgradePath(p string) string {
 }
 
 func TestUpgrade_UpgradePath_Snapshot(t *testing.T) {
-	testUpgrade(t, *upgradePath, vsCache.GetLatestSnapshot)
+	testUpgrade(t, *upgradePath, getLatestSnapshot)
 }
 
 func TestUpgrade_UpgradePath_Version(t *testing.T) {
-	testUpgrade(t, *upgradePath, vsCache.GetLatestVersion)
+	testUpgrade(t, *upgradePath, getLatestVersion)
 }
 
 func testUpgrade(t *testing.T, upgradePathStr string, versionFetcher func(*testing.T, string) ech.Version) {
@@ -242,4 +243,18 @@ func parseConfig(filename string) (upgradeTestConfig, error) {
 	}
 
 	return config, nil
+}
+
+func getLatestSnapshot(t *testing.T, prefix string) ech.Version {
+	t.Helper()
+	ver, err := vsCache.GetLatestSnapshot(prefix)
+	require.NoError(t, err)
+	return ver
+}
+
+func getLatestVersion(t *testing.T, prefix string) ech.Version {
+	t.Helper()
+	ver, err := vsCache.GetLatestVersion(prefix)
+	require.NoError(t, err)
+	return ver
 }

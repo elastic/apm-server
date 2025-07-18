@@ -68,8 +68,8 @@ func TestMain(m *testing.M) {
 	}
 
 	ctx := context.Background()
-	ecRegion := regionFrom(*target)
-	ecc, err := ech.NewClient(endpointFrom(*target), ecAPIKey)
+	ecRegion := RegionFrom(*target)
+	ecc, err := ech.NewClient(EndpointFrom(*target), ecAPIKey)
 	if err != nil {
 		log.Fatal(err)
 		return
