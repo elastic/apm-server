@@ -30,6 +30,8 @@ jobs:
       - id: generate_snapshot
         name: Generate SNAPSHOT upgrade paths
         uses: ./.github/workflows/generate-upgrade-paths
+        with:
+          snapshots: 'true'
       - id: generate_bc
         name: Generate BC upgrade paths
         uses: ./.github/workflows/generate-bc-upgrade-paths
