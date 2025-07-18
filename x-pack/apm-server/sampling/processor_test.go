@@ -6,6 +6,7 @@ package sampling_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"os"
@@ -15,7 +16,6 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/google/go-cmp/cmp"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"

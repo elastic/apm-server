@@ -18,10 +18,9 @@
 package config
 
 import (
+	"fmt"
 	"net"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -83,7 +82,7 @@ func NewConfig(ucfg *config.C, outputESCfg *config.C, logger *logp.Logger) (*Con
 	logger = logger.Named(logs.Config)
 	c := DefaultConfig()
 	if err := ucfg.Unpack(c); err != nil {
-		return nil, errors.Wrap(err, "Error processing configuration")
+		return nil, fmt.Errorf("error processing configuration: %w", err)
 	}
 
 	if err := c.AgentConfig.setup(logger, outputESCfg); err != nil {
