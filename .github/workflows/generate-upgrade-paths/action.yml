@@ -21,6 +21,10 @@ runs:
     - id: generate
       name: Generate upgrade paths
       run: |
-        echo "upgrade_paths=$(go run ./scripts/genpath --target='pro' --snapshots=${{ inputs.snapshots }})" >> "${GITHUB_OUTPUT}"
+        if [[ ${{ inputs.snapshots }} ]]; then
+          echo "snapshot_upgrade_paths=$(go run ./scripts/genpath --target='pro' --snapshots=true)" >> "${GITHUB_OUTPUT}"
+        else
+          echo "bc_upgrade_paths=$(go run ./scripts/genpath --target='pro' --snapshots=false)" >> "${GITHUB_OUTPUT}"
+        fi
       shell: 'bash'
       working-directory: ./integrationservertest/

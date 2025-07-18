@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       bc_upgrade_paths: ${{ steps.generate_bc.outputs.upgrade_paths }}
-      snapshot_upgrade_paths: ${{ steps.generate_snapshot.outputs.upgrade_paths }}
+      snapshot_upgrade_paths: ${{ steps.generate_snapshot.outputs.snapshot_upgrade_paths }}
     steps:
       - uses: actions/checkout@v4
       - id: generate_snapshot
