@@ -1,5 +1,4 @@
 ---
-
 name: generate-upgrade-paths
 description: Generate upgrade paths
 
@@ -17,11 +16,8 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
-      with:
-        go-version-file: './integrationservertest/go.mod'
-        cache: false
+    - name: Setup
+      uses: ./.github/workflows/setup-integration-server-test
     - id: generate
       name: Generate upgrade paths
       run: |

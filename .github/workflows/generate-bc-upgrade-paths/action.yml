@@ -1,5 +1,4 @@
 ---
-
 name: generate-bc-upgrade-paths
 description: Generate BC upgrade paths
 
