@@ -18,10 +18,11 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
@@ -100,7 +101,7 @@ func (c *TailSamplingConfig) Unpack(in *config.C) error {
 	type tailSamplingConfig TailSamplingConfig
 	cfg := tailSamplingConfig(defaultTailSamplingConfig())
 	if err = in.Unpack(&cfg); err != nil {
-		err = errors.Wrap(err, "error unpacking config")
+		err = fmt.Errorf("error unpacking config: %w", err)
 		return nil
 	}
 	limit, err := humanize.ParseBytes(cfg.StorageLimit)
@@ -111,7 +112,9 @@ func (c *TailSamplingConfig) Unpack(in *config.C) error {
 	cfg.Enabled = in.Enabled()
 	*c = TailSamplingConfig(cfg)
 	c.esConfigured = in.HasField("elasticsearch")
-	err = errors.Wrap(c.Validate(), "invalid config")
+	if validateErr := c.Validate(); validateErr != nil {
+		err = fmt.Errorf("invalid config: %w", validateErr)
+	}
 	return nil
 }
 
@@ -143,7 +146,7 @@ func (c *TailSamplingConfig) setup(log *logp.Logger, outputESCfg *config.C) erro
 	if !c.esConfigured && outputESCfg != nil {
 		log.Info("Falling back to elasticsearch output for tail-sampling")
 		if err := outputESCfg.Unpack(&c.ESConfig); err != nil {
-			return errors.Wrap(err, "error unpacking output.elasticsearch config for tail sampling")
+			return fmt.Errorf("error unpacking output.elasticsearch config for tail sampling: %w", err)
 		}
 	}
 	return nil
