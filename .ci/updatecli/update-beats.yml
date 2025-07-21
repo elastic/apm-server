@@ -17,7 +17,7 @@ scms:
 
 actions:
   default:
-    title: '[updatecli][{{ requiredEnv "BRANCH_NAME" }}] Update to elastic/beats@{{ source "beats" }}'
+    title: '[updatecli][{{ requiredEnv "BRANCH_NAME" }}] Update to elastic/beats'
     kind: github/pullrequest
     scmid: default
     spec:
@@ -29,21 +29,6 @@ actions:
         ### What
         `elastic/beats@{{ requiredEnv "BRANCH_NAME" }}` automatic sync
 
-        *Changeset*
-        * https://github.com/elastic/beats/commit/{{ source "beats" }}
-
-sources:
-  beats:
-    kind: json
-    spec:
-      file: 'https://api.github.com/repos/elastic/beats/commits?sha={{ requiredEnv "BRANCH_NAME" }}&per_page=1'
-      key: '.[0].sha'
-    transformers:
-      # substring 12 chars so it works for the condition
-      - findsubmatch:
-          pattern: ^(.{12}).*
-          captureindex: 1
-
 conditions:
   is-already-updated:
     name: Is version 'github.com/elastic/beats@{{ source "beats" }}' not updated in 'go.mod'?
@@ -51,17 +36,17 @@ conditions:
     disablesourceinput: true
     scmid: default
     spec:
-      command: grep {{ source "beats" }} go.mod && exit 1 || exit 0
+      command: go mod tidy -diff && exit 0 || exit 1
     failwhen: false
 
 targets:
   beats:
-    name: 'Update to elastic/beats@{{ source "beats" }}'
-    sourceid: beats
+    name: 'make update-beats BEATS_VERSION={{ requiredEnv "BRANCH_NAME" }}'
     scmid: default
     kind: shell
+    disablesourceinput: true
     spec:
-      command: .ci/scripts/update-beats.sh {{ requiredEnv "BRANCH_NAME" }} #
+      command: make update-beats BEATS_VERSION='{{ requiredEnv "BRANCH_NAME" }}'
       environments:
         - name: PATH
         - name: HOME
