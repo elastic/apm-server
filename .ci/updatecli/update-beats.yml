@@ -41,7 +41,7 @@ conditions:
 
 targets:
   beats:
-    name: 'make update-beats BEATS_VERSION={{ requiredEnv "BRANCH_NAME" }}'
+    name: 'update-beats with {{ requiredEnv "BRANCH_NAME" }}'
     scmid: default
     kind: shell
     disablesourceinput: true

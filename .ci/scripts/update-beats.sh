@@ -18,6 +18,6 @@ if git diff --quiet ; then
     # No modifications – exit successfully but keep stdout empty to that updatecli is happy
     exit 0
 else
-    echo "Update Go version ${GO_RELEASE_VERSION}"
+    echo "Update beats@${1}"
     git --no-pager diff
 fi
