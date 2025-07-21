@@ -240,6 +240,9 @@ update-beats: update-beats-module tidy notice
 update-beats-module:
 	go get $(BEATS_MODULE)@$(BEATS_VERSION) && go mod tidy
 
+update-beats-message:
+	@echo --- Use this commit message: Update to elastic/beats@$(shell go list -m -f {{.Version}} $(BEATS_MODULE) | cut -d- -f3)
+
 ##############################################################################
 # Linting, style-checking, license header checks, etc.
 ##############################################################################

@@ -18,6 +18,6 @@ if git diff --quiet ; then
     # No modifications – exit successfully but keep stdout empty to that updatecli is happy
     exit 0
 else
-    echo "Update beats@${1}"
+    make update-beats-message
     git --no-pager diff
 fi
