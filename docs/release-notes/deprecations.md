@@ -16,6 +16,14 @@ Review the deprecated functionality for Elastic APM. While deprecations have no 
 % **Action**<br> Steps for mitigating deprecation impact.
 % ::::
 
+## 9.0.4 [9-0-4]
+
+_No deprecations_
+
+## 9.0.3 [9-0-3]
+
+_No deprecations_
+
 ## 9.0.2 [9-0-2]
 
 _No deprecations_
