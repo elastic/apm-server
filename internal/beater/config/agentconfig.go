@@ -18,10 +18,10 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/elastic-agent-libs/config"
@@ -45,16 +45,18 @@ func (c *AgentConfig) Unpack(in *config.C) error {
 	type agentConfig AgentConfig
 	cfg := agentConfig(defaultAgentConfig())
 	if err := in.Unpack(&cfg); err != nil {
-		return errors.Wrap(err, "error unpacking agent config")
+		return fmt.Errorf("error unpacking agent config: %w", err)
 	}
 	*c = AgentConfig(cfg)
 
 	var err error
 	c.es, err = in.Child("elasticsearch", -1)
 
-	var ucfgError ucfg.Error
-	if !errors.As(err, &ucfgError) || ucfgError.Reason() != ucfg.ErrMissing {
-		return errors.Wrap(err, "error unpacking agent elasticsearch config")
+	if err != nil {
+		var ucfgError ucfg.Error
+		if !errors.As(err, &ucfgError) || ucfgError.Reason() != ucfg.ErrMissing {
+			return fmt.Errorf("error unpacking agent elasticsearch config: %w", err)
+		}
 	}
 	return nil
 }
@@ -66,7 +68,7 @@ func (c *AgentConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 	if outputESCfg != nil {
 		log.Info("using output.elasticsearch for fetching agent config")
 		if err := outputESCfg.Unpack(&c.ESConfig); err != nil {
-			return errors.Wrap(err, "error unpacking output.elasticsearch for fetching agent config")
+			return fmt.Errorf("error unpacking output.elasticsearch for fetching agent config: %w", err)
 		}
 	}
 	if c.es != nil {
@@ -81,7 +83,7 @@ func (c *AgentConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 		}
 
 		if err := c.es.Unpack(c.ESConfig); err != nil {
-			return errors.Wrap(err, "error unpacking apm-server.agent.config.elasticsearch for fetching agent config")
+			return fmt.Errorf("error unpacking apm-server.agent.config.elasticsearch for fetching agent config: %w", err)
 		}
 		c.es = nil
 	}

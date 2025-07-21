@@ -469,6 +469,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		NewElasticsearchClient: newElasticsearchClient,
 		GRPCServer:             grpcServer,
 		Semaphore:              semaphore.NewWeighted(int64(s.config.MaxConcurrentDecoders)),
+		BeatMonitoring:         s.beatMonitoring,
 	}
 	if s.wrapServer != nil {
 		// Wrap the serverParams and runServer function, enabling
@@ -891,7 +892,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		return nil, nil, fmt.Errorf("failed to create libbeat output pipeline: %w", err)
 	}
 	pipelineConnector := pipetool.WithACKer(pipeline, acker)
-	publisher, err := publish.NewPublisher(pipelineConnector, tracer)
+	publisher, err := publish.NewPublisher(pipelineConnector)
 	if err != nil {
 		return nil, nil, err
 	}

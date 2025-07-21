@@ -4,11 +4,11 @@
 
 package pubsub
 
+//lint:file-ignore ST1005 ignore for now to keep error messages consistent
 import (
+	"errors"
 	"fmt"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
@@ -72,7 +72,7 @@ func (config Config) Validate() error {
 		return errors.New("Client unspecified")
 	}
 	if err := config.DataStream.Validate(); err != nil {
-		return errors.Wrap(err, "DataStream unspecified or invalid")
+		return fmt.Errorf("DataStream unspecified or invalid: %w", err)
 	}
 	if config.ServerID == "" {
 		return errors.New("ServerID unspecified")

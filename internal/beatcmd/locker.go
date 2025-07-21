@@ -18,10 +18,11 @@
 package beatcmd
 
 import (
+	"errors"
+	"fmt"
 	"os"
 
 	"github.com/gofrs/flock"
-	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/paths"
 )
@@ -30,7 +31,7 @@ var (
 	// ErrAlreadyLocked is returned when a lock on the data path is attempted but
 	// unsuccessful because another Beat instance already has the lock on the same
 	// data path.
-	ErrAlreadyLocked = errors.New("data path already locked by another beat. Please make sure that multiple beats are not sharing the same data path (path.data).")
+	ErrAlreadyLocked = errors.New("data path already locked by another beat. Please make sure that multiple beats are not sharing the same data path (path.data)")
 )
 
 type locker struct {
@@ -50,7 +51,7 @@ func newLocker(b *Beat) *locker {
 func (l *locker) lock() error {
 	isLocked, err := l.fl.TryLock()
 	if err != nil {
-		return errors.Wrap(err, "unable to lock data path")
+		return fmt.Errorf("unable to lock data path: %w", err)
 	}
 
 	if !isLocked {
@@ -64,12 +65,12 @@ func (l *locker) lock() error {
 func (l *locker) unlock() error {
 	err := l.fl.Unlock()
 	if err != nil {
-		return errors.Wrap(err, "unable to unlock data path")
+		return fmt.Errorf("unable to unlock data path: %w", err)
 	}
 
 	err = os.Remove(l.fl.Path())
 	if err != nil {
-		return errors.Wrap(err, "unable to unlock data path")
+		return fmt.Errorf("unable to unlock data path: %w", err)
 	}
 
 	return nil
