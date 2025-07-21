@@ -14,11 +14,42 @@ To check for security updates, go to [Security announcements for the Elastic sta
 % Release notes include only features, enhancements, and fixes. Add breaking changes, deprecations, and known issues to the applicable release notes sections.
 % For each new version section, include the Elastic APM and Kibana changes.
 
-% ## version.next [elastic-apm-next-release-notes]
+## Next version [elastic-apm-next-release-notes]
 
-% ### Features and enhancements [elastic-apm-next-features-enhancements]
+### Features and enhancements [elastic-apm-next-features-enhancements]
+% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
-% ### Fixes [elastic-apm-next-fixes]
+### Fixes [elastic-apm-next-fixes]
+% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+
+## 9.1.0 [9-1-0]
+
+### Features and enhancements [9-1-0-features-enhancements]
+
+_No new features or enhancements_ 
+
+### Fixes [9-1-0-fixes]
+
+_No new fixes_
+
+## 9.0.4 [elastic-apm-9.0.4-release-notes]
+
+### Fixes [elastic-apm-9.0.4-fixes]
+
+* Tail-based sampling: Fix missing or infrequent monitoring metric `lsm_size` and `value_log_size` ([#17512](https://github.com/elastic/apm-server/pull/17512))
+* Fix default tracer `http request sent to https endpoint` error when both self-instrumentation and TLS are enabled ([#17293](https://github.com/elastic/apm-server/pull/17293))
+
+## 9.0.3 [elastic-apm-9.0.3-release-notes]
+
+### Features and enhancements [elastic-apm-9.0.3-features-enhancements]
+
+* Tail-based sampling: Optimize performance for instances with more CPU and memory ([#17254](https://github.com/elastic/apm-server/pull/17254))
+
+### Fixes [elastic-apm-9.0.3-fixes]
+
+* Tail-based sampling: Fix ever-increasing dynamic group count monitoring metric ([#17042](https://github.com/elastic/apm-server/pull/17042))
+* Tail-based sampling: Fix incorrectly large pebble database `lsm_size` monitoring metric in edge cases which causes TBS to be bypassed ([#17149](https://github.com/elastic/apm-server/pull/17149))
+* Tail-based sampling: Log pubsub errors at error or warn level ([#17135](https://github.com/elastic/apm-server/pull/17135))
 
 ## 9.0.2 [elastic-apm-9.0.2-release-notes]
 

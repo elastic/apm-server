@@ -18,10 +18,10 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/ryanuber/go-glob"
 
 	"github.com/elastic/apm-server/internal/beater/headers"

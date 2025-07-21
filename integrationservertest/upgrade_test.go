@@ -30,6 +30,8 @@ import (
 	"github.com/elastic/apm-server/integrationservertest/internal/ech"
 )
 
+const upgradeConfigFileName = "upgrade-config.yaml"
+
 func formatUpgradePath(p string) string {
 	splits := strings.Split(p, ",")
 	for i := range splits {
@@ -39,29 +41,40 @@ func formatUpgradePath(p string) string {
 }
 
 func TestUpgrade_UpgradePath_Snapshot(t *testing.T) {
+	testUpgrade(t, *upgradePath, vsCache.GetLatestSnapshot)
+}
+
+func TestUpgrade_UpgradePath_Version(t *testing.T) {
+	testUpgrade(t, *upgradePath, vsCache.GetLatestVersion)
+}
+
+func testUpgrade(t *testing.T, upgradePathStr string, versionFetcher func(*testing.T, string) ech.Version) {
 	// The versions are separated by commas.
-	if strings.TrimSpace(*upgradePath) == "" {
+	if strings.TrimSpace(upgradePathStr) == "" {
 		t.Fatal("no upgrade versions specified")
 	}
-	splits := strings.Split(*upgradePath, ",")
+	splits := strings.Split(upgradePathStr, ",")
 	if len(splits) < 2 {
 		t.Fatal("need to specify at least 2 upgrade versions")
 	}
 
-	// Get all snapshot versions based on input.
-	var versions ech.Versions
-	for i, s := range splits {
-		curr := vsCache.GetLatestSnapshot(t, strings.TrimSpace(s))
-		if i != 0 {
-			prev := versions[len(versions)-1]
-			if !vsCache.CanUpgradeTo(prev, curr) {
-				t.Fatalf("%s is not upgradable to %s", prev, curr)
-			}
+	// Get all versions based on input.
+	// First version in the list, simply fetch full version and add to list.
+	versions := []ech.Version{versionFetcher(t, strings.TrimSpace(splits[0]))}
+	// Subsequent versions should first check if they can be upgraded to from
+	// the previous version. Then, fetch the full version and add to list.
+	for _, split := range splits[1:] {
+		s := strings.TrimSpace(split)
+		prev := versions[len(versions)-1]
+		upgradeToVersion, ok := vsCache.GetUpgradeToVersions(prev).LatestFor(s)
+		if !ok {
+			t.Fatalf("%s is not upgradable to %s", prev, s)
 		}
+		curr := versionFetcher(t, upgradeToVersion.MajorMinorPatch())
 		versions = append(versions, curr)
 	}
 
-	config, err := parseConfig("upgrade-config.yaml")
+	config, err := parseConfig(upgradeConfigFileName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -151,13 +164,15 @@ func buildTestSteps(t *testing.T, versions ech.Versions, config upgradeTestConfi
 		APMErrorLogsIgnored: apmErrorLogs{
 			tlsHandshakeError,
 			esReturnedUnknown503,
+			refreshCache403,
 			refreshCache503,
 			refreshCacheCtxCanceled,
 			refreshCacheCtxDeadline,
 			refreshCacheESConfigInvalid,
 			preconditionFailed,
-			populateSourcemapFetcher403,
 			populateSourcemapServerShuttingDown,
+			populateSourcemapFetcher403,
+			syncSourcemapFetcher403,
 			initialSearchQueryContextCanceled,
 			scrollSearchQueryContextCanceled,
 		},

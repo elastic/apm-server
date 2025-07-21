@@ -83,8 +83,13 @@ type VersionsCache struct {
 	region string
 }
 
-func (c *VersionsCache) CanUpgradeTo(from, to Version) bool {
+func (c *VersionsCache) GetUpgradeToVersions(from Version) Versions {
 	upgradableVersions := c.upgradeInfo[from]
+	return upgradableVersions
+}
+
+func (c *VersionsCache) CanUpgradeTo(from, to Version) bool {
+	upgradableVersions := c.GetUpgradeToVersions(from)
 	return upgradableVersions.Has(to)
 }
 
@@ -92,43 +97,14 @@ func (c *VersionsCache) CanUpgradeTo(from, to Version) bool {
 func (c *VersionsCache) GetLatestSnapshot(t *testing.T, prefix string) Version {
 	t.Helper()
 	ver, ok := c.fetchedSnapshots.LatestFor(prefix)
-	require.True(t, ok, "snapshot for '%s' found in EC region %s", prefix, c.region)
+	require.True(t, ok, "snapshot for '%s' not found in EC region %s", prefix, c.region)
 	return ver
 }
 
-// GetLatestVersionOrSkip retrieves the latest non-snapshot version for the version prefix.
-// If the version is not found, the test is skipped.
-func (c *VersionsCache) GetLatestVersionOrSkip(t *testing.T, prefix string) Version {
+// GetLatestVersion retrieves the latest non-snapshot version for the version prefix.
+func (c *VersionsCache) GetLatestVersion(t *testing.T, prefix string) Version {
 	t.Helper()
 	ver, ok := c.fetchedVersions.LatestFor(prefix)
-	if !ok {
-		t.Skipf("version for '%s' not found in EC region %s, skipping test", prefix, c.region)
-		return Version{}
-	}
+	require.True(t, ok, "version for '%s' not found in EC region %s", prefix, c.region)
 	return ver
-}
-
-// GetLatestBCOrSkip retrieves the latest build-candidate version for the version prefix.
-// If the version is not found, the test is skipped.
-func (c *VersionsCache) GetLatestBCOrSkip(t *testing.T, prefix string) Version {
-	t.Helper()
-	candidate, ok := c.fetchedCandidates.LatestFor(prefix)
-	if !ok {
-		t.Skipf("BC for '%s' not found in EC region %s, skipping test", prefix, c.region)
-		return Version{}
-	}
-
-	// Check that the BC version is actually latest, otherwise skip the test.
-	versionInfo := c.GetLatestVersionOrSkip(t, prefix)
-	if versionInfo.Major != candidate.Major {
-		t.Skipf("BC for '%s' is invalid in EC region %s, skipping test", prefix, c.region)
-		return Version{}
-	}
-	if versionInfo.Minor > candidate.Minor {
-		t.Skipf("BC for '%s' is less than latest normal version in EC region %s, skipping test",
-			prefix, c.region)
-		return Version{}
-	}
-
-	return candidate
 }

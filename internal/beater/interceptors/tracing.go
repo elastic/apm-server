@@ -15,24 +15,41 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package middleware
+package interceptors
 
 import (
-	"errors"
+	"context"
 
-	"github.com/elastic/apm-server/internal/beater/request"
+	otelcodes "go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
-// KillSwitchMiddleware returns a Middleware checking whether the path for the request is enabled
-func KillSwitchMiddleware(enabled bool, errorMessage string) Middleware {
-	return func(h request.Handler) (request.Handler, error) {
-		return func(c *request.Context) {
-			if enabled {
-				h(c)
-			} else {
-				c.Result.SetWithError(request.IDResponseErrorsForbidden, errors.New(errorMessage))
-				c.WriteResult()
+func Tracing(tp trace.TracerProvider) grpc.UnaryServerInterceptor {
+	tracer := tp.Tracer("github.com/elastic/apm-server/internal/beater/interceptors")
+	return func(
+		ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (any, error) {
+		ctx, span := tracer.Start(ctx, info.FullMethod)
+		defer span.End()
+
+		resp, err := handler(ctx, req)
+		if err != nil {
+			s, ok := status.FromError(err)
+			if ok {
+				if s.Code() == codes.OK {
+					span.SetStatus(otelcodes.Ok, "")
+				} else {
+					span.SetStatus(otelcodes.Error, s.Code().String())
+				}
 			}
-		}, nil
+		}
+
+		return resp, err
 	}
 }

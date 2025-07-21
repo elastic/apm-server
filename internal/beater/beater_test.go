@@ -120,9 +120,7 @@ func sourcemapSearchResponseBody(name string, version string, bundlePath string)
 }
 
 func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
-	stateRegistry.Clear()
-	defer stateRegistry.Clear()
+	stateRegistry := monitoring.NewRegistry()
 
 	elasticsearchRegistry := stateRegistry.NewRegistry("outputs.elasticsearch")
 	monitoring.NewString(elasticsearchRegistry, "cluster_uuid")
@@ -130,7 +128,7 @@ func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
 	const clusterUUID = "abc123"
 	client := newMockClusterUUIDClient(t, clusterUUID)
 
-	err := queryClusterUUID(context.Background(), client)
+	err := queryClusterUUID(context.Background(), client, stateRegistry)
 	require.NoError(t, err)
 
 	fs := monitoring.CollectFlatSnapshot(elasticsearchRegistry, monitoring.Full, false)
@@ -138,14 +136,12 @@ func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
 }
 
 func TestQueryClusterUUIDRegistriesDoNotExist(t *testing.T) {
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
-	stateRegistry.Clear()
-	defer stateRegistry.Clear()
+	stateRegistry := monitoring.NewRegistry()
 
 	const clusterUUID = "abc123"
 	client := newMockClusterUUIDClient(t, clusterUUID)
 
-	err := queryClusterUUID(context.Background(), client)
+	err := queryClusterUUID(context.Background(), client, stateRegistry)
 	require.NoError(t, err)
 
 	elasticsearchRegistry := stateRegistry.GetRegistry("outputs.elasticsearch")
@@ -285,6 +281,7 @@ func TestNewInstrumentation(t *testing.T) {
 	i, err := newInstrumentation(cfg, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	tracer := i.Tracer()
+	defer tracer.Close()
 	tracer.StartTransaction("name", "type").End()
 	tracer.Flush(nil)
 	assert.Equal(t, map[string]string{"k1": "val", "k2": "new val"}, <-labels)
@@ -317,6 +314,7 @@ func TestNewInstrumentationWithSampling(t *testing.T) {
 		i, err := newInstrumentation(cfg, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		tracer := i.Tracer()
+		defer tracer.Close()
 		tr := tracer.StartTransaction("name", "type")
 		tr.StartSpan("span", "type", nil).End()
 		tr.End()
