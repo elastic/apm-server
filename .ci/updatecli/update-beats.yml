@@ -46,7 +46,7 @@ targets:
     kind: shell
     disablesourceinput: true
     spec:
-      command: make update-beats BEATS_VERSION='{{ requiredEnv "BRANCH_NAME" }}'
+      command: .ci/scripts/update-beats.sh '{{ requiredEnv "BRANCH_NAME" }}'
       environments:
         - name: PATH
         - name: HOME
