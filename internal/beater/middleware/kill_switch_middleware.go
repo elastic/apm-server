@@ -18,7 +18,7 @@
 package middleware
 
 import (
-	"github.com/pkg/errors"
+	"errors"
 
 	"github.com/elastic/apm-server/internal/beater/request"
 )

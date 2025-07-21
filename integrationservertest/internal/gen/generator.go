@@ -75,6 +75,7 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version, in
 		if !integrations {
 			return fmt.Errorf("failed to wait for apm server: %w", err)
 		}
+		g.logger.Info("re-apply apm policy")
 		if err = g.reapplyAPMPolicy(ctx, version); err != nil {
 			return fmt.Errorf("failed to re-apply apm policy: %w", err)
 		}
@@ -84,21 +85,12 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version, in
 	}
 
 	g.logger.Info("ingest data")
-	if err := g.runBlocking(ctx, version); err != nil {
+	if err := g.retryRunBlocking(ctx, version, 2); err != nil {
 		return fmt.Errorf("cannot run generator: %w", err)
 	}
 
-	// With Fleet managed APM server, we can trigger metrics flush.
-	if integrations {
-		g.logger.Info("flush apm metrics")
-		if err := g.flushAPMMetrics(ctx, version); err != nil {
-			return fmt.Errorf("cannot flush apm metrics: %w", err)
-		}
-		return nil
-	}
-
-	// With standalone, we don't have Fleet, so simply just wait for some arbitrary time.
-	time.Sleep(180 * time.Second)
+	// Simply wait for some arbitrary time, for the data to be flushed.
+	time.Sleep(200 * time.Second)
 	return nil
 }
 
@@ -159,9 +151,35 @@ func (g *Generator) runBlocking(ctx context.Context, version ech.Version) error 
 	return gen.RunBlocking(ctx)
 }
 
+// retryRunBlocking executes runBlocking. If it fails, it will retry up to retryTimes.
+func (g *Generator) retryRunBlocking(ctx context.Context, version ech.Version, retryTimes int) error {
+	// No error, don't need to retry.
+	if err := g.runBlocking(ctx, version); err == nil {
+		return nil
+	}
+
+	// Otherwise, retry until success or run out of attempts.
+	var finalErr error
+	for i := 0; i < retryTimes; i++ {
+		// Wait for some time before retrying.
+		time.Sleep(time.Duration(i) * 30 * time.Second)
+
+		g.logger.Info(fmt.Sprintf("retrying ingest data attempt %d", i+1))
+		err := g.runBlocking(ctx, version)
+		// Retry success, simply return.
+		if err == nil {
+			return nil
+		}
+
+		finalErr = err
+	}
+
+	return finalErr
+}
+
 func (g *Generator) reapplyAPMPolicy(ctx context.Context, version ech.Version) error {
 	policyID := "elastic-cloud-apm"
-	description := fmt.Sprintf("%s %s", version, rand.Text()[5:])
+	description := fmt.Sprintf("%s %s", version, rand.Text()[:10])
 
 	if err := g.kbc.UpdatePackagePolicyDescriptionByID(ctx, policyID, version, description); err != nil {
 		return fmt.Errorf(
@@ -170,22 +188,6 @@ func (g *Generator) reapplyAPMPolicy(ctx context.Context, version ech.Version) e
 		)
 	}
 
-	return nil
-}
-
-// flushAPMMetrics sends an update to the Fleet APM package policy in order
-// to trigger the flushing of in-flight APM metrics.
-func (g *Generator) flushAPMMetrics(ctx context.Context, version ech.Version) error {
-	// Re-applying the Elastic APM policy is enough to trigger final aggregations
-	// in APM Server and flush of in-flight metrics.
-	if err := g.reapplyAPMPolicy(ctx, version); err != nil {
-		return err
-	}
-
-	// APM Server needs some time to flush all metrics, and we don't have any
-	// visibility on when this completes.
-	// NOTE: This value comes from empirical observations.
-	time.Sleep(120 * time.Second)
 	return nil
 }
 

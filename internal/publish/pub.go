@@ -20,11 +20,11 @@ package publish
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"runtime"
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
 	"go.elastic.co/fastjson"
 
 	"github.com/elastic/beats/v7/libbeat/beat"

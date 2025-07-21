@@ -3,7 +3,23 @@ name: integration-server-test
 run-name: Integration Server Test
 
 on:
-  workflow_dispatch: ~
+  workflow_dispatch:
+    inputs:
+      run-upgrade-tests:
+        description: 'Run upgrade tests (SNAPSHOT)'
+        required: false
+        type: boolean
+        default: true
+      run-upgrade-bc-tests:
+        description: 'Run upgrade tests (BC)'
+        required: false
+        type: boolean
+        default: true
+      run-standalone-tests:
+        description: 'Run standalone-to-managed tests'
+        required: false
+        type: boolean
+        default: true
   schedule:
     - cron: '0 2 * * 1-5'
 
@@ -32,6 +48,7 @@ jobs:
         uses: ./.github/workflows/generate-upgrade-paths
 
   run-upgrade:
+    if: ${{ !contains(inputs.run-upgrade-tests, 'false') }}
     name: Upgrade
     runs-on: ubuntu-latest
     needs: prepare
@@ -53,6 +70,7 @@ jobs:
           SCENARIO="${{ matrix.scenario }}" UPGRADE_PATH="${{ matrix.upgrade-path }}" make integration-server-test/upgrade
 
   run-upgrade-bc:
+    if: ${{ !contains(inputs.run-upgrade-bc-tests, 'false') }}
     name: Upgrade BC
     runs-on: ubuntu-latest
     needs: prepare
@@ -74,6 +92,7 @@ jobs:
           SCENARIO="${{ matrix.scenario }}" UPGRADE_PATH="${{ matrix.upgrade-path }}" make integration-server-test/upgrade
 
   run-standalone:
+    if: ${{ !contains(inputs.run-standalone-tests, 'false') }}
     name: Standalone-to-managed
     runs-on: ubuntu-latest
     needs: prepare

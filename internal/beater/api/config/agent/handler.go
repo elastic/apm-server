@@ -19,12 +19,11 @@ package agent
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
@@ -146,9 +145,7 @@ func buildQuery(c *request.Context) (agentcfg.Query, error) {
 			},
 		}
 	default:
-		if err := errors.Errorf("%s: %s", msgMethodUnsupported, r.Method); err != nil {
-			return query, err
-		}
+		return query, fmt.Errorf("%s: %s", msgMethodUnsupported, r.Method)
 	}
 	if query.Service.Name == "" {
 		return query, errors.New(agentcfg.ServiceName + " is required")

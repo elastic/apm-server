@@ -18,9 +18,9 @@
 package request
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -187,6 +187,8 @@ func (r *Result) set(id ResultID, body interface{}, err error) {
 		statusCode = MapResultIDToStatus[IDResponseErrorsInternal].Code
 		keyword = MapResultIDToStatus[IDResponseErrorsInternal].Keyword
 	}
-	err = errors.Wrap(err, keyword)
+	if err != nil {
+		err = fmt.Errorf(keyword+": %w", err)
+	}
 	r.Set(id, statusCode, keyword, body, err)
 }
