@@ -31,12 +31,12 @@ actions:
 
 conditions:
   is-already-updated:
-    name: Is version 'github.com/elastic/beats@{{ source "beats" }}' not updated in 'go.mod'?
+    name: Is go mod updated?
     kind: shell
     disablesourceinput: true
     scmid: default
     spec:
-      command: go mod tidy -diff && exit 0 || exit 1
+      command: go mod tidy -diff
     failwhen: false
 
 targets:
