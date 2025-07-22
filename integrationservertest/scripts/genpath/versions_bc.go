@@ -28,6 +28,7 @@ import (
 )
 
 const (
+	// NOTE: This API may change in the future and not be accessible eventually.
 	futureReleasesAPI = "https://artifacts.elastic.co/releases/TfEVhiaBGqR64ie0g0r0uUwNAbEQMu1Z/future-releases/stack.json"
 )
 
