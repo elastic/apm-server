@@ -29,16 +29,6 @@ actions:
         ### What
         `elastic/beats@{{ requiredEnv "BRANCH_NAME" }}` automatic sync
 
-conditions:
-  is-already-updated:
-    name: Is go mod updated?
-    kind: shell
-    disablesourceinput: true
-    scmid: default
-    spec:
-      command: go mod tidy -diff
-    failwhen: false
-
 targets:
   beats:
     name: 'update-beats with {{ requiredEnv "BRANCH_NAME" }}'
