@@ -233,11 +233,13 @@ BEATS_MODULE:=github.com/elastic/beats/v7
 
 .PHONY: update-beats
 update-beats: update-beats-module tidy notice
-	@echo --- Use this commit message: Update to elastic/beats@$(shell go list -m -f {{.Version}} $(BEATS_MODULE) | cut -d- -f3)
 
 .PHONY: update-beats-module
 update-beats-module:
 	go get $(BEATS_MODULE)@$(BEATS_VERSION) && go mod tidy
+
+update-beats-message:
+	@echo --- Use this commit message: Update to elastic/beats@$(shell go list -m -f {{.Version}} $(BEATS_MODULE) | cut -d- -f3)
 
 ##############################################################################
 # Linting, style-checking, license header checks, etc.
