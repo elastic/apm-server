@@ -112,12 +112,12 @@ updateIndex() {
   # take lines up to next version section
   head -n "$(($LN - 1))" "$file" > "$newfile"
   # add template
-  echo "## Next version [elastic-apm-next-release-notes]" >> "$newfile"
+  echo "% ## Next version [elastic-apm-next-release-notes]" >> "$newfile"
   echo "" >> "$newfile"
-  echo "### Features and enhancements [elastic-apm-next-features-enhancements]" >> "$newfile"
+  echo "% ### Features and enhancements [elastic-apm-next-features-enhancements]" >> "$newfile"
   echo "% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))" >> "$newfile"
   echo "" >> "$newfile"
-  echo "### Fixes [elastic-apm-next-fixes]" >> "$newfile"
+  echo "% ### Fixes [elastic-apm-next-fixes]" >> "$newfile"
   echo "% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))" >> "$newfile"
   echo "" >> "$newfile"
   # introduce the new version header
