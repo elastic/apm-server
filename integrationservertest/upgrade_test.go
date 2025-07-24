@@ -155,6 +155,7 @@ func buildTestSteps(t *testing.T, versions ech.Versions, config upgradeTestConfi
 	// unrelated to our test.
 	steps = append(steps, checkErrorLogsStep{
 		APMErrorLogsIgnored: apmErrorLogs{
+			bulkIndexingFailed,
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache403,

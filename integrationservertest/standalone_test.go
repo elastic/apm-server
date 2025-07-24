@@ -154,6 +154,7 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ech.Version, config upg
 					addIndexTemplateTracesError,
 				},
 				APMErrorLogsIgnored: apmErrorLogs{
+					bulkIndexingFailed,
 					tlsHandshakeError,
 					esReturnedUnknown503,
 					refreshCache403,
@@ -215,6 +216,7 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ech.Version, config upg
 					eventLoopShutdown,
 				},
 				APMErrorLogsIgnored: apmErrorLogs{
+					bulkIndexingFailed,
 					tlsHandshakeError,
 					esReturnedUnknown503,
 					refreshCache403,
@@ -261,6 +263,7 @@ func managed9Runner(fromVersion7, toVersion8, toVersion9 ech.Version, config upg
 					eventLoopShutdown,
 				},
 				APMErrorLogsIgnored: apmErrorLogs{
+					bulkIndexingFailed,
 					tlsHandshakeError,
 					esReturnedUnknown503,
 					refreshCache503,
