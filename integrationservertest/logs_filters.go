@@ -36,6 +36,15 @@ func (e apmErrorLogs) ToQueries() []types.Query {
 }
 
 var (
+	// This error seems to happen occasionally in-between upgrades.
+	// On upgrade, the APM server gets restarted while metrics are not fully flushed,
+	// causing this error to occur.
+	bulkIndexingFailed = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "bulk indexing request failed"},
+		},
+	})
+
 	tlsHandshakeError = apmErrorLog(types.Query{
 		MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
 			"message": {Query: "http: TLS handshake error from 127.0.0.1:"},
