@@ -30,7 +30,7 @@ The upgrade tests reside in `upgrade_test.go`.
 These tests take an `upgrade-path` argument that represents a list of versions for the upgrade test.
 The test will create a deployment with the first version, perform ingestion and check that everything is expected.
 Then, it will consecutively upgrade to the next version, perform ingestion and check again.
-For example, if we provide an `upgrade-path` of `8.15, 8.16, 8.17`, a deployment will be created in `8.15`, upgraded to `8.16` and then to `8.17`.
+For example, if we provide an `upgrade-path` of `8.17.4 -> 8.18.0 -> 8.19.0`, a deployment will be created in `8.17.4`, upgraded to `8.18.0` and then to `8.19.0`.
 
 We provide the `upgrade-path` argument through GitHub workflow matrix, see `integration-server-test.yml`.
 Configuration for the upgrade test can be found in `upgrade-config.yaml`.
