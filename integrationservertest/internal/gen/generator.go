@@ -90,7 +90,7 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version, in
 	}
 
 	// Simply wait for some arbitrary time, for the data to be flushed.
-	time.Sleep(200 * time.Second)
+	time.Sleep(10 * time.Minute)
 	return nil
 }
 
