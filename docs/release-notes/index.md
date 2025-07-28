@@ -26,7 +26,14 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ### Features and enhancements [elastic-apm-9.1.0-features-enhancements]
 
+* Enable `date_detection` for all apm data streams ([#128913](https://github.com/elastic/elasticsearch/pull/128913))
+* Add config for tail-based sampling discard on write ([#13950](https://github.com/elastic/integrations/pull/13950))
+* Add config for tail-based sampling TTL ([#16579](https://github.com/elastic/apm-server/pull/16579))
+
 ### Fixes [elastic-apm-9.1.0-fixes]
+
+* Fix using representative count as `event.success_count` if available ([#119995](https://github.com/elastic/elasticsearch/pull/119995))
+* Fix setting `event.dataset` to `data_stream.dataset` if `event.dataset` is empty, to have `event.dataset` in every `logs-*` data stream ([#129074](https://github.com/elastic/elasticsearch/pull/129074))
 
 ## 9.0.4 [elastic-apm-9.0.4-release-notes]
 
