@@ -11,6 +11,9 @@ https://github.com/elastic/apm-server/compare/v8.18.1\...v8.19.0[View commits]
 [float]
 ==== Bug fixes
 
+- Close leaky APM tracer to prevent "http request sent to https endpoint" message when TLS is enabled {pull}17293[17293]
+- TBS: Surface pubsub subscriber errors by logging at Warn level for `429` and Error level for others, instead of Debug level {pull}17135[17135]
+
 [float]
 ==== Breaking Changes
 
