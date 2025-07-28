@@ -32,8 +32,12 @@ import (
 // for displaying information.
 type APMLogEntry struct {
 	Timestamp time.Time `json:"@timestamp"`
-	Message   string
-	LogLogger string `json:"log.logger"`
+	Message   string    `json:"message"`
+	LogLogger string    `json:"log.logger"`
+	Service   struct {
+		// Version shows which version this log entry came from.
+		Version string `json:"version"`
+	} `json:"service"`
 }
 
 func ZeroAPMLogs(t *testing.T, resp search.Response) {
