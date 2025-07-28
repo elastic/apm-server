@@ -18,10 +18,10 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"regexp"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -63,10 +63,10 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 	}
 
 	if _, err := regexp.Compile(c.LibraryPattern); err != nil {
-		return errors.Wrapf(err, "Invalid regex for `library_pattern`: ")
+		return fmt.Errorf("invalid regex for `library_pattern`: %w", err)
 	}
 	if _, err := regexp.Compile(c.ExcludeFromGrouping); err != nil {
-		return errors.Wrapf(err, "Invalid regex for `exclude_from_grouping`: ")
+		return fmt.Errorf("invalid regex for `exclude_from_grouping`: %w", err)
 	}
 
 	if outputESCfg == nil {
@@ -76,7 +76,7 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 
 	// Unpack the output elasticsearch config first
 	if err := outputESCfg.Unpack(c.SourceMapping.ESConfig); err != nil {
-		return errors.Wrap(err, "unpacking Elasticsearch output config into Sourcemap config")
+		return fmt.Errorf("unpacking Elasticsearch output config into Sourcemap config: %w", err)
 	}
 
 	// SourceMapping ES config not configured, use the main one and return early
@@ -94,7 +94,7 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 
 	// Unpack the SourceMapping ES config on top of the output elasticsearch config
 	if err := c.SourceMapping.es.Unpack(c.SourceMapping.ESConfig); err != nil {
-		return errors.Wrap(err, "unpacking Elasticsearch sourcemap config into Sourcemap config")
+		return fmt.Errorf("unpacking Elasticsearch sourcemap config into Sourcemap config: %w", err)
 	}
 
 	c.SourceMapping.es = nil
@@ -105,13 +105,13 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 func (s *SourceMapping) Unpack(inp *config.C) error {
 	type underlyingSourceMapping SourceMapping
 	if err := inp.Unpack((*underlyingSourceMapping)(s)); err != nil {
-		return errors.Wrap(err, "error unpacking sourcemapping config")
+		return fmt.Errorf("error unpacking sourcemapping config: %w", err)
 	}
 	s.esOverrideConfigured = inp.HasField("elasticsearch")
 	var err error
 	var e ucfg.Error
 	if s.es, err = inp.Child("elasticsearch", -1); err != nil && (!errors.As(err, &e) || e.Reason() != ucfg.ErrMissing) {
-		return errors.Wrap(err, "error storing sourcemap elasticsearch config")
+		return fmt.Errorf("error storing sourcemap elasticsearch config: %w", err)
 	}
 	return nil
 }

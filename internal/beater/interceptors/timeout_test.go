@@ -19,10 +19,10 @@ package interceptors_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -48,9 +48,6 @@ func TestTimeout(t *testing.T) {
 		timeout: true,
 	}, {
 		err:     fmt.Errorf("wrapped: %w", context.Canceled),
-		timeout: true,
-	}, {
-		err:     errors.Wrap(context.DeadlineExceeded, "also wrapped"),
 		timeout: true,
 	}} {
 		interceptor := interceptors.Timeout()
