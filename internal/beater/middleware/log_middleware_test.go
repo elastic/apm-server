@@ -101,6 +101,7 @@ func TestLogMiddleware(t *testing.T) {
 			// log setup
 			configure.Logging("APM Server test",
 				agentconfig.MustNewConfigFrom(`{"ecs":true}`))
+			//lint:ignore SA1019 fixed in newer versions
 			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 
 			// prepare and record request
@@ -141,6 +142,7 @@ func TestLogMiddleware(t *testing.T) {
 
 func TestLogMiddlewareRequestBodyBytes(t *testing.T) {
 	configure.Logging("APM Server test", agentconfig.MustNewConfigFrom(`{"ecs":true}`))
+	//lint:ignore SA1019 fixed in newer versions
 	require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 
 	c := request.NewContext()

@@ -215,6 +215,7 @@ func TestInvalidation(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			//lint:ignore SA1019 fixed in newer versions
 			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 			t.Cleanup(func() {
 				if t.Failed() {

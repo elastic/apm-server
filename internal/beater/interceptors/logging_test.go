@@ -74,6 +74,7 @@ func TestLogging(t *testing.T) {
 			"APM Server test",
 			agentconfig.MustNewConfigFrom(`{"ecs":true}`),
 		)
+		//lint:ignore SA1019 fixed in newer versions
 		require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 		logger := logp.NewLogger("interceptor.logging.test")
 

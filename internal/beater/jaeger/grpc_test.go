@@ -172,6 +172,7 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
+			//lint:ignore SA1019 fixed in newer versions
 			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 
 			conn, logs := newServer(t, nil, tc.fetcher)
