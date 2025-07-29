@@ -210,6 +210,10 @@ func constructUpgradePaths(versions ech.Versions, vsCache *ech.VersionsCache) []
 	upgradePairs := map[upgradePair]struct{}{}
 	for _, to := range versions {
 		upgradeFromVersions := getUpgradeFromVersions(to, vsCache)
+		// Randomly choose 1 from-version.
+		for _, from := range choose(upgradeFromVersions, 1) {
+			upgradePairs[upgradePair{from, to}] = struct{}{}
+		}
 		// For latest versions of each major, we force include minor upgrade and major upgrade.
 		if latestEachMajor.Has(to) {
 			prevMajorVersion, ok := upgradeFromVersions.LatestForMajor(to.Major - 1)
@@ -221,21 +225,14 @@ func constructUpgradePaths(versions ech.Versions, vsCache *ech.VersionsCache) []
 				upgradePairs[upgradePair{prevMinorVersion, to}] = struct{}{}
 			}
 		}
-		// Randomly choose 1 from-version, even for latest versions of each major.
-		// This means that latest versions of each major could possibly have 3 upgrade pairs,
-		// if the random choice somehow chose differently from the above forced ones.
-		for _, from := range choose(upgradeFromVersions, 1) {
-			upgradePairs[upgradePair{from, to}] = struct{}{}
-		}
 	}
 
 	var upgradeChains [][]upgradePair
-	var upgradeChain []upgradePair
 	// Merge all upgrade pairs into the longest possible chain.
 	// E.g. if we have: X -> Y, Y -> Z, X -> Z, we want to condense it to: X -> Y -> Z, X -> Z.
 	for curr := range upgradePairs {
 		to := curr.To
-		upgradeChain = append(upgradeChain, curr)
+		upgradeChain := []upgradePair{curr}
 		// Upgrade pair is used up, delete it from map.
 		delete(upgradePairs, curr)
 		// Find subsequent upgrade pair that can connect to the current one.
@@ -244,7 +241,6 @@ func constructUpgradePaths(versions ech.Versions, vsCache *ech.VersionsCache) []
 			if !ok {
 				// None found, stop searching and append upgrade path to list.
 				upgradeChains = append(upgradeChains, upgradeChain)
-				upgradeChain = make([]upgradePair, 0)
 				break
 			}
 			to = next.To
