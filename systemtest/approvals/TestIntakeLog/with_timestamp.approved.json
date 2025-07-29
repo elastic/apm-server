@@ -30,6 +30,9 @@
         "data_stream.type": [
             "logs"
         ],
+        "event.dataset": [
+            "apm.app.1234_service_12a3"
+        ],
         "event.kind": [
             "event"
         ],
