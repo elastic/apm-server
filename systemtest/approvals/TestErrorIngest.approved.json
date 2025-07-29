@@ -90,6 +90,9 @@
         "error.log.message": [
             "Cannot read property 'baz' of undefined"
         ],
+        "event.dataset": [
+            "apm.error"
+        ],
         "host.architecture": [
             "x64"
         ],
