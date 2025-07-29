@@ -18,18 +18,19 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	httppprof "net/http/pprof"
 	"regexp"
 	"runtime/pprof"
 
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/elasticapm"
@@ -93,6 +94,7 @@ func NewMux(
 	meterProvider metric.MeterProvider,
 	traceProvider trace.TracerProvider,
 	logger *logp.Logger,
+	statsRegistry *monitoring.Registry,
 ) (*mux.Router, error) {
 	pool := request.NewContextPool()
 	logger = logger.Named(logs.Handler)
@@ -147,7 +149,7 @@ func NewMux(
 	if beaterConfig.Expvar.Enabled {
 		path := beaterConfig.Expvar.URL
 		logger.Infof("Path %s added to request handler", path)
-		router.Handle(path, http.HandlerFunc(debugVarsHandler))
+		router.Handle(path, debugVarsHandler(statsRegistry))
 	}
 	if beaterConfig.Pprof.Enabled {
 		const path = "/debug/pprof"
@@ -208,14 +210,14 @@ func (r *routeBuilder) rumIntakeHandler(mp metric.MeterProvider) func() (request
 		if r.cfg.RumConfig.LibraryPattern != "" {
 			re, err := regexp.Compile(r.cfg.RumConfig.LibraryPattern)
 			if err != nil {
-				return nil, errors.Wrap(err, "invalid library pattern regex")
+				return nil, fmt.Errorf("invalid library pattern regex: %w", err)
 			}
 			batchProcessors = append(batchProcessors, srvmodelprocessor.SetLibraryFrame{Pattern: re})
 		}
 		if r.cfg.RumConfig.ExcludeFromGrouping != "" {
 			re, err := regexp.Compile(r.cfg.RumConfig.ExcludeFromGrouping)
 			if err != nil {
-				return nil, errors.Wrap(err, "invalid exclude from grouping regex")
+				return nil, fmt.Errorf("invalid exclude from grouping regex: %w", err)
 			}
 			batchProcessors = append(batchProcessors, srvmodelprocessor.SetExcludeFromGrouping{Pattern: re})
 		}

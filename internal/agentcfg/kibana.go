@@ -21,11 +21,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
@@ -83,7 +83,7 @@ func (f *KibanaFetcher) Fetch(ctx context.Context, query Query) (Result, error) 
 func (f *KibanaFetcher) request(ctx context.Context, r io.Reader) ([]byte, error) {
 	resp, err := f.client.Send(ctx, http.MethodPost, endpoint, nil, nil, r)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrMsgSendToKibanaFailed)
+		return nil, fmt.Errorf(ErrMsgSendToKibanaFailed+": %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -93,10 +93,10 @@ func (f *KibanaFetcher) request(ctx context.Context, r io.Reader) ([]byte, error
 
 	result, err := io.ReadAll(resp.Body)
 	if resp.StatusCode >= http.StatusBadRequest {
-		return nil, errors.Errorf("agentcfg kibana request failed with status code %d: %s", resp.StatusCode, string(result))
+		return nil, fmt.Errorf("agentcfg kibana request failed with status code %d: %s", resp.StatusCode, string(result))
 	}
 	if err != nil {
-		return nil, errors.Wrap(err, ErrMsgReadKibanaResponse)
+		return nil, fmt.Errorf(ErrMsgReadKibanaResponse+": %w", err)
 	}
 	return result, nil
 }

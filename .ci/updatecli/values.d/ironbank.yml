@@ -4,5 +4,4 @@ config:
 pull_request:
   labels:
     - dependencies
-    - backport-active-8
-    - backport-active-9
+    - backport-active-all

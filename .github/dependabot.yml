@@ -36,7 +36,10 @@ updates:
     directory: "/packaging/docker/"
     schedule:
       interval: "weekly"
-
+    groups:
+      docker:
+        patterns:
+          - "*"
   # GitHub actions
   - package-ecosystem: "github-actions"
     directories:

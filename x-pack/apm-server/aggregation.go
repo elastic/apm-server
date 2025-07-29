@@ -5,7 +5,7 @@
 package main
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation"
@@ -22,7 +22,7 @@ func newAggregationProcessor(args beater.ServerParams) (namedProcessor, error) {
 		args.Logger,
 	)
 	if err != nil {
-		return namedProcessor{}, errors.Wrapf(err, "error creating %s", name)
+		return namedProcessor{}, fmt.Errorf("error creating %s: %w", name, err)
 	}
 	return namedProcessor{name: name, processor: agg}, nil
 }

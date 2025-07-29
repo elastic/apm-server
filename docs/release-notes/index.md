@@ -14,23 +14,34 @@ To check for security updates, go to [Security announcements for the Elastic sta
 % Release notes include only features, enhancements, and fixes. Add breaking changes, deprecations, and known issues to the applicable release notes sections.
 % For each new version section, include the Elastic APM and Kibana changes.
 
-## Next version [elastic-apm-next-release-notes]
+% ## Next version [elastic-apm-next-release-notes]
 
-### Features and enhancements [elastic-apm-next-features-enhancements]
+% ### Features and enhancements [elastic-apm-next-features-enhancements]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
-### Fixes [elastic-apm-next-fixes]
+% ### Fixes [elastic-apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
-## 9.1.0 [9-1-0]
+## 9.1.0 [elastic-apm-9.1.0-release-notes]
 
-### Features and enhancements [9-1-0-features-enhancements]
+### Features and enhancements [elastic-apm-9.1.0-features-enhancements]
 
-_No new features or enhancements_ 
+* Add config for tail-based sampling discard on write ([#13950](https://github.com/elastic/integrations/pull/13950))
+* Add config for tail-based sampling TTL ([#16579](https://github.com/elastic/apm-server/pull/16579))
 
-### Fixes [9-1-0-fixes]
+### Fixes [elastic-apm-9.1.0-fixes]
 
-_No new fixes_ 
+* Truncate string slice attributes in OTLP labels ([#434](https://github.com/elastic/apm-data/pull/434))
+* Fix broken UI by explicitly enabling date detection for the `system.process.cpu.start_time` field ([#130466](https://github.com/elastic/elasticsearch/pull/130466))
+* Use representative count for the `event.success_count` metric if available ([#119995](https://github.com/elastic/elasticsearch/pull/119995))
+* Fix setting `event.dataset` to `data_stream.dataset` if `event.dataset` is empty, to have `event.dataset` in every `logs-*` data stream ([#129074](https://github.com/elastic/elasticsearch/pull/129074))
+
+## 9.0.4 [elastic-apm-9.0.4-release-notes]
+
+### Fixes [elastic-apm-9.0.4-fixes]
+
+* Tail-based sampling: Fix missing or infrequent monitoring metric `lsm_size` and `value_log_size` ([#17512](https://github.com/elastic/apm-server/pull/17512))
+* Fix default tracer `http request sent to https endpoint` error when both self-instrumentation and TLS are enabled ([#17293](https://github.com/elastic/apm-server/pull/17293))
 
 ## 9.0.3 [elastic-apm-9.0.3-release-notes]
 
@@ -43,7 +54,6 @@ _No new fixes_
 * Tail-based sampling: Fix ever-increasing dynamic group count monitoring metric ([#17042](https://github.com/elastic/apm-server/pull/17042))
 * Tail-based sampling: Fix incorrectly large pebble database `lsm_size` monitoring metric in edge cases which causes TBS to be bypassed ([#17149](https://github.com/elastic/apm-server/pull/17149))
 * Tail-based sampling: Log pubsub errors at error or warn level ([#17135](https://github.com/elastic/apm-server/pull/17135))
-* Tail-based sampling: Fix infrequent storage monitoring metric ([#17154](https://github.com/elastic/apm-server/pull/17154))
 
 ## 9.0.2 [elastic-apm-9.0.2-release-notes]
 
