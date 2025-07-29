@@ -3,6 +3,9 @@
 The daily benchmark for APM Server is run via [`benchmarks.yml` workflow](https://github.com/elastic/apm-server/actions/workflows/benchmarks.yml).
 The benchmark creates an EC deployment and runs [`apmbench`](../systemtest/cmd/apmbench) to send pre-recorded events to the APM Server deployment.
 Once all benchmark runs have been completed, the daily benchmark results and metrics are pushed to the observability cluster using Elastic's [`gobench`](https://github.com/elastic/gobench).
+The results are then posted on Slack, and looks something like this:
+
+<img src="./images/benchmark_results.png" alt="Benchmark results" width="800"/>
 
 ## Metrics
 
