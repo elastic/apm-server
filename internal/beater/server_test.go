@@ -605,6 +605,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	reqCtx, reqCancel := context.WithCancel(context.Background())
 
 	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
+	//lint:ignore SA1019 fixed in newer versions
 	_ = logp.DevelopmentSetup(logp.ToObserverOutput())
 	srv := beatertest.NewServer(t, beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
 		map[string]interface{}{

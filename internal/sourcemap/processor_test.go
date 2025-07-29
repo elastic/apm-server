@@ -250,6 +250,7 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 		},
 	}
 
+	//lint:ignore SA1019 fixed in newer versions
 	err := logp.DevelopmentSetup(logp.ToObserverOutput())
 	require.NoError(t, err)
 

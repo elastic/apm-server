@@ -98,6 +98,7 @@ func TestPublisherStopShutdownInactive(t *testing.T) {
 }
 
 func BenchmarkPublisher(b *testing.B) {
+	//lint:ignore SA1019 fixed in newer versions
 	require.NoError(b, logp.DevelopmentSetup(logp.ToObserverOutput()))
 
 	mux := http.NewServeMux()
