@@ -48,6 +48,9 @@
         "error.log.message": [
             "Uncaught Error: log timeout test error"
         ],
+        "event.dataset": [
+            "apm.error"
+        ],
         "http.request.referrer": [
             "http://localhost:8000/test/e2e/"
         ],
