@@ -32,7 +32,6 @@ import (
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/dustin/go-humanize"
-	"go.elastic.co/apm/module/apmgrpc/v2"
 	"go.elastic.co/apm/module/apmotel/v2"
 	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel"
@@ -90,6 +89,7 @@ type Runner struct {
 	tracerProvider trace.TracerProvider
 	meterProvider  metric.MeterProvider
 	metricGatherer *apmotel.Gatherer
+	beatMonitoring beat.Monitoring
 	listener       net.Listener
 }
 
@@ -113,6 +113,9 @@ type RunnerParams struct {
 	// MetricsGatherer holds an apmotel.Gatherer
 	MetricsGatherer *apmotel.Gatherer
 
+	// BeatMonitoring holds beat monitoring
+	BeatMonitoring beat.Monitoring
+
 	// WrapServer holds an optional WrapServerFunc, for wrapping the
 	// ServerParams and RunServerFunc used to run the APM Server.
 	//
@@ -123,6 +126,12 @@ type RunnerParams struct {
 // NewRunner returns a new Runner that runs APM Server with the given parameters.
 func NewRunner(args RunnerParams) (*Runner, error) {
 	fips140.CheckFips()
+
+	// the default tracer is leaking and its background
+	// goroutine is spamming requests to this apm server (default endpoint)
+	// If TLS is enabled it causes "http request sent to https endpoint".
+	// Close the default tracer since it's not used.
+	apm.DefaultTracer().Close()
 
 	var unpackedConfig struct {
 		APMServer  *agentconfig.C        `config:"apm-server"`
@@ -166,6 +175,7 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		tracerProvider: args.TracerProvider,
 		meterProvider:  args.MeterProvider,
 		metricGatherer: args.MetricsGatherer,
+		beatMonitoring: args.BeatMonitoring,
 		listener:       listener,
 	}, nil
 }
@@ -240,8 +250,16 @@ func (s *Runner) Run(ctx context.Context) error {
 		)
 	}
 
+	if s.config.Sampling.Tail.Enabled && s.config.Sampling.Tail.DatabaseCacheSize == 0 {
+		// 1GB=16MB, 2GB=24MB, 4GB=40MB, ..., 32GB=264MB, 64GB=520MB
+		s.config.Sampling.Tail.DatabaseCacheSize = uint64(linearScaledValue(8<<20, memLimitGB, 8<<20))
+		s.logger.Infof("Sampling.Tail.DatabaseCacheSize set to %d based on %0.1fgb of memory",
+			s.config.Sampling.Tail.DatabaseCacheSize, memLimitGB,
+		)
+	}
+
 	// Send config to telemetry.
-	recordAPMServerConfig(s.config)
+	recordAPMServerConfig(s.config, s.beatMonitoring.StateRegistry())
 
 	var kibanaClient *kibana.Client
 	if s.config.Kibana.Enabled {
@@ -290,7 +308,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	publishReady := make(chan struct{})
 	drain := make(chan struct{})
 	g.Go(func() error {
-		if err := s.waitReady(ctx, tracer); err != nil {
+		if err := s.waitReady(ctx); err != nil {
 			// One or more preconditions failed; drop events.
 			close(drain)
 			return fmt.Errorf("error waiting for server to be ready: %w", err)
@@ -332,7 +350,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		fetcher, cancel, err := newSourcemapFetcher(
 			s.config.RumConfig.SourceMapping,
 			kibanaClient, newElasticsearchClient,
-			tracer,
+			s.tracerProvider,
 			s.logger,
 		)
 		if err != nil {
@@ -363,7 +381,8 @@ func (s *Runner) Run(ctx context.Context) error {
 	// even if TLS is enabled, as TLS is handled by the net/http server.
 	gRPCLogger := s.logger.Named("grpc")
 	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
-		apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer)),
+		interceptors.Tracing(s.tracerProvider),
+		interceptors.Recover(),
 		interceptors.ClientMetadata(),
 		interceptors.Logging(gRPCLogger),
 		interceptors.Metrics(gRPCLogger, s.meterProvider),
@@ -409,7 +428,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		s.config,
 		kibanaClient,
 		newElasticsearchClient,
-		tracer,
+		s.tracerProvider,
 		s.meterProvider,
 		s.logger,
 	)
@@ -450,6 +469,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		NewElasticsearchClient: newElasticsearchClient,
 		GRPCServer:             grpcServer,
 		Semaphore:              semaphore.NewWeighted(int64(s.config.MaxConcurrentDecoders)),
+		BeatMonitoring:         s.beatMonitoring,
 	}
 	if s.wrapServer != nil {
 		// Wrap the serverParams and runServer function, enabling
@@ -630,7 +650,6 @@ func linearScaledValue(perGBIncrement, memLimitGB, constant float64) int {
 // waitReady waits until the server is ready to index events.
 func (s *Runner) waitReady(
 	ctx context.Context,
-	tracer *apm.Tracer,
 ) error {
 	var preconditions []func(context.Context) error
 	var esOutputClient *elasticsearch.Client
@@ -676,7 +695,7 @@ func (s *Runner) waitReady(
 			})
 		}
 		preconditions = append(preconditions, func(ctx context.Context) error {
-			return queryClusterUUID(ctx, esOutputClient)
+			return queryClusterUUID(ctx, esOutputClient, s.beatMonitoring.StateRegistry())
 		})
 	}
 
@@ -691,7 +710,7 @@ func (s *Runner) waitReady(
 		}
 		return nil
 	}
-	return waitReady(ctx, s.config.WaitReadyInterval, tracer, s.logger, check)
+	return waitReady(ctx, s.config.WaitReadyInterval, s.tracerProvider, s.logger, check)
 }
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
@@ -706,18 +725,14 @@ func (s *Runner) newFinalBatchProcessor(
 	mp metric.MeterProvider,
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
 	if s.elasticsearchOutputConfig == nil {
-		monitoring.Default.Remove("libbeat")
-		libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
+		s.beatMonitoring.StatsRegistry().Remove("libbeat")
+		libbeatMonitoringRegistry := s.beatMonitoring.StatsRegistry().NewRegistry("libbeat")
 		return s.newLibbeatFinalBatchProcessor(tracer, libbeatMonitoringRegistry, logger)
 	}
 
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
-	outputRegistry := stateRegistry.GetRegistry("output")
-	if outputRegistry != nil {
-		outputRegistry.Clear()
-	} else {
-		outputRegistry = stateRegistry.NewRegistry("output")
-	}
+	stateRegistry := s.beatMonitoring.StateRegistry()
+	outputRegistry := stateRegistry.GetOrCreateRegistry("output")
+	outputRegistry.Clear()
 	monitoring.NewString(outputRegistry, "name").Set("elasticsearch")
 
 	// Create the docappender and Elasticsearch config
@@ -852,7 +867,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		Logger:      logger,
 	}
 
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	stateRegistry := s.beatMonitoring.StateRegistry()
 	stateRegistry.Remove("queue")
 	monitors := pipeline.Monitors{
 		Metrics:   libbeatMonitoringRegistry,
@@ -877,7 +892,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		return nil, nil, fmt.Errorf("failed to create libbeat output pipeline: %w", err)
 	}
 	pipelineConnector := pipetool.WithACKer(pipeline, acker)
-	publisher, err := publish.NewPublisher(pipelineConnector, tracer)
+	publisher, err := publish.NewPublisher(pipelineConnector)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -904,7 +919,7 @@ func newSourcemapFetcher(
 	cfg config.SourceMapping,
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
-	tracer *apm.Tracer,
+	tp trace.TracerProvider,
 	logger *logp.Logger,
 ) (sourcemap.Fetcher, context.CancelFunc, error) {
 	esClient, err := newElasticsearchClient(cfg.ESConfig)
@@ -916,7 +931,7 @@ func newSourcemapFetcher(
 
 	// start background sync job
 	ctx, ctxCancel := context.WithCancel(context.Background())
-	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex, tracer, logger)
+	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex, tp, logger)
 	cancel := func() {
 		ctxCancel()
 		<-invalidationChan
@@ -945,8 +960,7 @@ func newSourcemapFetcher(
 // TODO: This is copying behavior from libbeat:
 // https://github.com/elastic/beats/blob/b9ced47dba8bb55faa3b2b834fd6529d3c4d0919/libbeat/cmd/instance/beat.go#L927-L950
 // Remove this when cluster_uuid no longer needs to be queried from ES.
-func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client) error {
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client, stateRegistry *monitoring.Registry) error {
 	outputES := "outputs.elasticsearch"
 	// Running under elastic-agent, the callback linked above is not
 	// registered until later, meaning we need to check and instantiate the

@@ -24,13 +24,13 @@ COPY --chmod=0644 apm-server.yml ./apm-server.yml
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 
-FROM cgr.dev/chainguard/static:latest@sha256:633aabd19a2d1b9d4ccc1f4b704eb5e9d34ce6ad231a4f5b7f7a3af1307fdba8 AS builder-certs
+FROM cgr.dev/chainguard/static:latest@sha256:93b70336be10c325d5a96016971b71b38d8e79e5148af2144f2aae93ee9367c3 AS builder-certs
 
 ################################################################################
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:955512628a9104d74f7b3b0a91db27a6bbecdd6a1975ce0f1b2658d3cd060b98
+FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:666b64ba2670d356b03dd977fe1931c35fd624add9d8ef57e9dbd8f2a47118ba
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION

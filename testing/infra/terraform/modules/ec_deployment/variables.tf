@@ -134,6 +134,17 @@ variable "apm_server_tail_sampling_storage_limit" {
   type        = string
 }
 
+variable "apm_server_tail_sampling_sample_rate" {
+  default     = 0.1
+  description = "Sample rate of APM Server tail-based sampling. Defaults to 0.1"
+  type        = number
+
+  validation {
+    condition     = var.apm_server_tail_sampling_sample_rate >= 0 && var.apm_server_tail_sampling_sample_rate <= 1
+    error_message = "The apm_server_tail_sampling_sample_rate value must be in range [0, 1]"
+  }
+}
+
 variable "apm_index_shards" {
   default     = 0
   description = "The number of shards to set for APM Indices"

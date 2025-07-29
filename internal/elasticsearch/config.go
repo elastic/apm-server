@@ -18,12 +18,11 @@
 package elasticsearch
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/elastic-agent-libs/transport"

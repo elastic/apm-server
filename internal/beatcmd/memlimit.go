@@ -18,26 +18,37 @@
 package beatcmd
 
 import (
-	"fmt"
+	"context"
 	"log/slog"
 	"time"
 
 	"github.com/KimMachineGun/automemlimit/memlimit"
 )
 
-func adjustMemlimit(d time.Duration, logger *slog.Logger) error {
-	if _, err := memlimit.SetGoMemLimitWithOpts(
-		memlimit.WithProvider(
-			memlimit.ApplyFallback(
-				memlimit.FromCgroup,
-				memlimit.FromSystem,
+func adjustMemlimit(ctx context.Context, d time.Duration, logger *slog.Logger) error {
+	setMemLimit := func() {
+		memlimit.SetGoMemLimitWithOpts(
+			memlimit.WithProvider(
+				memlimit.ApplyFallback(
+					memlimit.FromCgroup,
+					memlimit.FromSystem,
+				),
 			),
-		),
-		memlimit.WithLogger(logger),
-		memlimit.WithRefreshInterval(d),
-		memlimit.WithRatio(0.9),
-	); err != nil {
-		return fmt.Errorf("failed to set go memlimit: %w", err)
+			memlimit.WithLogger(logger),
+			memlimit.WithRefreshInterval(0),
+			memlimit.WithRatio(0.9),
+		)
 	}
-	return nil
+
+	setMemLimit()
+	ticker := time.NewTicker(d)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			setMemLimit()
+		}
+	}
 }

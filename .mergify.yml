@@ -9,7 +9,7 @@ queue_rules:
     merge_method: squash
     conditions:
       - check-success=test (macos-latest)
-      - check-success=test (windows-latest)
+      - check-success=test (windows-2025)
       - check-success=system-test
       - check-success=lint
       - check-success=CLA
@@ -330,3 +330,12 @@ pull_request_rules:
       backport:
         branches:
           - "9.0"
+  - name: backport patches to 9.1 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-9.1
+    actions:
+      backport:
+        branches:
+          - "9.1"

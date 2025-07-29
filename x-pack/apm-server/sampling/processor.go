@@ -7,11 +7,12 @@ package sampling
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
@@ -59,7 +60,7 @@ type eventMetrics struct {
 // NewProcessor returns a new Processor, for tail-sampling trace events.
 func NewProcessor(config Config, logger *logp.Logger) (*Processor, error) {
 	if err := config.Validate(); err != nil {
-		return nil, errors.Wrap(err, "invalid tail-sampling config")
+		return nil, fmt.Errorf("invalid tail-sampling config: %w", err)
 	}
 
 	meter := config.MeterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")

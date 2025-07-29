@@ -20,6 +20,7 @@ package agentcfg
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -28,9 +29,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/pkg/errors"
-	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
@@ -71,7 +71,7 @@ type ElasticsearchFetcher struct {
 
 	logger, rateLimitedLogger *logp.Logger
 
-	tracer *apm.Tracer
+	tracer trace.Tracer
 
 	esCacheEntriesCount     metric.Int64Gauge
 	esFetchCount            metric.Int64Counter
@@ -86,7 +86,7 @@ func NewElasticsearchFetcher(
 	client *elasticsearch.Client,
 	cacheDuration time.Duration,
 	fetcher Fetcher,
-	tracer *apm.Tracer,
+	tp trace.TracerProvider,
 	mp metric.MeterProvider,
 	logger *logp.Logger,
 ) *ElasticsearchFetcher {
@@ -101,6 +101,7 @@ func NewElasticsearchFetcher(
 	esCacheRefreshFailures, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.cache.refresh.failures")
 
 	logger = logger.Named("agentcfg")
+	tracer := tp.Tracer("github.com/elastic/apm-server/internal/agentcfg")
 	return &ElasticsearchFetcher{
 		client:            client,
 		cacheDuration:     cacheDuration,
@@ -151,14 +152,11 @@ func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
 	refresh := func() bool {
 		// refresh returns a bool that indicates whether Run should return
 		// immediately without error, e.g. due to invalid Elasticsearch config.
-		tx := f.tracer.StartTransaction("ElasticsearchFetcher.refresh", "")
+		ctx, tx := f.tracer.Start(ctx, "ElasticsearchFetcher.refresh")
 		defer tx.End()
-		ctx = apm.ContextWithTransaction(ctx, tx)
 
 		if err := f.refreshCache(ctx); err != nil {
-			if e := apm.CaptureError(ctx, err); e != nil {
-				e.Send()
-			}
+			tx.RecordError(err)
 
 			// Do not log as error when there is a fallback.
 			var logFunc func(string, ...interface{})
@@ -222,7 +220,7 @@ type cacheResult struct {
 }
 
 func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
-	span, ctx := apm.StartSpan(ctx, "ElasticsearchFetcher.refreshCache", "")
+	ctx, span := f.tracer.Start(ctx, "ElasticsearchFetcher.refreshCache")
 	defer span.End()
 
 	scrollID := ""
