@@ -81,6 +81,9 @@
         "error.log.param_message": [
             "Request method 'POST' /events/:event not supported"
         ],
+        "event.dataset": [
+            "apm.error"
+        ],
         "host.architecture": [
             "amd64"
         ],
