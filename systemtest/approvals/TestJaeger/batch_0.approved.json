@@ -39,6 +39,9 @@
         "error.log.message": [
             "Retrying GetDriver after error"
         ],
+        "event.dataset": [
+            "apm.error"
+        ],
         "event.ingested": [
             "dynamic"
         ],
@@ -148,6 +151,9 @@
         ],
         "error.log.message": [
             "Retrying GetDriver after error"
+        ],
+        "event.dataset": [
+            "apm.error"
         ],
         "event.ingested": [
             "dynamic"
@@ -259,6 +265,9 @@
         "error.log.message": [
             "Retrying GetDriver after error"
         ],
+        "event.dataset": [
+            "apm.error"
+        ],
         "event.ingested": [
             "dynamic"
         ],
@@ -354,6 +363,9 @@
         "data_stream.type": [
             "logs"
         ],
+        "event.dataset": [
+            "apm.app.driver"
+        ],
         "event.ingested": [
             "dynamic"
         ],
@@ -443,6 +455,9 @@
         "data_stream.type": [
             "logs"
         ],
+        "event.dataset": [
+            "apm.app.driver"
+        ],
         "event.ingested": [
             "dynamic"
         ],
@@ -531,6 +546,9 @@
         ],
         "data_stream.type": [
             "logs"
+        ],
+        "event.dataset": [
+            "apm.app.driver"
         ],
         "event.ingested": [
             "dynamic"

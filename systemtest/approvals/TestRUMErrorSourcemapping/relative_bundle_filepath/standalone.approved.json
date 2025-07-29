@@ -48,6 +48,9 @@
         "error.log.message": [
             "Uncaught Error: log timeout test error"
         ],
+        "event.dataset": [
+            "apm.error"
+        ],
         "event.ingested": [
             "dynamic"
         ],

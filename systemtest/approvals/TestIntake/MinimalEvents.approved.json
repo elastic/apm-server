@@ -36,6 +36,9 @@
         "error.log.message": [
             "error log message"
         ],
+        "event.dataset": [
+            "apm.error"
+        ],
         "event.ingested": [
             "dynamic"
         ],
@@ -101,6 +104,9 @@
         "error.id": [
             "abcdef0123456790"
         ],
+        "event.dataset": [
+            "apm.error"
+        ],
         "event.ingested": [
             "dynamic"
         ],
@@ -162,6 +168,9 @@
         ],
         "error.id": [
             "abcdef0123456791"
+        ],
+        "event.dataset": [
+            "apm.error"
         ],
         "event.ingested": [
             "dynamic"
