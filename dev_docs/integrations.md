@@ -7,7 +7,7 @@ This documents covers the steps required to make changes to the APM package in E
 ## Update Integrations
 1. Follow the steps [here](https://github.com/elastic/integrations/blob/main/CONTRIBUTING.md) to fork and clone the integrations repo and make your changes 
 2. Use [elastic-package](https://github.com/elastic/elastic-package) to spin up a local stack. See integrations [quick start](https://www.elastic.co/docs/extend/integrations/quick-start) guide for more details
-- Run the below command. This will create a local stack (Kibana, ElasticSearch, Fleet Server, etc). This will also output a couple links to the local Kibana and ElasticSearch instances. It will also contain credentials to log in to the local Kibana.
+- Run the below command. This will create a local stack (Kibana, Elasticsearch, Fleet Server, etc). This will also output a couple links to the local Kibana and Elasticsearch instances. It will also contain credentials to log in to the local Kibana.
     
     ```bash
     elastic-package stack up -d --version 9.0.0
