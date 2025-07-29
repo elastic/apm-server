@@ -38,12 +38,11 @@ This documents covers the steps required to make changes to the APM package in E
     docker run --rm -it buildpack-deps:24.04 /bin/bash
     ```
 - Next we need to add a dns bypass entry for `fleet-server` since the Elastic-Agent will use this hostname to connect to the Fleet Server in the local stack.
-- Run the below command and copy the ipaddress.
-
+- Run the below command replace the <host-ip> with `host.docker.internal` or for Linux use `172.17.0.1`. Copy the ipaddress from the response: 
     ```bash
-    curl -vv host.docker.internal
+    curl -vv <host-ip>
     ```
-    
+
 - Then run the below command with the updated ipaddress.
 
     ```bash
