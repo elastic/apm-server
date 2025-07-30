@@ -259,7 +259,7 @@ func constructUpgradePaths(versions ech.Versions, vsCache *ech.VersionsCache) []
 	})
 
 	// Convert upgrade chain into contiguous upgrade path string.
-	var upgradePaths []string
+	upgradePaths := make([]string, 0)
 	for _, chain := range upgradeChains {
 		var sb strings.Builder
 		for i, pair := range chain {

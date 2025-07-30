@@ -70,7 +70,7 @@ jobs:
           SCENARIO="${{ matrix.scenario }}" UPGRADE_PATH="${{ matrix.upgrade-path }}" make integration-server-test/upgrade
 
   run-upgrade-bc:
-    if: ${{ !contains(inputs.run-upgrade-bc-tests, 'false') }}
+    if: ${{ !contains(inputs.run-upgrade-bc-tests, 'false') && needs.prepare.outputs.bc_upgrade_paths != '[]' }}
     name: Upgrade BC
     runs-on: ubuntu-latest
     needs: prepare
