@@ -36,6 +36,9 @@
         "error.log.message": [
             "error log message"
         ],
+        "event.dataset": [
+            "apm.error"
+        ],
         "host.ip": [
             "127.0.0.1"
         ],
@@ -98,6 +101,9 @@
         "error.id": [
             "abcdef0123456790"
         ],
+        "event.dataset": [
+            "apm.error"
+        ],
         "host.ip": [
             "127.0.0.1"
         ],
@@ -156,6 +162,9 @@
         ],
         "error.id": [
             "abcdef0123456791"
+        ],
+        "event.dataset": [
+            "apm.error"
         ],
         "host.ip": [
             "127.0.0.1"

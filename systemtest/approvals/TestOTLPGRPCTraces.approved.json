@@ -45,6 +45,9 @@
         "error.stack_trace.text": [
             "not an actual real stack trace"
         ],
+        "event.dataset": [
+            "apm.error"
+        ],
         "labels.resource_attribute_array": [
             "a",
             "b"
@@ -142,6 +145,9 @@
         ],
         "data_stream.type": [
             "logs"
+        ],
+        "event.dataset": [
+            "apm.app.unknown_service_systemtest_test"
         ],
         "event.kind": [
             "event"

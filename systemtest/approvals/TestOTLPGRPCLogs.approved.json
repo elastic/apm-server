@@ -21,6 +21,9 @@
         "data_stream.type": [
             "logs"
         ],
+        "event.dataset": [
+            "apm.app.unknown"
+        ],
         "event.severity": [
             9
         ],

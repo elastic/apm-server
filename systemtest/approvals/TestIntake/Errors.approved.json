@@ -138,6 +138,9 @@
         "error.log.param_message": [
             "My service could not talk to the database named %s"
         ],
+        "event.dataset": [
+            "apm.error"
+        ],
         "host.architecture": [
             "x64"
         ],
@@ -447,6 +450,9 @@
         "error.id": [
             "cdefab0123456789"
         ],
+        "event.dataset": [
+            "apm.error"
+        ],
         "host.architecture": [
             "x64"
         ],
@@ -669,6 +675,9 @@
         "error.log.message": [
             "no user found"
         ],
+        "event.dataset": [
+            "apm.error"
+        ],
         "host.architecture": [
             "x64"
         ],
@@ -884,6 +893,9 @@
         ],
         "error.id": [
             "cdefab0123456780"
+        ],
+        "event.dataset": [
+            "apm.error"
         ],
         "host.architecture": [
             "x64"
@@ -1109,6 +1121,9 @@
         ],
         "error.log.message": [
             "Cannot read property 'baz' of undefined"
+        ],
+        "event.dataset": [
+            "apm.error"
         ],
         "host.architecture": [
             "x64"
