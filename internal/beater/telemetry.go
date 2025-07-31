@@ -25,7 +25,7 @@ import (
 // recordAPMServerConfig records dynamic APM Server config properties for telemetry.
 // This should be called once each time runServer is called.
 func recordAPMServerConfig(cfg *config.Config, stateRegistry *monitoring.Registry) {
-	apmRegistry := stateRegistry.NewRegistry("apm-server")
+	apmRegistry := stateRegistry.GetOrCreateRegistry("apm-server")
 	monitoring.NewBool(apmRegistry, "rum.enabled").Set(cfg.RumConfig.Enabled)
 	monitoring.NewBool(apmRegistry, "api_key.enabled").Set(cfg.AgentAuth.APIKey.Enabled)
 	monitoring.NewBool(apmRegistry, "kibana.enabled").Set(cfg.Kibana.Enabled)
