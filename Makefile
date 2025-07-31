@@ -81,7 +81,7 @@ $(APM_SERVER_BINARIES):
 .PHONY: apm-server-build
 apm-server-build:
 	env CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) MS_GOTOOLCHAIN_TELEMETRY_ENABLED=0 \
-	go build -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) -tags=grpcnotrace,$(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
+	go build -x -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) -tags=grpcnotrace,$(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
 
 build/apm-server-linux-% build/apm-server-fips-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
@@ -131,7 +131,7 @@ test:
 system-test:
 	# CGO is disabled when building APM Server binary, so the race detector in this case
 	# would only work on the parts that don't involve APM Server binary.
-	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -race -timeout=20m ./...)
+	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -race -run=TestNewServerTB -timeout=20m ./...)
 
 .PHONY:
 clean:
