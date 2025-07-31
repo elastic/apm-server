@@ -1,5 +1,5 @@
 ##############################################################################
-# Variables used for various build targets.
+# Variables used for various build targets.0
 ##############################################################################
 
 include go.mk
