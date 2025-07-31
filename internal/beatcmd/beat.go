@@ -183,7 +183,7 @@ func (b *Beat) init() error {
 	b.Info.Logger.Infof("Beat ID: %v", b.Info.ID)
 
 	// Initialize central config manager.
-	manager, err := management.NewManager(b.Config.Management, b.Registry)
+	manager, err := management.NewManager(b.Config.Management, b.Registry, b.Info.Logger)
 	if err != nil {
 		return err
 	}
@@ -750,8 +750,8 @@ func addDocappenderOutputElasticsearchMetrics(ctx context.Context, v monitoring.
 // registerElasticsearchVerification returns a cleanup function which must be
 // called on shutdown.
 func (b *Beat) registerElasticsearchVersionCheck() (func(), error) {
-	uuid, err := elasticsearch.RegisterGlobalCallback(func(conn *eslegclient.Connection) error {
-		if err := licenser.FetchAndVerify(conn); err != nil {
+	uuid, err := elasticsearch.RegisterGlobalCallback(func(conn *eslegclient.Connection, logger *logp.Logger) error {
+		if err := licenser.FetchAndVerify(conn, logger); err != nil {
 			return err
 		}
 		esVersion := conn.GetVersion()
@@ -788,7 +788,7 @@ func (b *Beat) clusterUUIDFetchingCallback() elasticsearch.ConnectCallback {
 	elasticsearchRegistry := stateRegistry.NewRegistry("outputs.elasticsearch")
 	clusterUUIDRegVar := monitoring.NewString(elasticsearchRegistry, "cluster_uuid")
 
-	callback := func(esClient *eslegclient.Connection) error {
+	callback := func(esClient *eslegclient.Connection, _ *logp.Logger) error {
 		var response struct {
 			ClusterUUID string `json:"cluster_uuid"`
 		}
