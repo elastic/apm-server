@@ -44,6 +44,7 @@ var configMonitors = &configTelemetry{
 
 // recordAPMServerConfig records dynamic APM Server config properties for telemetry.
 // This should be called once each time runServer is called.
+<<<<<<< HEAD
 func recordAPMServerConfig(cfg *config.Config) {
 	configMonitors.rumEnabled.Set(cfg.RumConfig.Enabled)
 	configMonitors.apiKeysEnabled.Set(cfg.AgentAuth.APIKey.Enabled)
@@ -51,4 +52,14 @@ func recordAPMServerConfig(cfg *config.Config) {
 	configMonitors.sslEnabled.Set(cfg.TLS.IsEnabled())
 	configMonitors.tailSamplingEnabled.Set(cfg.Sampling.Tail.Enabled)
 	configMonitors.tailSamplingPolicies.Set(int64(len(cfg.Sampling.Tail.Policies)))
+=======
+func recordAPMServerConfig(cfg *config.Config, stateRegistry *monitoring.Registry) {
+	apmRegistry := stateRegistry.GetOrCreateRegistry("apm-server")
+	monitoring.NewBool(apmRegistry, "rum.enabled").Set(cfg.RumConfig.Enabled)
+	monitoring.NewBool(apmRegistry, "api_key.enabled").Set(cfg.AgentAuth.APIKey.Enabled)
+	monitoring.NewBool(apmRegistry, "kibana.enabled").Set(cfg.Kibana.Enabled)
+	monitoring.NewBool(apmRegistry, "ssl.enabled").Set(cfg.TLS.IsEnabled())
+	monitoring.NewBool(apmRegistry, "sampling.tail.enabled").Set(cfg.Sampling.Tail.Enabled)
+	monitoring.NewInt(apmRegistry, "sampling.tail.policies").Set(int64(len(cfg.Sampling.Tail.Policies)))
+>>>>>>> b17e61d6 (fix: do not try to create apm-serve registry if it exists (#17872))
 }
