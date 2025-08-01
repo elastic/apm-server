@@ -1,0 +1,20 @@
+---
+name: setup-integration-server-test
+description: Setup Integration Server Test
+
+runs:
+  using: composite
+  steps:
+    - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+      with:
+        terraform_version: "${{ env.TERRAFORM_VERSION }}"
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: 'integrationservertest/go.mod'
+        cache: false
+    - uses: elastic/oblt-actions/google/auth@v1
+    - uses: google-github-actions/get-secretmanager-secrets@50ec04d56ddf2740b0bde82926cc742f90e06d2b # v2.2.4
+      with:
+        export_to_environment: true
+        secrets: |-
+          EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
