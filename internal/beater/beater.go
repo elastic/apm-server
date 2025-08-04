@@ -715,7 +715,7 @@ func (s *Runner) newFinalBatchProcessor(
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
 	if s.elasticsearchOutputConfig == nil {
 		s.beatMonitoring.StatsRegistry().Remove("libbeat")
-		libbeatMonitoringRegistry := s.beatMonitoring.StatsRegistry().NewRegistry("libbeat")
+		libbeatMonitoringRegistry := s.beatMonitoring.StatsRegistry().GetOrCreateRegistry("libbeat")
 		return s.newLibbeatFinalBatchProcessor(tracer, libbeatMonitoringRegistry, logger)
 	}
 

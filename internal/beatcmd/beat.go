@@ -486,20 +486,20 @@ func (b *Beat) registerStateMetrics() {
 	stateRegistry := b.Monitoring.StateRegistry()
 
 	// state.service
-	serviceRegistry := stateRegistry.NewRegistry("service")
+	serviceRegistry := stateRegistry.GetOrCreateRegistry("service")
 	monitoring.NewString(serviceRegistry, "version").Set(b.Info.Version)
 	monitoring.NewString(serviceRegistry, "name").Set(b.Info.Beat)
 	monitoring.NewString(serviceRegistry, "id").Set(b.Info.ID.String())
 
 	// state.beat
-	beatRegistry := stateRegistry.NewRegistry("beat")
+	beatRegistry := stateRegistry.GetOrCreateRegistry("beat")
 	monitoring.NewString(beatRegistry, "name").Set(b.Info.Name)
 
 	// state.host
 	monitoring.NewFunc(stateRegistry, "host", host.ReportInfo("" /* don't use FQDN */), monitoring.Report)
 
 	// state.management
-	managementRegistry := stateRegistry.NewRegistry("management")
+	managementRegistry := stateRegistry.GetOrCreateRegistry("management")
 	monitoring.NewBool(managementRegistry, "enabled").Set(b.Manager.Enabled())
 }
 
@@ -785,7 +785,7 @@ func (b *Beat) registerClusterUUIDFetching() (func(), error) {
 // Build and return a callback to fetch the Elasticsearch cluster_uuid for monitoring
 func (b *Beat) clusterUUIDFetchingCallback() elasticsearch.ConnectCallback {
 	stateRegistry := b.Monitoring.StateRegistry()
-	elasticsearchRegistry := stateRegistry.NewRegistry("outputs.elasticsearch")
+	elasticsearchRegistry := stateRegistry.GetOrCreateRegistry("outputs.elasticsearch")
 	clusterUUIDRegVar := monitoring.NewString(elasticsearchRegistry, "cluster_uuid")
 
 	callback := func(esClient *eslegclient.Connection, _ *logp.Logger) error {
@@ -823,7 +823,7 @@ func (b *Beat) setupMonitoring() (report.Reporter, error) {
 	// Expose monitoring.cluster_uuid in state API
 	if monitoringClusterUUID != "" {
 		stateRegistry := b.Monitoring.StateRegistry()
-		monitoringRegistry := stateRegistry.NewRegistry("monitoring")
+		monitoringRegistry := stateRegistry.GetOrCreateRegistry("monitoring")
 		clusterUUIDRegVar := monitoring.NewString(monitoringRegistry, "cluster_uuid")
 		clusterUUIDRegVar.Set(monitoringClusterUUID)
 	}
