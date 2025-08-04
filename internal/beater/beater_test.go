@@ -122,7 +122,7 @@ func sourcemapSearchResponseBody(name string, version string, bundlePath string)
 func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
 	stateRegistry := monitoring.NewRegistry()
 
-	elasticsearchRegistry := stateRegistry.NewRegistry("outputs.elasticsearch")
+	elasticsearchRegistry := stateRegistry.GetOrCreateRegistry("outputs.elasticsearch")
 	monitoring.NewString(elasticsearchRegistry, "cluster_uuid")
 
 	const clusterUUID = "abc123"
