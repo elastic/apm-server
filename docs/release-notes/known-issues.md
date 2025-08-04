@@ -19,12 +19,14 @@ Known issues are significant defects or limitations that may impact your impleme
 % Workaround description.
 % :::
 
-:::{dropdown} APM Integration / Server removed after upgrading to 8.19.0 and 9.1.0 in ECH and ECE
+:::{dropdown} APM Integration / Server might get removed after upgrading to 8.19.0 and 9.1.0
 
 *Elastic Stack versions: 8.19.0 and 9.1.0*
 *Environments: ECH, ECE, ECK, and self-managed when running Fleet*
 
-The APM Integration might sometimes get removed from the Elastic Agent on Cloud policy. When this happens, APM intake will not work and APM Traces and Metrics or OTEL intake through APM Server / Integration will stop working.
+The APM Integration might sometimes get removed from the Elastic Agent on Cloud policy. 
+
+When this happens, APM intake and OTLP intake through APM Server / APM Integration will stop working.
 
 **Workaround**
 
