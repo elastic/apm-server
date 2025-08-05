@@ -17,7 +17,29 @@ Known issues are significant defects or limitations that may impact your impleme
 
 % **Workaround**
 % Workaround description.
+% :::
 
+:::{dropdown} APM Integration / Server might get removed after upgrading to 8.19.0 and 9.1.0
+
+*Elastic Stack versions: 8.19.0 and 9.1.0*
+*Environments: ECH, ECE, ECK, and self-managed when running Fleet*
+
+The APM Integration might sometimes get removed from the Elastic Agent on Cloud policy. 
+
+When this happens, APM intake and OTLP intake through APM Server / APM Integration will stop working.
+
+**Workaround**
+
+To work around this issue you can either:
+
+- Restart the Integration servers through Force Restart in the Cloud Admin UI.
+- Save a copy of the Elastic APM Integration policy within the Elastic Agent on Cloud policy in the Fleet UI:
+  - Go to **Kibana** > **Fleet** > **Elastic Cloud agent policy**,
+  - Select the **...** icon, then **Edit Integration**.
+  - Add a blank space to the **Description**, then remove it.
+  - Select **Save Integration**
+
+In both cases, the settings of APM Integration are maintained.
 :::
 
 :::{dropdown} Tail Sampling may not compact / expired TTLs as quickly as desired, causing increased storage usage.
@@ -310,7 +332,7 @@ Affected APM servers will emit the following log:
 flush_bytes config value is too small (0) and might be ignored by the indexer, increasing value to 24576
 ```
 
-To workaround the issue, modify the Elasticsearch output configuration in APM.
+To work around the issue, modify the Elasticsearch output configuration in APM.
 
 * For APM Server binary
 
