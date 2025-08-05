@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.3.0
 	github.com/elastic/apm-data v1.19.2
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250804140702-26cf81cb5267
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250805112248-888744b4e0fc
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
 	github.com/elastic/elastic-agent-libs v0.21.2
 	github.com/elastic/elastic-agent-system-metrics v0.11.18
@@ -38,7 +38,7 @@ require (
 	go.elastic.co/apm/module/apmotel/v2 v2.7.1
 	go.elastic.co/apm/v2 v2.7.1
 	go.elastic.co/fastjson v1.5.1
-	go.opentelemetry.io/collector/pdata v1.35.0
+	go.opentelemetry.io/collector/pdata v1.36.0
 	go.opentelemetry.io/otel v1.37.0
 	go.opentelemetry.io/otel/metric v1.37.0
 	go.opentelemetry.io/otel/sdk v1.37.0
@@ -119,6 +119,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gohugoio/hashstructure v0.5.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
@@ -168,7 +169,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
-	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -196,7 +196,7 @@ require (
 	github.com/sagikazarmark/locafero v0.6.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
-	github.com/shirou/gopsutil/v4 v4.25.5 // indirect
+	github.com/shirou/gopsutil/v4 v4.25.6 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/skeema/knownhosts v1.3.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
@@ -226,17 +226,17 @@ require (
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.7.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/collector/consumer v1.35.0 // indirect
+	go.opentelemetry.io/collector/consumer v1.36.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.39.0 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
 	golang.org/x/mod v0.25.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
 	golang.org/x/tools v0.34.0 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250519155744-55703ea1f237 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

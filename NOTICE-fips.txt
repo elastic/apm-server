@@ -455,11 +455,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.19.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20250804140702-26cf81cb5267
+Version: v7.0.0-alpha2.0.20250805112248-888744b4e0fc
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250804140702-26cf81cb5267/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250805112248-888744b4e0fc/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -4192,11 +4192,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/pdata
-Version: v1.35.0
+Version: v1.36.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.35.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.36.0/LICENSE:
 
 
                                  Apache License
@@ -9761,6 +9761,37 @@ SOFTWARE.
 
 
 --------------------------------------------------------------------------------
+Dependency : github.com/gohugoio/hashstructure
+Version: v0.5.0
+Licence type (autodetected): MIT
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/github.com/gohugoio/hashstructure@v0.5.0/LICENSE:
+
+The MIT License (MIT)
+
+Copyright (c) 2016 Mitchell Hashimoto
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+--------------------------------------------------------------------------------
 Dependency : github.com/golang/snappy
 Version: v1.0.0
 Licence type (autodetected): BSD-3-Clause
@@ -11446,37 +11477,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
 --------------------------------------------------------------------------------
-Dependency : github.com/mitchellh/hashstructure
-Version: v1.1.0
-Licence type (autodetected): MIT
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/github.com/mitchellh/hashstructure@v1.1.0/LICENSE:
-
-The MIT License (MIT)
-
-Copyright (c) 2016 Mitchell Hashimoto
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-
---------------------------------------------------------------------------------
 Dependency : github.com/modern-go/concurrent
 Version: v0.0.0-20180306012644-bacd9c7ef1dd
 Licence type (autodetected): Apache-2.0
@@ -12977,11 +12977,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/shirou/gopsutil/v4
-Version: v4.25.5
+Version: v4.25.6
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/shirou/gopsutil/v4@v4.25.5/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/shirou/gopsutil/v4@v4.25.6/LICENSE:
 
 gopsutil is distributed under BSD license reproduced below.
 
@@ -13750,11 +13750,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/auto/sdk@v1.1.
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/consumer
-Version: v1.35.0
+Version: v1.36.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.35.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.36.0/LICENSE:
 
 
                                  Apache License
@@ -14028,11 +14028,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.33.0
+Version: v0.34.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.33.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.34.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -14102,11 +14102,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto/googleapis/rpc
-Version: v0.0.0-20250519155744-55703ea1f237
+Version: v0.0.0-20250603155806-513f23925822
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20250519155744-55703ea1f237/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20250603155806-513f23925822/LICENSE:
 
 
                                  Apache License
