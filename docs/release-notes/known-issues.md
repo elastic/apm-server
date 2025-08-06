@@ -19,27 +19,27 @@ Known issues are significant defects or limitations that may impact your impleme
 % Workaround description.
 % :::
 
-:::{dropdown} APM Integration / Server might get removed after upgrading to 8.19.0 and 9.1.0
+:::{dropdown} APM Integration may be unreachable after upgrading to 8.19.0 and 9.1.0
 
 *Elastic Stack versions: 8.19.0 and 9.1.0*
 *Environments: ECH, ECE, ECK, and self-managed when running Fleet*
 
-The APM Integration might sometimes get removed from the Elastic Agent on Cloud policy. 
+APM Integration, i.e. APM Server managed by Fleet, may sometimes be unreachable after reloading due to an integration policy change. This does not affect standalone APM Server.
 
-When this happens, APM intake and OTLP intake through APM Server / APM Integration will stop working.
+When this happens, APM and OTLP intake through APM Integration will stop working, and there will be little to no logs from it. On ECH and ECE cloud, "Copy endpoint" will be grayed out.
 
 **Workaround**
 
 To work around this issue you can either:
 
 - Restart the Integration servers through Force Restart in the Cloud Admin UI.
-- Save a copy of the Elastic APM Integration policy within the Elastic Agent on Cloud policy in the Fleet UI:
-  - Go to **Kibana** > **Fleet** > **Elastic Cloud agent policy**,
+- Save a copy of the Elastic APM Integration policy within the affected policy (e.g. Elastic Cloud agent policy) in the Fleet UI:
+  - Go to **Kibana** > **Fleet** > the affected policy (e.g. **Elastic Cloud agent policy**),
   - Select the **...** icon, then **Edit Integration**.
   - Add a blank space to the **Description**, then remove it.
   - Select **Save Integration**
 
-In both cases, the settings of APM Integration are maintained.
+In both cases, the settings of APM Integration are maintained. However, these workarounds will only keep APM Integration healthy until next integration policy change.
 :::
 
 :::{dropdown} Tail Sampling may not compact / expired TTLs as quickly as desired, causing increased storage usage.
