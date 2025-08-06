@@ -31,10 +31,17 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.34.0
 	go.opentelemetry.io/otel/trace v1.34.0
 	go.uber.org/zap v1.27.0
+<<<<<<< HEAD
 	golang.org/x/sync v0.11.0
 	golang.org/x/sys v0.29.0
 	golang.org/x/time v0.10.0
 	google.golang.org/grpc v1.70.0
+=======
+	golang.org/x/sync v0.16.0
+	golang.org/x/sys v0.33.0
+	golang.org/x/time v0.12.0
+	google.golang.org/grpc v1.73.0
+>>>>>>> fcb04713 (Bump golang.org/x/sync to 0.16.0 to surface panic (#17975))
 	gopkg.in/yaml.v3 v3.0.1
 )
 
