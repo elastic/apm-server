@@ -33,7 +33,7 @@ When this happens, APM and OTLP intake through APM Integration will stop working
 To work around this issue you can either:
 
 - Restart the Integration servers through Force Restart in the Cloud Admin UI.
-- Save a copy of the Elastic APM Integration policy within the affected policy (e.g. Elastic Cloud agent policy) in the Fleet UI:
+- Save a copy of the Elastic APM Integration policy within the affected policy, for example the Elastic Cloud agent policy, in the Fleet UI:
   - Go to **Kibana** > **Fleet** > the affected policy (e.g. **Elastic Cloud agent policy**),
   - Select the **...** icon, then **Edit Integration**.
   - Add a blank space to the **Description**, then remove it.
