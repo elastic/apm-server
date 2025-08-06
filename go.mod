@@ -47,8 +47,13 @@ require (
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/zap v1.27.0
 	go.uber.org/zap/exp v0.3.0
+<<<<<<< HEAD
 	golang.org/x/net v0.40.0
 	golang.org/x/sync v0.15.0
+=======
+	golang.org/x/net v0.41.0
+	golang.org/x/sync v0.16.0
+>>>>>>> fcb04713 (Bump golang.org/x/sync to 0.16.0 to surface panic (#17975))
 	golang.org/x/term v0.32.0
 	golang.org/x/time v0.10.0
 	google.golang.org/grpc v1.71.0
