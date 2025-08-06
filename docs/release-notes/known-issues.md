@@ -40,6 +40,8 @@ To work around this issue you can either:
   - Select **Save Integration**
 
 In both cases, the settings of APM Integration are maintained. However, these workarounds will only keep APM Integration healthy until next integration policy change.
+
+This bug will be fixed in 8.19.1 and 9.1.1.
 :::
 
 :::{dropdown} Tail Sampling may not compact / expired TTLs as quickly as desired, causing increased storage usage.
