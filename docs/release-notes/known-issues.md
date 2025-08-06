@@ -19,12 +19,12 @@ Known issues are significant defects or limitations that may impact your impleme
 % Workaround description.
 % :::
 
-:::{dropdown} APM Integration may be unreachable after upgrading to 8.19.0 and 9.1.0
+:::{dropdown} APM Integration might be unreachable after upgrading to 8.19.0 and 9.1.0
 
 *Elastic Stack versions: 8.19.0 and 9.1.0*
 *Environments: ECH, ECE, ECK, and self-managed when running Fleet*
 
-APM Integration, i.e. APM Server managed by Fleet, may sometimes be unreachable after reloading due to an integration policy change. This does not affect standalone APM Server.
+APM Integration, i.e. APM Server managed by Fleet, might sometimes be unreachable after reloading due to an integration policy change. This does not affect standalone APM Server.
 
 When this happens, APM and OTLP intake through APM Integration will stop working, and there will be little to no logs from it. On ECH and ECE cloud, "Copy endpoint" will be grayed out.
 
