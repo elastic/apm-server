@@ -318,7 +318,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		close(publishReady)
 		return nil
 	})
-	callbackUUID, err := esoutput.RegisterConnectCallback(func(*eslegclient.Connection) error {
+	callbackUUID, err := esoutput.RegisterConnectCallback(func(*eslegclient.Connection, *logp.Logger) error {
 		select {
 		case <-publishReady:
 			return nil
@@ -726,7 +726,7 @@ func (s *Runner) newFinalBatchProcessor(
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
 	if s.elasticsearchOutputConfig == nil {
 		s.beatMonitoring.StatsRegistry().Remove("libbeat")
-		libbeatMonitoringRegistry := s.beatMonitoring.StatsRegistry().NewRegistry("libbeat")
+		libbeatMonitoringRegistry := s.beatMonitoring.StatsRegistry().GetOrCreateRegistry("libbeat")
 		return s.newLibbeatFinalBatchProcessor(tracer, libbeatMonitoringRegistry, logger)
 	}
 
