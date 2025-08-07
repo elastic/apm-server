@@ -18,9 +18,8 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ### Features and enhancements [elastic-apm-next-features-enhancements]
 
-<<<<<<< HEAD
 ### Fixes [elastic-apm-next-fixes]
-=======
+
 % ### Fixes [elastic-apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
@@ -50,7 +49,6 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 * Tail-based sampling: Fix missing or infrequent monitoring metric `lsm_size` and `value_log_size` ([#17512](https://github.com/elastic/apm-server/pull/17512))
 * Fix default tracer `http request sent to https endpoint` error when both self-instrumentation and TLS are enabled ([#17293](https://github.com/elastic/apm-server/pull/17293))
->>>>>>> b7f28564 (changelog: add notes for 9.1.1 (#17999))
 
 ## 9.0.3 [elastic-apm-9.0.3-release-notes]
 
