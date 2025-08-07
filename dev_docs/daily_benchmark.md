@@ -72,3 +72,10 @@ If this metric increases by a significant margin, we should investigate it since
 
 This metric represents the minimum mean number of bulk indexers available for making bulk index requests to Elasticsearch across the benchmark.
 The metric is derived from  [`output.elasticsearch.bulk_requests.available`](https://www.elastic.co/docs/reference/beats/metricbeat/exported-fields-beat) in Metricbeat.
+
+## Investigating Regressions
+
+When there is a performance regression, first check when the regression started.
+Then, look into the commits between the previous good run and the current run.
+Usually, there aren't many commits in-between so finding the offending commit is relatively easy.
+But in case it's not, checkout each commit into new branch, run the benchmark on the branch and check the results.
