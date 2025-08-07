@@ -1,6 +1,18 @@
 [[apm-release-notes-8.19]]
 == APM version 8.19
+* <<apm-release-notes-8.19.1>>
 * <<apm-release-notes-8.19.0>>
+
+[float]
+[[apm-release-notes-8.19.1]]
+=== APM version 8.19.1
+
+https://github.com/elastic/apm-server/compare/v8.19.0\...v8.19.1[View commits]
+
+[float]
+==== Bug fixes
+
+- Fix panic due to apm-server registry creation if it already exists {pull}17872[17872]
 
 [float]
 [[apm-release-notes-8.19.0]]
@@ -11,7 +23,7 @@ https://github.com/elastic/apm-server/compare/v8.18.1\...v8.19.0[View commits]
 [float]
 ==== Bug fixes
 
-- Fix default tracer `http request sent to https endpoint` error when both self-instrumentation and TLS are enabled {pull}17293[#17293]
+- Fix default tracer `http request sent to https endpoint` error when both self-instrumentation and TLS are enabled {pull}17293[17293]
 - TBS: Surface pubsub subscriber errors by logging at Warn level for `429` and Error level for others, instead of Debug level {pull}17135[17135]
 
 [float]
