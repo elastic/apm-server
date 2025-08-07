@@ -7,6 +7,23 @@ The results are then posted on Slack, and looks something like this:
 
 <img src="./images/benchmark_results.png" alt="Benchmark results" width="800"/>
 
+## Benchmark Settings
+
+Although the daily benchmark run with default settings, there are multiple different settings that can be configured when running the benchmark manually.
+
+| Setting | Notes                                                                                                                                               |
+|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| Benchmark against standalone APM Server with Moxy | Deploy APM Server with a minimal proxy for benchmark i.e. no ES                                                                                     |
+| Enable tail-based sampling on APM server | Enable [TBS](https://www.elastic.co/docs/solutions/observability/apm/transaction-sampling#apm-tail-based-sampling)                                  |
+| Storage size limit of tail-based sampling on APM server | See [Storage limit for TBS](https://www.elastic.co/docs/solutions/observability/apm/tail-based-sampling#sampling-tail-storage_limit-ref)            |
+| Blanket sample rate used by tail-based sampling | See [Quantile of events sampled for TBS](https://www.elastic.co/docs/solutions/observability/apm/tail-based-sampling#sampling-tail-sample-rate-ref) |
+| System profile for benchmark | All system profiles available can be found in [system-profiles](../testing/benchmark/system-profiles)                                               |
+| Benchmark on latest stable version instead of a build from commit | Use latest stable APM Server version instead of building from branch commit                                                                         |
+| Number of benchmark agents sending data to APM Server | See [benchtest](https://github.com/elastic/apm-server/blob/main/systemtest/benchtest/main.go#L229) for how agents count are used                    |
+| Benchmark scenarios that only match regex | The [regex](https://github.com/elastic/apm-server/blob/main/systemtest/benchtest/main.go#L189) is similar to Go test run regex                      |
+| Benchmark warmup time for APM Server | Warmup by sending events to APM Server before the actual benchmarking starts                                                                        |
+| Benchmark with PGO export | Go [Profile Guided Optimization](https://go.dev/doc/pgo) using CPU profile from benchmark                                                           |
+
 ## Metrics
 
 The metrics for the benchmark are collected by the [`expvar`](../systemtest/benchtest/expvar) collector.
