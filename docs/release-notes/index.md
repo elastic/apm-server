@@ -20,6 +20,36 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ### Fixes [elastic-apm-next-fixes]
 
+% ### Fixes [elastic-apm-next-fixes]
+% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+
+## 9.1.1 [elastic-apm-9.1.1-release-notes]
+
+### Fixes [elastic-apm-9.1.1-fixes]
+
+* Do not try to create apm-server monitoring registry if it already exists ([#17872](https://github.com/elastic/apm-server/pull/17872))
+
+## 9.1.0 [elastic-apm-9.1.0-release-notes]
+
+### Features and enhancements [elastic-apm-9.1.0-features-enhancements]
+
+* Add config for tail-based sampling discard on write ([#13950](https://github.com/elastic/integrations/pull/13950))
+* Add config for tail-based sampling TTL ([#16579](https://github.com/elastic/apm-server/pull/16579))
+
+### Fixes [elastic-apm-9.1.0-fixes]
+
+* Truncate string slice attributes in OTLP labels ([#434](https://github.com/elastic/apm-data/pull/434))
+* Fix broken UI by explicitly enabling date detection for the `system.process.cpu.start_time` field ([#130466](https://github.com/elastic/elasticsearch/pull/130466))
+* Use representative count for the `event.success_count` metric if available ([#119995](https://github.com/elastic/elasticsearch/pull/119995))
+* Fix setting `event.dataset` to `data_stream.dataset` if `event.dataset` is empty, to have `event.dataset` in every `logs-*` data stream ([#129074](https://github.com/elastic/elasticsearch/pull/129074))
+
+## 9.0.4 [elastic-apm-9.0.4-release-notes]
+
+### Fixes [elastic-apm-9.0.4-fixes]
+
+* Tail-based sampling: Fix missing or infrequent monitoring metric `lsm_size` and `value_log_size` ([#17512](https://github.com/elastic/apm-server/pull/17512))
+* Fix default tracer `http request sent to https endpoint` error when both self-instrumentation and TLS are enabled ([#17293](https://github.com/elastic/apm-server/pull/17293))
+
 ## 9.0.3 [elastic-apm-9.0.3-release-notes]
 
 ### Features and enhancements [elastic-apm-9.0.3-features-enhancements]
