@@ -20,15 +20,15 @@ jobs:
 
       - name: Get token
         id: get_token
-        uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
         with:
-          app_id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
-          private_key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
-          permissions: >-
-            {
-              "contents": "write",
-              "pull_requests": "write"
-            }
+          app-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
+          private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            apm-server
+          permission-contents: write
+          permission-pull-requests: write
 
       - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
@@ -38,13 +38,13 @@ jobs:
 
       - uses: elastic/oblt-actions/updatecli/run@v1
         with:
-          command: --experimental compose diff
+          command: compose diff
         env:
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
 
       - uses: elastic/oblt-actions/updatecli/run@v1
         with:
-          command: --experimental compose apply
+          command: compose apply
         env:
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
 
