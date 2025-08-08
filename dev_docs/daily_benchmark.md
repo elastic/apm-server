@@ -45,6 +45,7 @@ The metric is taken from [`beat.memstats.rss`](https://www.elastic.co/docs/refer
 
 If this metric increases by a significant margin, it means that new code additions in APM Server is causing higher memory usage.
 If that is unexpected, we should investigate and fix it.
+Note that benchmarks with lower throughput may also show lower RSS since APM Server could have been underutilized.
 
 ### gc cycles
 
@@ -60,6 +61,7 @@ This metric represents the maximum number of goroutines running at once during t
 The metric is reported by Metricbeat as [`beat.runtime.goroutines`](https://www.elastic.co/docs/reference/beats/metricbeat/exported-fields-beat).
 
 If this metric increases by a significant margin, we should investigate it since it could potentially be a result of goroutine leaks.
+Notably, a higher max goroutines count would contribute to higher max RSS as well.
 
 ### max heap obj
 
@@ -72,6 +74,7 @@ If this metric increases by a significant margin, we should investigate it since
 
 This metric represents the minimum mean number of bulk indexers available for making bulk index requests to Elasticsearch across the benchmark.
 The metric is derived from  [`output.elasticsearch.bulk_requests.available`](https://www.elastic.co/docs/reference/beats/metricbeat/exported-fields-beat) in Metricbeat.
+It is used to indicate the "busy-ness" of the [`go-docappender`](https://github.com/elastic/go-docappender) component in APM Server.
 
 ## Investigating Regressions
 
