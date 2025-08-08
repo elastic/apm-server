@@ -65,28 +65,19 @@ func New(url, apikey string, kbc *kibana.Client, logger *zap.Logger) *Generator 
 func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version, integrations bool) error {
 	g.logger.Info("wait for apm server to be ready")
 	if err := g.waitForAPMToBePublishReady(ctx); err != nil {
-		// If the APM server is not ready, we likely ran into an issue.
-		// For example, see https://github.com/elastic/apm-server/issues/17605.
-		// We can try to temporarily resolve it by re-applying the Elastic APM policy,
-		// and wait again.
-		//
-		// NOTE: This retry only works if there is integrations server, otherwise
-		//       simply do nothing.
-		if !integrations {
-			return fmt.Errorf("failed to wait for apm server: %w", err)
-		}
-		g.logger.Info("re-apply apm policy")
-		if err = g.reapplyAPMPolicy(ctx, version); err != nil {
-			return fmt.Errorf("failed to re-apply apm policy: %w", err)
-		}
-		if err = g.waitForAPMToBePublishReady(ctx); err != nil {
-			return fmt.Errorf("failed to wait for apm server: %w", err)
-		}
+		return fmt.Errorf("failed to wait for apm server: %w", err)
 	}
 
 	g.logger.Info("ingest data")
 	if err := g.retryRunBlocking(ctx, version, 2); err != nil {
 		return fmt.Errorf("cannot run generator: %w", err)
+	}
+
+	if integrations {
+		g.logger.Info("re-apply apm policy")
+		if err := g.reapplyAPMPolicy(ctx, version); err != nil {
+			return fmt.Errorf("failed to re-apply apm policy: %w", err)
+		}
 	}
 
 	// Simply wait for some arbitrary time, for the data to be flushed.
