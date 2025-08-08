@@ -71,7 +71,7 @@ It does not affect Elastic Cloud Hosted, as storage is automatically cleaned up 
 APM Server no longer supports the agent configuration fetching mechanism where Fleet injects agent configuration into
 the APM Server
 at regular intervals.
-The default behavior is now to fetch agent configuration direclty from Elasticsearch.
+The default behavior is now to fetch agent configuration directly from Elasticsearch.
 Fetching the agent configuration from Kibana is still supported when APM Server is configured without an Elasticsearch
 output.
 
@@ -98,7 +98,17 @@ For more information, check [#14790]({{apm-pull}}14790).
 
 **Impact**<br> The default configuration doesn't allow TLSv1.1 connections.
 
-**Action**<br> Modify the `ssl.supported_protocols` setting to include `TLSv1.1` if needed.
+**Action**<br> Modify the `apm-server.yml` or APM integration policy `ssl.supported_protocols` setting to include `TLSv1.1` if needed.
+::::
+
+::::{dropdown} Removal of `TLSv1.0` support
+TLS version 1.0 protocol is no longer supported.
+
+For more information, check [#10491]({{apm-issue}}10491).
+
+**Impact**<br> Existing TLS version configuration that contains `TLSv1.0` will cause APM Server to fail to start.
+
+**Action**<br> Modify the `apm-server.yml` or APM integration policy `ssl.supported_protocols` setting to remove `TLSv1.0`.
 ::::
 
 ::::{dropdown} Removal of deprecated RUM configuration options
