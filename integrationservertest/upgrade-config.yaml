@@ -11,6 +11,8 @@ data-stream-lifecycle:
 lazy-rollover-with-exceptions:
   8.16:
   8.17:
+  8.18:
+    - "8.17"
   8.19:
   9.0:
   9.1:
