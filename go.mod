@@ -1,6 +1,10 @@
 module github.com/elastic/apm-server
 
+<<<<<<< HEAD
 go 1.24.4
+=======
+go 1.24.6
+>>>>>>> 6c6e1f77 ([updatecli] Bump Golang version to 1.24.6 (#18058))
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0
