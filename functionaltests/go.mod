@@ -1,6 +1,10 @@
 module github.com/elastic/apm-server/functionaltests
 
+<<<<<<< HEAD:functionaltests/go.mod
 go 1.24.4
+=======
+go 1.24.6
+>>>>>>> 6c6e1f77 ([updatecli] Bump Golang version to 1.24.6 (#18058)):integrationservertest/go.mod
 
 require (
 	github.com/elastic/apm-perf v0.0.0-20241230130730-2ad47482b731
