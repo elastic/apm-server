@@ -183,7 +183,7 @@ jobs:
             echo "BENCHMARK_WARMUP_TIME=5m" >> "$GITHUB_ENV"
           fi
         env:
-          BENCHMARK_AGENTS: ${{ inputs.benchmarkAgents }}"
+          BENCHMARK_AGENTS: ${{ inputs.benchmarkAgents }}
           BENCHMARK_RUN: ${{ inputs.benchmarkRun }}
           WARMUP_TIME: ${{ inputs.warmupTime }}
 
