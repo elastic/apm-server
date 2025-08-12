@@ -1,7 +1,17 @@
 [[apm-release-notes-8.19]]
 == APM version 8.19
+* <<apm-release-notes-8.19.2>>
 * <<apm-release-notes-8.19.1>>
 * <<apm-release-notes-8.19.0>>
+
+[float]
+[[apm-release-notes-8.19.2]]
+=== APM version 8.19.2
+
+https://github.com/elastic/apm-server/compare/v8.19.1\...v8.19.2[View commits]
+
+[float]
+==== Bug fixes
 
 [float]
 [[apm-release-notes-8.19.1]]
