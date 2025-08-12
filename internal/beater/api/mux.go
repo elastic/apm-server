@@ -22,11 +22,10 @@ import (
 	"net/http"
 	httppprof "net/http/pprof"
 	"regexp"
-	"runtime/pprof"
 
-	"github.com/gorilla/mux"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -95,11 +94,10 @@ func NewMux(
 	traceProvider trace.TracerProvider,
 	logger *logp.Logger,
 	statsRegistry *monitoring.Registry,
-) (*mux.Router, error) {
+) (*http.ServeMux, error) {
 	pool := request.NewContextPool()
 	logger = logger.Named(logs.Handler)
-	router := mux.NewRouter()
-	router.NotFoundHandler = pool.HTTPHandler(notFoundHandler)
+	router := http.NewServeMux()
 
 	builder := routeBuilder{
 		cfg:              beaterConfig,
@@ -125,17 +123,18 @@ func NewMux(
 	}
 
 	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, batchProcessor, semaphore, meterProvider, traceProvider)
-	rumIntakeHandler := builder.rumIntakeHandler(meterProvider)
+	rumIntakeHandler := builder.rumIntakeHandler(meterProvider, traceProvider)
 	routeMap := []route{
-		{RootPath, builder.rootHandler(publishReady, meterProvider)},
-		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher, meterProvider)},
-		{AgentConfigRUMPath, builder.rumAgentConfigHandler(fetcher, meterProvider)},
+		{RootPath, func() (request.Handler, error) { return notFoundHandler, nil }},
+		{RootPath + "{$}", builder.rootHandler(publishReady, meterProvider, tracenoop.NewTracerProvider())}, // do not trace root handler
+		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher, meterProvider, traceProvider)},
+		{AgentConfigRUMPath, builder.rumAgentConfigHandler(fetcher, meterProvider, traceProvider)},
 		{IntakeRUMPath, rumIntakeHandler},
 		{IntakeRUMV3Path, rumIntakeHandler},
-		{IntakePath, builder.backendIntakeHandler("apm-server.server.", meterProvider)},
-		{OTLPTracesIntakePath, builder.otlpHandler(otlpHandlers.HandleTraces, "apm-server.otlp.http.traces.", meterProvider)},
-		{OTLPMetricsIntakePath, builder.otlpHandler(otlpHandlers.HandleMetrics, "apm-server.otlp.http.metrics.", meterProvider)},
-		{OTLPLogsIntakePath, builder.otlpHandler(otlpHandlers.HandleLogs, "apm-server.otlp.http.logs.", meterProvider)},
+		{IntakePath, builder.backendIntakeHandler("apm-server.server.", meterProvider, traceProvider)},
+		{OTLPTracesIntakePath, builder.otlpHandler(otlpHandlers.HandleTraces, "apm-server.otlp.http.traces.", meterProvider, traceProvider)},
+		{OTLPMetricsIntakePath, builder.otlpHandler(otlpHandlers.HandleMetrics, "apm-server.otlp.http.metrics.", meterProvider, traceProvider)},
+		{OTLPLogsIntakePath, builder.otlpHandler(otlpHandlers.HandleLogs, "apm-server.otlp.http.logs.", meterProvider, traceProvider)},
 	}
 
 	for _, route := range routeMap {
@@ -155,15 +154,11 @@ func NewMux(
 		const path = "/debug/pprof"
 		logger.Infof("Path %s added to request handler", path)
 
-		pprofRouter := router.PathPrefix(path).Subrouter().StrictSlash(true)
-		pprofRouter.Handle("/", http.HandlerFunc(httppprof.Index))
-		for _, p := range pprof.Profiles() {
-			pprofRouter.Handle("/"+p.Name(), http.HandlerFunc(httppprof.Index))
-		}
-		pprofRouter.Handle("/cmdline", http.HandlerFunc(httppprof.Cmdline))
-		pprofRouter.Handle("/profile", http.HandlerFunc(httppprof.Profile))
-		pprofRouter.Handle("/symbol", http.HandlerFunc(httppprof.Symbol))
-		pprofRouter.Handle("/trace", http.HandlerFunc(httppprof.Trace))
+		router.Handle(path+"/", http.HandlerFunc(httppprof.Index))
+		router.Handle(path+"/cmdline", http.HandlerFunc(httppprof.Cmdline))
+		router.Handle(path+"/profile", http.HandlerFunc(httppprof.Profile))
+		router.Handle(path+"/symbol", http.HandlerFunc(httppprof.Symbol))
+		router.Handle(path+"/trace", http.HandlerFunc(httppprof.Trace))
 	}
 	return router, nil
 }
@@ -179,23 +174,23 @@ type routeBuilder struct {
 	logger           *logp.Logger
 }
 
-func (r *routeBuilder) backendIntakeHandler(metricsPrefix string, mp metric.MeterProvider) func() (request.Handler, error) {
+func (r *routeBuilder) backendIntakeHandler(metricsPrefix string, mp metric.MeterProvider, tp trace.TracerProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := intake.Handler(mp, r.intakeProcessor, backendRequestMetadataFunc(r.cfg), r.batchProcessor)
-		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp, r.logger)...)
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp, tp, r.logger)...)
 	}
 }
 
-func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, metricsPrefix string, mp metric.MeterProvider) func() (request.Handler, error) {
+func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, metricsPrefix string, mp metric.MeterProvider, tp trace.TracerProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := func(c *request.Context) {
 			handler(c.ResponseWriter, c.Request)
 		}
-		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp, r.logger)...)
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp, tp, r.logger)...)
 	}
 }
 
-func (r *routeBuilder) rumIntakeHandler(mp metric.MeterProvider) func() (request.Handler, error) {
+func (r *routeBuilder) rumIntakeHandler(mp metric.MeterProvider, tp trace.TracerProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		var batchProcessors modelprocessor.Chained
 		// The order of these processors is important. Source mapping must happen before identifying library frames, or
@@ -226,33 +221,33 @@ func (r *routeBuilder) rumIntakeHandler(mp metric.MeterProvider) func() (request
 		}
 		batchProcessors = append(batchProcessors, r.batchProcessor) // r.batchProcessor always goes last
 		h := intake.Handler(mp, r.intakeProcessor, rumRequestMetadataFunc(r.cfg), batchProcessors)
-		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, "apm-server.server.", mp, r.logger)...)
+		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, "apm-server.server.", mp, tp, r.logger)...)
 	}
 }
 
-func (r *routeBuilder) rootHandler(publishReady func() bool, mp metric.MeterProvider) func() (request.Handler, error) {
+func (r *routeBuilder) rootHandler(publishReady func() bool, mp metric.MeterProvider, tp trace.TracerProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := root.Handler(root.HandlerConfig{
 			Version:      version.VersionWithQualifier(),
 			PublishReady: publishReady,
 		})
-		return middleware.Wrap(h, rootMiddleware(r.cfg, r.authenticator, mp, r.logger)...)
+		return middleware.Wrap(h, rootMiddleware(r.cfg, r.authenticator, mp, tp, r.logger)...)
 	}
 }
 
-func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher, mp metric.MeterProvider) func() (request.Handler, error) {
+func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher, mp metric.MeterProvider, tp trace.TracerProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, backendMiddleware, f, mp, r.logger)
+		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, backendMiddleware, f, mp, tp, r.logger)
 	}
 }
 
-func (r *routeBuilder) rumAgentConfigHandler(f agentcfg.Fetcher, mp metric.MeterProvider) func() (request.Handler, error) {
+func (r *routeBuilder) rumAgentConfigHandler(f agentcfg.Fetcher, mp metric.MeterProvider, tp trace.TracerProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, rumMiddleware, f, mp, r.logger)
+		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, rumMiddleware, f, mp, tp, r.logger)
 	}
 }
 
-type middlewareFunc func(*config.Config, *auth.Authenticator, *ratelimit.Store, string, metric.MeterProvider, *logp.Logger) []middleware.Middleware
+type middlewareFunc func(*config.Config, *auth.Authenticator, *ratelimit.Store, string, metric.MeterProvider, trace.TracerProvider, *logp.Logger) []middleware.Middleware
 
 func agentConfigHandler(
 	cfg *config.Config,
@@ -261,23 +256,25 @@ func agentConfigHandler(
 	middlewareFunc middlewareFunc,
 	f agentcfg.Fetcher,
 	mp metric.MeterProvider,
+	tp trace.TracerProvider,
 	logger *logp.Logger,
 ) (request.Handler, error) {
-	mw := middlewareFunc(cfg, authenticator, ratelimitStore, "apm-server.acm.", mp, logger)
+	mw := middlewareFunc(cfg, authenticator, ratelimitStore, "apm-server.acm.", mp, tp, logger)
 	h := agent.NewHandler(f, cfg.AgentConfig.Cache.Expiration, cfg.DefaultServiceEnvironment, cfg.AgentAuth.Anonymous.AllowAgent)
 	return middleware.Wrap(h, mw...)
 }
 
-func apmMiddleware(mp metric.MeterProvider, metricsPrefix string, logger *logp.Logger) []middleware.Middleware {
+func apmMiddleware(mp metric.MeterProvider, tp trace.TracerProvider, metricsPrefix string, logger *logp.Logger) []middleware.Middleware {
 	return []middleware.Middleware{
+		middleware.TracingMiddleware(tp),
 		middleware.LogMiddleware(logger),
 		middleware.RecoverPanicMiddleware(),
 		middleware.MonitoringMiddleware(metricsPrefix, mp),
 	}
 }
 
-func backendMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, metricsPrefix string, mp metric.MeterProvider, logger *logp.Logger) []middleware.Middleware {
-	backendMiddleware := append(apmMiddleware(mp, metricsPrefix, logger),
+func backendMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, metricsPrefix string, mp metric.MeterProvider, tp trace.TracerProvider, logger *logp.Logger) []middleware.Middleware {
+	backendMiddleware := append(apmMiddleware(mp, tp, metricsPrefix, logger),
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.AuthMiddleware(authenticator, true),
 		middleware.AnonymousRateLimitMiddleware(ratelimitStore),
@@ -285,11 +282,11 @@ func backendMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ra
 	return backendMiddleware
 }
 
-func rumMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, metricsPrefix string, mp metric.MeterProvider, logger *logp.Logger) []middleware.Middleware {
+func rumMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, metricsPrefix string, mp metric.MeterProvider, tp trace.TracerProvider, logger *logp.Logger) []middleware.Middleware {
 	msg := "RUM endpoint is disabled. " +
 		"Configure the `apm-server.rum` section in apm-server.yml to enable ingestion of RUM events. " +
 		"If you are not using the RUM agent, you can safely ignore this error."
-	rumMiddleware := append(apmMiddleware(mp, metricsPrefix, logger),
+	rumMiddleware := append(apmMiddleware(mp, tp, metricsPrefix, logger),
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.ResponseHeadersMiddleware(cfg.RumConfig.ResponseHeaders),
 		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins, cfg.RumConfig.AllowHeaders),
@@ -299,8 +296,8 @@ func rumMiddleware(cfg *config.Config, authenticator *auth.Authenticator, rateli
 	return append(rumMiddleware, middleware.KillSwitchMiddleware(cfg.RumConfig.Enabled, msg))
 }
 
-func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator, mp metric.MeterProvider, logger *logp.Logger) []middleware.Middleware {
-	return append(apmMiddleware(mp, "apm-server.root.", logger),
+func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator, mp metric.MeterProvider, tp trace.TracerProvider, logger *logp.Logger) []middleware.Middleware {
+	return append(apmMiddleware(mp, tp, "apm-server.root.", logger),
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.AuthMiddleware(authenticator, false),
 	)

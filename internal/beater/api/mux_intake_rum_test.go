@@ -25,7 +25,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/otel/metric/noop"
+	metricnoop "go.opentelemetry.io/otel/metric/noop"
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -58,7 +59,7 @@ func TestOPTIONS(t *testing.T) {
 			requestTaken <- struct{}{}
 			<-done
 		},
-		append([]middleware.Middleware{lastMiddleware}, rumMiddleware(cfg, authenticator, ratelimitStore, "", noop.NewMeterProvider(), logptest.NewTestingLogger(t, ""))...)...)
+		append([]middleware.Middleware{lastMiddleware}, rumMiddleware(cfg, authenticator, ratelimitStore, "", metricnoop.NewMeterProvider(), tracenoop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))...)...)
 
 	// use this to block the single allowed concurrent requests
 	go func() {

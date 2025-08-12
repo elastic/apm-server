@@ -456,7 +456,6 @@ func (s *Runner) Run(ctx context.Context) error {
 		Config:                 s.config,
 		Namespace:              s.config.DataStreams.Namespace,
 		Logger:                 s.logger,
-		Tracer:                 tracer,
 		TracerProvider:         s.tracerProvider,
 		MeterProvider:          s.meterProvider,
 		Authenticator:          authenticator,

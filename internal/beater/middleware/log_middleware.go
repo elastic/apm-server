@@ -21,8 +21,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid/v5"
-
-	"go.elastic.co/apm/v2"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
@@ -81,8 +80,8 @@ func loggerWithRequestContext(logger *logp.Logger, c *request.Context) *logp.Log
 }
 
 func loggerWithTraceContext(c *request.Context) (*logp.Logger, error) {
-	tx := apm.TransactionFromContext(c.Request.Context())
-	if tx == nil {
+	span := trace.SpanFromContext(c.Request.Context())
+	if span == nil || !span.SpanContext().IsValid() {
 		uuid, err := uuid.NewV4()
 		if err != nil {
 			return c.Logger, err
@@ -90,12 +89,12 @@ func loggerWithTraceContext(c *request.Context) (*logp.Logger, error) {
 		return c.Logger.With("http.request.id", uuid.String()), nil
 	}
 	// This request is being traced, grab its IDs to add to logs.
-	traceContext := tx.TraceContext()
-	transactionID := traceContext.Span.String()
+	spanContext := span.SpanContext()
+	spanID := spanContext.SpanID()
 	return c.Logger.With(
-		"trace.id", traceContext.Trace.String(),
-		"transaction.id", transactionID,
-		"http.request.id", transactionID,
+		"trace.id", spanContext.TraceID(),
+		"transaction.id", spanID,
+		"http.request.id", spanID,
 	), nil
 }
 

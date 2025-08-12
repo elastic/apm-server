@@ -56,7 +56,7 @@ func TestServerTracingEnabled(t *testing.T) {
 
 			// Make an HTTP request to the server, which should be traced
 			// if instrumentation is enabled.
-			resp, err := srv.Client.Get(srv.URL + "/foo")
+			resp, err := srv.Client.Get(srv.URL + "/intake/v2/rum/events")
 			require.NoError(t, err)
 			resp.Body.Close()
 
@@ -73,7 +73,7 @@ func TestServerTracingEnabled(t *testing.T) {
 					}
 					var out map[string]any
 					require.NoError(t, json.Unmarshal(doc, &out))
-					if v, ok := out["transaction"].(map[string]any)["name"]; ok && v == "GET unknown route" {
+					if v, ok := out["transaction"].(map[string]any)["name"]; ok && v == "GET /intake/v2/rum/events" {
 						break
 					}
 				}

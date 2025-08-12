@@ -24,14 +24,12 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.7.0
-	github.com/gorilla/mux v1.8.1
 	github.com/libp2p/go-reuseport v0.4.0
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.7
 	github.com/stretchr/testify v1.10.0
 	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.1
-	go.elastic.co/apm/module/apmgorilla/v2 v2.7.1
 	go.elastic.co/apm/module/apmhttp/v2 v2.7.1
 	go.elastic.co/apm/module/apmotel/v2 v2.7.1
 	go.elastic.co/apm/v2 v2.7.1
