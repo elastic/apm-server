@@ -15,24 +15,31 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package middleware
+package interceptors
 
 import (
-	"errors"
+	"context"
 
-	"github.com/elastic/apm-server/internal/beater/request"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
-// KillSwitchMiddleware returns a Middleware checking whether the path for the request is enabled
-func KillSwitchMiddleware(enabled bool, errorMessage string) Middleware {
-	return func(h request.Handler) (request.Handler, error) {
-		return func(c *request.Context) {
-			if enabled {
-				h(c)
-			} else {
-				c.Result.SetWithError(request.IDResponseErrorsForbidden, errors.New(errorMessage))
-				c.WriteResult()
+func Recover() grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (a any, err error) {
+		defer func() {
+			r := recover()
+			if r != nil {
+				err = status.Errorf(codes.Internal, "%s", r)
 			}
-		}, nil
+		}()
+
+		resp, err := handler(ctx, req)
+		return resp, err
 	}
 }

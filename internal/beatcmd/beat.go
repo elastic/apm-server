@@ -149,6 +149,7 @@ func NewBeat(args BeatParams) (*Beat, error) {
 			Config:     &beat.BeatConfig{Output: cfg.Output},
 			BeatConfig: cfg.APMServer,
 			Registry:   reload.NewRegistry(),
+			Monitoring: beat.NewMonitoring(),
 		},
 		Config:         cfg,
 		newRunner:      args.NewRunner,
@@ -182,7 +183,7 @@ func (b *Beat) init() error {
 	b.Info.Logger.Infof("Beat ID: %v", b.Info.ID)
 
 	// Initialize central config manager.
-	manager, err := management.NewManager(b.Config.Management, b.Registry)
+	manager, err := management.NewManager(b.Config.Management, b.Registry, b.Info.Logger)
 	if err != nil {
 		return err
 	}
@@ -317,7 +318,12 @@ func (b *Beat) Run(ctx context.Context) error {
 	var apiServer *api.Server
 	if b.Config.HTTP.Enabled() {
 		var err error
-		apiServer, err = api.NewWithDefaultRoutes(b.Info.Logger, b.Config.HTTP, api.NamespaceLookupFunc())
+		apiServer, err = api.NewWithDefaultRoutes(b.Info.Logger, b.Config.HTTP,
+			b.Monitoring.InfoRegistry(),
+			b.Monitoring.StateRegistry(),
+			b.Monitoring.StatsRegistry(),
+			b.Monitoring.InputsRegistry(),
+		)
 		if err != nil {
 			return fmt.Errorf("could not start the HTTP server for the API: %w", err)
 		}
@@ -367,9 +373,9 @@ func (b *Beat) Run(ctx context.Context) error {
 	})
 
 	slogger := slog.New(zapslog.NewHandler(b.Info.Logger.Core()))
-	if err := adjustMemlimit(30*time.Second, slogger); err != nil {
-		return err
-	}
+	g.Go(func() error {
+		return adjustMemlimit(ctx, 30*time.Second, slogger)
+	})
 
 	logSystemInfo(b.Info)
 
@@ -385,12 +391,16 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 	defer cleanup()
 
-	if err := metricreport.SetupMetrics(b.Info.Logger.Named("metrics"), b.Info.Beat, b.Info.Version); err != nil {
+	statsRegistry := b.Monitoring.StatsRegistry()
+	systemRegistry := statsRegistry.GetOrCreateRegistry("system")
+	processRegistry := statsRegistry.GetOrCreateRegistry("beat")
+
+	if err := metricreport.SetupMetrics(b.Info.Logger.Named("metrics"), b.Info.Beat, b.Info.Version, systemRegistry, processRegistry); err != nil {
 		return err
 	}
 
 	if b.Manager.Enabled() {
-		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer, b.tracerProvider)
+		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer, b.tracerProvider, b.Monitoring)
 		if err != nil {
 			return err
 		}
@@ -412,6 +422,7 @@ func (b *Beat) Run(ctx context.Context) error {
 			TracerProvider:  b.tracerProvider,
 			MeterProvider:   b.meterProvider,
 			MetricsGatherer: b.metricGatherer,
+			BeatMonitoring:  b.Monitoring,
 		})
 		if err != nil {
 			return err
@@ -435,7 +446,7 @@ func (b *Beat) registerMetrics() {
 }
 
 func (b *Beat) registerInfoMetrics() {
-	infoRegistry := monitoring.GetNamespace("info").GetRegistry()
+	infoRegistry := b.Monitoring.InfoRegistry()
 	monitoring.NewString(infoRegistry, "version").Set(b.Info.Version)
 	monitoring.NewString(infoRegistry, "beat").Set(b.Info.Beat)
 	monitoring.NewString(infoRegistry, "name").Set(b.Info.Name)
@@ -463,28 +474,29 @@ func (b *Beat) registerInfoMetrics() {
 }
 
 func (b *Beat) registerStateMetrics() {
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	stateRegistry := b.Monitoring.StateRegistry()
 
 	// state.service
-	serviceRegistry := stateRegistry.NewRegistry("service")
+	serviceRegistry := stateRegistry.GetOrCreateRegistry("service")
 	monitoring.NewString(serviceRegistry, "version").Set(b.Info.Version)
 	monitoring.NewString(serviceRegistry, "name").Set(b.Info.Beat)
 	monitoring.NewString(serviceRegistry, "id").Set(b.Info.ID.String())
 
 	// state.beat
-	beatRegistry := stateRegistry.NewRegistry("beat")
+	beatRegistry := stateRegistry.GetOrCreateRegistry("beat")
 	monitoring.NewString(beatRegistry, "name").Set(b.Info.Name)
 
 	// state.host
 	monitoring.NewFunc(stateRegistry, "host", host.ReportInfo("" /* don't use FQDN */), monitoring.Report)
 
 	// state.management
-	managementRegistry := stateRegistry.NewRegistry("management")
+	managementRegistry := stateRegistry.GetOrCreateRegistry("management")
 	monitoring.NewBool(managementRegistry, "enabled").Set(b.Manager.Enabled())
 }
 
 func (b *Beat) registerStatsMetrics() {
-	libbeatRegistry := monitoring.Default.GetRegistry("libbeat")
+	statsRegistry := b.Monitoring.StatsRegistry()
+	libbeatRegistry := statsRegistry.GetOrCreateRegistry("libbeat")
 	monitoring.NewFunc(libbeatRegistry, "output", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
 		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
@@ -514,7 +526,7 @@ func (b *Beat) registerStatsMetrics() {
 			}
 		}
 	})
-	monitoring.NewFunc(monitoring.Default, "output.elasticsearch", func(_ monitoring.Mode, v monitoring.Visitor) {
+	monitoring.NewFunc(statsRegistry, "output.elasticsearch", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
 		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
 			return
@@ -528,21 +540,29 @@ func (b *Beat) registerStatsMetrics() {
 			}
 		}
 	})
-	monitoring.NewFunc(monitoring.Default, "apm-server", func(_ monitoring.Mode, v monitoring.Visitor) {
+	monitoring.NewFunc(statsRegistry, "apm-server", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
 		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
 			return
 		}
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
+
+		// first collect all apm-server metrics
+		beatsMetrics := make(map[string]any)
 		for _, sm := range rm.ScopeMetrics {
 			switch {
 			case strings.HasPrefix(sm.Scope.Name, "github.com/elastic/apm-server"):
 				// All simple scalar metrics that begin with the name "apm-server."
 				// in github.com/elastic/apm-server/... scopes are mapped directly.
-				addAPMServerMetrics(v, sm)
+				addAPMServerMetricsToMap(beatsMetrics, sm.Metrics)
 			}
 		}
+
+		// register all metrics once
+		// this prevents metrics with the same prefix in the name
+		// from different scoped meters from overwriting each other
+		reportOnKey(v, beatsMetrics)
 	})
 }
 
@@ -565,9 +585,10 @@ func getScalarInt64(data metricdata.Aggregation) (int64, bool) {
 	return 0, false
 }
 
-func addAPMServerMetrics(v monitoring.Visitor, sm metricdata.ScopeMetrics) {
-	beatsMetrics := make(map[string]any)
-	for _, m := range sm.Metrics {
+// addAPMServerMetricsToMap adds simple scalar metrics with the "apm-server." prefix
+// to the map.
+func addAPMServerMetricsToMap(beatsMetrics map[string]any, metrics []metricdata.Metrics) {
+	for _, m := range metrics {
 		if suffix, ok := strings.CutPrefix(m.Name, "apm-server."); ok {
 			if value, ok := getScalarInt64(m.Data); ok {
 				current := beatsMetrics
@@ -585,8 +606,6 @@ func addAPMServerMetrics(v monitoring.Visitor, sm metricdata.ScopeMetrics) {
 			}
 		}
 	}
-
-	reportOnKey(v, beatsMetrics)
 }
 
 func reportOnKey(v monitoring.Visitor, m map[string]any) {
@@ -722,8 +741,8 @@ func addDocappenderOutputElasticsearchMetrics(ctx context.Context, v monitoring.
 // registerElasticsearchVerification returns a cleanup function which must be
 // called on shutdown.
 func (b *Beat) registerElasticsearchVersionCheck() (func(), error) {
-	uuid, err := elasticsearch.RegisterGlobalCallback(func(conn *eslegclient.Connection) error {
-		if err := licenser.FetchAndVerify(conn); err != nil {
+	uuid, err := elasticsearch.RegisterGlobalCallback(func(conn *eslegclient.Connection, logger *logp.Logger) error {
+		if err := licenser.FetchAndVerify(conn, logger); err != nil {
 			return err
 		}
 		esVersion := conn.GetVersion()
@@ -756,11 +775,11 @@ func (b *Beat) registerClusterUUIDFetching() (func(), error) {
 
 // Build and return a callback to fetch the Elasticsearch cluster_uuid for monitoring
 func (b *Beat) clusterUUIDFetchingCallback() elasticsearch.ConnectCallback {
-	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
-	elasticsearchRegistry := stateRegistry.NewRegistry("outputs.elasticsearch")
+	stateRegistry := b.Monitoring.StateRegistry()
+	elasticsearchRegistry := stateRegistry.GetOrCreateRegistry("outputs.elasticsearch")
 	clusterUUIDRegVar := monitoring.NewString(elasticsearchRegistry, "cluster_uuid")
 
-	callback := func(esClient *eslegclient.Connection) error {
+	callback := func(esClient *eslegclient.Connection, _ *logp.Logger) error {
 		var response struct {
 			ClusterUUID string `json:"cluster_uuid"`
 		}
@@ -794,8 +813,8 @@ func (b *Beat) setupMonitoring() (report.Reporter, error) {
 
 	// Expose monitoring.cluster_uuid in state API
 	if monitoringClusterUUID != "" {
-		stateRegistry := monitoring.GetNamespace("state").GetRegistry()
-		monitoringRegistry := stateRegistry.NewRegistry("monitoring")
+		stateRegistry := b.Monitoring.StateRegistry()
+		monitoringRegistry := stateRegistry.GetOrCreateRegistry("monitoring")
 		clusterUUIDRegVar := monitoring.NewString(monitoringRegistry, "cluster_uuid")
 		clusterUUIDRegVar.Set(monitoringClusterUUID)
 	}
@@ -809,7 +828,7 @@ func (b *Beat) setupMonitoring() (report.Reporter, error) {
 			DefaultUsername: defaultMonitoringUsername,
 			ClusterUUID:     monitoringClusterUUID,
 		}
-		reporter, err := report.New(b.Info, settings, monitoringCfg, b.Config.Output)
+		reporter, err := report.New(b.Info, b.Monitoring, settings, monitoringCfg, b.Config.Output)
 		if err != nil {
 			return nil, err
 		}

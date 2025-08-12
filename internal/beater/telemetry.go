@@ -22,33 +22,14 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
-var apmRegistry = monitoring.GetNamespace("state").GetRegistry().NewRegistry("apm-server")
-
-type configTelemetry struct {
-	rumEnabled           *monitoring.Bool
-	apiKeysEnabled       *monitoring.Bool
-	kibanaEnabled        *monitoring.Bool
-	sslEnabled           *monitoring.Bool
-	tailSamplingEnabled  *monitoring.Bool
-	tailSamplingPolicies *monitoring.Int
-}
-
-var configMonitors = &configTelemetry{
-	rumEnabled:           monitoring.NewBool(apmRegistry, "rum.enabled"),
-	apiKeysEnabled:       monitoring.NewBool(apmRegistry, "api_key.enabled"),
-	kibanaEnabled:        monitoring.NewBool(apmRegistry, "kibana.enabled"),
-	sslEnabled:           monitoring.NewBool(apmRegistry, "ssl.enabled"),
-	tailSamplingEnabled:  monitoring.NewBool(apmRegistry, "sampling.tail.enabled"),
-	tailSamplingPolicies: monitoring.NewInt(apmRegistry, "sampling.tail.policies"),
-}
-
 // recordAPMServerConfig records dynamic APM Server config properties for telemetry.
 // This should be called once each time runServer is called.
-func recordAPMServerConfig(cfg *config.Config) {
-	configMonitors.rumEnabled.Set(cfg.RumConfig.Enabled)
-	configMonitors.apiKeysEnabled.Set(cfg.AgentAuth.APIKey.Enabled)
-	configMonitors.kibanaEnabled.Set(cfg.Kibana.Enabled)
-	configMonitors.sslEnabled.Set(cfg.TLS.IsEnabled())
-	configMonitors.tailSamplingEnabled.Set(cfg.Sampling.Tail.Enabled)
-	configMonitors.tailSamplingPolicies.Set(int64(len(cfg.Sampling.Tail.Policies)))
+func recordAPMServerConfig(cfg *config.Config, stateRegistry *monitoring.Registry) {
+	apmRegistry := stateRegistry.GetOrCreateRegistry("apm-server")
+	monitoring.NewBool(apmRegistry, "rum.enabled").Set(cfg.RumConfig.Enabled)
+	monitoring.NewBool(apmRegistry, "api_key.enabled").Set(cfg.AgentAuth.APIKey.Enabled)
+	monitoring.NewBool(apmRegistry, "kibana.enabled").Set(cfg.Kibana.Enabled)
+	monitoring.NewBool(apmRegistry, "ssl.enabled").Set(cfg.TLS.IsEnabled())
+	monitoring.NewBool(apmRegistry, "sampling.tail.enabled").Set(cfg.Sampling.Tail.Enabled)
+	monitoring.NewInt(apmRegistry, "sampling.tail.policies").Set(int64(len(cfg.Sampling.Tail.Policies)))
 }

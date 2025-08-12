@@ -19,8 +19,7 @@ package middleware
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
+	"errors"
 
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/headers"

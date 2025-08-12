@@ -19,7 +19,9 @@ package gen
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -54,14 +56,47 @@ func New(url, apikey string, kbc *kibana.Client, logger *zap.Logger) *Generator 
 	}
 }
 
-func (g *Generator) waitForAPMToBePublishReady(ctx context.Context, maxWaitDuration time.Duration) error {
+// RunBlockingWait runs the underlying generator in blocking mode and waits for all in-flight
+// data to be flushed before proceeding. This allows the caller to ensure than 1m aggregation
+// metrics are ingested immediately after raw data ingestion, without variable delays.
+// This may lead to data loss if the final flush takes more than 30s, which may happen if the
+// quantity of data ingested with runBlocking gets too big. The current quantity does not
+// trigger this behavior.
+func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version, integrations bool) error {
+	g.logger.Info("wait for apm server to be ready")
+	if err := g.waitForAPMToBePublishReady(ctx); err != nil {
+		return fmt.Errorf("failed to wait for apm server: %w", err)
+	}
+
+	g.logger.Info("ingest data")
+	if err := g.retryRunBlocking(ctx, version, 2); err != nil {
+		return fmt.Errorf("cannot run generator: %w", err)
+	}
+
+	if integrations {
+		g.logger.Info("re-apply apm policy")
+		if err := g.reapplyAPMPolicy(ctx, version); err != nil {
+			return fmt.Errorf("failed to re-apply apm policy: %w", err)
+		}
+	}
+
+	// Simply wait for some arbitrary time, for the data to be flushed.
+	time.Sleep(200 * time.Second)
+	return nil
+}
+
+// waitForAPMToBePublishReady waits for APM server to be publish-ready by querying the server.
+func (g *Generator) waitForAPMToBePublishReady(ctx context.Context) error {
+	maxWaitDuration := 60 * time.Second
 	timer := time.NewTimer(maxWaitDuration)
 	defer timer.Stop()
 
 	for {
 		select {
+		case <-ctx.Done():
+			return errors.New("apm server not ready but context done")
 		case <-timer.C:
-			return fmt.Errorf("apm server not yet ready after %s", maxWaitDuration)
+			return fmt.Errorf("apm server not ready after %s", maxWaitDuration)
 		default:
 			info, err := queryAPMInfo(ctx, g.apmServerURL, g.apmAPIKey)
 			if err != nil {
@@ -72,7 +107,7 @@ func (g *Generator) waitForAPMToBePublishReady(ctx context.Context, maxWaitDurat
 				return nil
 			}
 
-			time.Sleep(1 * time.Second)
+			time.Sleep(10 * time.Second)
 		}
 	}
 }
@@ -80,7 +115,6 @@ func (g *Generator) waitForAPMToBePublishReady(ctx context.Context, maxWaitDurat
 // runBlocking runs the underlying generator in blocking mode.
 func (g *Generator) runBlocking(ctx context.Context, version ech.Version) error {
 	eventRate := "1000/s"
-
 	cfg := telemetrygen.DefaultConfig()
 	cfg.APIKey = g.apmAPIKey
 	cfg.TargetStackVersion = supportedstacks.TargetStackVersionLatest
@@ -104,59 +138,47 @@ func (g *Generator) runBlocking(ctx context.Context, version ech.Version) error 
 		return fmt.Errorf("cannot create telemetrygen generator: %w", err)
 	}
 
-	g.logger.Info("wait for apm server to be ready")
-	if err = g.waitForAPMToBePublishReady(ctx, 30*time.Second); err != nil {
-		return err
-	}
-
-	g.logger.Info("ingest data")
 	gen.Logger = g.logger
 	return gen.RunBlocking(ctx)
 }
 
-// RunBlockingWait runs the underlying generator in blocking mode and waits for all in-flight
-// data to be flushed before proceeding. This allows the caller to ensure than 1m aggregation
-// metrics are ingested immediately after raw data ingestion, without variable delays.
-// This may lead to data loss if the final flush takes more than 30s, which may happen if the
-// quantity of data ingested with runBlocking gets too big. The current quantity does not
-// trigger this behavior.
-func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version, integrations bool) error {
-	if err := g.runBlocking(ctx, version); err != nil {
-		return fmt.Errorf("cannot run generator: %w", err)
-	}
-
-	// With Fleet managed APM server, we can trigger metrics flush.
-	if integrations {
-		if err := flushAPMMetrics(ctx, g.kbc, version); err != nil {
-			return fmt.Errorf("cannot flush apm metrics: %w", err)
-		}
+// retryRunBlocking executes runBlocking. If it fails, it will retry up to retryTimes.
+func (g *Generator) retryRunBlocking(ctx context.Context, version ech.Version, retryTimes int) error {
+	// No error, don't need to retry.
+	if err := g.runBlocking(ctx, version); err == nil {
 		return nil
 	}
 
-	// With standalone, we don't have Fleet, so simply just wait for some arbitrary time.
-	time.Sleep(180 * time.Second)
-	return nil
+	// Otherwise, retry until success or run out of attempts.
+	var finalErr error
+	for i := 0; i < retryTimes; i++ {
+		// Wait for some time before retrying.
+		time.Sleep(time.Duration(i) * 30 * time.Second)
+
+		g.logger.Info(fmt.Sprintf("retrying ingest data attempt %d", i+1))
+		err := g.runBlocking(ctx, version)
+		// Retry success, simply return.
+		if err == nil {
+			return nil
+		}
+
+		finalErr = err
+	}
+
+	return finalErr
 }
 
-// flushAPMMetrics sends an update to the Fleet APM package policy in order
-// to trigger the flushing of in-flight APM metrics.
-func flushAPMMetrics(ctx context.Context, kbc *kibana.Client, version ech.Version) error {
+func (g *Generator) reapplyAPMPolicy(ctx context.Context, version ech.Version) error {
 	policyID := "elastic-cloud-apm"
-	description := fmt.Sprintf("Integration server test %s", version)
+	description := fmt.Sprintf("%s %s", version, rand.Text()[:10])
 
-	// Sending an update with modifying the description is enough to trigger
-	// final aggregations in APM Server and flush of in-flight metrics.
-	if err := kbc.UpdatePackagePolicyDescriptionByID(ctx, policyID, version, description); err != nil {
+	if err := g.kbc.UpdatePackagePolicyDescriptionByID(ctx, policyID, version, description); err != nil {
 		return fmt.Errorf(
-			"cannot update %s package policy description to flush aggregation metrics: %w",
+			"cannot update %s package policy description: %w",
 			policyID, err,
 		)
 	}
 
-	// APM Server needs some time to flush all metrics, and we don't have any
-	// visibility on when this completes.
-	// NOTE: This value comes from empirical observations.
-	time.Sleep(120 * time.Second)
 	return nil
 }
 

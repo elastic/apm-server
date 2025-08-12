@@ -36,6 +36,15 @@ func (e apmErrorLogs) ToQueries() []types.Query {
 }
 
 var (
+	// This error seems to happen occasionally in-between upgrades.
+	// On upgrade, the APM server gets restarted while metrics are not fully flushed,
+	// causing this error to occur.
+	bulkIndexingFailed = apmErrorLog(types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "bulk indexing request failed"},
+		},
+	})
+
 	tlsHandshakeError = apmErrorLog(types.Query{
 		MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
 			"message": {Query: "http: TLS handshake error from 127.0.0.1:"},
@@ -73,6 +82,11 @@ var (
 	populateSourcemapFetcher403 = apmErrorLog(types.Query{
 		MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
 			"message": {Query: "failed to populate sourcemap metadata: fetcher unavailable: 403 Forbidden:"},
+		},
+	})
+	syncSourcemapFetcher403 = apmErrorLog(types.Query{
+		MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
+			"message": {Query: "failed to sync sourcemaps metadata: fetcher unavailable: 403 Forbidden:"},
 		},
 	})
 

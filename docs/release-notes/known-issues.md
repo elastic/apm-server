@@ -17,16 +17,44 @@ Known issues are significant defects or limitations that may impact your impleme
 
 % **Workaround**
 % Workaround description.
+% :::
 
+:::{dropdown} APM Integration might be unreachable after upgrading to 8.19.0 and 9.1.0
+
+*Elastic Stack versions: 8.19.0 and 9.1.0*
+*Environments: ECH, ECE, ECK, and self-managed when running Fleet*
+
+APM Integration, which is APM Server managed by Fleet, might sometimes be unreachable after reloading due to an integration policy change. Standalone APM Server is not affected by this issue.
+
+When this happens, APM and OTLP intake through APM Integration will stop working, and there will be little to no logs from it. On ECH and ECE cloud, "Copy endpoint" will be grayed out.
+
+**Workaround**
+
+To work around this issue you can either:
+
+- Restart the Integration servers through Force Restart in the Cloud Admin UI.
+- Save a copy of the Elastic APM Integration policy within the affected policy, for example the Elastic Cloud agent policy, in the Fleet UI:
+  - Go to **Kibana** > **Fleet** > the affected policy (e.g. **Elastic Cloud agent policy**),
+  - Select the **...** icon, then **Edit Integration**.
+  - Add a blank space to the **Description**, then remove it.
+  - Select **Save Integration**
+
+In both cases, the settings of APM Integration are maintained. However, these workarounds will only keep APM Integration healthy until next integration policy change.
+
+This bug will be fixed in 8.19.1 and 9.1.1.
 :::
 
 :::{dropdown} Tail Sampling may not compact / expired TTLs as quickly as desired, causing increased storage usage.
-**Elastic Stack versions: 8.0.0+ < 9.0**
+
+*Elastic Stack versions: 8.0.0+ < 9.0*
+
 There are some issues with the Tail Sampling implementation in versions 8.0.0+ < 9.0 that may cause the buffered traces to not be compacted or expired as quickly as desired. This can lead to increased storage usage for longer than the default 30m TTL.
 
 This may manifest in two ways, increased value log (vlog) file size and increased SST (LSM) file size. LSM growth and late compaction is particularly troublesome given how the underlying K/V database performs compactions on its layers. There is noticeable LSM growth for use-cases where traces are under 1KB in size, since they are written to the LSM layer directly.
 
 This issue is fixed in 9.0.0, due to a re-implementation of how the underlying tail sampling databases are used. The new implementation uses a more efficient partitioning scheme, allowing more efficient expiration of traces.
+
+:::
 
 :::{dropdown} prefer_ilm required in component templates to create custom lifecycle policies
 
@@ -306,7 +334,7 @@ Affected APM servers will emit the following log:
 flush_bytes config value is too small (0) and might be ignored by the indexer, increasing value to 24576
 ```
 
-To workaround the issue, modify the Elasticsearch output configuration in APM.
+To work around the issue, modify the Elasticsearch output configuration in APM.
 
 * For APM Server binary
 

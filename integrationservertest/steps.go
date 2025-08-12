@@ -166,7 +166,6 @@ type ingestStep struct {
 }
 
 func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
-
 	if e.currentVersion().Major < 8 {
 		t.Fatal("ingest step should only be used for versions >= 8.0")
 	}

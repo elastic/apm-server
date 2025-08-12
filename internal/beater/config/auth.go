@@ -18,7 +18,7 @@
 package config
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -61,7 +61,7 @@ type APIKeyAgentAuth struct {
 func (a *APIKeyAgentAuth) Unpack(in *config.C) error {
 	type underlyingAPIKeyAgentAuth APIKeyAgentAuth
 	if err := in.Unpack((*underlyingAPIKeyAgentAuth)(a)); err != nil {
-		return errors.Wrap(err, "error unpacking api_key config")
+		return fmt.Errorf("error unpacking api_key config: %w", err)
 	}
 	a.configured = true
 	a.esConfigured = in.HasField("elasticsearch")
@@ -74,7 +74,7 @@ func (a *APIKeyAgentAuth) setup(log *logp.Logger, outputESCfg *config.C) error {
 	}
 	log.Info("Falling back to elasticsearch output for API Key usage")
 	if err := outputESCfg.Unpack(&a.ESConfig); err != nil {
-		return errors.Wrap(err, "unpacking Elasticsearch config into API key config")
+		return fmt.Errorf("unpacking Elasticsearch config into API key config: %w", err)
 	}
 	return nil
 }
@@ -95,7 +95,7 @@ type AnonymousAgentAuth struct {
 func (a *AnonymousAgentAuth) Unpack(in *config.C) error {
 	type underlyingAnonymousAgentAuth AnonymousAgentAuth
 	if err := in.Unpack((*underlyingAnonymousAgentAuth)(a)); err != nil {
-		return errors.Wrap(err, "error unpacking anon config")
+		return fmt.Errorf("error unpacking anon config: %w", err)
 	}
 	a.enabledSet = in.HasField("enabled")
 	return nil

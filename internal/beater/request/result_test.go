@@ -18,13 +18,13 @@
 package request
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/pkg/errors"
 )
 
 func assertResultIsEmpty(t *testing.T, r Result) {
@@ -173,7 +173,7 @@ func TestResult_SetWithError(t *testing.T) {
 		assert.Equal(t, id, r.ID)
 		assert.Equal(t, http.StatusForbidden, r.StatusCode)
 		assert.Equal(t, MapResultIDToStatus[id].Keyword, r.Keyword)
-		wrappedErr := errors.Wrap(err, r.Keyword).Error()
+		wrappedErr := fmt.Errorf(r.Keyword+": %w", err).Error()
 		assert.Equal(t, wrappedErr, r.Body)
 		assert.Equal(t, wrappedErr, r.Err.Error())
 		assert.Equal(t, "", r.Stacktrace)

@@ -36,14 +36,15 @@ updates:
     directory: "/packaging/docker/"
     schedule:
       interval: "weekly"
-
+    groups:
+      docker:
+        patterns:
+          - "*"
   # GitHub actions
   - package-ecosystem: "github-actions"
     directories:
       - "/"
       - "/.github/workflows/*"
-    reviewers:
-      - "elastic/observablt-ci"
     schedule:
       interval: "weekly"
       day: "sunday"
