@@ -12,7 +12,7 @@ https://github.com/elastic/apm-server/compare/v8.19.0\...v8.19.1[View commits]
 [float]
 ==== Bug fixes
 
-- Fix panic due to apm-server registry creation if it already exists {pull}17872[17872]
+- Fix Fleet-managed apm-server hanging or crashing on config hot reload due to duplicate monitoring registry {pull}17872[17872]
 
 [float]
 [[apm-release-notes-8.19.0]]
