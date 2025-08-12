@@ -29,7 +29,6 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/net/netutil"
 
-	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
@@ -148,11 +147,6 @@ func listen(cfg *config.Config, logger *logp.Logger) (net.Listener, error) {
 		listener = netutil.LimitListener(listener, cfg.MaxConnections)
 	}
 	return listener, nil
-}
-
-func doNotTrace(req *http.Request) bool {
-	// Don't trace root url (healthcheck) requests.
-	return req.URL.Path == api.RootPath
 }
 
 // newErrorLog returns a standard library log.Logger that sends

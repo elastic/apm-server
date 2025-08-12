@@ -25,12 +25,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
-
-	"go.elastic.co/apm/v2"
-	"go.elastic.co/apm/v2/apmtest"
 
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/mapstr"
@@ -108,8 +106,8 @@ func TestLogMiddleware(t *testing.T) {
 			c, rec := DefaultContextWithResponseRecorder()
 			c.Request.Header.Set(headers.UserAgent, tc.name)
 			if tc.traced {
-				tx := apmtest.DiscardTracer.StartTransaction("name", "type")
-				c.Request = c.Request.WithContext(apm.ContextWithTransaction(c.Request.Context(), tx))
+				ctx, tx := trace.NewTracerProvider().Tracer("github.com/elastic/apm-server/internal/beater/middleware.test").Start(t.Context(), "name")
+				c.Request = c.Request.WithContext(ctx)
 				defer tx.End()
 			}
 			Apply(LogMiddleware(logger), tc.handler)(c)
