@@ -2,6 +2,8 @@
 
 The APM Server follows the Elastic Stack release schedule and versions. A release starts with a Feature Freeze period, during which only bug fixes are allowed to be merged into the specific release branch. We generally follow [semver](https://semver.org/) for release versions. For major and minor releases, a new branch is cut from the main branch. For patch releases, only the version on the existing major and minor version branch gets updated. All release workflows (patch, minor, major) has to be triggered manually. The Release Manager will ping the team to align the release process.
 
+This documentation is for 9.x releases. If you are releasing a 8.x look [here](./RELEASES_8x.md)
+
 ## Patch Release
 
 1. Create a *Test Plan*.
@@ -27,8 +29,6 @@ The APM Server follows the Elastic Stack release schedule and versions. A releas
     - Create a new release branch using the stack version (X.Y).
     - Update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`.
     - Create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`.
-
-Before merging them compare commits between latest minor and the new minor versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging. After it's merged add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2895)).
 
 ## Major Release
 
@@ -96,124 +96,3 @@ Create a [GitHub Issue](https://github.com/elastic/apm-server/issues/new?assigne
 ## When compatibility between Agents & Server changes
 
 * Update the [agent/server compatibility matrix](https://github.com/elastic/observability-docs/blob/main/docs/en/observability/apm/agent-server-compatibility.asciidoc) in the elastic/observability repo.
-
-## Templates
-
-Templates for adding release notes, breaking changes, and highlights.
-
-<details><summary><code>/changelogs/*.asciidoc</code> template</summary>
-
-```asciidoc
-[[apm-release-notes-8.1]]
-== APM Server version 8.1
-
-https://github.com/elastic/apm-server/compare/8.0\...8.1[View commits]
-
-* <<apm-release-notes-8.1.0>>
-
-[[apm-release-notes-8.1.0]]
-=== APM Server version 8.1.0
-
-https://github.com/elastic/apm-server/compare/v8.0.1\...v8.1.0[View commits]
-
-No significant changes.
-////
-[float]
-==== Breaking Changes
-
-[float]
-==== Bug fixes
-
-[float]
-==== Intake API Changes
-
-[float]
-==== Added
-////
-```
-</details>
-
-<details><summary><code>apm-release-notes.asciidoc</code> template</summary>
-
-```asciidoc
-* <<release-highlights-8.1.0>>
-
-[[release-highlights-8.1.0]]
-=== APM version 8.1.0
-
-No new features
-////
-[float]
-==== New features
-
-* Feature name and explanation...
-////
-```
-</details>
-
-<details><summary><code>apm-breaking-changes.asciidoc</code> template</summary>
-
-```asciidoc
-* <<breaking-8.0.0, APM version 8.0.0>>
-
-[[breaking-8.0.0]]
-=== Breaking changes in 8.0.0
-
-APM Server::
-+
-[[slug]]
-**Title** Topic...
-
-APM UI::
-+
-[[slug]]
-**Title** Topic...
-```
-</details>
-
-# Release 8.x
-
-There will be no more minor versions in the `8.x` line, apart from `8.19.0.`, but only patch releases.
-
-## 8.17 patch releases
-
-Run the `run-patch-release` with any `8.17.x` version.
-
-**NOTE**: This automation does not handle the changelog, which should be manually handled.
-
-## 8.18 patch releases
-
-Run the `run-patch-release` with any `8.18.x` version.
-
-**NOTE**: This automation does not handle the changelog, which should be manually handled.
-
-## 8.19.0
-
-This is technically a minor release, but it's the last minor we will ever create on the 8.x line.
-The trunk branch `8.x` does not exist anymore (as expected) and has been renamed to `8.19`. This
-makes our current minor release automation broken.
-
-The `run-minor-release` automation is currently not working, and fixing it is not worth for a single release.
-As such for this release we should do it manually.
-
-What does that include?
-- update the changelog in `8.19` branch
-- update versions to `8.19.1`
-
-The process:
-- switch to `8.19` branch
-- create a new branch: `release-8.19.0`
-- update the changelog, manually
-- update versions with `make update-version VERSION=8.19.1`
-- push the branch and create a Pull Request named: `8.19.0: update changelog, versions`
-
-An example PR for the changelog update can be seen here: https://github.com/elastic/apm-server/pull/14382/files  
-An example PR for the other changes can be seen here, but note that this time `8.x` branch is `8.19`: https://github.com/elastic/apm-server/pull/14381/files
-
-Refer to `release.mk` and the `minor-release` target for further details.
-
-## 8.19 patch releases
-
-Run the `run-patch-release` with any `8.19.x` version.
-
-**NOTE**: This automation does not handle the changelog, which should be manually handled.

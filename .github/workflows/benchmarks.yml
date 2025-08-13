@@ -167,14 +167,14 @@ jobs:
           echo "TF_VAR_CREATED_AT=${CREATED_AT}" >> "$GITHUB_ENV"
           echo "USER=benchci-$SLUGGED_BRANCH_NAME-$CREATED_AT" >> "$GITHUB_ENV"
 
-          if [ ! -z "${{ inputs.benchmarkAgents }}" ]; then
-            echo "BENCHMARK_AGENTS=${{ inputs.benchmarkAgents }}" >> "$GITHUB_ENV"
+          if [ ! -z "$BENCHMARK_AGENTS" ]; then
+            echo "BENCHMARK_AGENTS=$BENCHMARK_AGENTS" >> "$GITHUB_ENV"
           fi
-          if [ ! -z "${{ inputs.benchmarkRun }}" ]; then
-            echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
+          if [ ! -z "$BENCHMARK_RUN" ]; then
+            echo "BENCHMARK_RUN=$BENCHMARK_RUN" >> "$GITHUB_ENV"
           fi
-          if [ ! -z "${{ inputs.warmupTime }}" ]; then
-            echo "BENCHMARK_WARMUP_TIME=${{ inputs.warmupTime }}" >> "$GITHUB_ENV"
+          if [ ! -z "$WARMUP_TIME" ]; then
+            echo "BENCHMARK_WARMUP_TIME=$WARMUP_TIME" >> "$GITHUB_ENV"
           elif  [ "${{github.event_name}}" == 'schedule' ] && [ "${{env.RUN_STANDALONE}}" == 'false' ]; then
             echo "BENCHMARK_WARMUP_TIME=10m" >> "$GITHUB_ENV"
           elif  [ "${{github.event_name}}" == 'schedule' ] && [ "${{env.RUN_STANDALONE}}" == 'true' ]; then
@@ -182,6 +182,10 @@ jobs:
           else
             echo "BENCHMARK_WARMUP_TIME=5m" >> "$GITHUB_ENV"
           fi
+        env:
+          BENCHMARK_AGENTS: ${{ inputs.benchmarkAgents }}
+          BENCHMARK_RUN: ${{ inputs.benchmarkRun }}
+          WARMUP_TIME: ${{ inputs.warmupTime }}
 
       # exclude BenchmarkTraces* from scheduled benchmarks
       - if: github.event_name == 'schedule'
@@ -189,7 +193,7 @@ jobs:
           echo "BENCHMARK_RUN=Benchmark[^T]" >> "$GITHUB_ENV"
 
       - name: Log in to the Elastic Container registry
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
           registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
           username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}

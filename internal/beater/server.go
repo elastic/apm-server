@@ -22,8 +22,6 @@ import (
 	"net"
 	"net/http"
 
-	"go.elastic.co/apm/module/apmgorilla/v2"
-	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -78,10 +76,6 @@ type ServerParams struct {
 
 	// Logger is the logger for the beater component.
 	Logger *logp.Logger
-
-	// Tracer is an apm.Tracer that the APM Server may use
-	// for self-instrumentation.
-	Tracer *apm.Tracer
 
 	// TracerProvider is the TracerProvider
 	TracerProvider trace.TracerProvider
@@ -195,7 +189,6 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 	if err != nil {
 		return server{}, err
 	}
-	apmgorilla.Instrument(router, apmgorilla.WithRequestIgnorer(doNotTrace), apmgorilla.WithTracer(args.Tracer))
 	httpServer, err := newHTTPServer(args.Logger, args.Config, router, listener)
 	if err != nil {
 		return server{}, err

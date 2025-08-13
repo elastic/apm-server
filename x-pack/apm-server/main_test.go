@@ -14,7 +14,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.elastic.co/apm/v2/apmtest"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 
@@ -68,7 +67,6 @@ func TestMonitoring(t *testing.T) {
 		serverParams, runServer, err := wrapServer(beater.ServerParams{
 			Config:                 cfg,
 			Logger:                 logptest.NewTestingLogger(t, ""),
-			Tracer:                 apmtest.DiscardTracer,
 			MeterProvider:          mp,
 			BatchProcessor:         modelpb.ProcessBatchFunc(func(ctx context.Context, b *modelpb.Batch) error { return nil }),
 			Namespace:              "default",

@@ -22,11 +22,13 @@ To check for security updates, go to [Security announcements for the Elastic sta
 % ### Fixes [elastic-apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
+## 9.1.2 [elastic-apm-9.1.2-release-notes]
+
 ## 9.1.1 [elastic-apm-9.1.1-release-notes]
 
 ### Fixes [elastic-apm-9.1.1-fixes]
 
-* Do not try to create apm-server monitoring registry if it already exists ([#17872](https://github.com/elastic/apm-server/pull/17872))
+* Fix Fleet-managed apm-server hanging or crashing on config hot reload due to duplicate monitoring registry ([#17872](https://github.com/elastic/apm-server/pull/17872))
 
 ## 9.1.0 [elastic-apm-9.1.0-release-notes]
 
