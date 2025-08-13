@@ -91,7 +91,7 @@ https://github.com/elastic/apm-server/compare/v8.18.0\...v8.18.1[View commits]
 [float]
 ==== Added
 
-- Use `ca-bundle.crt` from Chainguard image instead of vendoring {pull}16928[16928] {pull}16956[16956]
+- Use `ca-bundle.crt` from Chainguard image instead of vendoring in Docker image {pull}16928[16928] {pull}16956[16956]
 
 [float]
 [[apm-release-notes-8.18.0]]
