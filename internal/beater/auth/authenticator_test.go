@@ -35,10 +35,11 @@ import (
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestAuthenticatorNone(t *testing.T) {
-	authenticator, err := NewAuthenticator(config.AgentAuth{})
+	authenticator, err := NewAuthenticator(config.AgentAuth{}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	// If the server has no configured auth methods, all requests are allowed.
@@ -56,7 +57,7 @@ func TestAuthenticatorAuthRequired(t *testing.T) {
 		APIKey: config.APIKeyAgentAuth{Enabled: true, ESConfig: elasticsearch.DefaultConfig()},
 	}
 	for _, cfg := range []config.AgentAuth{withSecretToken, withAPIKey} {
-		authenticator, err := NewAuthenticator(cfg)
+		authenticator, err := NewAuthenticator(cfg, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 
 		details, authz, err := authenticator.Authenticate(context.Background(), "", "")
@@ -76,7 +77,7 @@ func TestAuthenticatorAuthRequired(t *testing.T) {
 }
 
 func TestAuthenticatorSecretToken(t *testing.T) {
-	authenticator, err := NewAuthenticator(config.AgentAuth{SecretToken: "valid"})
+	authenticator, err := NewAuthenticator(config.AgentAuth{SecretToken: "valid"}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	details, authz, err := authenticator.Authenticate(context.Background(), headers.Bearer, "invalid")
@@ -114,7 +115,7 @@ func TestAuthenticatorAPIKey(t *testing.T) {
 	esConfig.Hosts = elasticsearch.Hosts{srv.URL}
 	authenticator, err := NewAuthenticator(config.AgentAuth{
 		APIKey: config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 100, ESConfig: esConfig},
-	})
+	}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	credentials := base64.StdEncoding.EncodeToString([]byte("id_value:key_value"))
@@ -145,7 +146,7 @@ func TestAuthenticatorAPIKeyErrors(t *testing.T) {
 	esConfig.Backoff.Max = time.Nanosecond
 	authenticator, err := NewAuthenticator(config.AgentAuth{
 		APIKey: config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 100, ESConfig: esConfig},
-	})
+	}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	// Make sure that we can't auth with an empty secret token if secret token auth is not configured, but API Key auth is.
@@ -185,7 +186,7 @@ func TestAuthenticatorAPIKeyErrors(t *testing.T) {
 	esConfig.Hosts = elasticsearch.Hosts{srv.URL}
 	authenticator, err = NewAuthenticator(config.AgentAuth{
 		APIKey: config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 2, ESConfig: esConfig},
-	})
+	}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	details, authz, err = authenticator.Authenticate(context.Background(), headers.APIKey, credentials)
 	assert.Equal(t, ErrAuthFailed, err)
@@ -205,7 +206,7 @@ func TestAuthenticatorAPIKeyErrors(t *testing.T) {
 	esConfig.Hosts = elasticsearch.Hosts{srv.URL}
 	authenticator, err = NewAuthenticator(config.AgentAuth{
 		APIKey: config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 100, ESConfig: esConfig},
-	})
+	}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	details, authz, err = authenticator.Authenticate(context.Background(), headers.APIKey, credentials)
 	assert.Equal(t, ErrAuthFailed, err)
@@ -243,7 +244,7 @@ func TestAuthenticatorAPIKeyCache(t *testing.T) {
 	esConfig := elasticsearch.DefaultConfig()
 	esConfig.Hosts = elasticsearch.Hosts{srv.URL}
 	apikeyAuthConfig := config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 2, ESConfig: esConfig}
-	authenticator, err := NewAuthenticator(config.AgentAuth{APIKey: apikeyAuthConfig})
+	authenticator, err := NewAuthenticator(config.AgentAuth{APIKey: apikeyAuthConfig}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	_, spans, _ := apmtest.WithTransaction(func(ctx context.Context) {
@@ -279,7 +280,7 @@ func TestAuthenticatorAnonymous(t *testing.T) {
 	// Anonymous access is only effective when some other auth method is enabled.
 	authenticator, err := NewAuthenticator(config.AgentAuth{
 		Anonymous: config.AnonymousAgentAuth{Enabled: true},
-	})
+	}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	details, authz, err := authenticator.Authenticate(context.Background(), "", "")
 	assert.NoError(t, err)
@@ -289,7 +290,7 @@ func TestAuthenticatorAnonymous(t *testing.T) {
 	authenticator, err = NewAuthenticator(config.AgentAuth{
 		SecretToken: "secret_token",
 		Anonymous:   config.AnonymousAgentAuth{Enabled: true},
-	})
+	}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	details, authz, err = authenticator.Authenticate(context.Background(), "", "")
 	assert.NoError(t, err)
