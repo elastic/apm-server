@@ -50,4 +50,4 @@ https://github.com/elastic/apm-server/compare/v8.18.1\...v8.19.0[View commits]
 
 - Add config for tail-based sampling discard on write {pull}13950[13950]
 - Add config for tail-based sampling TTL {pull}16579[16579]
-- Use `ca-bundle.crt` from Chainguard image instead of vendoring {pull}16928[16928] {pull}16956[16956]
+- Use `ca-bundle.crt` from Chainguard image instead of vendoring in Docker image {pull}16928[16928] {pull}16956[16956]
