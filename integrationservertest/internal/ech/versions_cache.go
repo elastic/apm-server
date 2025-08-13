@@ -73,7 +73,11 @@ type VersionsCache struct {
 	// fetchedVersions are the non-snapshot stack versions prefetched from Elastic Cloud API.
 	fetchedVersions Versions
 
-	upgradeTo   map[Version]Versions
+	// upgradeTo is a map of version to the versions that it can upgrade to,
+	// i.e. 'key' -> list of versions that 'key' can upgrade to.
+	upgradeTo map[Version]Versions
+	// upgradeFrom is a map of version to the versions that it can upgrade from,
+	// i.e. 'key' -> list of versions that can upgrade to 'key'.
 	upgradeFrom map[Version]Versions
 
 	region string
