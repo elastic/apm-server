@@ -366,7 +366,7 @@ func TestUnmanagedOutputRequired(t *testing.T) {
 func TestRunManager(t *testing.T) {
 	// Register our own mock management implementation.
 	manager := newMockManager()
-	management.SetManagerFactory(func(cfg *config.C, registry *reload.Registry) (management.Manager, error) {
+	management.SetManagerFactory(func(*config.C, *reload.Registry, *logp.Logger) (management.Manager, error) {
 		return manager, nil
 	})
 
@@ -554,7 +554,7 @@ func TestRunManager_Reloader(t *testing.T) {
 		client.WithGRPCDialOptions(grpc.WithTransportCredentials(insecure.NewCredentials())))
 	manager, err := xpacklbmanagement.NewV2AgentManagerWithClient(&xpacklbmanagement.Config{
 		Enabled: true,
-	}, registry, client, xpacklbmanagement.WithChangeDebounce(0))
+	}, registry, client, logptest.NewTestingLogger(t, ""), xpacklbmanagement.WithChangeDebounce(0))
 	require.NoError(t, err)
 
 	err = manager.Start()
@@ -657,7 +657,7 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 		client.WithGRPCDialOptions(grpc.WithTransportCredentials(insecure.NewCredentials())))
 	manager, err := xpacklbmanagement.NewV2AgentManagerWithClient(&xpacklbmanagement.Config{
 		Enabled: true,
-	}, registry, client, xpacklbmanagement.WithChangeDebounce(0))
+	}, registry, client, logptest.NewTestingLogger(t, ""), xpacklbmanagement.WithChangeDebounce(0))
 	require.NoError(t, err)
 
 	err = manager.Start()

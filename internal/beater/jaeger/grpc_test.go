@@ -40,6 +40,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
@@ -226,7 +227,7 @@ func newServer(t *testing.T, batchProcessor modelpb.BatchProcessor, agentcfgFetc
 			AllowService: []string{authorizedServiceName},
 		},
 		SecretToken: "abc123",
-	})
+	}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Auth(authenticator)))
 	semaphore := semaphore.NewWeighted(1)

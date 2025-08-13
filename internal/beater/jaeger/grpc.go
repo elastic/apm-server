@@ -41,6 +41,7 @@ import (
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 const (
@@ -206,7 +207,7 @@ func init() {
 	var err error
 	anonymousAuthenticator, err = auth.NewAuthenticator(config.AgentAuth{
 		Anonymous: config.AnonymousAgentAuth{Enabled: true},
-	})
+	}, logp.NewNopLogger())
 	if err != nil {
 		panic(err)
 	}

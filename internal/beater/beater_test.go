@@ -164,7 +164,7 @@ func newMockClusterUUIDClient(t testing.TB, clusterUUID string) *elasticsearch.C
 
 	config := elasticsearch.DefaultConfig()
 	config.Hosts = []string{srv.URL}
-	client, err := elasticsearch.NewClient(config)
+	client, err := elasticsearch.NewClient(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	return client
 }
@@ -258,7 +258,7 @@ func TestAgentConfigFetcherDeprecation(t *testing.T) {
 				AgentName: "foo",
 			},
 		},
-	}, nil, func(c *elasticsearch.Config) (*elasticsearch.Client, error) { return nil, nil }, tracenoop.NewTracerProvider(), metricnoop.NewMeterProvider(), logger)
+	}, nil, func(*elasticsearch.Config, *logp.Logger) (*elasticsearch.Client, error) { return nil, nil }, tracenoop.NewTracerProvider(), metricnoop.NewMeterProvider(), logger)
 	require.NoError(t, err)
 
 	all := observed.All()
