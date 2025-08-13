@@ -33,6 +33,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestUnaryAuthenticator(t *testing.T) {
@@ -116,7 +117,7 @@ func TestUnaryAuthenticator(t *testing.T) {
 }
 
 func TestAuthorizationMetadataAuthenticator(t *testing.T) {
-	authenticator, err := auth.NewAuthenticator(config.AgentAuth{SecretToken: "abc123"})
+	authenticator, err := auth.NewAuthenticator(config.AgentAuth{SecretToken: "abc123"}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	interceptor := interceptors.Auth(authenticator)
 

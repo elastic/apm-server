@@ -206,7 +206,7 @@ func (b *Beat) loadMeta(metaPath string) error {
 		FirstStart time.Time `json:"first_start"`
 	}
 
-	b.Info.Logger.Debugf("beat", "Beat metadata path: %v", metaPath)
+	b.Info.Logger.Named("beat").Debugf("Beat metadata path: %v", metaPath)
 	f, err := openRegular(metaPath)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("meta file failed to open: %w", err)
