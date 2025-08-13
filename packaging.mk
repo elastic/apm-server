@@ -48,7 +48,7 @@ build/docker/%.txt: DOCKER_IMAGE_TAG := docker.elastic.co/apm/apm-server:%
 build/docker/%.txt: VERSION := $(APM_SERVER_VERSION)
 build/docker/%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile
 build/docker/%-SNAPSHOT.txt: VERSION := $(APM_SERVER_VERSION)-SNAPSHOT
-build/docker/apm-server-ubi-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=docker.elastic.co/ubi9/ubi-minimal
+build/docker/apm-server-ubi-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=redhat/ubi9-minimal
 build/docker/apm-server-wolfi-%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile.wolfi
 build/docker/apm-server-fips-%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile.fips
 
