@@ -331,8 +331,8 @@ func (s *Runner) Run(ctx context.Context) error {
 		return err
 	}
 	defer esoutput.DeregisterConnectCallback(callbackUUID)
-	newElasticsearchClient := func(cfg *elasticsearch.Config) (*elasticsearch.Client, error) {
-		httpTransport, err := elasticsearch.NewHTTPTransport(cfg)
+	newElasticsearchClient := func(cfg *elasticsearch.Config, logger *logp.Logger) (*elasticsearch.Client, error) {
+		httpTransport, err := elasticsearch.NewHTTPTransport(cfg, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -343,6 +343,7 @@ func (s *Runner) Run(ctx context.Context) error {
 			RetryOnError: func(_ *http.Request, err error) bool {
 				return !errors.Is(err, errServerShuttingDown)
 			},
+			Logger: logger,
 		})
 	}
 
@@ -364,7 +365,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
 	runServer := newBaseRunServer(s.listener)
-	authenticator, err := auth.NewAuthenticator(s.config.AgentAuth)
+	authenticator, err := auth.NewAuthenticator(s.config.AgentAuth, s.logger)
 	if err != nil {
 		return err
 	}
@@ -660,7 +661,7 @@ func (s *Runner) waitReady(
 		if err != nil {
 			return err
 		}
-		esOutputClient, err = elasticsearch.NewClient(esConfig)
+		esOutputClient, err = elasticsearch.NewClient(esConfig, s.logger)
 		if err != nil {
 			return err
 		}
@@ -719,7 +720,7 @@ func (s *Runner) waitReady(
 // "elasticsearch", then we use docappender; otherwise we use the libbeat publisher.
 func (s *Runner) newFinalBatchProcessor(
 	tracer *apm.Tracer,
-	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
+	newElasticsearchClient func(*elasticsearch.Config, *logp.Logger) (*elasticsearch.Client, error),
 	memLimit float64,
 	logger *logp.Logger,
 	tp trace.TracerProvider,
@@ -741,7 +742,7 @@ func (s *Runner) newFinalBatchProcessor(
 	if err != nil {
 		return nil, nil, err
 	}
-	client, err := newElasticsearchClient(esCfg)
+	client, err := newElasticsearchClient(esCfg, logger)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -919,11 +920,11 @@ const sourcemapIndex = ".apm-source-map"
 func newSourcemapFetcher(
 	cfg config.SourceMapping,
 	kibanaClient *kibana.Client,
-	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
+	newElasticsearchClient func(*elasticsearch.Config, *logp.Logger) (*elasticsearch.Client, error),
 	tp trace.TracerProvider,
 	logger *logp.Logger,
 ) (sourcemap.Fetcher, context.CancelFunc, error) {
-	esClient, err := newElasticsearchClient(cfg.ESConfig)
+	esClient, err := newElasticsearchClient(cfg.ESConfig, logger)
 	if err != nil {
 		return nil, nil, err
 	}
