@@ -237,7 +237,7 @@ func bootstrap() (*es.Client, *config.Config, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	client, err := es.NewClient(beaterConfig.AgentAuth.APIKey.ESConfig)
+	client, err := es.NewClient(beaterConfig.AgentAuth.APIKey.ESConfig, logp.NewNopLogger())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -406,7 +406,7 @@ func invalidateAPIKey(client *es.Client, id string, name string, asJSON bool) er
 }
 
 func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, credentials string, asJSON bool) error {
-	authenticator, err := auth.NewAuthenticator(config.AgentAuth)
+	authenticator, err := auth.NewAuthenticator(config.AgentAuth, logp.NewNopLogger())
 	if err != nil {
 		return err
 	}

@@ -27,6 +27,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestHasPrivilegesError(t *testing.T) {
@@ -36,7 +38,7 @@ func TestHasPrivilegesError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := NewClient(&Config{Hosts: Hosts{server.Listener.Addr().String()}})
+	client, err := NewClient(&Config{Hosts: Hosts{server.Listener.Addr().String()}}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	resp, err := HasPrivileges(context.Background(), client, HasPrivilegesRequest{}, "foo")
