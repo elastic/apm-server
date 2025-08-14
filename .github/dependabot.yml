@@ -41,7 +41,8 @@ updates:
         patterns:
           - "*"
   # go dependencies 8.x branch
-  - package-ecosystem: "gomod-8.19"
+  - package-ecosystem: "gomod"
+    target-branch: "8.19"
     directory: "/"
     ignore:
       - dependency-name: "github.com/elastic/beats/v7"
@@ -52,7 +53,8 @@ updates:
         patterns:
           - "*"
   # docker 8.x branch
-  - package-ecosystem: "docker-8.19"
+  - package-ecosystem: "docker"
+    target-branch: "8.19"
     directory: "/packaging/docker/"
     schedule:
       interval: "weekly"
