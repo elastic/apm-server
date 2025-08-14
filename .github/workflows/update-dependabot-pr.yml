@@ -9,6 +9,7 @@ on:
       - dependabot/go_modules/**
     paths-ignore:
       - NOTICE.txt
+      - NOTICE-fips.txt
 
 permissions:
   contents: read
@@ -31,7 +32,7 @@ jobs:
       - name: Check if NOTICE.txt has changed
         id: check-notice-diff
         run: |
-          if git status --porcelain | grep -q 'NOTICE.txt'; then
+          if git status --porcelain | grep -q 'NOTICE.txt\|NOTICE-fips.txt'; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -50,7 +51,15 @@ jobs:
             --field content=@<(base64 -i $FILE_TO_COMMIT) \
             --field sha="${SHA}" \
             --field branch="${BRANCH}"
+
+          export SHA=$(git rev-parse "$BRANCH:$FILE_TO_COMMIT_FIPS")
+          gh api --method PUT "/repos/${REPO}/contents/$FILE_TO_COMMIT_FIPS" \
+            --field message="Update $FILE_TO_COMMIT_FIPS" \
+            --field content=@<(base64 -i $FILE_TO_COMMIT_FIPS) \
+            --field sha="${SHA}" \
+            --field branch="${BRANCH}"
         env:
           FILE_TO_COMMIT: NOTICE.txt
+          FILE_TO_COMMIT_FIPS: NOTICE-fips.txt
           REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
