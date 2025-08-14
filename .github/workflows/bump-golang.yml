@@ -39,7 +39,7 @@ jobs:
     needs: [labels]
     steps:
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Get token
         id: get_token
@@ -64,7 +64,7 @@ jobs:
   bump-7:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: '7.17'
 

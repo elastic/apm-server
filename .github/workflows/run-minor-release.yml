@@ -29,7 +29,7 @@ jobs:
       release-version: ${{ steps.prepare.outputs.release-version }}
       slack-thread: ${{ steps.prepare.outputs.slack-thread }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: prepare
         uses: ./.github/workflows/prepare-release
         with:
@@ -69,7 +69,7 @@ jobs:
               "pull_requests": "write"
             }
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # 0 indicates all history for all branches and tags.
           fetch-depth: 0
