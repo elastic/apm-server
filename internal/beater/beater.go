@@ -966,9 +966,12 @@ func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client, state
 	// Running under elastic-agent, the callback linked above is not
 	// registered until later, meaning we need to check and instantiate the
 	// registries if they don't exist.
-	elasticsearchRegistry := stateRegistry.GetRegistry(outputES)
+	elasticsearchRegistry := stateRegistry.GetOrCreateRegistry(outputES)
 	if elasticsearchRegistry == nil {
-		elasticsearchRegistry = stateRegistry.NewRegistry(outputES)
+		// This can only happen if "outputs.elasticsearch" was already created as
+		// a non-registry (scalar) value, but in that unlikely chance, let's still
+		// report a comprehensible error.
+		return fmt.Errorf("couldn't create registry: %v", outputES)
 	}
 
 	var (
