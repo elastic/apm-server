@@ -24,7 +24,6 @@ import (
 	"io"
 	"net/http"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
@@ -195,7 +194,7 @@ func (c *Client) getVersions(
 		if preFilter != nil && !preFilter(s) {
 			continue
 		}
-		v, err := NewFromString(s.Version)
+		v, err := NewVersionFromString(s.Version)
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse stack version '%v': %w", s.Version, err)
 		}
@@ -220,7 +219,7 @@ func (c *Client) getVersions(
 func sortedStackVersionsForStrs(strs []string) ([]Version, error) {
 	versions := make(Versions, 0, len(strs))
 	for _, s := range strs {
-		v, err := NewFromString(s)
+		v, err := NewVersionFromString(s)
 		if err != nil {
 			return nil, err
 		}
@@ -249,36 +248,12 @@ func (c *Client) GetVersions(ctx context.Context, region string) ([]StackVersion
 func (c *Client) GetSnapshotVersions(ctx context.Context, region string) ([]StackVersion, error) {
 	postFilter := func(v Version) bool {
 		// Only keep SNAPSHOTs
-		return v.Suffix == "SNAPSHOT"
+		return v.IsSnapshot()
 	}
 
 	versions, err := c.getVersions(ctx, region, true, nil, postFilter)
 	if err != nil {
 		return nil, fmt.Errorf("get snapshot versions failed: %w", err)
-	}
-	return versions, nil
-}
-
-// GetCandidateVersions retrieves all stack version infos that are potential build / release candidates.
-func (c *Client) GetCandidateVersions(ctx context.Context, region string) ([]StackVersion, error) {
-	preFilter := func(cfg *models.StackVersionConfig) bool {
-		// For BCs and SNAPSHOTs, the `docker_image` will have a suffix e.g.:
-		//   docker.elastic.co/cloud-release/elasticsearch-cloud-ess:8.18.0-928cac41
-		// As compared to released:
-		//   docker.elastic.co/cloud-release/elasticsearch-cloud-ess:8.17.3
-		suffix := strings.Split(*cfg.Elasticsearch.DockerImage, ":")[1]
-		splits := strings.Split(suffix, "-")
-		// Has suffix and the suffix is not empty / 1 character (older versions have this)
-		return len(splits) >= 2 && len(splits[1]) > 1
-	}
-	postFilter := func(v Version) bool {
-		// Ignore SNAPSHOTs
-		return v.Suffix != "SNAPSHOT"
-	}
-
-	versions, err := c.getVersions(ctx, region, false, preFilter, postFilter)
-	if err != nil {
-		return nil, fmt.Errorf("get candidate versions failed: %w", err)
 	}
 	return versions, nil
 }

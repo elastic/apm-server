@@ -191,20 +191,19 @@ func queryAPMInfo(ctx context.Context, apmServerURL string, apmAPIKey string) (a
 	var httpClient http.Client
 	var empty apmInfoResp
 
-	req, err := http.NewRequest(http.MethodGet, apmServerURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, apmServerURL, nil)
 	if err != nil {
 		return empty, fmt.Errorf("cannot create http request: %w", err)
 	}
 
 	req.Header.Add("Authorization", fmt.Sprintf("ApiKey %s", apmAPIKey))
-	req = req.WithContext(ctx)
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return empty, fmt.Errorf("cannot send http request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return empty, fmt.Errorf("request failed with status code %d", resp.StatusCode)
 	}
 
