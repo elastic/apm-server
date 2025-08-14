@@ -665,7 +665,6 @@ github.com/zclconf/go-cty-debug v0.0.0-20240509010212-0d6042c53940 h1:4r45xpDWB6
 github.com/zclconf/go-cty-debug v0.0.0-20240509010212-0d6042c53940/go.mod h1:CmBdvvj3nqzfzJ6nTCIwDTPZ56aVGvDrmztiO5g3qrM=
 gitlab.com/digitalxero/go-conventional-commit v1.0.7 h1:8/dO6WWG+98PMhlZowt/YjuiKhqhGlOCwlIV8SqqGh8=
 gitlab.com/digitalxero/go-conventional-commit v1.0.7/go.mod h1:05Xc2BFsSyC5tKhK0y+P3bs0AwUtNuTp+mTpbCU/DZ0=
-<<<<<<< HEAD
 go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.1 h1:nA7I325lIxf6hlVN1SdoOuVJG3gadWlejWngfadGUP8=
 go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.1/go.mod h1:+Xna0uioc2zNzfQzal40RfZ5PPLd2jRBsv49TGHmF8Y=
 go.elastic.co/apm/module/apmgorilla/v2 v2.7.1 h1:Yh16Pi+zZPRqFU7ZyHke2boqYzOgO6ryZw+mstp84ac=
@@ -678,22 +677,6 @@ go.elastic.co/apm/module/apmotel/v2 v2.7.1 h1:9MPo0NM1yvBe2bzII9zS27fWfik+WL4DVT
 go.elastic.co/apm/module/apmotel/v2 v2.7.1/go.mod h1:ugfpg8kfqEVPUWVtfoh7MxotJmwoQ4+ThKZT0Q6Musw=
 go.elastic.co/apm/v2 v2.7.1 h1:OFjARuESjBsxw7wHrEAnfSVNCHGBATXSI/kPvBARY/A=
 go.elastic.co/apm/v2 v2.7.1/go.mod h1:tQhBAjwh93b2leuAdzGwta/sP7Yc7QoKTSjeIHHDuog=
-=======
-go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.0 h1:KcyCfcS8EZoqO7J5g1zbei1T042r9DgSXrsRb1RbTY4=
-go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.0/go.mod h1:3Od+hOvsXvOJ5y6XTVT8XjkwI+4lP2q3aKQSLXqZLmM=
-go.elastic.co/apm/module/apmgorilla/v2 v2.7.0 h1:PEIMaWS0j6tmz/+Tfde6Bqq0QdsWbmjI5r/YniuDWRg=
-go.elastic.co/apm/module/apmgorilla/v2 v2.7.0/go.mod h1:DQWaYW6KsiWSCEvBEOCcfTHCiGKRWx9JRB7iXQzhSFg=
-go.elastic.co/apm/module/apmgrpc/v2 v2.7.0 h1:u3JicPxHnLt9ik/Wb6D8zr1a4ZbCVXu07STz5DWoTXc=
-go.elastic.co/apm/module/apmgrpc/v2 v2.7.0/go.mod h1:BbfToYs2di25EbyOKpRf+PzVkPfnitq/0MXrPkmyP1s=
-go.elastic.co/apm/module/apmhttp/v2 v2.7.0 h1:qSZ5aVT1K+OwFy3JmylgJntgAhVl4GmHPzUsA2JgV4g=
-go.elastic.co/apm/module/apmhttp/v2 v2.7.0/go.mod h1:cdBNYMOe0uXcyS/IqhXfKt8isl1DX1nM3nFJm+beY4w=
-go.elastic.co/apm/module/apmotel/v2 v2.7.0 h1:BnaRYBY1iftS2NdXyaYyhWBvxBksB1gGk9kCm+6A1vw=
-go.elastic.co/apm/module/apmotel/v2 v2.7.0/go.mod h1:oMyIsSr+AP9C8E1aIYW2jYCuaj/vOq4p0ih+U32KuEc=
-go.elastic.co/apm/module/apmzap/v2 v2.6.3 h1:QxszhmFs2qD42sHSd6qnZUv5xMPV7cVSIt1qU/o4nwA=
-go.elastic.co/apm/module/apmzap/v2 v2.6.3/go.mod h1:gOs+EJgXDCyg1pK4pcxN6fL9hKNC+s/Hj20e9RvGeJg=
-go.elastic.co/apm/v2 v2.7.0 h1:fbsy3BmTTedIbj7+1Ay9Zpdfuztd8RUk7Dm0JvxRW/M=
-go.elastic.co/apm/v2 v2.7.0/go.mod h1:f1Sr3rVJju5winTjsJtKzofdU32L7+Mw/c23cVcn3Io=
->>>>>>> 267aeff5 (build(deps): bump the go-agent group with 6 updates (#16266))
 go.elastic.co/ecszap v1.0.3 h1:RQtagS3uSftE8mPZ3msqb6mVI67jgcDuy1PUqiMv8ow=
 go.elastic.co/ecszap v1.0.3/go.mod h1:fM1RLWDU25TB/L48RUJgz5Le2AnoCeY/g0zf2op8gDU=
 go.elastic.co/fastjson v1.5.1 h1:zeh1xHrFH79aQ6Xsw7YxixvnOdAl3OSv0xch/jRDzko=
