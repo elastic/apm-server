@@ -42,7 +42,7 @@ jobs:
       bc_upgrade_paths: ${{ steps.generate.outputs.bc_upgrade_paths }}
       snapshot_upgrade_paths: ${{ steps.generate.outputs.snapshot_upgrade_paths }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: generate
         name: Generate upgrade paths
         uses: ./.github/workflows/generate-upgrade-paths
@@ -60,7 +60,7 @@ jobs:
           - 'Default'
           - 'Reroute'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup
         uses: ./.github/workflows/setup-integration-server-test
       - name: "Run upgrade tests"
@@ -82,7 +82,7 @@ jobs:
           - 'Default'
           - 'Reroute'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup
         uses: ./.github/workflows/setup-integration-server-test
       - name: "Run upgrade tests"
@@ -104,7 +104,7 @@ jobs:
           - 'Managed8'
           - 'Managed9'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup
         uses: ./.github/workflows/setup-integration-server-test
       - name: "Run standalone-to-managed tests"
