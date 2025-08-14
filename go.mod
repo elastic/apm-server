@@ -34,7 +34,6 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
-<<<<<<< HEAD
 	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.1
 	go.elastic.co/apm/module/apmgorilla/v2 v2.7.1
 	go.elastic.co/apm/module/apmgrpc/v2 v2.7.1
@@ -49,19 +48,6 @@ require (
 	go.opentelemetry.io/otel/sdk v1.37.0
 	go.opentelemetry.io/otel/sdk/metric v1.37.0
 	go.opentelemetry.io/otel/trace v1.37.0
-=======
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.0
-	go.elastic.co/apm/module/apmgorilla/v2 v2.7.0
-	go.elastic.co/apm/module/apmgrpc/v2 v2.7.0
-	go.elastic.co/apm/module/apmhttp/v2 v2.7.0
-	go.elastic.co/apm/module/apmotel/v2 v2.7.0
-	go.elastic.co/apm/v2 v2.7.0
-	go.elastic.co/fastjson v1.5.0
-	go.opentelemetry.io/collector/pdata v1.27.0
-	go.opentelemetry.io/otel v1.35.0
-	go.opentelemetry.io/otel/metric v1.35.0
-	go.opentelemetry.io/otel/sdk/metric v1.35.0
->>>>>>> 267aeff5 (build(deps): bump the go-agent group with 6 updates (#16266))
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/zap v1.27.0
 	go.uber.org/zap/exp v0.3.0
