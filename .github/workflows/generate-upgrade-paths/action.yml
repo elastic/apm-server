@@ -24,4 +24,5 @@ runs:
     - id: generate
       name: Generate upgrade paths
       run: ./.github/workflows/generate-upgrade-paths/script.sh
+      shell: "bash"
       working-directory: ${{ github.workspace }}
