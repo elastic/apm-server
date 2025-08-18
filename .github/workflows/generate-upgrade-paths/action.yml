@@ -23,8 +23,5 @@ runs:
       uses: ./.github/workflows/setup-integration-server-test
     - id: generate
       name: Generate upgrade paths
-      run: |
-        echo "snapshot_upgrade_paths=$(go run ./scripts/genpath --target='pro' --snapshots=true)" >> "${GITHUB_OUTPUT}"
-        echo "bc_upgrade_paths=$(go run ./scripts/genpath --target='pro' --snapshots=false)" >> "${GITHUB_OUTPUT}"
-      shell: 'bash'
-      working-directory: ./integrationservertest/
+      run: ./.github/workflows/generate-upgrade-paths/script.sh
+      working-directory: ${{ github.workspace }}

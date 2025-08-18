@@ -88,15 +88,11 @@ func DeploymentTemplateFrom(region string) string {
 	}
 }
 
-func terraformDirName(t *testing.T) string {
-	return strings.ReplaceAll(t.Name(), "/", "_")
-}
-
 // terraformDir returns the name of the Terraform files directory for this test.
 func terraformDir(t *testing.T) string {
 	t.Helper()
 	// Flatten the dir name in case of path separators
-	return fmt.Sprintf("tf-%s", terraformDirName(t))
+	return fmt.Sprintf("tf-%s", strings.ReplaceAll(t.Name(), "/", "_"))
 }
 
 // initTerraformRunner copies the static Terraform files to the Terraform directory
