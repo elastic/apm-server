@@ -19,6 +19,8 @@ package systemtest_test
 
 import (
 	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -36,7 +38,63 @@ import (
 	"github.com/elastic/apm-server/systemtest/estest"
 	"github.com/elastic/apm-tools/pkg/approvaltest"
 	"github.com/elastic/apm-tools/pkg/espoll"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
+
+func TestRUMGeoIpTags(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+
+	// Ensure the geo-database does not get downloaded.
+	b, err := json.Marshal(map[string]interface{}{
+		"persistent": map[string]interface{}{
+			"ingest.geoip.downloader.enabled": false,
+		},
+	})
+	require.NoError(t, err)
+
+	r := esapi.ClusterPutSettingsRequest{
+		Body: bytes.NewReader(b),
+	}
+	res1, err := r.Do(context.Background(), systemtest.Elasticsearch)
+	require.NoError(t, err)
+	defer res1.Body.Close()
+	require.False(t, res1.IsError())
+
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+	err = srv.Start()
+	require.NoError(t, err)
+
+	serverURL, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	serverURL.Path = "/intake/v2/rum/events"
+
+	const body = `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}}}}
+{"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}`
+
+	req, _ := http.NewRequest("POST", serverURL.String(), strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-ndjson")
+	ipAddress := "220.244.41.16"
+	req.Header.Set("X-Forwarded-For", ipAddress)
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusAccepted, resp.StatusCode)
+	io.Copy(io.Discard, resp.Body)
+	resp.Body.Close()
+
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "traces-apm*,metrics-apm*", espoll.TermsQuery{
+		Field:  "processor.event",
+		Values: []interface{}{"transaction", "metric"},
+	})
+
+	// Error if geoIp enrichment failed.
+	for _, hit := range result.Hits.Hits {
+		fmt.Println(hit)
+		if v, ok := hit.Source["tags"]; ok {
+			t.Errorf("unexpected tags field in document: %v", v)
+		}
+	}
+}
 
 func TestRUMXForwardedFor(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
