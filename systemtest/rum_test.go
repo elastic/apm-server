@@ -89,7 +89,6 @@ func TestRUMGeoIpTags(t *testing.T) {
 
 	// Error if geoIp enrichment failed.
 	for _, hit := range result.Hits.Hits {
-		fmt.Println(hit)
 		if v, ok := hit.Source["tags"]; ok {
 			t.Errorf("unexpected tags field in document: %v", v)
 		}
