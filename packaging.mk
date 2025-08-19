@@ -206,11 +206,7 @@ PACKAGE_SUFFIXES := \
 
 PACKAGE_FIPS_SUFFIXES := \
 	linux-x86_64.tar.gz \
-	linux-arm64.tar.gz \
-	amd64.deb \
-	arm64.deb \
-	x86_64.rpm \
-	aarch64.rpm
+	linux-arm64.tar.gz
 
 build/dependencies-$(APM_SERVER_VERSION)-SNAPSHOT.csv: build/dependencies-$(APM_SERVER_VERSION).csv
 	cp $< $@
