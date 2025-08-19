@@ -173,8 +173,8 @@ github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 h1:br+XeQOcxNFSv+
 github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22/go.mod h1:gE+FV7xXv0/nBenviCvpvnvTpUkjJXtuOWs2UT+ZRtw=
 github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe h1:LDtn/A8Tsfz8DQlbXtmDud9ha9oOGriwJGB7V0Ozik8=
 github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe/go.mod h1:SIlGcpTnnosxZ3OvoRC7ADxhHdlsu/nwUdVMF9OkgYc=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250815134714-a0ba96670da2 h1:AMYxinArZzHo5lboMSRtPHAdClRHwV3EPMqDfzbhmBM=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250815134714-a0ba96670da2/go.mod h1:EOt8Cx8dk3/AEZXEaN3qXCeVO8Kk0uJKn46BFPbiXSA=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250819125032-e9260ba3335c h1:nDdd0rWR4qrq7WC184NQtNMlVZEX2yHjXiRtDCN2nWI=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250819125032-e9260ba3335c/go.mod h1:A6cSMSEe8oATc8D3WC+Buxx7xOkny5pBc+h7Uk0vLqw=
 github.com/elastic/elastic-agent-autodiscover v0.9.0 h1:+iWIKh0u3e8I+CJa3FfWe9h0JojNasPgYIA47gpuuns=
 github.com/elastic/elastic-agent-autodiscover v0.9.0/go.mod h1:5iUxLHhVdaGSWYTveSwfJEY4RqPXTG13LPiFoxcpFd4=
 github.com/elastic/elastic-agent-client/v7 v7.17.0 h1:TPLrEHF4kJ3RkmQzZPffrniY4WeW4vriHZbOAzM1hFo=
