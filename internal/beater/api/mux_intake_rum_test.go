@@ -44,7 +44,7 @@ func TestOPTIONS(t *testing.T) {
 
 	cfg := cfgEnabledRUM()
 	cfg.RumConfig.AllowOrigins = []string{"*"}
-	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
+	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth, logptest.NewTestingLogger(t, ""))
 
 	lastMiddleware := func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
