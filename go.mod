@@ -7,7 +7,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/cockroachdb/pebble/v2 v2.0.6
 	github.com/dustin/go-humanize v1.0.1
-	github.com/elastic/apm-aggregation v1.3.0
+	github.com/elastic/apm-aggregation v1.4.0
 	github.com/elastic/apm-data v1.19.5
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250818142516-7e23e08a1b14
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
@@ -240,7 +240,7 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/gotestsum v1.12.0 // indirect
-	honnef.co/go/tools v0.6.0 // indirect
+	honnef.co/go/tools v0.6.1 // indirect
 	howett.net/plist v1.0.1 // indirect
 	mvdan.cc/xurls/v2 v2.5.0 // indirect
 )
