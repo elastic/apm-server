@@ -5413,11 +5413,11 @@ Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.74.2/LIC
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/protobuf
-Version: v1.36.7
+Version: v1.36.8
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/protobuf@v1.36.7/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/protobuf@v1.36.8/LICENSE:
 
 Copyright (c) 2018 The Go Authors. All rights reserved.
 
