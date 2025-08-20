@@ -1977,11 +1977,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/go-freelru@v0.1
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-sysinfo
-Version: v1.15.3
+Version: v1.15.4
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-sysinfo@v1.15.3/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-sysinfo@v1.15.4/LICENSE.txt:
 
 
                                  Apache License
