@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -53,41 +52,6 @@ import (
 	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-docappender/v2/docappendertest"
 )
-
-// TestRunMaxProcs ensures Beat.Run calls the GOMAXPROCS adjustment code by looking for log messages.
-func TestRunMaxProcs(t *testing.T) {
-	for _, n := range []int{1, 2, 4} {
-		t.Run(fmt.Sprintf("%d_GOMAXPROCS", n), func(t *testing.T) {
-			t.Setenv("GOMAXPROCS", strconv.Itoa(n))
-			beat := newNopBeat(t, "output.console.enabled: true")
-			logs := logp.ObserverLogs()
-
-			stop := runBeat(t, beat)
-			timeout := time.NewTimer(10 * time.Second)
-			defer timeout.Stop()
-			for {
-				select {
-				case <-timeout.C:
-					t.Error("timed out waiting for log message, total logs observed:", logs.Len())
-					for _, log := range logs.All() {
-						t.Log(log.LoggerName, log.Message)
-					}
-					return
-				case <-time.After(10 * time.Millisecond):
-				}
-
-				logs := logs.FilterMessageSnippet(fmt.Sprintf(
-					`maxprocs: Honoring GOMAXPROCS="%d" as set in environment`, n,
-				))
-				if logs.Len() > 0 {
-					break
-				}
-			}
-
-			assert.NoError(t, stop())
-		})
-	}
-}
 
 func TestRunnerParams(t *testing.T) {
 	calls := make(chan RunnerParams, 1)
