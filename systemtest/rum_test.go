@@ -19,6 +19,7 @@ package systemtest_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -37,6 +38,90 @@ import (
 	"github.com/elastic/apm-tools/pkg/approvaltest"
 	"github.com/elastic/apm-tools/pkg/espoll"
 )
+
+func TestRUMGeoIP(t *testing.T) {
+	testCases := []struct {
+		desc  string
+		mount bool
+	}{
+		{
+			desc:  "GeoIp database mounted",
+			mount: true,
+		},
+		{
+			desc:  "GeoIp database unmounted",
+			mount: false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			systemtest.CleanupElasticsearch(t)
+
+			// The default is already mounted in docker-compose, so only unmount is needed.
+			if !tc.mount {
+				err := systemtest.ToggleGeoIpMount(context.Background(), false)
+				require.NoError(t, err)
+			}
+
+			srv := apmservertest.NewUnstartedServerTB(t)
+			srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+			err := srv.Start()
+			require.NoError(t, err)
+
+			serverURL, err := url.Parse(srv.URL)
+			require.NoError(t, err)
+			serverURL.Path = "/intake/v2/rum/events"
+
+			const body = `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}}}}
+{"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}`
+
+			req, _ := http.NewRequest("POST", serverURL.String(), strings.NewReader(body))
+			req.Header.Set("Content-Type", "application/x-ndjson")
+			ipAddress := "220.244.41.16"
+			req.Header.Set("X-Forwarded-For", ipAddress)
+			resp, err := http.DefaultClient.Do(req)
+			require.NoError(t, err)
+			require.Equal(t, http.StatusAccepted, resp.StatusCode)
+			io.Copy(io.Discard, resp.Body)
+			resp.Body.Close()
+
+			result := estest.ExpectMinDocs(t,
+				systemtest.Elasticsearch, 1,
+				"traces-apm*",
+				espoll.TermsQuery{
+					Field:  "processor.event",
+					Values: []any{"transaction", "metric"},
+				},
+			)
+
+			for _, hit := range result.Hits.Hits {
+				// The "client.geo" field should only be populated if enrichment succeeded.
+				_, hasClientGeo := hit.Source["client"].(map[string]any)["geo"]
+				if tc.mount && !hasClientGeo {
+					t.Errorf("expected client.geo field to be present when GeoIP database is mounted")
+				}
+				if !tc.mount && hasClientGeo {
+					t.Errorf("did not expect client.geo field when GeoIP database is unmounted")
+				}
+
+				// The "tags" field should only be populated if enrichment failed.
+				_, hasTags := hit.Source["tags"]
+				if tc.mount && hasTags {
+					t.Errorf("did not expecte tags field to be present")
+				}
+				if !tc.mount && !hasTags {
+					t.Errorf("expected tags field to be present")
+				}
+			}
+
+			// Mount database again to other tests.
+			if !tc.mount {
+				err := systemtest.ToggleGeoIpMount(context.Background(), true)
+				require.NoError(t, err)
+			}
+		})
+	}
+}
 
 func TestRUMXForwardedFor(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)

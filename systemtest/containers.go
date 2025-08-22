@@ -37,6 +37,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
@@ -81,6 +83,126 @@ func StartStackContainers() error {
 	// which implies Elasticsearch is healthy too.
 	ctx, cancel := context.WithTimeout(context.Background(), startContainersTimeout)
 	defer cancel()
+	return waitContainerHealthy(ctx, "kibana")
+}
+
+func ToggleGeoIpMount(ctx context.Context, enable bool) error {
+	src := filepath.Join(
+		systemtestDir,
+		"..",
+		"testing",
+		"docker",
+		"elasticsearch",
+		"ingest-geoip",
+	)
+	dest := "/usr/share/elasticsearch/config/ingest-geoip"
+
+	cli, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return err
+	}
+	defer cli.Close()
+
+	c, err := stackContainerInfo(ctx, cli, "elasticsearch")
+	fmt.Println("Container ID:", c.ID)
+	if err != nil {
+		return err
+	}
+
+	inspect, err := cli.ContainerInspect(ctx, c.ID)
+	if err != nil {
+		return err
+	}
+
+	var newMounts []mount.Mount
+	mntExists := false
+	for _, m := range inspect.Mounts {
+		if m.Type == "bind" && m.Destination == dest {
+			mntExists = true
+			if enable {
+				newMounts = append(newMounts, mount.Mount{
+					Type:     "bind",
+					Source:   src,
+					Target:   dest,
+					ReadOnly: m.RW,
+				})
+			}
+			continue
+		}
+		newMounts = append(newMounts, mount.Mount{
+			Type:     mount.Type(m.Type),
+			Source:   m.Source,
+			Target:   m.Destination,
+			ReadOnly: m.RW,
+		})
+	}
+
+	if enable && !mntExists {
+		newMounts = append(newMounts, mount.Mount{
+			Type:   "bind",
+			Source: src,
+			Target: dest,
+		})
+	}
+
+	if err := cli.ContainerStop(ctx, c.ID, container.StopOptions{}); err != nil {
+		return fmt.Errorf("stopping container: %w", err)
+	}
+
+	if err := cli.ContainerRemove(ctx, c.ID, container.RemoveOptions{Force: true}); err != nil {
+		return fmt.Errorf("stopping container: %w", err)
+	}
+
+	netCfg := &network.NetworkingConfig{
+		EndpointsConfig: inspect.NetworkSettings.Networks,
+	}
+
+	createResp, err := cli.ContainerCreate(ctx, &container.Config{
+		Image:        inspect.Config.Image,
+		Cmd:          inspect.Config.Cmd,
+		Entrypoint:   inspect.Config.Entrypoint,
+		Healthcheck:  inspect.Config.Healthcheck,
+		Env:          inspect.Config.Env,
+		Labels:       inspect.Config.Labels,
+		ExposedPorts: inspect.Config.ExposedPorts,
+		User:         inspect.Config.User,
+		StopTimeout:  inspect.Config.StopTimeout,
+	}, &container.HostConfig{
+		Mounts:        newMounts,
+		PortBindings:  inspect.HostConfig.PortBindings,
+		Resources:     inspect.HostConfig.Resources,
+		NetworkMode:   inspect.HostConfig.NetworkMode,
+		RestartPolicy: inspect.HostConfig.RestartPolicy,
+		CapAdd:        inspect.HostConfig.CapAdd,
+		CapDrop:       inspect.HostConfig.CapDrop,
+		Privileged:    inspect.HostConfig.Privileged,
+		GroupAdd:      inspect.HostConfig.GroupAdd,
+		UsernsMode:    inspect.HostConfig.UsernsMode,
+		ShmSize:       inspect.HostConfig.ShmSize,
+		Sysctls:       inspect.HostConfig.Sysctls,
+		LogConfig:     inspect.HostConfig.LogConfig,
+		VolumesFrom:   inspect.HostConfig.VolumesFrom,
+	}, netCfg, nil, inspect.Name)
+	if err != nil {
+		return fmt.Errorf("creating new container: %w", err)
+	}
+
+	if err := cli.ContainerStart(ctx, createResp.ID, container.StartOptions{}); err != nil {
+		return fmt.Errorf("starting new container: %w", err)
+	}
+
+	kb, err := stackContainerInfo(ctx, cli, "kibana")
+	fmt.Println("Kibana Container ID:", kb.ID)
+	if err != nil {
+		return err
+	}
+
+	if err := cli.ContainerRestart(ctx, kb.ID, container.StopOptions{Timeout: nil}); err != nil {
+		return fmt.Errorf("starting kibana container: %w", err)
+	}
+
+	fmt.Printf("Container recreated (Id: %s) with GeoIp mount enabled. Kibana restarted: %v\n", createResp.ID[:5], enable)
+
 	return waitContainerHealthy(ctx, "kibana")
 }
 
