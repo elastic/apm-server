@@ -104,7 +104,6 @@ func ToggleGeoIpMount(ctx context.Context, enable bool) error {
 	defer cli.Close()
 
 	c, err := stackContainerInfo(ctx, cli, "elasticsearch")
-	fmt.Println("Container ID:", c.ID)
 	if err != nil {
 		return err
 	}
@@ -192,7 +191,6 @@ func ToggleGeoIpMount(ctx context.Context, enable bool) error {
 	}
 
 	kb, err := stackContainerInfo(ctx, cli, "kibana")
-	fmt.Println("Kibana Container ID:", kb.ID)
 	if err != nil {
 		return err
 	}
