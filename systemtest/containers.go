@@ -87,6 +87,7 @@ func StartStackContainers() error {
 }
 
 func ToggleGeoIpMount(ctx context.Context, enable bool) error {
+
 	src := filepath.Join(
 		systemtestDir,
 		"..",
@@ -102,6 +103,7 @@ func ToggleGeoIpMount(ctx context.Context, enable bool) error {
 		return err
 	}
 	defer cli.Close()
+	cli.NegotiateAPIVersion(ctx)
 
 	c, err := stackContainerInfo(ctx, cli, "elasticsearch")
 	if err != nil {
