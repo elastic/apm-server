@@ -37,7 +37,7 @@ func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Log
 	if err != nil {
 		return nil, err
 	}
-	authenticator, err := auth.NewAuthenticator(config.AgentAuth{})
+	authenticator, err := auth.NewAuthenticator(config.AgentAuth{}, logger)
 	if err != nil {
 		return nil, err
 	}

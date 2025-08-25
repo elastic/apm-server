@@ -42,6 +42,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
@@ -185,7 +186,7 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) string {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
 	cfg := &config.Config{}
-	auth, _ := auth.NewAuthenticator(cfg.AgentAuth)
+	auth, _ := auth.NewAuthenticator(cfg.AgentAuth, logptest.NewTestingLogger(t, ""))
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
 	router, err := api.NewMux(
 		cfg,

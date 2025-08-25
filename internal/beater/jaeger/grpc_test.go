@@ -42,6 +42,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestPostSpans(t *testing.T) {
@@ -223,7 +224,7 @@ func newServer(t *testing.T, batchProcessor modelpb.BatchProcessor, agentcfgFetc
 			AllowService: []string{authorizedServiceName},
 		},
 		SecretToken: "abc123",
-	})
+	}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Auth(authenticator)))
 	semaphore := semaphore.NewWeighted(1)
