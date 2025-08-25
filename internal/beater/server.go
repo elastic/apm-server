@@ -129,7 +129,7 @@ type ServerParams struct {
 	// for indexing. Under some configuration, the server will wrap the
 	// client's transport such that requests will be blocked until data
 	// streams have been initialised.
-	NewElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error)
+	NewElasticsearchClient func(cfg *elasticsearch.Config, logger *logp.Logger) (*elasticsearch.Client, error)
 
 	// GRPCServer holds a *grpc.Server to which services will be registered
 	// for receiving data, configuration requests, etc.
@@ -241,7 +241,7 @@ func newAgentConfigFetcher(
 	ctx context.Context,
 	cfg *config.Config,
 	kibanaClient *kibana.Client,
-	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
+	newElasticsearchClient func(*elasticsearch.Config, *logp.Logger) (*elasticsearch.Client, error),
 	tracer *apm.Tracer,
 	logger *logp.Logger,
 ) (agentcfg.Fetcher, func(context.Context) error, error) {
@@ -269,7 +269,7 @@ func newAgentConfigFetcher(
 		// It is possible that none of the above applies.
 	}
 
-	esClient, err := newElasticsearchClient(cfg.AgentConfig.ESConfig)
+	esClient, err := newElasticsearchClient(cfg.AgentConfig.ESConfig, logger)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -28,6 +28,7 @@ import (
 	"go.elastic.co/apm/module/apmelasticsearch/v2"
 
 	"github.com/elastic/apm-server/internal/version"
+	"github.com/elastic/elastic-agent-libs/logp"
 	esv8 "github.com/elastic/go-elasticsearch/v8"
 	esapiv8 "github.com/elastic/go-elasticsearch/v8/esapi"
 )
@@ -56,12 +57,15 @@ type ClientParams struct {
 	// RetryOnError indicates which client errors should be retried.
 	// Optional.
 	RetryOnError func(*http.Request, error) bool
+
+	// Logger holds a logger
+	Logger *logp.Logger
 }
 
 // NewClient returns a stack version-aware Elasticsearch client,
 // equivalent to NewClientParams(ClientParams{Config: config}).
-func NewClient(config *Config) (*Client, error) {
-	return NewClientParams(ClientParams{Config: config})
+func NewClient(config *Config, logger *logp.Logger) (*Client, error) {
+	return NewClientParams(ClientParams{Config: config, Logger: logger})
 }
 
 // NewClientParams returns a stack version-aware Elasticsearch client.
@@ -72,7 +76,7 @@ func NewClientParams(args ClientParams) (*Client, error) {
 
 	transport := args.Transport
 	if transport == nil {
-		httpTransport, err := NewHTTPTransport(args.Config)
+		httpTransport, err := NewHTTPTransport(args.Config, args.Logger)
 		if err != nil {
 			return nil, err
 		}

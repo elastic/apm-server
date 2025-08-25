@@ -33,6 +33,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input"
@@ -231,7 +232,7 @@ func init() {
 	var err error
 	anonymousAuthenticator, err = auth.NewAuthenticator(config.AgentAuth{
 		Anonymous: config.AnonymousAgentAuth{Enabled: true},
-	})
+	}, logp.L())
 	if err != nil {
 		panic(err)
 	}

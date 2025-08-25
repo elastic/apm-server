@@ -32,6 +32,7 @@ import (
 	"github.com/spf13/cobra"
 
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
@@ -236,7 +237,7 @@ func bootstrap() (*es.Client, *config.Config, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	client, err := es.NewClient(beaterConfig.AgentAuth.APIKey.ESConfig)
+	client, err := es.NewClient(beaterConfig.AgentAuth.APIKey.ESConfig, logp.NewLogger(""))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -405,7 +406,7 @@ func invalidateAPIKey(client *es.Client, id string, name string, asJSON bool) er
 }
 
 func verifyAPIKey(config *config.Config, privileges []es.PrivilegeAction, credentials string, asJSON bool) error {
-	authenticator, err := auth.NewAuthenticator(config.AgentAuth)
+	authenticator, err := auth.NewAuthenticator(config.AgentAuth, logp.NewLogger(""))
 	if err != nil {
 		return err
 	}

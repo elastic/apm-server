@@ -290,6 +290,7 @@ func TestBatchProcessorTimeout(t *testing.T) {
 	client, err := elasticsearch.NewClientParams(elasticsearch.ClientParams{
 		Config:    cfg,
 		Transport: transport,
+		Logger:    logptest.NewTestingLogger(t, ""),
 	})
 	require.NoError(t, err)
 	fetcher := NewElasticsearchFetcher(client, "index")

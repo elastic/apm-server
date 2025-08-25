@@ -34,6 +34,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
@@ -143,7 +144,7 @@ func newUnavailableElasticsearchClient(t testing.TB) *elasticsearch.Client {
 	cfg.MaxRetries = 1
 	cfg.Backoff.Init = time.Nanosecond
 	cfg.Backoff.Max = time.Nanosecond
-	client, err := elasticsearch.NewClientParams(elasticsearch.ClientParams{Config: cfg, Transport: transport})
+	client, err := elasticsearch.NewClientParams(elasticsearch.ClientParams{Config: cfg, Transport: transport, Logger: logptest.NewTestingLogger(t, "")})
 	require.NoError(t, err)
 	return client
 }
@@ -163,7 +164,7 @@ func newMockElasticsearchClient(t testing.TB, statusCode int, responseBody io.Re
 	config := elasticsearch.DefaultConfig()
 	config.Backoff.Init = time.Nanosecond
 	config.Hosts = []string{srv.URL}
-	client, err := elasticsearch.NewClient(config)
+	client, err := elasticsearch.NewClient(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	return client
 }

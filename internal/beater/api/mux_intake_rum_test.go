@@ -43,7 +43,7 @@ func TestOPTIONS(t *testing.T) {
 
 	cfg := cfgEnabledRUM()
 	cfg.RumConfig.AllowOrigins = []string{"*"}
-	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
+	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth, logptest.NewTestingLogger(t, ""))
 
 	h, _ := middleware.Wrap(
 		func(c *request.Context) {
