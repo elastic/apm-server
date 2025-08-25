@@ -41,6 +41,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/sourcemap"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestBackendRequestMetadata(t *testing.T) {
@@ -76,14 +77,14 @@ func TestRUMRequestMetadata(t *testing.T) {
 	assert.Equal(t, &modelpb.UserAgent{Original: c.UserAgent}, event.UserAgent)
 }
 
-func requestToMuxerWithPattern(cfg *config.Config, pattern string) (*httptest.ResponseRecorder, error) {
+func requestToMuxerWithPattern(tb testing.TB, cfg *config.Config, pattern string) (*httptest.ResponseRecorder, error) {
 	r := httptest.NewRequest(http.MethodPost, pattern, nil)
-	return requestToMuxer(cfg, r)
+	return requestToMuxer(tb, cfg, r)
 }
 
-func requestToMuxerWithHeader(cfg *config.Config, pattern string, method string, header map[string]string) (*httptest.ResponseRecorder, error) {
+func requestToMuxerWithHeader(tb testing.TB, cfg *config.Config, pattern string, method string, header map[string]string) (*httptest.ResponseRecorder, error) {
 	r := httptest.NewRequest(method, pattern, nil)
-	return requestToMuxer(cfg, requestWithHeader(r, header))
+	return requestToMuxer(tb, cfg, requestWithHeader(r, header))
 }
 
 func requestWithHeader(r *http.Request, header map[string]string) *http.Request {
@@ -103,6 +104,7 @@ func requestWithQueryString(r *http.Request, queryString map[string]string) *htt
 }
 
 func requestToMuxerWithHeaderAndQueryString(
+	tb testing.TB,
 	cfg *config.Config,
 	pattern, method string,
 	header, queryString map[string]string,
@@ -110,11 +112,11 @@ func requestToMuxerWithHeaderAndQueryString(
 	r := httptest.NewRequest(method, pattern, nil)
 	r = requestWithQueryString(r, queryString)
 	r = requestWithHeader(r, header)
-	return requestToMuxer(cfg, r)
+	return requestToMuxer(tb, cfg, r)
 }
 
-func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseRecorder, error) {
-	_, mux, err := muxBuilder{}.build(cfg)
+func requestToMuxer(tb testing.TB, cfg *config.Config, r *http.Request) (*httptest.ResponseRecorder, error) {
+	_, mux, err := muxBuilder{}.build(tb, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +145,7 @@ func testMonitoringMiddleware(t *testing.T, urlPath string, expectedMetrics map[
 }
 
 func newTestMux(t *testing.T, cfg *config.Config) (http.Handler, sdkmetric.Reader) {
-	reader, mux, err := muxBuilder{}.build(cfg)
+	reader, mux, err := muxBuilder{}.build(t, cfg)
 	require.NoError(t, err)
 	return mux, reader
 }
@@ -153,7 +155,7 @@ type muxBuilder struct {
 	Managed          bool
 }
 
-func (m muxBuilder) build(cfg *config.Config) (sdkmetric.Reader, http.Handler, error) {
+func (m muxBuilder) build(tb testing.TB, cfg *config.Config) (sdkmetric.Reader, http.Handler, error) {
 	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
 		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
 			return metricdata.DeltaTemporality
@@ -163,7 +165,7 @@ func (m muxBuilder) build(cfg *config.Config) (sdkmetric.Reader, http.Handler, e
 
 	nopBatchProcessor := modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil })
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
-	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
+	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth, logptest.NewTestingLogger(tb, ""))
 	r, err := NewMux(
 		cfg,
 		nopBatchProcessor,

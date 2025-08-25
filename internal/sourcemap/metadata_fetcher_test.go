@@ -33,6 +33,7 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 )
@@ -122,7 +123,7 @@ func TestMetadataFetcher(t *testing.T) {
 			esConfig := elasticsearch.DefaultConfig()
 			esConfig.Hosts = []string{ts.URL}
 
-			esClient, err := elasticsearch.NewClient(esConfig)
+			esClient, err := elasticsearch.NewClient(esConfig, logptest.NewTestingLogger(t, ""))
 			require.NoError(t, err)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
@@ -268,7 +269,7 @@ func TestInvalidation(t *testing.T) {
 			esConfig := elasticsearch.DefaultConfig()
 			esConfig.Hosts = []string{ts.URL}
 
-			esClient, err := elasticsearch.NewClient(esConfig)
+			esClient, err := elasticsearch.NewClient(esConfig, logptest.NewTestingLogger(t, ""))
 			require.NoError(t, err)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)

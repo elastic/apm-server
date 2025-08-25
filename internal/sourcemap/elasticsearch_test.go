@@ -162,7 +162,7 @@ func newMockElasticsearchClient(t testing.TB, statusCode int, responseBody io.Re
 	config := elasticsearch.DefaultConfig()
 	config.Backoff.Init = time.Nanosecond
 	config.Hosts = []string{srv.URL}
-	client, err := elasticsearch.NewClient(config)
+	client, err := elasticsearch.NewClient(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	return client
 }

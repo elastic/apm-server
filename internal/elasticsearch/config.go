@@ -26,6 +26,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/transport"
 	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 )
@@ -131,7 +132,7 @@ func addresses(cfg *Config) ([]string, error) {
 }
 
 // NewHTTPTransport returns a new net/http.Transport for cfg.
-func NewHTTPTransport(cfg *Config) (*http.Transport, error) {
+func NewHTTPTransport(cfg *Config, logger *logp.Logger) (*http.Transport, error) {
 	proxy, err := httpProxyURL(cfg)
 	if err != nil {
 		return nil, err
@@ -139,7 +140,7 @@ func NewHTTPTransport(cfg *Config) (*http.Transport, error) {
 
 	var tlsConfig *tlscommon.TLSConfig
 	if cfg.TLS.IsEnabled() {
-		if tlsConfig, err = tlscommon.LoadTLSConfig(cfg.TLS); err != nil {
+		if tlsConfig, err = tlscommon.LoadTLSConfig(cfg.TLS, logger); err != nil {
 			return nil, err
 		}
 	}
