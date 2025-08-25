@@ -74,13 +74,13 @@ Create a [GitHub Issue](https://github.com/elastic/apm-server/issues/new?assigne
   - Post your testing scenarios on the PR as a comment (for tracking down details in case we run into regressions).
   - Add the `test-plan-ok` or the `test-plan-regression` label to the PR. In case of regression, either open a PR with a fix or open an issue with the details.
 - Collaborate with the docs team on any release highlights or breaking changes that should be included in the APM Server guide.
-- Run DRA for a given qualifier. The Release Team will say what qualifier to use in the the #mission-control channel.
-  - Go to https://buildkite.com/elastic/apm-server-package
-  * Click on `New Build`.
-  - Choose the `Branch` where the release should come from (either `main`, `8.x` or `[0-9].[0-9]+)`_
-  - Click on `options`
-  - Add `ELASTIC_QUALIFIER=<qualifier>` (`<qualifier` should be replaced with the given qualifier)
-  - Click on `Create Build`.
+
+### If a qualifier is needed
+
+- The Release Team will say what qualifier to use in the the `#mission-control` channel.
+  - Validate if the qualifier is available for the given branch at `https://storage.googleapis.com/dra-qualifier/<your-branch>`.
+  - If so you can trigger a new build manually or wait for a push commit.
+  - Otherwise, ask the Robots team as they build an automation to unify the version qualifier for all the observability repositories.
 
 ## On release day
 
