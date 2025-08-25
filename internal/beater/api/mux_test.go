@@ -159,7 +159,7 @@ type muxBuilder struct {
 func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 	nopBatchProcessor := modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil })
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
-	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
+	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth, logp.NewLogger(""))
 	return NewMux(
 		cfg,
 		nopBatchProcessor,

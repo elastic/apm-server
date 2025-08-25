@@ -114,7 +114,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 
 func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, error) {
 	tailSamplingConfig := args.Config.Sampling.Tail
-	es, err := args.NewElasticsearchClient(tailSamplingConfig.ESConfig)
+	es, err := args.NewElasticsearchClient(tailSamplingConfig.ESConfig, args.Logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Elasticsearch client for tail-sampling: %w", err)
 	}
