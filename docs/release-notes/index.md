@@ -45,6 +45,10 @@ To check for security updates, go to [Security announcements for the Elastic sta
 * Fix setting `event.dataset` to `data_stream.dataset` if `event.dataset` is empty, to have `event.dataset` in every `logs-*` data stream ([#129074](https://github.com/elastic/elasticsearch/pull/129074))
 * Fix missing trusted root certificate authority in the docker image ([#16928](https://github.com/elastic/apm-server/pull/16928))
 
+## 9.0.6 [elastic-apm-9.0.6-release-notes]
+
+## 9.0.5 [elastic-apm-9.0.5-release-notes]
+
 ## 9.0.4 [elastic-apm-9.0.4-release-notes]
 
 ### Fixes [elastic-apm-9.0.4-fixes]
