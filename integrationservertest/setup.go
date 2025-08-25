@@ -88,15 +88,11 @@ func DeploymentTemplateFrom(region string) string {
 	}
 }
 
+// terraformDirName returns the name of the Terraform files directory for this test.
 func terraformDirName(t *testing.T) string {
-	return strings.ReplaceAll(t.Name(), "/", "_")
-}
-
-// terraformDir returns the name of the Terraform files directory for this test.
-func terraformDir(t *testing.T) string {
 	t.Helper()
 	// Flatten the dir name in case of path separators
-	return fmt.Sprintf("tf-%s", terraformDirName(t))
+	return fmt.Sprintf("tf-%s", strings.ReplaceAll(t.Name(), "/", "_"))
 }
 
 // initTerraformRunner copies the static Terraform files to the Terraform directory
@@ -106,10 +102,10 @@ func terraformDir(t *testing.T) string {
 // if it exists, before copying into it.
 func initTerraformRunner(t *testing.T) *terraform.Runner {
 	t.Helper()
-	dirName := terraformDir(t)
+	dirName := terraformDirName(t)
 	err := os.RemoveAll(dirName)
 	require.NoError(t, err)
-	err = os.CopyFS(terraformDir(t), os.DirFS("infra/terraform"))
+	err = os.CopyFS(dirName, os.DirFS("infra/terraform"))
 	require.NoError(t, err)
 
 	tf, err := terraform.NewRunner(t, dirName)

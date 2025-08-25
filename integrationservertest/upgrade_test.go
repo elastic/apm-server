@@ -33,7 +33,7 @@ import (
 const upgradeConfigFileName = "upgrade-config.yaml"
 
 func formatUpgradePath(p string) string {
-	splits := strings.Split(p, ",")
+	splits := strings.Split(p, "->")
 	for i := range splits {
 		splits[i] = strings.TrimSpace(splits[i])
 	}
