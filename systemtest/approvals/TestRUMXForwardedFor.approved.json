@@ -12,27 +12,6 @@
         "agent.version": [
             "5.5.0"
         ],
-        "client.geo.city_name": [
-            "dynamic"
-        ],
-        "client.geo.continent_name": [
-            "Oceania"
-        ],
-        "client.geo.country_iso_code": [
-            "AU"
-        ],
-        "client.geo.country_name": [
-            "Australia"
-        ],
-        "client.geo.location": [
-            "dynamic"
-        ],
-        "client.geo.region_iso_code": [
-            "dynamic"
-        ],
-        "client.geo.region_name": [
-            "dynamic"
-        ],
         "client.ip": [
             "220.244.41.16"
         ],
@@ -130,27 +109,6 @@
         ],
         "agent.version": [
             "5.5.0"
-        ],
-        "client.geo.city_name": [
-            "dynamic"
-        ],
-        "client.geo.continent_name": [
-            "Oceania"
-        ],
-        "client.geo.country_iso_code": [
-            "AU"
-        ],
-        "client.geo.country_name": [
-            "Australia"
-        ],
-        "client.geo.location": [
-            "dynamic"
-        ],
-        "client.geo.region_iso_code": [
-            "dynamic"
-        ],
-        "client.geo.region_name": [
-            "dynamic"
         ],
         "client.ip": [
             "220.244.41.16"
