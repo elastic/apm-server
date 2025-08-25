@@ -155,7 +155,7 @@ func NewUnstartedServerTB(tb testing.TB, args ...string) *Server {
 				tb.Error(err)
 			}
 			close(errc)
-		case <-time.After(10 * time.Second):
+		case <-time.After(30 * time.Second):
 			// Channel receive on errc never happened. Start up a
 			// goroutine to receive on errc and then clean up the
 			// associated resources.
