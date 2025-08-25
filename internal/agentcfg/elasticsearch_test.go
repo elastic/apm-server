@@ -33,6 +33,7 @@ import (
 	"go.opentelemetry.io/otel/metric/noop"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 var sampleHits = []map[string]interface{}{
@@ -49,7 +50,7 @@ func newMockElasticsearchClient(t testing.TB, handler func(http.ResponseWriter, 
 	config := elasticsearch.DefaultConfig()
 	config.Backoff.Init = time.Nanosecond
 	config.Hosts = []string{srv.URL}
-	client, err := elasticsearch.NewClient(config)
+	client, err := elasticsearch.NewClient(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	return client
 }

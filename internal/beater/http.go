@@ -62,7 +62,7 @@ func newHTTPServer(
 	}
 
 	if cfg.TLS.IsEnabled() {
-		tlsServerConfig, err := tlscommon.LoadTLSServerConfig(cfg.TLS)
+		tlsServerConfig, err := tlscommon.LoadTLSServerConfig(cfg.TLS, logger)
 		if err != nil {
 			return nil, err
 		}

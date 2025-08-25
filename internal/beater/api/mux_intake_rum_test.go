@@ -33,6 +33,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/middleware"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestOPTIONS(t *testing.T) {
@@ -43,7 +44,7 @@ func TestOPTIONS(t *testing.T) {
 
 	cfg := cfgEnabledRUM()
 	cfg.RumConfig.AllowOrigins = []string{"*"}
-	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
+	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth, logptest.NewTestingLogger(t, ""))
 
 	lastMiddleware := func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
@@ -84,14 +85,14 @@ func TestOPTIONS(t *testing.T) {
 func TestRUMHandler_NoAuthorizationRequired(t *testing.T) {
 	cfg := cfgEnabledRUM()
 	cfg.AgentAuth.SecretToken = "1234"
-	rec, err := requestToMuxerWithPattern(cfg, IntakeRUMPath)
+	rec, err := requestToMuxerWithPattern(t, cfg, IntakeRUMPath)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusAccepted, rec.Code)
 }
 
 func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
 	t.Run("OffRum", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(config.DefaultConfig(), IntakeRUMPath)
+		rec, err := requestToMuxerWithPattern(t, config.DefaultConfig(), IntakeRUMPath)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusForbidden, rec.Code)
 
@@ -101,7 +102,7 @@ func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
 	})
 
 	t.Run("On", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(cfgEnabledRUM(), IntakeRUMPath)
+		rec, err := requestToMuxerWithPattern(t, cfgEnabledRUM(), IntakeRUMPath)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusAccepted, rec.Code)
 	})

@@ -44,6 +44,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestConsumeTracesHTTP(t *testing.T) {
@@ -167,7 +168,7 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) (string,
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 	cfg := &config.Config{}
-	auth, _ := auth.NewAuthenticator(cfg.AgentAuth)
+	auth, _ := auth.NewAuthenticator(cfg.AgentAuth, logptest.NewTestingLogger(t, ""))
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
 	router, err := api.NewMux(
 		cfg,
