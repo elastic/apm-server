@@ -30,6 +30,9 @@ func TestMain(m *testing.M) {
 		log.Fatalf("failed to start stack containers: %v", err)
 	}
 	initElasticSearch()
+	if err := waitGeoIPDownload(); err != nil {
+		log.Fatalf("failed to start download geoip db: %v", err)
+	}
 	initKibana()
 	initSettings()
 	initOTEL()
