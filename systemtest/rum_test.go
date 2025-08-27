@@ -38,6 +38,11 @@ import (
 	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
+const requestBody = `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}}}}
+{"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}
+{"metricset":{"samples":{"transaction.breakdown.count":{"value":12},"transaction.duration.sum.us":{"value":12},"transaction.duration.count":{"value":2},"transaction.self_time.sum.us":{"value":10},"transaction.self_time.count":{"value":2},"span.self_time.count":{"value":1},"span.self_time.sum.us":{"value":633.288}},"transaction":{"type":"request","name":"GET /"},"span":{"type":"external","subtype":"http"},"timestamp": 1496170422281000}}
+`
+
 func TestGeoIp_EnrichmentSuccess(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 
@@ -50,12 +55,7 @@ func TestGeoIp_EnrichmentSuccess(t *testing.T) {
 	require.NoError(t, err)
 	serverURL.Path = "/intake/v2/rum/events"
 
-	const body = `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}}}}
-{"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}
-{"metricset":{"samples":{"transaction.breakdown.count":{"value":12},"transaction.duration.sum.us":{"value":12},"transaction.duration.count":{"value":2},"transaction.self_time.sum.us":{"value":10},"transaction.self_time.count":{"value":2},"span.self_time.count":{"value":1},"span.self_time.sum.us":{"value":633.288}},"transaction":{"type":"request","name":"GET /"},"span":{"type":"external","subtype":"http"},"timestamp": 1496170422281000}}
-`
-
-	req, _ := http.NewRequest("POST", serverURL.String(), strings.NewReader(body))
+	req, _ := http.NewRequest("POST", serverURL.String(), strings.NewReader(requestBody))
 	req.Header.Set("Content-Type", "application/x-ndjson")
 	ipAddress := "220.244.41.16"
 	req.Header.Set("X-Forwarded-For", ipAddress)
@@ -95,60 +95,77 @@ func TestGeoIp_EnrichmentSuccess(t *testing.T) {
 }
 
 func TestGeoIp_EnrichmentFail(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	systemtest.DeleteGeoIpDatabase(t)
-	defer systemtest.DownloadGeoIPDatabase(t)
-
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err := srv.Start()
-	require.NoError(t, err)
-
-	serverURL, err := url.Parse(srv.URL)
-	require.NoError(t, err)
-	serverURL.Path = "/intake/v2/rum/events"
-
-	const body = `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}}}}
-{"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}
-{"metricset":{"samples":{"transaction.breakdown.count":{"value":12},"transaction.duration.sum.us":{"value":12},"transaction.duration.count":{"value":2},"transaction.self_time.sum.us":{"value":10},"transaction.self_time.count":{"value":2},"span.self_time.count":{"value":1},"span.self_time.sum.us":{"value":633.288}},"transaction":{"type":"request","name":"GET /"},"span":{"type":"external","subtype":"http"},"timestamp": 1496170422281000}}
-`
-
-	req, _ := http.NewRequest("POST", serverURL.String(), strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/x-ndjson")
-	ipAddress := "220.244.41.16"
-	req.Header.Set("X-Forwarded-For", ipAddress)
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusAccepted, resp.StatusCode)
-	io.Copy(io.Discard, resp.Body)
-	resp.Body.Close()
-
-	idx := []string{
-		"traces-apm*",
-		"metrics-apm*",
-	}
-
-	result := estest.ExpectMinDocs(t,
-		systemtest.Elasticsearch,
-		len(idx),
-		strings.Join(idx, ","),
-		espoll.TermsQuery{
-			Field:  "processor.event",
-			Values: []any{"transaction", "metric"},
+	testCases := []struct {
+		desc           string
+		ipAddress      string
+		removeDatabase bool
+	}{
+		{
+			desc:           "deleted database",
+			ipAddress:      "220.244.41.16",
+			removeDatabase: true,
 		},
-	)
+		{
+			desc:           "empty ip address",
+			ipAddress:      "",
+			removeDatabase: false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			systemtest.CleanupElasticsearch(t)
 
-	for _, hit := range result.Hits.Hits {
-		// The "client.geo" field should only be populated if enrichment succeeded.
-		if _, hasClientGeo := hit.Source["client"].(map[string]any)["geo"]; hasClientGeo {
-			t.Errorf("did not expect client.geo field to be present")
-		}
+			if tc.removeDatabase {
+				systemtest.DeleteGeoIpDatabase(t)
+				defer systemtest.DownloadGeoIPDatabase(t)
+			}
 
-		// The "tags" field should only be populated if database
-		// was unavailable when pipelines was created.
-		if _, hasTags := hit.Source["tags"]; hasTags {
-			t.Errorf("did not expect tags field to be present")
-		}
+			srv := apmservertest.NewUnstartedServerTB(t)
+			srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+			err := srv.Start()
+			require.NoError(t, err)
+
+			serverURL, err := url.Parse(srv.URL)
+			require.NoError(t, err)
+			serverURL.Path = "/intake/v2/rum/events"
+
+			req, _ := http.NewRequest("POST", serverURL.String(), strings.NewReader(requestBody))
+			req.Header.Set("Content-Type", "application/x-ndjson")
+			req.Header.Set("X-Forwarded-For", tc.ipAddress)
+			resp, err := http.DefaultClient.Do(req)
+			require.NoError(t, err)
+			require.Equal(t, http.StatusAccepted, resp.StatusCode)
+			io.Copy(io.Discard, resp.Body)
+			resp.Body.Close()
+
+			idx := []string{
+				"traces-apm*",
+				"metrics-apm*",
+			}
+
+			result := estest.ExpectMinDocs(t,
+				systemtest.Elasticsearch,
+				len(idx),
+				strings.Join(idx, ","),
+				espoll.TermsQuery{
+					Field:  "processor.event",
+					Values: []any{"transaction", "metric"},
+				},
+			)
+
+			for _, hit := range result.Hits.Hits {
+				// The "client.geo" field should only be populated if enrichment succeeded.
+				if _, hasClientGeo := hit.Source["client"].(map[string]any)["geo"]; hasClientGeo {
+					t.Errorf("did not expect client.geo field to be present")
+				}
+
+				// The "tags" field should only be populated if database
+				// was unavailable when pipelines was created.
+				if _, hasTags := hit.Source["tags"]; hasTags {
+					t.Errorf("did not expect tags field to be present")
+				}
+			}
+		})
 	}
 }
 
