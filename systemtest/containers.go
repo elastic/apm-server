@@ -32,6 +32,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"testing"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -41,6 +42,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
+	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -53,6 +55,8 @@ const (
 
 var (
 	systemtestDir string
+	agentImageMu  sync.RWMutex
+	agentImages   = make(map[string]bool)
 )
 
 func initContainers() {
@@ -468,36 +472,28 @@ func BuildElasticAgentImage(
 	return nil
 }
 
-var (
-	agentImageMu sync.RWMutex
-	agentImages  = make(map[string]bool)
-)
+func ToggleGeoIpDatabase(t *testing.T, available bool) {
+	t.Helper()
 
-func ToggleGeoIpDatabase(ctx context.Context, available bool) error {
+	ctx := t.Context()
+
 	cli, err := client.NewClientWithOpts(client.FromEnv)
-	if err != nil {
-		return err
-	}
+	require.NoError(t, err)
 	defer cli.Close()
+
 	cli.NegotiateAPIVersion(ctx)
 
 	c, err := stackContainerInfo(ctx, cli, "elasticsearch")
-	if err != nil {
-		return err
-	}
+	require.NoError(t, err)
 
 	inspect, err := cli.ContainerInspect(ctx, c.ID)
-	if err != nil {
-		return err
-	}
+	require.NoError(t, err)
 
-	if err := cli.ContainerStop(ctx, c.ID, container.StopOptions{}); err != nil {
-		return fmt.Errorf("stopping container: %w", err)
-	}
+	err = cli.ContainerStop(ctx, c.ID, container.StopOptions{})
+	require.NoError(t, err)
 
-	if err := cli.ContainerRemove(ctx, c.ID, container.RemoveOptions{Force: true}); err != nil {
-		return fmt.Errorf("stopping container: %w", err)
-	}
+	err = cli.ContainerRemove(ctx, c.ID, container.RemoveOptions{Force: true})
+	require.NoError(t, err)
 
 	var newEnv []string
 	for _, e := range inspect.Config.Env {
@@ -512,49 +508,40 @@ func ToggleGeoIpDatabase(ctx context.Context, available bool) error {
 		)
 	}
 
-	cfgCopy, _ := deepCopyConfig(inspect.Config)
+	cfgCopy := deepCopyCfg(t, inspect.Config)
 	cfgCopy.Env = newEnv
-
-	hostCfgCopy, _ := deepCopyConfig(inspect.HostConfig)
 
 	createResp, err := cli.ContainerCreate(
 		ctx,
 		cfgCopy,
-		hostCfgCopy,
+		deepCopyCfg(t, inspect.HostConfig),
 		&network.NetworkingConfig{
 			EndpointsConfig: inspect.NetworkSettings.Networks,
 		},
 		nil,
 		inspect.Name,
 	)
-	if err != nil {
-		return fmt.Errorf("creating new container: %w", err)
-	}
+	require.NoError(t, err)
 
-	if err := cli.ContainerStart(ctx, createResp.ID, container.StartOptions{}); err != nil {
-		return fmt.Errorf("starting new container: %w", err)
-	}
+	err = cli.ContainerStart(ctx, createResp.ID, container.StartOptions{})
+	require.NoError(t, err)
 
 	kb, err := stackContainerInfo(ctx, cli, "kibana")
-	if err != nil {
-		return err
-	}
+	require.NoError(t, err)
 
-	if err := cli.ContainerRestart(ctx, kb.ID, container.StopOptions{Timeout: nil}); err != nil {
-		return fmt.Errorf("starting kibana container: %w", err)
-	}
+	err = cli.ContainerRestart(ctx, kb.ID, container.StopOptions{Timeout: nil})
+	require.NoError(t, err)
 
-	return waitContainerHealthy(ctx, "kibana")
+	err = waitContainerHealthy(ctx, "kibana")
+	require.NoError(t, err)
 }
 
-func deepCopyConfig[T any](src *T) (*T, error) {
+func deepCopyCfg[T any](t *testing.T, src *T) *T {
+	t.Helper()
 	var dst T
 	bytes, err := json.Marshal(src)
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal(bytes, &dst); err != nil {
-		return nil, err
-	}
-	return &dst, nil
+	require.NoError(t, err)
+	err = json.Unmarshal(bytes, &dst)
+	require.NoError(t, err)
+	return &dst
 }

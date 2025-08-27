@@ -19,7 +19,6 @@ package systemtest_test
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -47,18 +46,16 @@ const requestBody = `{"metadata":{"service":{"name":"rum-js-test","agent":{"name
 func TestGeoIp_DatabaseUnavailable(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 
-	err := systemtest.ToggleGeoIpDatabase(context.Background(), false)
-	require.NoError(t, err)
+	systemtest.ToggleGeoIpDatabase(t, false)
 
 	// Make GeoIP database available for other tests.
 	defer func() {
-		err := systemtest.ToggleGeoIpDatabase(context.Background(), true)
-		require.NoError(t, err)
+		systemtest.ToggleGeoIpDatabase(t, true)
 	}()
 
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err = srv.Start()
+	err := srv.Start()
 	require.NoError(t, err)
 
 	serverURL, err := url.Parse(srv.URL)
