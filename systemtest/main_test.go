@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 	}
 	initElasticSearch()
 	if err := waitGeoIPDownload(); err != nil {
-		log.Fatalf("failed to start download geoip db: %v", err)
+		log.Fatalf("failed to download GeoIp database: %v", err)
 	}
 	initKibana()
 	initSettings()

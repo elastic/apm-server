@@ -113,15 +113,15 @@ func waitGeoIPDownload() error {
 
 			// [GeoLite2-ASN.mmdb, GeoLite2-City.mmdb, GeoLite2-Country.mmdb]
 			if stats.DatabasesCount == 3 {
-				fmt.Println("GoeIp database downloaded")
+				log.Println("GeoIp database downloaded")
 				return nil
 			}
 		case <-timer.C:
-			log.Fatalln("unable to download GeoIp database")
+			return fmt.Errorf("download timeout exceeded")
 		}
 
 		if first {
-			fmt.Println("waiting for GeoIP database to download")
+			log.Println("waiting for GeoIP database to download")
 			first = false
 		}
 	}
@@ -153,15 +153,15 @@ func waitGeoIPDeleted() error {
 			}
 
 			if stats.DatabasesCount == 0 {
-				fmt.Println("GoeIp database deleted")
+				log.Println("GeoIp database deleted")
 				return nil
 			}
 		case <-timer.C:
-			log.Fatalln("unable to download GeoIp database")
+			return fmt.Errorf("delete timeout exceeded")
 		}
 
 		if first {
-			fmt.Println("waiting for GeoIP database to download")
+			log.Println("waiting for GeoIP database to deleted")
 			first = false
 		}
 	}
