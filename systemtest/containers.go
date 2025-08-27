@@ -435,18 +435,6 @@ func (c *ElasticAgentContainer) Exec(ctx context.Context, cmd ...string) (stdout
 	return stdoutBuf.Bytes(), stderrBuf.Bytes(), nil
 }
 
-func matchFleetServerAPIStatusHealthy(r io.Reader) bool {
-	var status struct {
-		Name    string `json:"name"`
-		Version string `json:"version"`
-		Status  string `json:"status"`
-	}
-	if err := json.NewDecoder(r).Decode(&status); err != nil {
-		return false
-	}
-	return status.Status == "HEALTHY"
-}
-
 // BuildElasticAgentImage builds a Docker image from the published image with a locally built apm-server injected.
 func BuildElasticAgentImage(
 	ctx context.Context,
@@ -483,3 +471,89 @@ var (
 	agentImageMu sync.RWMutex
 	agentImages  = make(map[string]bool)
 )
+
+func ToggleGeoIpDatabase(ctx context.Context, available bool) error {
+	cli, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return err
+	}
+	defer cli.Close()
+	cli.NegotiateAPIVersion(ctx)
+
+	c, err := stackContainerInfo(ctx, cli, "elasticsearch")
+	if err != nil {
+		return err
+	}
+
+	inspect, err := cli.ContainerInspect(ctx, c.ID)
+	if err != nil {
+		return err
+	}
+
+	if err := cli.ContainerStop(ctx, c.ID, container.StopOptions{}); err != nil {
+		return fmt.Errorf("stopping container: %w", err)
+	}
+
+	if err := cli.ContainerRemove(ctx, c.ID, container.RemoveOptions{Force: true}); err != nil {
+		return fmt.Errorf("stopping container: %w", err)
+	}
+
+	var newEnv []string
+	for _, e := range inspect.Config.Env {
+		if !strings.HasPrefix(e, "ingest.geoip.downloader.") {
+			newEnv = append(newEnv, e)
+		}
+	}
+	if available {
+		newEnv = append(newEnv,
+			"ingest.geoip.downloader.enabled=true",
+			"ingest.geoip.downloader.eager.download=true",
+		)
+	}
+
+	cfgCopy, _ := deepCopyConfig(inspect.Config)
+	cfgCopy.Env = newEnv
+
+	hostCfgCopy, _ := deepCopyConfig(inspect.HostConfig)
+
+	createResp, err := cli.ContainerCreate(
+		ctx,
+		cfgCopy,
+		hostCfgCopy,
+		nil,
+		nil,
+		inspect.Name,
+	)
+	if err != nil {
+		return fmt.Errorf("creating new container: %w", err)
+	}
+
+	if err := cli.ContainerStart(ctx, createResp.ID, container.StartOptions{}); err != nil {
+		return fmt.Errorf("starting new container: %w", err)
+	}
+
+	kb, err := stackContainerInfo(ctx, cli, "kibana")
+	if err != nil {
+		return err
+	}
+
+	if err := cli.ContainerRestart(ctx, kb.ID, container.StopOptions{Timeout: nil}); err != nil {
+		return fmt.Errorf("starting kibana container: %w", err)
+	}
+
+	log.Printf("Container recreated (Id: %s) with GeoIp mount enabled. Kibana restarted\n", createResp.ID[:5])
+
+	return waitContainerHealthy(ctx, "kibana")
+}
+
+func deepCopyConfig[T any](src *T) (*T, error) {
+	var dst T
+	bytes, err := json.Marshal(src)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(bytes, &dst); err != nil {
+		return nil, err
+	}
+	return &dst, nil
+}

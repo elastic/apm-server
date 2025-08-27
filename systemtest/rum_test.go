@@ -19,6 +19,7 @@ package systemtest_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -42,6 +43,58 @@ const requestBody = `{"metadata":{"service":{"name":"rum-js-test","agent":{"name
 {"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}
 {"metricset":{"samples":{"transaction.breakdown.count":{"value":12},"transaction.duration.sum.us":{"value":12},"transaction.duration.count":{"value":2},"transaction.self_time.sum.us":{"value":10},"transaction.self_time.count":{"value":2},"span.self_time.count":{"value":1},"span.self_time.sum.us":{"value":633.288}},"transaction":{"type":"request","name":"GET /"},"span":{"type":"external","subtype":"http"},"timestamp": 1496170422281000}}
 `
+
+func TestGeoIp_DatabaseUnavailable(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+
+	err := systemtest.ToggleGeoIpDatabase(context.Background(), false)
+	require.NoError(t, err)
+
+	// Make GeoIP database available for other tests.
+	defer func() {
+		err := systemtest.ToggleGeoIpDatabase(context.Background(), true)
+		require.NoError(t, err)
+	}()
+
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+	err = srv.Start()
+	require.NoError(t, err)
+
+	serverURL, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	serverURL.Path = "/intake/v2/rum/events"
+
+	req, _ := http.NewRequest("POST", serverURL.String(), strings.NewReader(requestBody))
+	req.Header.Set("Content-Type", "application/x-ndjson")
+	ipAddress := "220.244.41.16"
+	req.Header.Set("X-Forwarded-For", ipAddress)
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusAccepted, resp.StatusCode)
+	io.Copy(io.Discard, resp.Body)
+	resp.Body.Close()
+
+	idx := []string{
+		"traces-apm*",
+		"metrics-apm*",
+	}
+
+	result := estest.ExpectMinDocs(t,
+		systemtest.Elasticsearch,
+		len(idx),
+		strings.Join(idx, ","),
+		espoll.TermsQuery{
+			Field:  "processor.event",
+			Values: []any{"transaction", "metric"},
+		},
+	)
+
+	for _, hit := range result.Hits.Hits {
+		_, hasTags := hit.Source["tags"]
+		require.NotEmpty(t, hasTags)
+	}
+}
 
 func TestGeoIp_EnrichmentSuccess(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
