@@ -37,6 +37,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
@@ -520,7 +521,9 @@ func ToggleGeoIpDatabase(ctx context.Context, available bool) error {
 		ctx,
 		cfgCopy,
 		hostCfgCopy,
-		nil,
+		&network.NetworkingConfig{
+			EndpointsConfig: inspect.NetworkSettings.Networks,
+		},
 		nil,
 		inspect.Name,
 	)
@@ -540,8 +543,6 @@ func ToggleGeoIpDatabase(ctx context.Context, available bool) error {
 	if err := cli.ContainerRestart(ctx, kb.ID, container.StopOptions{Timeout: nil}); err != nil {
 		return fmt.Errorf("starting kibana container: %w", err)
 	}
-
-	log.Printf("Container recreated (Id: %s) with GeoIp mount enabled. Kibana restarted\n", createResp.ID[:5])
 
 	return waitContainerHealthy(ctx, "kibana")
 }
