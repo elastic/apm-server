@@ -207,7 +207,18 @@ func getRepoRoot() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	repoRoot = filepath.Clean(strings.TrimSpace(string(output)))
+	// When go workspaces is enabled then go list lists all the module paths in
+	// the go workspace. This is hack to ensure we take what we required.
+	// TODO (lahsivjar): Better way to find repo root?
+	allPaths := strings.Split(strings.TrimSpace(string(output)), "\n")
+	var targetPath string
+	for _, path := range allPaths {
+		if strings.HasSuffix(path, "systemtest/..") {
+			targetPath = path
+			break
+		}
+	}
+	repoRoot = filepath.Clean(targetPath)
 	return repoRoot, nil
 }
 
