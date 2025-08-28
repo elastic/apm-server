@@ -1,12 +1,29 @@
 [[apm-release-notes-8.18]]
 == APM version 8.18
 
+* <<apm-release-notes-8.18.6>>
 * <<apm-release-notes-8.18.5>>
 * <<apm-release-notes-8.18.4>>
 * <<apm-release-notes-8.18.3>>
 * <<apm-release-notes-8.18.2>>
 * <<apm-release-notes-8.18.1>>
 * <<apm-release-notes-8.18.0>>
+
+[float]
+[[apm-release-notes-8.18.6]]
+=== APM version 8.18.6
+
+https://github.com/elastic/apm-server/compare/v8.18.5\...v8.18.6[View commits]
+
+[float]
+==== Bug fixes
+
+- Fix a 8.18.1 and 8.19.0 regression in docker image causing permission denied when accessing /etc/pki/tls/certs/ca-bundle.crt due to incorrect directory permissions {pull}18141[18141]
+
+[float]
+==== Added
+
+- Migrate UBI docker base image to upstream redhat image {pull}18123[18123]
 
 [float]
 [[apm-release-notes-8.18.5]]
