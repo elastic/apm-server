@@ -23,7 +23,7 @@ https://github.com/elastic/apm-server/compare/v8.18.5\...v8.18.6[View commits]
 [float]
 ==== Added
 
-- Migrate UBI docker base image to upstream redhat image {pull}18123[18123]
+- Migrate UBI docker base image to upstream Red Hat UBI image {pull}18123[18123]
 
 [float]
 [[apm-release-notes-8.18.5]]
