@@ -20,7 +20,6 @@ package systemtest
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -32,17 +31,14 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"testing"
 	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
-	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -470,78 +466,4 @@ func BuildElasticAgentImage(
 	log.Printf("Built image %s (%s)", outputImageName, arch)
 	agentImages[arch] = true
 	return nil
-}
-
-func ToggleGeoIpDatabase(t *testing.T, available bool) {
-	t.Helper()
-
-	ctx := t.Context()
-
-	cli, err := client.NewClientWithOpts(client.FromEnv)
-	require.NoError(t, err)
-	defer cli.Close()
-
-	cli.NegotiateAPIVersion(ctx)
-
-	c, err := stackContainerInfo(ctx, cli, "elasticsearch")
-	require.NoError(t, err)
-
-	inspect, err := cli.ContainerInspect(ctx, c.ID)
-	require.NoError(t, err)
-
-	err = cli.ContainerStop(ctx, c.ID, container.StopOptions{})
-	require.NoError(t, err)
-
-	err = cli.ContainerRemove(ctx, c.ID, container.RemoveOptions{Force: true})
-	require.NoError(t, err)
-
-	var newEnv []string
-	for _, e := range inspect.Config.Env {
-		if !strings.HasPrefix(e, "ingest.geoip.downloader.") {
-			newEnv = append(newEnv, e)
-		}
-	}
-	if available {
-		newEnv = append(newEnv,
-			"ingest.geoip.downloader.enabled=true",
-			"ingest.geoip.downloader.eager.download=true",
-		)
-	}
-
-	cfgCopy := deepCopyCfg(t, inspect.Config)
-	cfgCopy.Env = newEnv
-
-	createResp, err := cli.ContainerCreate(
-		ctx,
-		cfgCopy,
-		deepCopyCfg(t, inspect.HostConfig),
-		&network.NetworkingConfig{
-			EndpointsConfig: inspect.NetworkSettings.Networks,
-		},
-		nil,
-		inspect.Name,
-	)
-	require.NoError(t, err)
-
-	err = cli.ContainerStart(ctx, createResp.ID, container.StartOptions{})
-	require.NoError(t, err)
-
-	kb, err := stackContainerInfo(ctx, cli, "kibana")
-	require.NoError(t, err)
-
-	err = cli.ContainerRestart(ctx, kb.ID, container.StopOptions{Timeout: nil})
-	require.NoError(t, err)
-
-	err = waitContainerHealthy(ctx, "kibana")
-	require.NoError(t, err)
-}
-
-func deepCopyCfg[T any](t *testing.T, src *T) *T {
-	t.Helper()
-	var dst T
-	bytes, err := json.Marshal(src)
-	require.NoError(t, err)
-	err = json.Unmarshal(bytes, &dst)
-	require.NoError(t, err)
-	return &dst
 }

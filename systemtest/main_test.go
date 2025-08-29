@@ -18,10 +18,22 @@
 package systemtest
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"os"
 	"testing"
+	"time"
 )
+
+var stats struct {
+	GeoIPStats `json:"stats"`
+}
+
+type GeoIPStats struct {
+	DatabasesCount int `json:"databases_count"`
+}
 
 func TestMain(m *testing.M) {
 	log.Println("INFO: starting stack containers...")
@@ -38,4 +50,45 @@ func TestMain(m *testing.M) {
 	initOTEL()
 	log.Println("INFO: running system tests...")
 	os.Exit(m.Run())
+}
+
+func waitGeoIPDownload() error {
+	timer := time.NewTimer(30 * time.Second)
+
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
+
+	first := true
+	for {
+		select {
+		case <-ticker.C:
+			resp, err := Elasticsearch.Ingest.GeoIPStats()
+			if err != nil {
+				return err
+			}
+
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return err
+			}
+
+			err = json.Unmarshal([]byte(body), &stats)
+			if err != nil {
+				return err
+			}
+
+			// [GeoLite2-ASN.mmdb, GeoLite2-City.mmdb, GeoLite2-Country.mmdb]
+			if stats.DatabasesCount == 3 {
+				log.Println("GeoIp database downloaded")
+				return nil
+			}
+		case <-timer.C:
+			return fmt.Errorf("download timeout exceeded")
+		}
+
+		if first {
+			log.Println("waiting for GeoIP database to download")
+			first = false
+		}
+	}
 }

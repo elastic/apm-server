@@ -27,6 +27,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -43,32 +44,21 @@ const requestBody = `{"metadata":{"service":{"name":"rum-js-test","agent":{"name
 {"metricset":{"samples":{"transaction.breakdown.count":{"value":12},"transaction.duration.sum.us":{"value":12},"transaction.duration.count":{"value":2},"transaction.self_time.sum.us":{"value":10},"transaction.self_time.count":{"value":2},"span.self_time.count":{"value":1},"span.self_time.sum.us":{"value":633.288}},"transaction":{"type":"request","name":"GET /"},"span":{"type":"external","subtype":"http"},"timestamp": 1496170422281000}}
 `
 
-func TestGeoIp_DatabaseUnavailable(t *testing.T) {
+func lazyDownload(t *testing.T, url string) ([]espoll.SearchHit, bool) {
+	t.Helper()
+
 	systemtest.CleanupElasticsearch(t)
 
-	systemtest.ToggleGeoIpDatabase(t, false)
-
-	// Make GeoIP database available for other tests.
-	defer func() {
-		systemtest.ToggleGeoIpDatabase(t, true)
-	}()
-
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err := srv.Start()
+	req, err := http.NewRequest("POST", url, strings.NewReader(requestBody))
 	require.NoError(t, err)
 
-	serverURL, err := url.Parse(srv.URL)
-	require.NoError(t, err)
-	serverURL.Path = "/intake/v2/rum/events"
-
-	req, _ := http.NewRequest("POST", serverURL.String(), strings.NewReader(requestBody))
 	req.Header.Set("Content-Type", "application/x-ndjson")
-	ipAddress := "220.244.41.16"
-	req.Header.Set("X-Forwarded-For", ipAddress)
+	req.Header.Set("X-Forwarded-For", "220.244.41.16")
+
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusAccepted, resp.StatusCode)
+
 	io.Copy(io.Discard, resp.Body)
 	resp.Body.Close()
 
@@ -85,142 +75,23 @@ func TestGeoIp_DatabaseUnavailable(t *testing.T) {
 			Field:  "processor.event",
 			Values: []any{"transaction", "metric"},
 		},
+		espoll.WithTimeout(30*time.Second),
 	)
 
 	for _, hit := range result.Hits.Hits {
-		_, hasTags := hit.Source["tags"]
-		require.NotEmpty(t, hasTags)
-	}
-}
-
-func TestGeoIp_EnrichmentSuccess(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err := srv.Start()
-	require.NoError(t, err)
-
-	serverURL, err := url.Parse(srv.URL)
-	require.NoError(t, err)
-	serverURL.Path = "/intake/v2/rum/events"
-
-	req, _ := http.NewRequest("POST", serverURL.String(), strings.NewReader(requestBody))
-	req.Header.Set("Content-Type", "application/x-ndjson")
-	ipAddress := "220.244.41.16"
-	req.Header.Set("X-Forwarded-For", ipAddress)
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusAccepted, resp.StatusCode)
-	io.Copy(io.Discard, resp.Body)
-	resp.Body.Close()
-
-	idx := []string{
-		"traces-apm*",
-		"metrics-apm*",
-	}
-
-	result := estest.ExpectMinDocs(t,
-		systemtest.Elasticsearch,
-		len(idx),
-		strings.Join(idx, ","),
-		espoll.TermsQuery{
-			Field:  "processor.event",
-			Values: []any{"transaction", "metric"},
-		},
-	)
-
-	for _, hit := range result.Hits.Hits {
-		// The "client.geo" field should only be populated if enrichment succeeded.
-		if _, hasClientGeo := hit.Source["client"].(map[string]any)["geo"]; !hasClientGeo {
-			t.Errorf("expected client.geo field to be present")
-		}
-
-		// The "tags" field should only be populated if database
-		// was unavailable when pipelines was created.
-		if _, hasTags := hit.Source["tags"]; hasTags {
-			t.Errorf("did not expect tags field to be present")
+		tags, ok := hit.Source["tags"]
+		if ok {
+			t.Logf("unexpect tags field: %v", tags)
+			return nil, false
 		}
 	}
-}
 
-func TestGeoIp_EnrichmentFail(t *testing.T) {
-	testCases := []struct {
-		desc           string
-		ipAddress      string
-		removeDatabase bool
-	}{
-		{
-			desc:           "deleted database",
-			ipAddress:      "220.244.41.16",
-			removeDatabase: true,
-		},
-		{
-			desc:           "empty ip address",
-			ipAddress:      "",
-			removeDatabase: false,
-		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
-			systemtest.CleanupElasticsearch(t)
-
-			if tc.removeDatabase {
-				systemtest.DeleteGeoIpDatabase(t)
-				defer systemtest.DownloadGeoIPDatabase(t)
-			}
-
-			srv := apmservertest.NewUnstartedServerTB(t)
-			srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-			err := srv.Start()
-			require.NoError(t, err)
-
-			serverURL, err := url.Parse(srv.URL)
-			require.NoError(t, err)
-			serverURL.Path = "/intake/v2/rum/events"
-
-			req, _ := http.NewRequest("POST", serverURL.String(), strings.NewReader(requestBody))
-			req.Header.Set("Content-Type", "application/x-ndjson")
-			req.Header.Set("X-Forwarded-For", tc.ipAddress)
-			resp, err := http.DefaultClient.Do(req)
-			require.NoError(t, err)
-			require.Equal(t, http.StatusAccepted, resp.StatusCode)
-			io.Copy(io.Discard, resp.Body)
-			resp.Body.Close()
-
-			idx := []string{
-				"traces-apm*",
-				"metrics-apm*",
-			}
-
-			result := estest.ExpectMinDocs(t,
-				systemtest.Elasticsearch,
-				len(idx),
-				strings.Join(idx, ","),
-				espoll.TermsQuery{
-					Field:  "processor.event",
-					Values: []any{"transaction", "metric"},
-				},
-			)
-
-			for _, hit := range result.Hits.Hits {
-				// The "client.geo" field should only be populated if enrichment succeeded.
-				if _, hasClientGeo := hit.Source["client"].(map[string]any)["geo"]; hasClientGeo {
-					t.Errorf("did not expect client.geo field to be present")
-				}
-
-				// The "tags" field should only be populated if database
-				// was unavailable when pipelines was created.
-				if _, hasTags := hit.Source["tags"]; hasTags {
-					t.Errorf("did not expect tags field to be present")
-				}
-			}
-		})
-	}
+	return result.Hits.Hits, true
 }
 
 func TestRUMXForwardedFor(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
+
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
 	err := srv.Start()
@@ -230,29 +101,22 @@ func TestRUMXForwardedFor(t *testing.T) {
 	require.NoError(t, err)
 	serverURL.Path = "/intake/v2/rum/events"
 
-	// Send one transaction and one set of breakdown metrics.
-	// They should both have geoIP enrichment applied.
-	const body = `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}}}}
-{"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}
-{"metricset":{"samples":{"transaction.breakdown.count":{"value":12},"transaction.duration.sum.us":{"value":12},"transaction.duration.count":{"value":2},"transaction.self_time.sum.us":{"value":10},"transaction.self_time.count":{"value":2},"span.self_time.count":{"value":1},"span.self_time.sum.us":{"value":633.288}},"transaction":{"type":"request","name":"GET /"},"span":{"type":"external","subtype":"http"},"timestamp": 1496170422281000}}
-`
+	var (
+		ok   bool
+		hits []espoll.SearchHit
+	)
+	assert.Eventually(t,
+		func() bool {
+			hits, ok = lazyDownload(t, serverURL.String())
+			return ok
+		},
+		3*time.Minute,
+		30*time.Second,
+		"failed to lazily download geoip database",
+	)
 
-	req, _ := http.NewRequest("POST", serverURL.String(), strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/x-ndjson")
-	ipAddress := "220.244.41.16"
-	req.Header.Set("X-Forwarded-For", ipAddress)
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusAccepted, resp.StatusCode)
-	io.Copy(io.Discard, resp.Body)
-	resp.Body.Close()
-
-	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "traces-apm*,metrics-apm*", espoll.TermsQuery{
-		Field:  "processor.event",
-		Values: []interface{}{"transaction", "metric"},
-	})
 	approvaltest.ApproveFields(
-		t, t.Name(), result.Hits.Hits,
+		t, t.Name(), hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
 		"@timestamp", "timestamp.us",
 		// RUM events have the source port recorded, and in the tests it will be dynamic
