@@ -174,7 +174,7 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 		{memSize: 1, wantMaxRequests: 11, wantDocBufSize: 819},
 		{memSize: 2, wantMaxRequests: 13, wantDocBufSize: 1638},
 		{memSize: 4, wantMaxRequests: 16, wantDocBufSize: 3276},
-		{memSize: 8, wantMaxRequests: 22, wantDocBufSize: 6553},
+		{memSize: 8, wantMaxRequests: 34, wantDocBufSize: 6553},
 	}
 	for _, c := range tc {
 		t.Run(fmt.Sprintf("default/%vgb", c.memSize), func(t *testing.T) {
