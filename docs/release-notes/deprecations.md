@@ -1,5 +1,11 @@
 ---
 navigation_title: "Deprecations"
+applies_to:
+  stack: ga
+  serverless: unavailable
+products:
+  - id: observability
+  - id: apm
 ---
 
 # Elastic APM deprecations
