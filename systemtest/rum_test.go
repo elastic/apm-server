@@ -27,7 +27,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -39,23 +38,35 @@ import (
 	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
-const requestBody = `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}}}}
+func TestRUMXForwardedFor(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+	err := srv.Start()
+	require.NoError(t, err)
+
+	serverURL, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	serverURL.Path = "/intake/v2/rum/events"
+
+	systemtest.GeoIpLazyDownload(t, serverURL.String())
+
+	const body = `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}}}}
 {"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}
 {"metricset":{"samples":{"transaction.breakdown.count":{"value":12},"transaction.duration.sum.us":{"value":12},"transaction.duration.count":{"value":2},"transaction.self_time.sum.us":{"value":10},"transaction.self_time.count":{"value":2},"span.self_time.count":{"value":1},"span.self_time.sum.us":{"value":633.288}},"transaction":{"type":"request","name":"GET /"},"span":{"type":"external","subtype":"http"},"timestamp": 1496170422281000}}
 `
 
-func lazyDownload(t *testing.T, url string) ([]espoll.SearchHit, bool) {
-	t.Helper()
-
-	systemtest.CleanupElasticsearch(t)
-
-	req, err := http.NewRequest("POST", url, strings.NewReader(requestBody))
+	req, err := http.NewRequest("POST", serverURL.String(), strings.NewReader(body))
 	require.NoError(t, err)
 
 	req.Header.Set("Content-Type", "application/x-ndjson")
 	req.Header.Set("X-Forwarded-For", "220.244.41.16")
 
 	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+
+	_, err = io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusAccepted, resp.StatusCode)
 
@@ -75,48 +86,12 @@ func lazyDownload(t *testing.T, url string) ([]espoll.SearchHit, bool) {
 			Field:  "processor.event",
 			Values: []any{"transaction", "metric"},
 		},
-		espoll.WithTimeout(30*time.Second),
+		//		espoll.WithTimeout(30*time.Second),
 	)
 
-	for _, hit := range result.Hits.Hits {
-		tags, ok := hit.Source["tags"]
-		if ok {
-			t.Logf("unexpect tags field: %v", tags)
-			return nil, false
-		}
-	}
-
-	return result.Hits.Hits, true
-}
-
-func TestRUMXForwardedFor(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err := srv.Start()
-	require.NoError(t, err)
-
-	serverURL, err := url.Parse(srv.URL)
-	require.NoError(t, err)
-	serverURL.Path = "/intake/v2/rum/events"
-
-	var (
-		ok   bool
-		hits []espoll.SearchHit
-	)
-	assert.Eventually(t,
-		func() bool {
-			hits, ok = lazyDownload(t, serverURL.String())
-			return ok
-		},
-		3*time.Minute,
-		30*time.Second,
-		"failed to lazily download geoip database",
-	)
-
+	// Also checks for the absence of `tags` fields.
 	approvaltest.ApproveFields(
-		t, t.Name(), hits,
+		t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
 		"@timestamp", "timestamp.us",
 		// RUM events have the source port recorded, and in the tests it will be dynamic
