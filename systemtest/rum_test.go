@@ -40,6 +40,7 @@ import (
 
 func TestRUMXForwardedFor(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
+	systemtest.GeoIpLazyDownload(t)
 
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
@@ -49,8 +50,6 @@ func TestRUMXForwardedFor(t *testing.T) {
 	serverURL, err := url.Parse(srv.URL)
 	require.NoError(t, err)
 	serverURL.Path = "/intake/v2/rum/events"
-
-	systemtest.GeoIpLazyDownload(t, serverURL.String())
 
 	const body = `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}}}}
 {"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}
@@ -86,10 +85,9 @@ func TestRUMXForwardedFor(t *testing.T) {
 			Field:  "processor.event",
 			Values: []any{"transaction", "metric"},
 		},
-		//		espoll.WithTimeout(30*time.Second),
 	)
 
-	// Also checks for the absence of `tags` fields.
+	// Includes checking for absence of `tags` field.
 	approvaltest.ApproveFields(
 		t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
