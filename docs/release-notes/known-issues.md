@@ -4,7 +4,6 @@ mapped_pages:
 navigation_title: "Known issues"
 applies_to:
   stack: ga
-  serverless: unavailable
 products:
   - id: observability
   - id: apm
