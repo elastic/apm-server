@@ -40,6 +40,8 @@ import (
 
 func TestRUMXForwardedFor(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
+	systemtest.GeoIpLazyDownload(t)
+
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
 	err := srv.Start()
