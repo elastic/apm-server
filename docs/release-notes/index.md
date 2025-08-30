@@ -5,7 +5,6 @@ mapped_pages:
   - https://www.elastic.co/guide/en/observability/master/release-notes-head.html
 applies_to:
   stack: ga
-  serverless: unavailable
 products:
   - id: observability
   - id: apm
