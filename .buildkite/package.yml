@@ -60,3 +60,12 @@ steps:
     depends_on:
       - step: "package"
         allow_failure: false
+
+  - label: "Trigger stig-status pipeline docker.elastic.co/apm/apm-server-fips:${BUILDKITE_BRANCH}-SNAPSHOT"
+    trigger: stig-status
+    if: build.branch != "main"
+    build:
+      env:
+        CONTAINER_IMAGE: "docker.elastic.co/apm/apm-server-fips:${BUILDKITE_BRANCH}-SNAPSHOT"
+    depends_on:
+      - step: "dra"
