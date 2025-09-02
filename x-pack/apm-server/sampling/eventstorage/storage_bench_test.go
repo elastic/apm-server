@@ -13,11 +13,12 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func BenchmarkWriteTransaction(b *testing.B) {
 	test := func(b *testing.B, codec eventstorage.Codec, bigTX bool) {
-		sm := newStorageManager(b, eventstorage.WithCodec(codec))
+		sm := newStorageManagerLogger(b, logp.NewNopLogger(), eventstorage.WithCodec(codec))
 		readWriter := newUnlimitedReadWriter(sm)
 
 		traceID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
@@ -78,7 +79,7 @@ func BenchmarkReadEvents(b *testing.B) {
 		counts := []int{0, 1, 10, 100, 199, 399, 1000}
 		for _, count := range counts {
 			b.Run(fmt.Sprintf("%d events", count), func(b *testing.B) {
-				sm := newStorageManager(b, eventstorage.WithCodec(codec))
+				sm := newStorageManagerLogger(b, logp.NewNopLogger(), eventstorage.WithCodec(codec))
 				readWriter := newUnlimitedReadWriter(sm)
 
 				for i := 0; i < count; i++ {
@@ -153,7 +154,7 @@ func BenchmarkReadEventsHit(b *testing.B) {
 	test := func(b *testing.B, bigTX bool, reloadDB bool) {
 		for _, hit := range []bool{false, true} {
 			b.Run(fmt.Sprintf("hit=%v", hit), func(b *testing.B) {
-				sm := newStorageManager(b)
+				sm := newStorageManagerLogger(b, logp.NewNopLogger())
 				readWriter := newUnlimitedReadWriter(sm)
 
 				traceIDs := make([]string, b.N)
@@ -223,7 +224,7 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 	unknownTraceUUID := uuid.Must(uuid.NewV4())
 
 	// Test with varying numbers of events in the trace.
-	sm := newStorageManager(b)
+	sm := newStorageManagerLogger(b, logp.NewNopLogger())
 	readWriter := newUnlimitedReadWriter(sm)
 
 	if err := readWriter.WriteTraceSampled(sampledTraceUUID.String(), true); err != nil {
