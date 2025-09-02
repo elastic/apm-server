@@ -21,12 +21,8 @@ import (
 )
 
 func BenchmarkProcess(b *testing.B) {
-<<<<<<< HEAD
 	cfg, _ := newTempdirConfig(b)
-	processor, err := sampling.NewProcessor(cfg, logptest.NewTestingLogger(b, ""))
-=======
-	processor, err := sampling.NewProcessor(newTempdirConfigLogger(b, logp.NewNopLogger()).Config, logp.NewNopLogger())
->>>>>>> d007a3d6 (test: use noop logger in benchmarks (#18448))
+	processor, err := sampling.NewProcessor(cfg, logp.NewNopLogger())
 	require.NoError(b, err)
 	go processor.Run()
 	b.Cleanup(func() { processor.Stop(context.Background()) })
