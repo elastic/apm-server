@@ -15,17 +15,23 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func newStorageManager(tb testing.TB, opts ...eventstorage.StorageManagerOptions) *eventstorage.StorageManager {
-	sm := newStorageManagerNoCleanup(tb, tb.TempDir(), opts...)
+	sm := newStorageManagerLogger(tb, logptest.NewTestingLogger(tb, ""), opts...)
+	return sm
+}
+
+func newStorageManagerLogger(tb testing.TB, logger *logp.Logger, opts ...eventstorage.StorageManagerOptions) *eventstorage.StorageManager {
+	sm := newStorageManagerNoCleanup(tb, tb.TempDir(), logger, opts...)
 	tb.Cleanup(func() { sm.Close() })
 	return sm
 }
 
-func newStorageManagerNoCleanup(tb testing.TB, path string, opts ...eventstorage.StorageManagerOptions) *eventstorage.StorageManager {
-	sm, err := eventstorage.NewStorageManager(path, logptest.NewTestingLogger(tb, ""), opts...)
+func newStorageManagerNoCleanup(tb testing.TB, path string, logger *logp.Logger, opts ...eventstorage.StorageManagerOptions) *eventstorage.StorageManager {
+	sm, err := eventstorage.NewStorageManager(path, logger, opts...)
 	if err != nil {
 		tb.Fatal(err)
 	}
@@ -119,7 +125,7 @@ func TestStorageManager_eventTTL(t *testing.T) {
 func TestStorageManager_partitionID(t *testing.T) {
 	const traceID = "foo"
 	tmpDir := t.TempDir()
-	sm := newStorageManagerNoCleanup(t, tmpDir)
+	sm := newStorageManagerNoCleanup(t, tmpDir, logptest.NewTestingLogger(t, ""))
 
 	// 0 -> 1
 	assert.NoError(t, sm.RotatePartitions())
@@ -131,7 +137,7 @@ func TestStorageManager_partitionID(t *testing.T) {
 	assert.NoError(t, sm.Close())
 
 	// it should read directly from partition 1 on startup instead of 0
-	sm = newStorageManagerNoCleanup(t, tmpDir)
+	sm = newStorageManagerNoCleanup(t, tmpDir, logptest.NewTestingLogger(t, ""))
 	defer sm.Close()
 	sampled, err := newUnlimitedReadWriter(sm).IsTraceSampled(traceID)
 	assert.NoError(t, err)
