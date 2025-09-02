@@ -31,6 +31,7 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub/pubsubtest"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
@@ -1002,7 +1003,21 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.Equal(t, int(sampleRate*float64(totalTraces)), count)
 }
 
+<<<<<<< HEAD
 func newTempdirConfig(tb testing.TB) (sampling.Config, sdkmetric.Reader) {
+=======
+type testConfig struct {
+	sampling.Config
+	tempDir      string
+	metricReader sdkmetric.Reader
+}
+
+func newTempdirConfig(tb testing.TB) testConfig {
+	return newTempdirConfigLogger(tb, logptest.NewTestingLogger(tb, ""))
+}
+
+func newTempdirConfigLogger(tb testing.TB, logger *logp.Logger) testConfig {
+>>>>>>> d007a3d6 (test: use noop logger in benchmarks (#18448))
 	tempdir, err := os.MkdirTemp("", "samplingtest")
 	require.NoError(tb, err)
 	tb.Cleanup(func() { os.RemoveAll(tempdir) })
@@ -1020,6 +1035,7 @@ func newTempdirConfig(tb testing.TB) (sampling.Config, sdkmetric.Reader) {
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
+<<<<<<< HEAD
 	return sampling.Config{
 		BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
 		MeterProvider:  mp,
@@ -1029,6 +1045,39 @@ func newTempdirConfig(tb testing.TB) (sampling.Config, sdkmetric.Reader) {
 			IngestRateDecayFactor: 0.9,
 			Policies: []sampling.Policy{
 				{SampleRate: 0.1},
+=======
+	db, err := eventstorage.NewStorageManager(tempdir, logger, eventstorage.WithMeterProvider(mp))
+	require.NoError(tb, err)
+	tb.Cleanup(func() { db.Close() })
+
+	return testConfig{
+		tempDir:      tempdir,
+		metricReader: reader,
+		Config: sampling.Config{
+			BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
+			MeterProvider:  mp,
+			LocalSamplingConfig: sampling.LocalSamplingConfig{
+				FlushInterval:         time.Second,
+				MaxDynamicServices:    1000,
+				IngestRateDecayFactor: 0.9,
+				Policies: []sampling.Policy{
+					{SampleRate: 0.1},
+				},
+			},
+			RemoteSamplingConfig: sampling.RemoteSamplingConfig{
+				Elasticsearch: pubsubtest.Client(nil, nil),
+				SampledTracesDataStream: sampling.DataStreamConfig{
+					Type:      "traces",
+					Dataset:   "sampled",
+					Namespace: "testing",
+				},
+				UUID: "local-apm-server",
+			},
+			StorageConfig: sampling.StorageConfig{
+				DB:      db,
+				Storage: newUnlimitedReadWriter(db),
+				TTL:     30 * time.Minute,
+>>>>>>> d007a3d6 (test: use noop logger in benchmarks (#18448))
 			},
 		},
 		RemoteSamplingConfig: sampling.RemoteSamplingConfig{

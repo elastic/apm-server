@@ -15,14 +15,20 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func BenchmarkWriteTransaction(b *testing.B) {
 	test := func(b *testing.B, codec eventstorage.Codec, bigTX bool) {
+<<<<<<< HEAD
 		db := newBadgerDB(b, badgerOptions)
 		store := eventstorage.New(db, codec)
 		readWriter := store.NewReadWriter()
 		defer readWriter.Close()
+=======
+		sm := newStorageManagerLogger(b, logp.NewNopLogger(), eventstorage.WithCodec(codec))
+		readWriter := newUnlimitedReadWriter(sm)
+>>>>>>> d007a3d6 (test: use noop logger in benchmarks (#18448))
 
 		traceID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
 		transactionID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8})
@@ -87,6 +93,7 @@ func BenchmarkReadEvents(b *testing.B) {
 		counts := []int{0, 1, 10, 100, 199, 399, 1000}
 		for _, count := range counts {
 			b.Run(fmt.Sprintf("%d events", count), func(b *testing.B) {
+<<<<<<< HEAD
 				db := newBadgerDB(b, badgerOptions)
 				store := eventstorage.New(db, codec)
 				readWriter := store.NewReadWriter()
@@ -95,6 +102,10 @@ func BenchmarkReadEvents(b *testing.B) {
 					TTL:                 time.Minute,
 					StorageLimitInBytes: 0,
 				}
+=======
+				sm := newStorageManagerLogger(b, logp.NewNopLogger(), eventstorage.WithCodec(codec))
+				readWriter := newUnlimitedReadWriter(sm)
+>>>>>>> d007a3d6 (test: use noop logger in benchmarks (#18448))
 
 				for i := 0; i < count; i++ {
 					transactionID := uuid.Must(uuid.NewV4()).String()
@@ -170,6 +181,7 @@ func BenchmarkReadEventsHit(b *testing.B) {
 	test := func(b *testing.B, codec eventstorage.Codec, bigTX bool) {
 		for _, hit := range []bool{false, true} {
 			b.Run(fmt.Sprintf("hit=%v", hit), func(b *testing.B) {
+<<<<<<< HEAD
 				db := newBadgerDB(b, badgerOptions)
 				store := eventstorage.New(db, codec)
 				readWriter := store.NewReadWriter()
@@ -178,6 +190,10 @@ func BenchmarkReadEventsHit(b *testing.B) {
 					TTL:                 time.Hour,
 					StorageLimitInBytes: 0,
 				}
+=======
+				sm := newStorageManagerLogger(b, logp.NewNopLogger())
+				readWriter := newUnlimitedReadWriter(sm)
+>>>>>>> d007a3d6 (test: use noop logger in benchmarks (#18448))
 
 				traceIDs := make([]string, b.N)
 
@@ -237,6 +253,7 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 	unknownTraceUUID := uuid.Must(uuid.NewV4())
 
 	// Test with varying numbers of events in the trace.
+<<<<<<< HEAD
 	db := newBadgerDB(b, badgerOptions)
 	store := eventstorage.New(db, eventstorage.ProtobufCodec{})
 	readWriter := store.NewReadWriter()
@@ -245,6 +262,10 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 		TTL:                 time.Minute,
 		StorageLimitInBytes: 0,
 	}
+=======
+	sm := newStorageManagerLogger(b, logp.NewNopLogger())
+	readWriter := newUnlimitedReadWriter(sm)
+>>>>>>> d007a3d6 (test: use noop logger in benchmarks (#18448))
 
 	if err := readWriter.WriteTraceSampled(sampledTraceUUID.String(), true, wOpts); err != nil {
 		b.Fatal(err)
