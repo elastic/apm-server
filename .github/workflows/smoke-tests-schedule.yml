@@ -60,6 +60,7 @@ jobs:
         uses: elastic/oblt-actions/check-dependent-jobs@v1
         with:
           jobs: ${{ toJSON(needs) }}
+          skipped-as-success: 'true'
       - uses: elastic/oblt-actions/slack/notify-result@v1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
