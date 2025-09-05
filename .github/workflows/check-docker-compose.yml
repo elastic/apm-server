@@ -47,6 +47,7 @@ jobs:
         uses: elastic/oblt-actions/check-dependent-jobs@v1
         with:
           jobs: ${{ toJSON(needs) }}
+          skipped-as-success: 'true'
       - run: ${{ steps.check.outputs.isSuccess }}
       - if: failure()
         uses: elastic/oblt-actions/slack/notify-result@v1
