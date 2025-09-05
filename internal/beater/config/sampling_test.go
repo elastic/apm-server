@@ -39,8 +39,8 @@ func TestSamplingPoliciesValidation(t *testing.T) {
 		c, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
 			"sampling.tail.enabled": true,
 		}), nil, logptest.NewTestingLogger(t, ""))
-		assert.NoError(t, err)
-		assert.False(t, c.Sampling.Tail.Enabled)
+		assert.Error(t, err)
+		assert.Nil(t, c)
 	})
 	t.Run("NoDefaultPolicies", func(t *testing.T) {
 		c, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
@@ -49,7 +49,7 @@ func TestSamplingPoliciesValidation(t *testing.T) {
 				"sample_rate":  0.5,
 			}},
 		}), nil, logptest.NewTestingLogger(t, ""))
-		assert.NoError(t, err)
-		assert.False(t, c.Sampling.Tail.Enabled)
+		assert.Error(t, err)
+		assert.Nil(t, c)
 	})
 }

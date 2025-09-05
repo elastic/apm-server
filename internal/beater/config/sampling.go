@@ -25,7 +25,6 @@ import (
 	"github.com/dustin/go-humanize"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
-	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
@@ -89,31 +88,21 @@ type TailSamplingPolicy struct {
 }
 
 func (c *TailSamplingConfig) Unpack(in *config.C) error {
-	var err error
-	defer func() {
-		if err != nil {
-			logger := logp.NewLogger(logs.Config)
-			logger.Errorf("failed to setup tail sampling: %v", err)
-			logger.Info("continuing with tail sampling disabled")
-			*c = TailSamplingConfig(defaultTailSamplingConfig())
-		}
-	}()
 	type tailSamplingConfig TailSamplingConfig
 	cfg := tailSamplingConfig(defaultTailSamplingConfig())
-	if err = in.Unpack(&cfg); err != nil {
-		err = fmt.Errorf("error unpacking config: %w", err)
-		return nil
+	if err := in.Unpack(&cfg); err != nil {
+		return fmt.Errorf("error unpacking sampling.tail config: %w", err)
 	}
 	limit, err := humanize.ParseBytes(cfg.StorageLimit)
 	if err != nil {
-		return err
+		return fmt.Errorf("error parsing storage limit: %w", err)
 	}
 	cfg.StorageLimitParsed = limit
 	cfg.Enabled = in.Enabled()
 	*c = TailSamplingConfig(cfg)
 	c.esConfigured = in.HasField("elasticsearch")
 	if validateErr := c.Validate(); validateErr != nil {
-		err = fmt.Errorf("invalid config: %w", validateErr)
+		return fmt.Errorf("invalid sampling.tail config: %w", validateErr)
 	}
 	return nil
 }
