@@ -167,7 +167,7 @@ bench:
 tidy:
 	@go mod tidy # make sure go.sum is complete
 
-update: tidy go-generate add-headers notice apm-server.docker.yml docs/spec
+update: tidy go-generate add-headers notice apm-server.docker.yml
 
 apm-server.docker.yml: apm-server.yml
 	sed -e 's/127.0.0.1:8200/0.0.0.0:8200/' -e 's/localhost:9200/elasticsearch:9200/' $< > $@
@@ -217,14 +217,6 @@ testing/infra/terraform/modules/%/README.md: .FORCE
 
 .PHONY: .FORCE
 .FORCE:
-
-# Copy docs/spec from apm-data to trigger updates to agents.
-#
-# TODO in the future we should probably trigger the updates from apm-data,
-# and just keep the JSON Schema there.
-docs/spec: go.mod
-	@go mod download github.com/elastic/apm-data
-	rsync -v --delete --filter='P spec/openapi/' --chmod=Du+rwx,go+rx --chmod=Fu+rw,go+r -r $$(go list -m -f {{.Dir}} github.com/elastic/apm-data)/input/elasticapm/docs/spec ./docs
 
 ##############################################################################
 # Beats synchronisation.
