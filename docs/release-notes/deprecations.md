@@ -1,5 +1,7 @@
 ---
 navigation_title: "Deprecations"
+applies_to:
+  stack: ga
 ---
 
 # Elastic APM deprecations

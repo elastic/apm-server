@@ -1,8 +1,9 @@
 ---
 mapped_pages:
   - https://www.elastic.co/guide/en/observability/current/apm-known-issues.html
-
 navigation_title: "Known issues"
+applies_to:
+  stack: ga
 ---
 
 # Elastic APM known issues

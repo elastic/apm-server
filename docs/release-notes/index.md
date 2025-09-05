@@ -3,6 +3,8 @@ navigation_title: "Elastic APM"
 mapped_pages:
   - https://www.elastic.co/guide/en/observability/current/apm-release-notes.html
   - https://www.elastic.co/guide/en/observability/master/release-notes-head.html
+applies_to:
+  stack: ga
 ---
 
 # Elastic APM release notes
