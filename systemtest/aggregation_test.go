@@ -39,8 +39,6 @@ import (
 
 func TestTransactionAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	systemtest.GeoIpLazyDownload(t)
-
 	srv := apmservertest.NewUnstartedServerTB(t)
 	require.NoError(t, srv.Start())
 
@@ -120,8 +118,6 @@ func TestTransactionAggregation(t *testing.T) {
 
 func TestTransactionAggregationShutdown(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	systemtest.GeoIpLazyDownload(t)
-
 	srv := apmservertest.NewServerTB(t)
 
 	// Send a transaction to the server to be aggregated.
@@ -150,8 +146,6 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 func TestServiceDestinationAggregation(t *testing.T) {
 	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
-	systemtest.GeoIpLazyDownload(t)
-
 	srv := apmservertest.NewServerTB(t)
 
 	// Send spans to the server to be aggregated.

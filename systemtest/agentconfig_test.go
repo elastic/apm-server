@@ -39,7 +39,6 @@ import (
 
 func TestAgentConfig(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	systemtest.GeoIpLazyDownload(t)
 
 	serviceName := "systemtest_service"
 	serviceEnvironment := "testing"
