@@ -6,7 +6,7 @@ description: Setup cluster env
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
       with:
         go-version-file: go.mod
         cache: false
