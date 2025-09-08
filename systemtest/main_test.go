@@ -48,14 +48,6 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-var stats struct {
-	GeoIPStats `json:"stats"`
-}
-
-type GeoIPStats struct {
-	DatabasesCount int `json:"databases_count"`
-}
-
 const requestBody = `{"metadata": { "service": {"name": "alice", "agent": {"version": "3.14.0", "name": "elastic-node"}}}}
 {"metricset": {"samples":{"a":{"value":3.2}}, "timestamp": 1496170422281000}}`
 
@@ -113,10 +105,15 @@ func waitGeoIPDownload() error {
 			if err != nil {
 				return err
 			}
+			var stats = struct {
+				Stats struct {
+					DatabasesCount int `json:"databases_count"`
+				} `json:"stats"`
+			}{}
 			if err := json.Unmarshal(body, &stats); err != nil {
 				return err
 			}
-			if stats.DatabasesCount == 3 {
+			if stats.Stats.DatabasesCount == 3 {
 				log.Println("GeoIP database downloaded")
 				return nil
 			}
