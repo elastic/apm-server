@@ -176,7 +176,7 @@ type routeBuilder struct {
 
 func (r *routeBuilder) backendIntakeHandler(metricsPrefix string, mp metric.MeterProvider, tp trace.TracerProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		h := intake.Handler(mp, r.intakeProcessor, backendRequestMetadataFunc(r.cfg), r.batchProcessor)
+		h := intake.Handler(mp, tp, r.intakeProcessor, backendRequestMetadataFunc(r.cfg), r.batchProcessor)
 		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp, tp, r.logger)...)
 	}
 }
@@ -220,7 +220,7 @@ func (r *routeBuilder) rumIntakeHandler(mp metric.MeterProvider, tp trace.Tracer
 			batchProcessors = append(batchProcessors, modelprocessor.SetCulprit{})
 		}
 		batchProcessors = append(batchProcessors, r.batchProcessor) // r.batchProcessor always goes last
-		h := intake.Handler(mp, r.intakeProcessor, rumRequestMetadataFunc(r.cfg), batchProcessors)
+		h := intake.Handler(mp, tp, r.intakeProcessor, rumRequestMetadataFunc(r.cfg), batchProcessors)
 		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, "apm-server.server.", mp, tp, r.logger)...)
 	}
 }

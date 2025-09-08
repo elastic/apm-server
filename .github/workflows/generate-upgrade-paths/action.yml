@@ -1,0 +1,28 @@
+---
+name: generate-upgrade-paths
+description: Generate upgrade paths
+
+inputs:
+  snapshots:
+    description: "Use SNAPSHOT versions for test"
+    required: false
+    default: 'false'
+
+outputs:
+  snapshot_upgrade_paths:
+    description: "List of SNAPSHOT upgrade paths"
+    value: ${{ steps.generate.outputs.snapshot_upgrade_paths }}
+  bc_upgrade_paths:
+    description: "List of BC upgrade paths"
+    value: ${{ steps.generate.outputs.bc_upgrade_paths }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup
+      uses: ./.github/workflows/setup-integration-server-test
+    - id: generate
+      name: Generate upgrade paths
+      run: ./.github/workflows/generate-upgrade-paths/script.sh
+      shell: "bash"
+      working-directory: ${{ github.workspace }}

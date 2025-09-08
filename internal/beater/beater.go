@@ -330,8 +330,8 @@ func (s *Runner) Run(ctx context.Context) error {
 		return err
 	}
 	defer esoutput.DeregisterConnectCallback(callbackUUID)
-	newElasticsearchClient := func(cfg *elasticsearch.Config) (*elasticsearch.Client, error) {
-		httpTransport, err := elasticsearch.NewHTTPTransport(cfg)
+	newElasticsearchClient := func(cfg *elasticsearch.Config, logger *logp.Logger) (*elasticsearch.Client, error) {
+		httpTransport, err := elasticsearch.NewHTTPTransport(cfg, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -342,6 +342,7 @@ func (s *Runner) Run(ctx context.Context) error {
 			RetryOnError: func(_ *http.Request, err error) bool {
 				return !errors.Is(err, errServerShuttingDown)
 			},
+			Logger: logger,
 		})
 	}
 
@@ -363,7 +364,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
 	runServer := newBaseRunServer(s.listener)
-	authenticator, err := auth.NewAuthenticator(s.config.AgentAuth)
+	authenticator, err := auth.NewAuthenticator(s.config.AgentAuth, s.logger)
 	if err != nil {
 		return err
 	}
@@ -403,7 +404,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	batchProcessor := srvmodelprocessor.NewTracer("beater.ProcessBatch", modelprocessor.Chained{
+	batchProcessor := modelprocessor.Chained{
 		// Ensure all events have observer.*, ecs.*, and data_stream.* fields added,
 		// and are counted in metrics. This is done in the final processors to ensure
 		// aggregated metrics are also processed.
@@ -421,7 +422,7 @@ func (s *Runner) Run(ctx context.Context) error {
 			transactionsDroppedCounter.Add(context.Background(), i)
 		}),
 		finalBatchProcessor,
-	})
+	}
 
 	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(
 		ctx,
@@ -658,7 +659,7 @@ func (s *Runner) waitReady(
 		if err != nil {
 			return err
 		}
-		esOutputClient, err = elasticsearch.NewClient(esConfig)
+		esOutputClient, err = elasticsearch.NewClient(esConfig, s.logger)
 		if err != nil {
 			return err
 		}
@@ -717,7 +718,7 @@ func (s *Runner) waitReady(
 // "elasticsearch", then we use docappender; otherwise we use the libbeat publisher.
 func (s *Runner) newFinalBatchProcessor(
 	tracer *apm.Tracer,
-	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
+	newElasticsearchClient func(*elasticsearch.Config, *logp.Logger) (*elasticsearch.Client, error),
 	memLimit float64,
 	logger *logp.Logger,
 	tp trace.TracerProvider,
@@ -739,7 +740,7 @@ func (s *Runner) newFinalBatchProcessor(
 	if err != nil {
 		return nil, nil, err
 	}
-	client, err := newElasticsearchClient(esCfg)
+	client, err := newElasticsearchClient(esCfg, logger)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -917,11 +918,11 @@ const sourcemapIndex = ".apm-source-map"
 func newSourcemapFetcher(
 	cfg config.SourceMapping,
 	kibanaClient *kibana.Client,
-	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
+	newElasticsearchClient func(*elasticsearch.Config, *logp.Logger) (*elasticsearch.Client, error),
 	tp trace.TracerProvider,
 	logger *logp.Logger,
 ) (sourcemap.Fetcher, context.CancelFunc, error) {
-	esClient, err := newElasticsearchClient(cfg.ESConfig)
+	esClient, err := newElasticsearchClient(cfg.ESConfig, logger)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -964,9 +965,12 @@ func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client, state
 	// Running under elastic-agent, the callback linked above is not
 	// registered until later, meaning we need to check and instantiate the
 	// registries if they don't exist.
-	elasticsearchRegistry := stateRegistry.GetRegistry(outputES)
+	elasticsearchRegistry := stateRegistry.GetOrCreateRegistry(outputES)
 	if elasticsearchRegistry == nil {
-		elasticsearchRegistry = stateRegistry.NewRegistry(outputES)
+		// This can only happen if "outputs.elasticsearch" was already created as
+		// a non-registry (scalar) value, but in that unlikely chance, let's still
+		// report a comprehensible error.
+		return fmt.Errorf("couldn't create registry: %v", outputES)
 	}
 
 	var (

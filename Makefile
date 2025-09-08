@@ -366,11 +366,7 @@ endif
 ifndef SCENARIO
 	$(error SCENARIO is not set)
 endif
-ifeq ($(SNAPSHOT),true)
-	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath_Snapshot/.*/$(SCENARIO) -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
-else
-	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath_Version/.*/$(SCENARIO) -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
-endif
+	@cd integrationservertest && go test -run=TestUpgrade/.*/$(SCENARIO) -v -timeout=90m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
 
 # Run integration server upgrade test on all scenarios
 .PHONY: integration-server-test/upgrade-all
@@ -378,11 +374,7 @@ integration-server-test/upgrade-all:
 ifndef UPGRADE_PATH
 	$(error UPGRADE_PATH is not set)
 endif
-ifeq ($(SNAPSHOT),true)
-	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath_Snapshot -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
-else
-	@cd integrationservertest && go test -run=TestUpgrade_UpgradePath_Version -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
-endif
+	@cd integrationservertest && go test -run=TestUpgrade -v -timeout=90m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
 
 # Run integration server standalone test on one scenario - Managed7 / Managed8 / Managed9
 .PHONY: integration-server-test/standalone
@@ -390,12 +382,12 @@ integration-server-test/standalone:
 ifndef SCENARIO
 	$(error SCENARIO is not set)
 endif
-	@cd integrationservertest && go test -run=TestStandaloneManaged.*/$(SCENARIO) -v -timeout=60m -cleanup-on-failure=true -target="pro" ./
+	@cd integrationservertest && go test -run=TestStandaloneManaged.*/$(SCENARIO) -v -timeout=90m -cleanup-on-failure=true -target="pro" ./
 
 # Run integration server standalone test on all scenarios
 .PHONY: integration-server-test/standalone-all
 integration-server-test/standalone-all:
-	@cd integrationservertest && go test -run=TestStandaloneManaged -v -timeout=60m -cleanup-on-failure=true -target="pro" ./
+	@cd integrationservertest && go test -run=TestStandaloneManaged -v -timeout=90m -cleanup-on-failure=true -target="pro" ./
 
 ##############################################################################
 # Generating and linting API documentation

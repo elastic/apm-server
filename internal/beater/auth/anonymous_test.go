@@ -28,6 +28,7 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestAnonymousAuthorizer(t *testing.T) {
@@ -132,7 +133,7 @@ func getAnonymousAuthorizer(t testing.TB, cfg config.AnonymousAgentAuth) auth.Au
 	authenticator, err := auth.NewAuthenticator(config.AgentAuth{
 		SecretToken: "whatever", // required to enable anonymous auth
 		Anonymous:   cfg,
-	})
+	}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	_, authorizer, err := authenticator.Authenticate(context.Background(), "", "")
 	require.NoError(t, err)

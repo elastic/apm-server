@@ -27,6 +27,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 // Method identifies an authentication and authorization method.
@@ -140,7 +141,7 @@ type APIKeyAuthenticationDetails struct {
 
 // NewAuthenticator creates an Authenticator with config, authenticating
 // clients with one of the allowed methods.
-func NewAuthenticator(cfg config.AgentAuth) (*Authenticator, error) {
+func NewAuthenticator(cfg config.AgentAuth, logger *logp.Logger) (*Authenticator, error) {
 	b := Authenticator{secretToken: cfg.SecretToken}
 	if cfg.APIKey.Enabled {
 		// Do not use apm-server's credentials for API Key requests;
@@ -149,7 +150,7 @@ func NewAuthenticator(cfg config.AgentAuth) (*Authenticator, error) {
 		cfg.APIKey.ESConfig.Username = ""
 		cfg.APIKey.ESConfig.Password = ""
 		cfg.APIKey.ESConfig.APIKey = ""
-		client, err := elasticsearch.NewClient(cfg.APIKey.ESConfig)
+		client, err := elasticsearch.NewClient(cfg.APIKey.ESConfig, logger)
 		if err != nil {
 			return nil, err
 		}

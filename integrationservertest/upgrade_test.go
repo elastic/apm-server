@@ -33,45 +33,38 @@ import (
 const upgradeConfigFileName = "upgrade-config.yaml"
 
 func formatUpgradePath(p string) string {
-	splits := strings.Split(p, ",")
+	splits := strings.Split(p, "->")
 	for i := range splits {
 		splits[i] = strings.TrimSpace(splits[i])
 	}
 	return strings.ReplaceAll(strings.Join(splits, "_to_"), ".", "_")
 }
 
-func TestUpgrade_UpgradePath_Snapshot(t *testing.T) {
-	testUpgrade(t, *upgradePath, vsCache.GetLatestSnapshot)
-}
-
-func TestUpgrade_UpgradePath_Version(t *testing.T) {
-	testUpgrade(t, *upgradePath, vsCache.GetLatestVersion)
-}
-
-func testUpgrade(t *testing.T, upgradePathStr string, versionFetcher func(*testing.T, string) ech.Version) {
+func TestUpgrade(t *testing.T) {
+	upgradePathStr := strings.TrimSpace(*upgradePath)
 	// The versions are separated by commas.
-	if strings.TrimSpace(upgradePathStr) == "" {
+	if upgradePathStr == "" {
 		t.Fatal("no upgrade versions specified")
 	}
-	splits := strings.Split(upgradePathStr, ",")
+	splits := strings.Split(upgradePathStr, "->")
 	if len(splits) < 2 {
 		t.Fatal("need to specify at least 2 upgrade versions")
 	}
 
-	// Get all versions based on input.
-	// First version in the list, simply fetch full version and add to list.
-	versions := []ech.Version{versionFetcher(t, strings.TrimSpace(splits[0]))}
-	// Subsequent versions should first check if they can be upgraded to from
-	// the previous version. Then, fetch the full version and add to list.
-	for _, split := range splits[1:] {
+	var versions []ech.Version
+	for i, split := range splits {
 		s := strings.TrimSpace(split)
-		prev := versions[len(versions)-1]
-		upgradeToVersion, ok := vsCache.GetUpgradeToVersions(prev).LatestFor(s)
-		if !ok {
-			t.Fatalf("%s is not upgradable to %s", prev, s)
+		version, err := ech.NewVersionFromString(strings.TrimSpace(split))
+		if err != nil {
+			t.Fatalf("failed to parse version %q: %v", s, err)
 		}
-		curr := versionFetcher(t, upgradeToVersion.MajorMinorPatch())
-		versions = append(versions, curr)
+		if i > 0 {
+			prev := versions[len(versions)-1]
+			if !vsCache.CanUpgrade(prev, version) {
+				t.Fatalf("%q cannot upgrade to %q", prev, version)
+			}
+		}
+		versions = append(versions, version)
 	}
 
 	config, err := parseConfig(upgradeConfigFileName)

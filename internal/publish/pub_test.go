@@ -41,6 +41,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 	"github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
@@ -141,7 +142,7 @@ func BenchmarkPublisher(b *testing.B) {
 
 	supporter, err := idxmgmt.DefaultSupport(
 		beat.Info{
-			Logger: logptest.NewTestingLogger(b, "support"),
+			Logger: logp.NewNopLogger(),
 		},
 		nil,
 	)
@@ -150,7 +151,7 @@ func BenchmarkPublisher(b *testing.B) {
 	outputGroup, err := outputs.Load(
 		supporter,
 		beat.Info{
-			Logger: logptest.NewTestingLogger(b, "output"),
+			Logger: logp.NewNopLogger(),
 		},
 		nil,
 		"elasticsearch",
@@ -173,10 +174,10 @@ func BenchmarkPublisher(b *testing.B) {
 
 	pipeline, err := pipeline.New(
 		beat.Info{
-			Logger: logptest.NewTestingLogger(b, "beat"),
+			Logger: logp.NewNopLogger(),
 		},
 		pipeline.Monitors{
-			Logger: logptest.NewTestingLogger(b, "monitor"),
+			Logger: logp.NewNopLogger(),
 		},
 		namespace,
 		outputGroup,

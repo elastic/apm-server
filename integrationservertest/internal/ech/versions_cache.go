@@ -19,17 +19,10 @@ package ech
 
 import (
 	"context"
-	"testing"
-
-	"github.com/stretchr/testify/require"
+	"fmt"
 )
 
 func NewVersionsCache(ctx context.Context, client *Client, ecRegion string) (*VersionsCache, error) {
-	cs, err := client.GetCandidateVersions(ctx, ecRegion)
-	if err != nil {
-		return nil, err
-	}
-
 	ss, err := client.GetSnapshotVersions(ctx, ecRegion)
 	if err != nil {
 		return nil, err
@@ -40,28 +33,32 @@ func NewVersionsCache(ctx context.Context, client *Client, ecRegion string) (*Ve
 		return nil, err
 	}
 
-	upgradeInfo := map[Version]Versions{}
-	candidates := unpackStackVersions(cs, upgradeInfo)
-	snapshots := unpackStackVersions(ss, upgradeInfo)
-	versions := unpackStackVersions(vs, upgradeInfo)
+	upgradeTo := map[Version]Versions{}
+	upgradeFrom := map[Version]Versions{}
+	snapshots := unpackStackVersions(ss, upgradeTo, upgradeFrom)
+	versions := unpackStackVersions(vs, upgradeTo, upgradeFrom)
 
 	return &VersionsCache{
-		fetchedCandidates: candidates,
-		fetchedSnapshots:  snapshots,
-		fetchedVersions:   versions,
-		upgradeInfo:       upgradeInfo,
-		region:            ecRegion,
+		fetchedSnapshots: snapshots,
+		fetchedVersions:  versions,
+		upgradeTo:        upgradeTo,
+		upgradeFrom:      upgradeFrom,
+		region:           ecRegion,
 	}, nil
 }
 
 func unpackStackVersions(
 	stackVersions []StackVersion,
-	upgradeInfo map[Version]Versions,
+	upgradeTo map[Version]Versions,
+	upgradeFrom map[Version]Versions,
 ) Versions {
 	versions := Versions{}
 	for _, stackVersion := range stackVersions {
 		versions = append(versions, stackVersion.Version)
-		upgradeInfo[stackVersion.Version] = stackVersion.UpgradableTo
+		upgradeTo[stackVersion.Version] = stackVersion.UpgradableTo
+		for _, v := range stackVersion.UpgradableTo {
+			upgradeFrom[v] = append(upgradeFrom[v], stackVersion.Version)
+		}
 	}
 	return versions
 }
@@ -71,40 +68,50 @@ func unpackStackVersions(
 // It also includes some helper functions to more easily obtain the latest version given
 // a particular prefix.
 type VersionsCache struct {
-	// fetchedCandidates are the build-candidate stack versions prefetched from Elastic Cloud API.
-	fetchedCandidates Versions
 	// fetchedSnapshots are the snapshot stack versions prefetched from Elastic Cloud API.
 	fetchedSnapshots Versions
 	// fetchedVersions are the non-snapshot stack versions prefetched from Elastic Cloud API.
 	fetchedVersions Versions
 
-	upgradeInfo map[Version]Versions
+	// upgradeTo is a map of version to the versions that it can upgrade to,
+	// i.e. 'key' -> list of versions that 'key' can upgrade to.
+	upgradeTo map[Version]Versions
+	// upgradeFrom is a map of version to the versions that it can upgrade from,
+	// i.e. 'key' -> list of versions that can upgrade to 'key'.
+	upgradeFrom map[Version]Versions
 
 	region string
 }
 
 func (c *VersionsCache) GetUpgradeToVersions(from Version) Versions {
-	upgradableVersions := c.upgradeInfo[from]
-	return upgradableVersions
+	upgradeToVersions := c.upgradeTo[from]
+	return upgradeToVersions
 }
 
-func (c *VersionsCache) CanUpgradeTo(from, to Version) bool {
+func (c *VersionsCache) GetUpgradeFromVersions(to Version) Versions {
+	upgradeFromVersions := c.upgradeFrom[to]
+	return upgradeFromVersions
+}
+
+func (c *VersionsCache) CanUpgrade(from, to Version) bool {
 	upgradableVersions := c.GetUpgradeToVersions(from)
 	return upgradableVersions.Has(to)
 }
 
 // GetLatestSnapshot retrieves the latest snapshot version for the version prefix.
-func (c *VersionsCache) GetLatestSnapshot(t *testing.T, prefix string) Version {
-	t.Helper()
+func (c *VersionsCache) GetLatestSnapshot(prefix string) (Version, error) {
 	ver, ok := c.fetchedSnapshots.LatestFor(prefix)
-	require.True(t, ok, "snapshot for '%s' not found in EC region %s", prefix, c.region)
-	return ver
+	if !ok {
+		return Version{}, fmt.Errorf("snapshot for '%s' not found in EC region %s", prefix, c.region)
+	}
+	return ver, nil
 }
 
 // GetLatestVersion retrieves the latest non-snapshot version for the version prefix.
-func (c *VersionsCache) GetLatestVersion(t *testing.T, prefix string) Version {
-	t.Helper()
+func (c *VersionsCache) GetLatestVersion(prefix string) (Version, error) {
 	ver, ok := c.fetchedVersions.LatestFor(prefix)
-	require.True(t, ok, "version for '%s' not found in EC region %s", prefix, c.region)
-	return ver
+	if !ok {
+		return Version{}, fmt.Errorf("version for '%s' not found in EC region %s", prefix, c.region)
+	}
+	return ver, nil
 }

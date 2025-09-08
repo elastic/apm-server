@@ -27,7 +27,7 @@ import (
 func newVersionsFromStrings(strs []string) (Versions, error) {
 	versions := make(Versions, 0, len(strs))
 	for _, s := range strs {
-		v, err := NewFromString(s)
+		v, err := NewVersionFromString(s)
 		if err != nil {
 			return nil, err
 		}
@@ -240,7 +240,7 @@ func TestVersions_PreviousMinorLatest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			versions, err := newVersionsFromStrings(tt.vs)
 			require.NoError(t, err)
-			v, err := NewFromString(tt.args.version)
+			v, err := NewVersionFromString(tt.args.version)
 			require.NoError(t, err)
 			version, exist := versions.PreviousMinorLatest(v)
 			assert.Equal(t, tt.wantVersion, version, "PreviousMinorLatest() version")
@@ -285,7 +285,7 @@ func TestVersions_PreviousPatch(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			versions, err := newVersionsFromStrings(tt.vs)
 			require.NoError(t, err)
-			v, err := NewFromString(tt.args.version)
+			v, err := NewVersionFromString(tt.args.version)
 			require.NoError(t, err)
 			version, exist := versions.PreviousPatch(v)
 			assert.Equal(t, tt.wantVersion, version, "PreviousPatch() version")

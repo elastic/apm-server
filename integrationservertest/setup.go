@@ -55,10 +55,7 @@ const (
 	targetProd = "pro"
 )
 
-// regionFrom returns the appropriate region to run test
-// against based on specified target.
-// https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html
-func regionFrom(target string) string {
+func RegionFrom(target string) string {
 	switch target {
 	case targetQA:
 		return "aws-eu-west-1"
@@ -69,7 +66,7 @@ func regionFrom(target string) string {
 	}
 }
 
-func endpointFrom(target string) string {
+func EndpointFrom(target string) string {
 	switch target {
 	case targetQA:
 		return "https://public-api.qa.cld.elstc.co"
@@ -80,7 +77,7 @@ func endpointFrom(target string) string {
 	}
 }
 
-func deploymentTemplateFrom(region string) string {
+func DeploymentTemplateFrom(region string) string {
 	switch region {
 	case "aws-eu-west-1":
 		return "aws-storage-optimized"
@@ -91,15 +88,11 @@ func deploymentTemplateFrom(region string) string {
 	}
 }
 
+// terraformDirName returns the name of the Terraform files directory for this test.
 func terraformDirName(t *testing.T) string {
-	return strings.ReplaceAll(t.Name(), "/", "_")
-}
-
-// terraformDir returns the name of the Terraform files directory for this test.
-func terraformDir(t *testing.T) string {
 	t.Helper()
 	// Flatten the dir name in case of path separators
-	return fmt.Sprintf("tf-%s", terraformDirName(t))
+	return fmt.Sprintf("tf-%s", strings.ReplaceAll(t.Name(), "/", "_"))
 }
 
 // initTerraformRunner copies the static Terraform files to the Terraform directory
@@ -109,10 +102,10 @@ func terraformDir(t *testing.T) string {
 // if it exists, before copying into it.
 func initTerraformRunner(t *testing.T) *terraform.Runner {
 	t.Helper()
-	dirName := terraformDir(t)
+	dirName := terraformDirName(t)
 	err := os.RemoveAll(dirName)
 	require.NoError(t, err)
-	err = os.CopyFS(terraformDir(t), os.DirFS("infra/terraform"))
+	err = os.CopyFS(dirName, os.DirFS("infra/terraform"))
 	require.NoError(t, err)
 
 	tf, err := terraform.NewRunner(t, dirName)
@@ -168,8 +161,8 @@ func createCluster(
 	deployName := deploymentName(t)
 	t.Logf("creating deployment version %s", fromVersion)
 	ecTarget := terraform.Var("ec_target", target)
-	ecRegion := terraform.Var("ec_region", regionFrom(target))
-	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
+	ecRegion := terraform.Var("ec_region", RegionFrom(target))
+	ecDeploymentTpl := terraform.Var("ec_deployment_template", DeploymentTemplateFrom(RegionFrom(target)))
 	ver := terraform.Var("stack_version", fromVersion.String())
 	integrations := terraform.Var("integrations_server", strconv.FormatBool(enableIntegrations))
 	name := terraform.Var("name", deployName)
@@ -216,8 +209,8 @@ func upgradeCluster(
 	t.Helper()
 	t.Logf("upgrade deployment to %s", toVersion)
 	ecTarget := terraform.Var("ec_target", target)
-	ecRegion := terraform.Var("ec_region", regionFrom(target))
-	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
+	ecRegion := terraform.Var("ec_region", RegionFrom(target))
+	ecDeploymentTpl := terraform.Var("ec_deployment_template", DeploymentTemplateFrom(RegionFrom(target)))
 	ver := terraform.Var("stack_version", toVersion.String())
 	integrations := terraform.Var("integrations_server", strconv.FormatBool(enableIntegrations))
 	name := terraform.Var("name", deployName)

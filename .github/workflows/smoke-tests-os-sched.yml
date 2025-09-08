@@ -25,7 +25,7 @@ jobs:
     outputs:
       matrix: ${{ steps.generate.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: generate
         name: Generate matrix
         uses: elastic/oblt-actions/elastic/active-branches@v1
@@ -57,6 +57,7 @@ jobs:
         uses: elastic/oblt-actions/check-dependent-jobs@v1
         with:
           jobs: ${{ toJSON(needs) }}
+          skipped-as-success: 'true'
       - uses: elastic/oblt-actions/slack/notify-result@v1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}

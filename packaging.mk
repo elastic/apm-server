@@ -114,29 +114,17 @@ build/nfpm-%.yml: packaging/nfpm.yml
 DEB_ARCH := amd64 arm64
 DEBS := $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-%.deb, $(DEB_ARCH))
 DEBS += $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT-%.deb, $(DEB_ARCH))
-ifdef GENERATE_FIPS_ARTIFACTS
-DEBS += $(patsubst %, $(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-%.deb, $(DEB_ARCH))
-DEBS += $(patsubst %, $(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-SNAPSHOT-%.deb, $(DEB_ARCH))
-endif
 DEBS_AMD64 := $(filter %-amd64.deb, $(DEBS))
 DEBS_ARM64 := $(filter %-arm64.deb, $(DEBS))
 
 RPM_ARCH := x86_64 aarch64
 RPMS := $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-%.rpm, $(RPM_ARCH))
 RPMS += $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT-%.rpm, $(RPM_ARCH))
-ifdef GENERATE_FIPS_ARTIFACTS
-RPMS += $(patsubst %, $(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-%.rpm, $(RPM_ARCH))
-RPMS += $(patsubst %, $(DISTDIR)/apm-server-fips-$(APM_SERVER_VERSION)-SNAPSHOT-%.rpm, $(RPM_ARCH))
-endif
 RPMS_AMD64 := $(filter %-x86_64.rpm, $(RPMS))
 RPMS_ARM64 := $(filter %-aarch64.rpm, $(RPMS))
 
 $(DEBS_ARM64) $(RPMS_ARM64): $(COMMON_PACKAGE_FILES) build/apm-server-linux-arm64 build/nfpm-arm64.yml
 $(DEBS_AMD64) $(RPMS_AMD64): $(COMMON_PACKAGE_FILES) build/apm-server-linux-amd64 build/nfpm-amd64.yml
-ifdef GENERATE_FIPS_ARTIFACTS
-$(DEBS_ARM64) $(RPMS_ARM64): build/apm-server-fips-linux-arm64
-$(DEBS_AMD64) $(RPMS_AMD64): build/apm-server-fips-linux-amd64
-endif
 
 %.deb %.rpm:
 	@mkdir -p $(DISTDIR)
@@ -215,11 +203,7 @@ PACKAGE_SUFFIXES := \
 
 PACKAGE_FIPS_SUFFIXES := \
 	linux-x86_64.tar.gz \
-	linux-arm64.tar.gz \
-	amd64.deb \
-	arm64.deb \
-	x86_64.rpm \
-	aarch64.rpm
+	linux-arm64.tar.gz
 
 build/dependencies-$(APM_SERVER_VERSION)-SNAPSHOT.csv: build/dependencies-$(APM_SERVER_VERSION).csv
 	cp $< $@

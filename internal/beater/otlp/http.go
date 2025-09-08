@@ -37,6 +37,7 @@ import (
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/apm-data/model/modelprocessor"
 )
 
 var (
@@ -49,7 +50,7 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 	// at any time, and instead aggregate metrics from consumers that are
 	// dynamically registered and unregistered.
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
-		Processor:        processor,
+		Processor:        modelprocessor.NewTracer("otlp.ProcessBatch", processor, modelprocessor.WithTracerProvider(tp)),
 		Logger:           logger,
 		Semaphore:        semaphore,
 		RemapOTelMetrics: true,

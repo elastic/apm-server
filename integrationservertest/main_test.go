@@ -24,6 +24,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/elastic/apm-server/integrationservertest/internal/ech"
 )
 
@@ -46,11 +48,18 @@ var (
 	upgradePath = flag.String(
 		"upgrade-path",
 		"",
-		"Versions to be used in TestUpgrade_UpgradePath_* in upgrade_test.go, separated by commas",
+		"Versions to be used in TestUpgrade in upgrade_test.go, separated by '->'",
 	)
 )
 
 var vsCache *ech.VersionsCache
+
+func getLatestSnapshot(t *testing.T, prefix string) ech.Version {
+	t.Helper()
+	ver, err := vsCache.GetLatestSnapshot(prefix)
+	require.NoError(t, err)
+	return ver
+}
 
 func TestMain(m *testing.M) {
 	flag.Parse()
@@ -64,21 +73,18 @@ func TestMain(m *testing.M) {
 	ecAPIKey := os.Getenv("EC_API_KEY")
 	if ecAPIKey == "" {
 		log.Fatal("EC_API_KEY env var not set")
-		return
 	}
 
 	ctx := context.Background()
-	ecRegion := regionFrom(*target)
-	ecc, err := ech.NewClient(endpointFrom(*target), ecAPIKey)
+	ecRegion := RegionFrom(*target)
+	ecc, err := ech.NewClient(EndpointFrom(*target), ecAPIKey)
 	if err != nil {
 		log.Fatal(err)
-		return
 	}
 
 	vsCache, err = ech.NewVersionsCache(ctx, ecc, ecRegion)
 	if err != nil {
 		log.Fatal(err)
-		return
 	}
 
 	code := m.Run()
