@@ -1,0 +1,25 @@
+---
+name: test-report
+description: upload test results to Mergify
+
+inputs:
+  job_name:
+    description: 'The name of the job'
+    required: false
+    default: ${{ github.job }}
+
+runs:
+  using: composite
+  steps:
+    - run: |
+        go install github.com/jstemmer/go-junit-report@latest
+        cat test.output | go-junit-report > junit.xml
+      shell: bash
+
+    - name: Mergify CI Upload
+      if: (success() || failure()) && github.event_name != 'pull_request' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false )
+      uses: mergifyio/gha-mergify-ci@6875ab3991ec1db831576df1cd00a7870603aa9e # v8
+      with:
+        token: ${{ secrets.MERGIFY_TOKEN }}
+        report_path: junit.xml
+        job_name: ${{ inputs.job_name }}
