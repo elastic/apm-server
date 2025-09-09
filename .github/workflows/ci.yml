@@ -106,7 +106,7 @@ jobs:
             go-
       - env:
           GOFIPS140: "latest"
-          GODEBUG: "fips140=only"
+          GODEBUG: "fips140=only,tlsmlkem=0"
         run: go test -v -race -tags=requirefips ./...
 
   system-test:
@@ -149,7 +149,7 @@ jobs:
       - env:
           GOTESTFLAGS: "-v -tags=requirefips"
           GOFIPS140: "latest"
-          GODEBUG: "fips140=only"
+          GODEBUG: "fips140=only,tlsmlkem=0"
           GH_TOKEN: ${{ github.token }}
         run: make system-test
 
