@@ -3,6 +3,9 @@ name: test-report
 description: upload test results to Mergify
 
 inputs:
+  token:
+    description: 'The mergify token'
+    required: true
   job_name:
     description: 'The name of the job'
     required: false
@@ -20,6 +23,6 @@ runs:
       if: (success() || failure()) && github.event_name != 'pull_request' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false )
       uses: mergifyio/gha-mergify-ci@6875ab3991ec1db831576df1cd00a7870603aa9e # v8
       with:
-        token: ${{ secrets.MERGIFY_TOKEN }}
+        token: ${{ inputs.token }}
         report_path: junit.xml
         job_name: ${{ inputs.job_name }}

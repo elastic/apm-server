@@ -65,6 +65,7 @@ jobs:
       - uses: ./.github/workflows/test-report
         with:
           job_name: ${{ github.job }}-${{ matrix.os }}
+          token: ${{ secrets.MERGIFY_TOKEN }}
 
   test-integration-server-internal:
     runs-on: ubuntu-latest
@@ -92,6 +93,8 @@ jobs:
         # integrationservertest themselves are run in the integration-server-test pipeline
         run: cd ./integrationservertest && go test -v -race ./internal/... 2>&1 | tee test.output
       - uses: ./.github/workflows/test-report
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
 
   test-fips:
     runs-on: ubuntu-latest
@@ -113,6 +116,8 @@ jobs:
           GODEBUG: "fips140=only"
         run: go test -v -race -tags=requirefips ./... 2>&1 | tee test.output
       - uses: ./.github/workflows/test-report
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
 
   system-test:
     runs-on: ubuntu-latest
@@ -135,6 +140,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: make system-test
       - uses: ./.github/workflows/test-report
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
 
   system-test-fips:
     runs-on: ubuntu-latest
@@ -159,6 +166,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: make system-test
       - uses: ./.github/workflows/test-report
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
 
   test-package:
     runs-on: ubuntu-latest
