@@ -61,7 +61,15 @@ jobs:
           key: go-${{ hashFiles('go.mod') }}
           restore-keys: |
             go-
-      - run: go test -v -race ./...
+      - run: go install github.com/jstemmer/go-junit-report@latest
+      - run: go test -v -race ./... 2>&1 | go-junit-report > junit.xml
+      - name: Mergify CI Upload
+        if: (success() || failure()) && github.event_name != 'pull_request' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false )
+        uses: mergifyio/gha-mergify-ci@6875ab3991ec1db831576df1cd00a7870603aa9e # v8
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
+          report_path: junit.xml
+          job_name: ${{ github.job }}-${{ matrix.os }}
 
   test-integration-server-internal:
     runs-on: ubuntu-latest
@@ -78,6 +86,7 @@ jobs:
           key: integrationservertest-go-${{ hashFiles('integrationservertest/go.mod') }}
           restore-keys: |
             integration-server-test-go-
+      - run: go install github.com/jstemmer/go-junit-report@latest
       - env:
           KIBANA_URL: "https://kibana.test"
           KIBANA_USERNAME: "dummy"
@@ -87,7 +96,14 @@ jobs:
           EC_REGION: "gcp-us-west2"
         # run integrationservertest/internal tests
         # integrationservertest themselves are run in the integration-server-test pipeline
-        run: cd ./integrationservertest && go test -v -race ./internal/...
+        run: cd ./integrationservertest && go test -v -race ./internal/... 2>&1 | go-junit-report > junit.xml
+      - name: Mergify CI Upload
+        if: (success() || failure()) && github.event_name != 'pull_request' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false )
+        uses: mergifyio/gha-mergify-ci@6875ab3991ec1db831576df1cd00a7870603aa9e # v8
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
+          report_path: junit.xml
+          job_name: ${{ github.job }}
 
   test-fips:
     runs-on: ubuntu-latest
@@ -104,10 +120,18 @@ jobs:
           key: go-${{ hashFiles('go.mod') }}
           restore-keys: |
             go-
+      - run: go install github.com/jstemmer/go-junit-report@latest
       - env:
           GOFIPS140: "latest"
           GODEBUG: "fips140=only"
-        run: go test -v -race -tags=requirefips ./...
+        run: go test -v -race -tags=requirefips ./... 2>&1 | go-junit-report > junit.xml
+      - name: Mergify CI Upload
+        if: (success() || failure()) && github.event_name != 'pull_request' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false )
+        uses: mergifyio/gha-mergify-ci@6875ab3991ec1db831576df1cd00a7870603aa9e # v8
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
+          report_path: junit.xml
+          job_name: ${{ github.job }}
 
   system-test:
     runs-on: ubuntu-latest
@@ -125,10 +149,18 @@ jobs:
           key: systemtest-go-${{ hashFiles('systemtest/go.mod', 'go.mod') }}
           restore-keys: |
             systemtest-go-
+      - run: go install github.com/jstemmer/go-junit-report@latest
       - env:
           GOTESTFLAGS: "-v"
           GH_TOKEN: ${{ github.token }}
         run: make system-test
+      - name: Mergify CI Upload
+        if: (success() || failure()) && github.event_name != 'pull_request' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false )
+        uses: mergifyio/gha-mergify-ci@6875ab3991ec1db831576df1cd00a7870603aa9e # v8
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
+          report_path: junit.xml
+          job_name: ${{ github.job }}
 
   system-test-fips:
     runs-on: ubuntu-latest
