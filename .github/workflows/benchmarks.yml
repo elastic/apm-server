@@ -201,7 +201,7 @@ jobs:
 
       - uses: elastic/oblt-actions/google/auth@v1
         with:
-          project-id: 'elastic-observability-ci'
+          project-number: '911195782929'
 
       - uses: elastic/oblt-actions/aws/auth@v1
         with:
