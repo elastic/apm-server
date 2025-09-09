@@ -46,6 +46,7 @@ jobs:
     strategy:
       matrix:
         os: ['macos-latest', 'ubuntu-latest', 'windows-2025']
+      fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
@@ -91,7 +92,7 @@ jobs:
           EC_REGION: "gcp-us-west2"
         # run integrationservertest/internal tests
         # integrationservertest themselves are run in the integration-server-test pipeline
-        run: cd ./integrationservertest && go test -v -race ./internal/... 2>&1 | tee test.output
+        run: cd ./integrationservertest && go test -v -race ./internal/... 2>&1 | tee ../test.output
       - uses: ./.github/workflows/test-report
         with:
           token: ${{ secrets.MERGIFY_TOKEN }}
