@@ -126,9 +126,20 @@ func (mode apmDeploymentMode) enableIntegrations() bool {
 // Note: This step should always be the first step of any test runs, since it
 // initializes all the necessary dependencies for subsequent steps.
 type createStep struct {
-	DeployVersion     ech.Version
+	// DeployVersion is the stack version to deploy.
+	DeployVersion ech.Version
+
+	// APMDeploymentMode determines whether APM Server will be deployed in
+	// standalone or managed mode.
 	APMDeploymentMode apmDeploymentMode
-	CleanupOnFailure  bool
+
+	// CleanupOnFailure determines whether the deployment will be destroyed
+	// on test failure.
+	CleanupOnFailure bool
+
+	// DockerImageOverride is used to override the docker image used in the
+	// deployment.
+	DockerImageOverride *dockerImageOverrideConfig
 }
 
 func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
@@ -139,7 +150,8 @@ func (c createStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 
 	t.Logf("------ cluster setup %s ------", c.DeployVersion)
 	e.tf = initTerraformRunner(t)
-	deployInfo := createCluster(t, ctx, e.tf, e.target, c.DeployVersion, integrations, c.CleanupOnFailure)
+	deployInfo := createCluster(t, ctx, e.tf, e.target, c.DeployVersion, integrations,
+		c.DockerImageOverride, c.CleanupOnFailure)
 	e.deployName = deployInfo.DeploymentName
 	e.esc = createESClient(t, deployInfo)
 	e.kbc = createKibanaClient(t, deployInfo)
@@ -227,6 +239,10 @@ type upgradeStep struct {
 	// IgnoreDataStreams are the data streams to be ignored in assertions.
 	// The data stream names can contain '%s' to indicate namespace.
 	IgnoreDataStreams []string
+
+	// DockerImageOverride is used to override the docker image used in the
+	// deployment.
+	DockerImageOverride *dockerImageOverrideConfig
 }
 
 func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
@@ -238,7 +254,7 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	beforeUpgradeDSDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
 
 	t.Logf("------ upgrade %s to %s ------", e.currentVersion(), u.NewVersion)
-	upgradeCluster(t, ctx, e.tf, e.deployName, e.target, u.NewVersion, e.integrations)
+	upgradeCluster(t, ctx, e.tf, e.deployName, e.target, u.NewVersion, e.integrations, u.DockerImageOverride)
 	// Update the environment version to the new one.
 	e.versions = append(e.versions, u.NewVersion)
 
@@ -348,7 +364,12 @@ func (i ingestV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 //
 // NOTE: Only works from versions 7.x.
 type upgradeV7Step struct {
+	// NewVersion is the version to upgrade into.
 	NewVersion ech.Version
+
+	// DockerImageOverride is used to override the docker image used in the
+	// deployment.
+	DockerImageOverride *dockerImageOverrideConfig
 }
 
 func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
@@ -365,7 +386,7 @@ func (u upgradeV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	}
 
 	t.Logf("------ upgrade %s to %s ------", e.currentVersion(), u.NewVersion)
-	upgradeCluster(t, ctx, e.tf, e.deployName, e.target, u.NewVersion, e.integrations)
+	upgradeCluster(t, ctx, e.tf, e.deployName, e.target, u.NewVersion, e.integrations, u.DockerImageOverride)
 	// Update the environment version to the new one.
 	e.versions = append(e.versions, u.NewVersion)
 

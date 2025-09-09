@@ -17,6 +17,26 @@ variable "ec_deployment_template" {
   description = "The deployment template to use. Must be available in the choosen region"
 }
 
+variable "ec_docker_image_override" {
+  type        = map(string)
+  description = "Docker image override"
+  default = {
+    "elasticsearch" : "docker.elastic.co/cloud-release/elasticsearch-cloud-ess",
+    "kibana" : "docker.elastic.co/cloud-release/kibana-cloud",
+    "apm" : "docker.elastic.co/cloud-release/elastic-agent-cloud",
+  }
+}
+
+variable "ec_docker_image_tag_override" {
+  type        = map(string)
+  description = "Docker image tag override"
+  default = {
+    "elasticsearch" : "",
+    "kibana" : "",
+    "apm" : "",
+  }
+}
+
 variable "name" {
   type        = string
   description = "The deployment name"
