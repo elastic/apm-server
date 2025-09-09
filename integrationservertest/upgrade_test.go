@@ -47,9 +47,6 @@ func TestUpgrade(t *testing.T) {
 		t.Fatal("no upgrade versions specified")
 	}
 	splits := strings.Split(upgradePathStr, "->")
-	if len(splits) < 2 {
-		t.Fatal("need to specify at least 2 upgrade versions")
-	}
 
 	var versions []ech.Version
 	for i, split := range splits {

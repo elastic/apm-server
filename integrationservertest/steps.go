@@ -175,6 +175,13 @@ func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 
 	t.Logf("------ ingest in %s------", e.currentVersion())
 	err := e.gen.RunBlockingWait(ctx, e.currentVersion(), e.integrations)
+	if err != nil {
+		// Check if there are any panic logs in elastic-agent so we can report it.
+		t.Log("ingest failed, checking for panic logs")
+		resp, err := e.esc.GetPanicLogs(ctx)
+		require.NoError(t, err)
+		asserts.ZeroAPMLogs(t, *resp)
+	}
 	require.NoError(t, err)
 
 	t.Logf("------ ingest check in %s ------", e.currentVersion())
