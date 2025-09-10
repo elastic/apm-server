@@ -106,6 +106,7 @@ jobs:
             go-
       - env:
           GOFIPS140: "latest"
+          # TODO: disable X25519MLKEM768 until upstream go issue is fixed https://github.com/golang/go/issues/74630#issuecomment-3224191006
           GODEBUG: "fips140=only,tlsmlkem=0"
         run: go test -v -race -tags=requirefips ./...
 
@@ -149,6 +150,7 @@ jobs:
       - env:
           GOTESTFLAGS: "-v -tags=requirefips"
           GOFIPS140: "latest"
+          # TODO: disable X25519MLKEM768 until upstream go issue is fixed https://github.com/golang/go/issues/74630#issuecomment-3224191006
           GODEBUG: "fips140=only,tlsmlkem=0"
           GH_TOKEN: ${{ github.token }}
         run: make system-test
