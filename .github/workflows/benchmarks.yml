@@ -200,6 +200,8 @@ jobs:
           password: ${{ secrets.ELASTIC_DOCKER_PASSWORD }}
 
       - uses: elastic/oblt-actions/google/auth@v1
+        with:
+          project-number: '911195782929'
 
       - uses: elastic/oblt-actions/aws/auth@v1
         with:
