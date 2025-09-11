@@ -26,6 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
@@ -120,6 +121,7 @@ func BenchmarkFetchAndAdd(b *testing.B) {
 		// to ensure a fetch and add operation per call
 		exp := 5 * time.Minute
 		setup := newCacheSetup(b, b.Name(), exp, false)
+		setup.cache.logger = logp.NewNopLogger()
 		q := Query{Service: Service{}}
 		for i := 0; i < b.N; i++ {
 			q.Service.Name = fmt.Sprintf("%v", b.N)

@@ -404,7 +404,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	batchProcessor := srvmodelprocessor.NewTracer("beater.ProcessBatch", modelprocessor.Chained{
+	batchProcessor := modelprocessor.Chained{
 		// Ensure all events have observer.*, ecs.*, and data_stream.* fields added,
 		// and are counted in metrics. This is done in the final processors to ensure
 		// aggregated metrics are also processed.
@@ -422,7 +422,7 @@ func (s *Runner) Run(ctx context.Context) error {
 			transactionsDroppedCounter.Add(context.Background(), i)
 		}),
 		finalBatchProcessor,
-	})
+	}
 
 	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(
 		ctx,

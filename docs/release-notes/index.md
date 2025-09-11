@@ -3,6 +3,8 @@ navigation_title: "Elastic APM"
 mapped_pages:
   - https://www.elastic.co/guide/en/observability/current/apm-release-notes.html
   - https://www.elastic.co/guide/en/observability/master/release-notes-head.html
+applies_to:
+  stack: ga
 ---
 
 # Elastic APM release notes
@@ -21,6 +23,8 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 % ### Fixes [elastic-apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+
+## 9.1.4 [elastic-apm-9.1.4-release-notes]
 
 ## 9.1.3 [elastic-apm-9.1.3-release-notes]
 

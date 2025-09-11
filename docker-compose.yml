@@ -10,7 +10,7 @@ x-logging: &default-logging
     max-size: "1g"
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.0-c7f36250-SNAPSHOT
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.0-19106e12-SNAPSHOT
     ports:
       - 9200:9200
     healthcheck:
@@ -37,11 +37,10 @@ services:
       - "./testing/docker/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml"
       - "./testing/docker/elasticsearch/users:/usr/share/elasticsearch/config/users"
       - "./testing/docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles"
-      - "./testing/docker/elasticsearch/ingest-geoip:/usr/share/elasticsearch/config/ingest-geoip"
     logging: *default-logging
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:9.2.0-c7f36250-SNAPSHOT
+    image: docker.elastic.co/kibana/kibana:9.2.0-19106e12-SNAPSHOT
     ports:
       - 5601:5601
     healthcheck:
@@ -60,7 +59,7 @@ services:
     logging: *default-logging
 
   metricbeat:
-    image: docker.elastic.co/beats/metricbeat:9.2.0-c7f36250-SNAPSHOT
+    image: docker.elastic.co/beats/metricbeat:9.2.0-19106e12-SNAPSHOT
     environment:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
       ELASTICSEARCH_USERNAME: "${KIBANA_ES_USER:-admin}"

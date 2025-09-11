@@ -10,12 +10,14 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func BenchmarkStorageManager_Size(b *testing.B) {
 	stopping := make(chan struct{})
 	defer close(stopping)
-	sm := newStorageManager(b)
+	sm := newStorageManagerLogger(b, logp.NewNopLogger())
 	go sm.Run(stopping, time.Second)
 	rw := newUnlimitedReadWriter(sm)
 	for i := 0; i < 1000; i++ {

@@ -32,9 +32,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/otel/metric/noop"
+	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/input/elasticapm"
@@ -145,7 +146,7 @@ func TestIntakeHandler(t *testing.T) {
 			tc.setup(t)
 
 			// call handler
-			h := Handler(noop.NewMeterProvider(), tc.processor, emptyRequestMetadata, tc.batchProcessor)
+			h := Handler(metricnoop.NewMeterProvider(), tracenoop.NewTracerProvider(), tc.processor, emptyRequestMetadata, tc.batchProcessor)
 			h(tc.c)
 
 			require.Equal(t, string(tc.id), string(tc.c.Result.ID))
@@ -188,7 +189,7 @@ func TestIntakeHandlerMonitoring(t *testing.T) {
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
-	h := Handler(mp, streamHandler, emptyRequestMetadata, modelprocessor.Nop{})
+	h := Handler(mp, tracenoop.NewTracerProvider(), streamHandler, emptyRequestMetadata, modelprocessor.Nop{})
 	req := httptest.NewRequest("POST", "/", nil)
 	c := request.NewContext()
 	c.Reset(httptest.NewRecorder(), req)
@@ -215,7 +216,7 @@ func TestIntakeHandlerContentType(t *testing.T) {
 		}
 
 		tc.setup(t)
-		h := Handler(noop.NewMeterProvider(), tc.processor, emptyRequestMetadata, tc.batchProcessor)
+		h := Handler(metricnoop.NewMeterProvider(), tracenoop.NewTracerProvider(), tc.processor, emptyRequestMetadata, tc.batchProcessor)
 		h(tc.c)
 		assert.Equal(t, tc.code, tc.w.Code, tc.c.Result.Err)
 	}
