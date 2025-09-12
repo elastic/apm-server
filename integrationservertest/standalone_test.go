@@ -38,7 +38,7 @@ func TestStandaloneManaged_7_17_to_8_x_to_9_x_Snapshot(t *testing.T) {
 		return
 	}
 
-	config, err := parseConfig(upgradeConfigFileName)
+	config, err := parseConfig(upgradeConfigFilename)
 	if err != nil {
 		t.Fatal(err)
 	}

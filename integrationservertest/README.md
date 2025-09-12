@@ -100,3 +100,39 @@ If you get some errors after running the test, you can try heading to the [Elast
 From there, you can use Dev Tools to check the data streams etc.
 
 Note: If the tests failed due to deployment or in CI, you may need to access the Elastic Cloud admin console instead to check the errors.
+
+## Testing Custom APM Server Changes
+
+In some cases, you may want to run the integration server test against a custom image of APM Server. 
+To do so, first make the change in the APM Server code and upload the custom built Docker image by running from root directory:
+```sh
+make docker-override-committed-version
+```
+
+This will build the APM Server Docker image and upload it, while generating a `docker_image.auto.tfvars` file in `../testing/benchmark`.
+Then, copy `docker-image-override.yaml.example` and rename it to `docker-image-override.yaml` and change the version that you want to override at the top-level.
+Simply copy the field contents of `docker_image.auto.tfvars` to the respective field equivalents in `docker-image-override.yaml` as shown in the example.
+
+```yaml
+# The version that you want to override.
+9.2.0-SNAPSHOT: 
+  elasticsearch:
+    docker: "docker.elastic.co/cloud-release/elasticsearch-cloud-ess"
+    image-tag: "9.2.0-19106e12-SNAPSHOT"
+  kibana:
+    docker: "docker.elastic.co/cloud-release/kibana-cloud"
+    image-tag: "9.2.0-19106e12-SNAPSHOT"
+  apm:
+    docker: "docker.elastic.co/observability-ci/elastic-agent"
+    # The APM Server image tag that you want to use as override.
+    image-tag: "9.2.0-19106e12-SNAPSHOT-ericyap-1757409444"
+```
+
+In the example above, we want to override the Docker image only if the version is `9.2.0-SNAPSHOT` and we want to override the APM Server Docker image tag with a custom built one: `9.2.0-19106e12-SNAPSHOT-ericyap-1757409444`.
+The rest are simply copied from `docker_image.auto.tfvars` as is.
+Note that you can specify multiple versions to override at the top-level.
+
+Finally, run the test as per usual and the override will happen automatically, e.g.
+```sh
+go test -run="TestUpgrade/.*/Default" -v -timeout=60m -cleanup-on-failure=true -target="pro" -upgrade-path="9.1.4-SNAPSHOT -> 9.2.0-SNAPSHOT" ./
+```
