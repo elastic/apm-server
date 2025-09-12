@@ -19,6 +19,26 @@ Known issues are significant defects or limitations that may impact your impleme
 % Workaround description.
 % :::
 
+:::{dropdown} APM occasionally returning HTTP 502 "backend connection closed" or "use of closed network connection"
+
+*Elastic Stack versions: all until fixed versions*
+*Environments: ECH, ECE
+
+APM Server on ECH and ECE might sometimes return HTTP 502 with error message "backend connection closed" or "use of closed network connection" for any requests due to a rare race condition.
+When this happens to an intake request, Elastic APM agents will log an error but will not retry, leading to data loss.
+
+**Workaround**
+
+To work around this issue:
+
+- Go to **Kibana** > **Fleet** > **Elastic Cloud agent policy**,
+- Next to **Elastic APM**, select the **...** icon, then **Edit Integration**.
+- Under **General**, select **Advanced options**, then change **Idle time before underlying connection is closed** to **200s**.
+- Select **Save Integration**
+
+This bug will be fixed in 8.18.7, 8.19.4, 9.0.7, 9.1.4 for new deployments, and 8.18.8, 8.19.5, 9.0.8, 9.1.5, 9.2.0 for upgraded deployments.
+:::
+
 :::{dropdown} APM Integration might be unreachable after upgrading to 8.19.0 and 9.1.0
 
 *Elastic Stack versions: 8.19.0 and 9.1.0*
@@ -35,7 +55,7 @@ To work around this issue you can either:
 - Restart the Integration servers through Force Restart in the Cloud Admin UI.
 - Save a copy of the Elastic APM Integration policy within the affected policy, for example the Elastic Cloud agent policy, in the Fleet UI:
   - Go to **Kibana** > **Fleet** > the affected policy (e.g. **Elastic Cloud agent policy**),
-  - Select the **...** icon, then **Edit Integration**.
+  - Next to **Elastic APM**, select the **...** icon, then **Edit Integration**.
   - Add a blank space to the **Description**, then remove it.
   - Select **Save Integration**
 
