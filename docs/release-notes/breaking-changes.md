@@ -2,6 +2,8 @@
 navigation_title: "Breaking changes"
 mapped_pages:
   - https://www.elastic.co/guide/en/observability/current/apm-breaking.html
+applies_to:
+  stack: ga
 ---
 
 # Elastic APM breaking changes

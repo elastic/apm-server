@@ -20,7 +20,6 @@ package systemtest
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -52,6 +51,8 @@ const (
 
 var (
 	systemtestDir string
+	agentImageMu  sync.RWMutex
+	agentImages   = make(map[string]bool)
 )
 
 func initContainers() {
@@ -435,18 +436,6 @@ func (c *ElasticAgentContainer) Exec(ctx context.Context, cmd ...string) (stdout
 	return stdoutBuf.Bytes(), stderrBuf.Bytes(), nil
 }
 
-func matchFleetServerAPIStatusHealthy(r io.Reader) bool {
-	var status struct {
-		Name    string `json:"name"`
-		Version string `json:"version"`
-		Status  string `json:"status"`
-	}
-	if err := json.NewDecoder(r).Decode(&status); err != nil {
-		return false
-	}
-	return status.Status == "HEALTHY"
-}
-
 // BuildElasticAgentImage builds a Docker image from the published image with a locally built apm-server injected.
 func BuildElasticAgentImage(
 	ctx context.Context,
@@ -478,8 +467,3 @@ func BuildElasticAgentImage(
 	agentImages[arch] = true
 	return nil
 }
-
-var (
-	agentImageMu sync.RWMutex
-	agentImages  = make(map[string]bool)
-)
