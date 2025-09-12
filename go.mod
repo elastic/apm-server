@@ -1,6 +1,10 @@
 module github.com/elastic/apm-server
 
+<<<<<<< HEAD
 go 1.24.7
+=======
+go 1.25.1
+>>>>>>> 632899af (feat: bump go to 1.25.1 (#18121))
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.4
@@ -48,7 +52,6 @@ require (
 	go.opentelemetry.io/otel/sdk v1.38.0
 	go.opentelemetry.io/otel/sdk/metric v1.38.0
 	go.opentelemetry.io/otel/trace v1.38.0
-	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/zap v1.27.0
 	go.uber.org/zap/exp v0.3.0
 	golang.org/x/net v0.44.0
