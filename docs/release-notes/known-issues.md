@@ -27,6 +27,8 @@ Known issues are significant defects or limitations that may impact your impleme
 APM Server on ECH and ECE might sometimes return HTTP 502 with error message "backend connection closed" or "use of closed network connection" for any requests due to a rare race condition.
 When this happens to an intake request, Elastic APM agents will log an error but will not retry, leading to data loss.
 
+Note that there may be other causes to "backend connection closed" or "use of closed network connection", and the provided workaround and released bugfix will only resolve the case related to the mentioned race condition.
+
 **Workaround**
 
 To work around this issue:
