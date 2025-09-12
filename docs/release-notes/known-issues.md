@@ -21,7 +21,7 @@ Known issues are significant defects or limitations that may impact your impleme
 
 :::{dropdown} APM occasionally returning HTTP 502 "backend connection closed" or "use of closed network connection"
 
-*Elastic Stack versions: all until fixed versions*
+*Elastic Stack versions: >=8.0.0 and <8.18.7 or <8.19.4, >=9.0.0 and <9.0.7 or <9.1.4*
 *Environments: ECH, ECE
 
 APM Server on ECH and ECE might sometimes return HTTP 502 with error message "backend connection closed" or "use of closed network connection" for any requests due to a rare race condition.
