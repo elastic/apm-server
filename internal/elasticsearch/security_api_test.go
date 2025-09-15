@@ -29,8 +29,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
-
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestHasPrivilegesError(t *testing.T) {
