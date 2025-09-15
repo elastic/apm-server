@@ -120,6 +120,11 @@ func NewBeat(args BeatParams) (*Beat, error) {
 		beatName = hostname
 	}
 
+	ephemeralID, err := uuid.NewV4()
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate ephemeral ID: %w", err)
+	}
+
 	exporter, err := apmotel.NewGatherer()
 	if err != nil {
 		return nil, err
@@ -132,7 +137,6 @@ func NewBeat(args BeatParams) (*Beat, error) {
 	)
 	otel.SetMeterProvider(meterProvider)
 
-	eid := uuid.FromStringOrNil(metricreport.EphemeralID().String())
 	b := &Beat{
 		Beat: beat.Beat{
 			Info: beat.Info{
@@ -143,7 +147,7 @@ func NewBeat(args BeatParams) (*Beat, error) {
 				Name:            beatName,
 				Hostname:        hostname,
 				StartTime:       time.Now(),
-				EphemeralID:     eid,
+				EphemeralID:     ephemeralID,
 			},
 			Keystore:   keystore,
 			Config:     &beat.BeatConfig{Output: cfg.Output},
@@ -401,10 +405,15 @@ func (b *Beat) Run(ctx context.Context) error {
 	defer cleanup()
 
 	statsRegistry := b.Monitoring.StatsRegistry()
-	systemRegistry := statsRegistry.GetOrCreateRegistry("system")
-	processRegistry := statsRegistry.GetOrCreateRegistry("beat")
 
-	if err := metricreport.SetupMetrics(b.Info.Logger.Named("metrics"), b.Info.Beat, b.Info.Version, systemRegistry, processRegistry); err != nil {
+	if err := metricreport.SetupMetricsOptions(metricreport.MetricOptions{
+		Name:           b.Info.Beat,
+		Version:        b.Info.Version,
+		EphemeralID:    b.Info.EphemeralID.String(),
+		Logger:         b.Info.Logger.Named("metrics"),
+		SystemMetrics:  statsRegistry.GetOrCreateRegistry("system"),
+		ProcessMetrics: statsRegistry.GetOrCreateRegistry("beat"),
+	}); err != nil {
 		return err
 	}
 
