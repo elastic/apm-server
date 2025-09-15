@@ -136,6 +136,12 @@ jobs:
           password: ${{ secrets.ELASTIC_DOCKER_PASSWORD }}
 
       - uses: elastic/oblt-actions/google/auth@v1
+<<<<<<< HEAD
+=======
+        with:
+          project-number: '911195782929'
+          project-id: 'elastic-observability-ci'
+>>>>>>> a0402b5d (Fix secrets google project (#18551))
 
       - uses: elastic/oblt-actions/aws/auth@v1
         with:
@@ -145,7 +151,7 @@ jobs:
         with:
           export_to_environment: true
           secrets: |-
-            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
+            EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-pro-api-key
 
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
@@ -282,7 +288,7 @@ jobs:
         with:
           export_to_environment: true
           secrets: |-
-            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
+            EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-pro-api-key
 
       - name: Tear down benchmark environment
         if: always()
