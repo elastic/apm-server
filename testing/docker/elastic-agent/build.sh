@@ -20,6 +20,11 @@ VCS_REF=$(docker inspect -f '{{index .Config.Labels "org.label-schema.vcs-ref"}}
 make -C $REPO_ROOT build/apm-server-linux-amd64
 make -C $REPO_ROOT build/apm-server-linux-arm64
 
+docker buildx create \
+  --name elastic-agent-container-builder \
+  --driver docker-container \
+  --bootstrap --use
+
 docker buildx build \
 	-f $REPO_ROOT/testing/docker/elastic-agent/Dockerfile \
 	--build-arg ELASTIC_AGENT_IMAGE=$BASE_IMAGE \
@@ -28,3 +33,5 @@ docker buildx build \
 	--platform linux/amd64,linux/arm64 \
 	--push \
 	$* $REPO_ROOT/build
+
+docker buildx rm elastic-agent-container-builder

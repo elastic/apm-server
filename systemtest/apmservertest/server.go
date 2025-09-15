@@ -23,7 +23,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -342,9 +341,6 @@ func generateCerts(dir string, ca bool, keyUsage x509.ExtKeyUsage, hosts ...stri
 	if err != nil {
 		return "", "", fmt.Errorf("unable to marshal private key: %w", err)
 	}
-
-	h := sha256.Sum256(privBytes)
-	template.SubjectKeyId = h[:]
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, clientKey.Public(), clientKey)
 	if err != nil {
