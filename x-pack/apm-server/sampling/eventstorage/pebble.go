@@ -57,8 +57,8 @@ func OpenEventPebble(storageDir string, cacheSize uint64, logger *logp.Logger) (
 		},
 		Comparer: eventComparer(),
 		Cache:    cache,
-		MaxConcurrentDownloads: func() int {
-			return 2
+		CompactionConcurrencyRange: func() (lower int, upper int) {
+			return 1, 2
 		}, // Better utilizes CPU on larger instances
 	}
 	return pebble.Open(filepath.Join(storageDir, "event"), opts)
@@ -81,8 +81,8 @@ func OpenDecisionPebble(storageDir string, cacheSize uint64, logger *logp.Logger
 			},
 		},
 		Cache: cache,
-		MaxConcurrentDownloads: func() int {
-			return 2
+		CompactionConcurrencyRange: func() (lower int, upper int) {
+			return 1, 2
 		}, // Better utilizes CPU on larger instances
 	}
 	return pebble.Open(filepath.Join(storageDir, "decision"), opts)
