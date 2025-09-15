@@ -54,12 +54,15 @@ jobs:
       - uses: elastic/oblt-actions/aws/auth@v1
 
       - uses: elastic/oblt-actions/google/auth@v1
+        with:
+          project-number: '911195782929'
+          project-id: 'elastic-observability-ci'
 
       - uses: google-github-actions/get-secretmanager-secrets@a8440875e1c2892062aef9061228d4f1af8f919b # v2.2.3
         with:
           export_to_environment: true
           secrets: |-
-            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
+            EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-pro-api-key
       - name: Run smoke tests OS
         working-directory: ${{ github.workspace }}/testing/smoke/supported-os
         run: ./test.sh ${VERSION}-SNAPSHOT
