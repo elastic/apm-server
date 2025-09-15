@@ -114,7 +114,8 @@ jobs:
             go-
       - env:
           GOFIPS140: "latest"
-          GODEBUG: "fips140=only"
+          # TODO: disable X25519MLKEM768 until upstream go issue is fixed https://github.com/golang/go/issues/74630#issuecomment-3224191006
+          GODEBUG: "fips140=only,tlsmlkem=0"
         run: go test -v -race -tags=requirefips ./... 2>&1 | tee test.output
       - uses: ./.github/workflows/test-report
         with:
@@ -163,7 +164,8 @@ jobs:
       - env:
           GOTESTFLAGS: "-v -tags=requirefips"
           GOFIPS140: "latest"
-          GODEBUG: "fips140=only"
+          # TODO: disable X25519MLKEM768 until upstream go issue is fixed https://github.com/golang/go/issues/74630#issuecomment-3224191006
+          GODEBUG: "fips140=only,tlsmlkem=0"
           GH_TOKEN: ${{ github.token }}
         run: make system-test
       - uses: ./.github/workflows/test-report
@@ -214,7 +216,7 @@ jobs:
       - uses: actions/checkout@v5
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46.0.5
+        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62 # v47.0.0
         with:
           files: .go-version
 
