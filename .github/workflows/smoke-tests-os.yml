@@ -62,12 +62,9 @@ jobs:
       - uses: elastic/oblt-actions/aws/auth@v1
 
       - uses: elastic/oblt-actions/google/auth@v1
-<<<<<<< HEAD
-=======
         with:
           project-number: '911195782929'
           project-id: 'elastic-observability-ci'
->>>>>>> a0402b5d (Fix secrets google project (#18551))
 
       - uses: google-github-actions/get-secretmanager-secrets@e5bb06c2ca53b244f978d33348d18317a7f263ce # v2.2.2
         with:
