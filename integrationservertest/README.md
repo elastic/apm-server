@@ -104,7 +104,7 @@ Note: If the tests failed due to deployment or in CI, you may need to access the
 ## Testing Custom APM Server Changes
 
 In some cases, you may want to run the integration server test against a custom image of APM Server. 
-To do so, first make the change in the APM Server code and upload the custom built Docker image by running from root directory:
+To do so, first make the change in the APM Server code and upload the custom built Docker image to ECH Cloud First Test Region by running from root directory:
 ```sh
 make docker-override-committed-version
 ```
