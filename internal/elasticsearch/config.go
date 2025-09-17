@@ -148,7 +148,7 @@ func NewHTTPTransport(cfg *Config, logger *logp.Logger) (*http.Transport, error)
 		}
 	}
 	dialer := transport.NetDialer(cfg.Timeout)
-	tlsDialer := transport.TLSDialer(dialer, tlsConfig, cfg.Timeout)
+	tlsDialer := transport.TLSDialer(dialer, tlsConfig, cfg.Timeout, logger)
 	return &http.Transport{
 		Proxy:               proxy,
 		DialContext:         dialer.DialContext,
