@@ -156,7 +156,7 @@ check-git-diff:
 
 .PHONY: check-fips-deps
 check-fips-deps:
-	! go list -m $(MODULE_DEPS) | grep -E -q 'github.com/jcmturner/aescts/v2|github.com/jcmturner/gofork|github.com/jcmturner/gokrb5/v8|github.com/xdg-go/pbkdf2|golang.org/x/crypto'
+	! go list -m $(MODULE_DEPS_FIPS) | grep -E -q 'github.com/jcmturner/aescts/v2|github.com/jcmturner/gofork|github.com/jcmturner/gokrb5/v8|github.com/xdg-go/pbkdf2|golang.org/x/crypto'
 
 BENCH_BENCHTIME?=100ms
 BENCH_COUNT?=1
