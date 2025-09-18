@@ -148,11 +148,15 @@ check-full: update check staticcheck
 check-approvals:
 	@go tool github.com/elastic/apm-tools/cmd/check-approvals
 
-check: check-fmt check-headers check-git-diff
+check: check-fmt check-headers check-git-diff check-fips-deps
 
 .PHONY: check-git-diff
 check-git-diff:
 	@sh script/check_git_clean.sh
+
+.PHONY: check-fips-deps
+check-fips-deps:
+	! go list -m $(MODULE_DEPS) | grep -E -q 'github.com/jcmturner/aescts/v2|github.com/jcmturner/gofork|github.com/jcmturner/gokrb5/v8|github.com/xdg-go/pbkdf2|golang.org/x/crypto'
 
 BENCH_BENCHTIME?=100ms
 BENCH_COUNT?=1
