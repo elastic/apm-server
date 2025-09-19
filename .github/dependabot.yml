@@ -7,6 +7,8 @@ updates:
       - dependency-name: "github.com/elastic/beats/v7"
     schedule:
       interval: "daily"
+    labels:
+      - "backport-active-9"
     groups:
       otel:
         patterns:
@@ -36,6 +38,8 @@ updates:
     directory: "/packaging/docker/"
     schedule:
       interval: "weekly"
+    labels:
+      - "backport-active-9"
     groups:
       docker:
         patterns:
