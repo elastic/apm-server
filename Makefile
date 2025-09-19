@@ -131,7 +131,7 @@ test:
 system-test:
 	# CGO is disabled when building APM Server binary, so the race detector in this case
 	# would only work on the parts that don't involve APM Server binary.
-	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -race -timeout=20m ./...)
+	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -race -timeout=20m ./... 2>&1 | tee ../test.output)
 
 .PHONY:
 clean:
