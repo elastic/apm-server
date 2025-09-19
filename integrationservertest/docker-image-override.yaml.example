@@ -1,0 +1,12 @@
+# The version that you want to override.
+9.2.0-SNAPSHOT: 
+  elasticsearch:
+    docker: "docker.elastic.co/cloud-release/elasticsearch-cloud-ess"
+    image-tag: "9.2.0-19106e12-SNAPSHOT"
+  kibana:
+    docker: "docker.elastic.co/cloud-release/kibana-cloud"
+    image-tag: "9.2.0-19106e12-SNAPSHOT"
+  apm:
+    docker: "docker.elastic.co/observability-ci/elastic-agent"
+    # The APM Server image tag that you want to use as override.
+    image-tag: "9.2.0-19106e12-SNAPSHOT-ericyap-1757409444"

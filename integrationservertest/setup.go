@@ -26,6 +26,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -138,6 +139,33 @@ func deploymentName(t *testing.T) string {
 	return fmt.Sprintf("%s_%s", prefix, rand.Text()[:10])
 }
 
+type dockerImageOverride struct {
+	Docker   string `yaml:"docker"`
+	ImageTag string `yaml:"image-tag"`
+}
+
+type dockerImageOverrideConfig struct {
+	Elasticsearch dockerImageOverride `yaml:"elasticsearch"`
+	Kibana        dockerImageOverride `yaml:"kibana"`
+	APM           dockerImageOverride `yaml:"apm"`
+}
+
+const varFormat = `{"elasticsearch":"%s","kibana":"%s","apm":"%s"}`
+
+func (d dockerImageOverrideConfig) DockerVar() *tfexec.VarOption {
+	return terraform.Var(
+		"ec_docker_image_override",
+		fmt.Sprintf(varFormat, d.Elasticsearch.Docker, d.Kibana.Docker, d.APM.Docker),
+	)
+}
+
+func (d dockerImageOverrideConfig) ImageTagVar() *tfexec.VarOption {
+	return terraform.Var(
+		"ec_docker_image_tag_override",
+		fmt.Sprintf(varFormat, d.Elasticsearch.ImageTag, d.Kibana.ImageTag, d.APM.ImageTag),
+	)
+}
+
 // createCluster runs terraform on the test terraform folder to spin up an
 // Elastic Cloud Hosted (ECH) cluster for testing.
 //
@@ -154,6 +182,7 @@ func createCluster(
 	target string,
 	fromVersion ech.Version,
 	enableIntegrations bool,
+	dockerImgOverride *dockerImageOverrideConfig,
 	cleanupOnFailure bool,
 ) deploymentInfo {
 	t.Helper()
@@ -166,12 +195,24 @@ func createCluster(
 	ver := terraform.Var("stack_version", fromVersion.String())
 	integrations := terraform.Var("integrations_server", strconv.FormatBool(enableIntegrations))
 	name := terraform.Var("name", deployName)
-	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, ver, integrations, name))
+
+	applyOpts := []tfexec.ApplyOption{ecTarget, ecRegion, ecDeploymentTpl, ver, integrations, name}
+	if dockerImgOverride != nil {
+		applyOpts = append(applyOpts, dockerImgOverride.DockerVar(), dockerImgOverride.ImageTagVar())
+	}
+
+	require.NoError(t, tf.Apply(ctx, applyOpts...))
 
 	t.Cleanup(func() {
 		if !t.Failed() || cleanupOnFailure {
 			t.Log("cleanup terraform resources")
-			require.NoError(t, tf.Destroy(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, ver))
+			var destroyOpts []tfexec.DestroyOption
+			for _, o := range applyOpts {
+				if v, ok := o.(*tfexec.VarOption); ok {
+					destroyOpts = append(destroyOpts, v)
+				}
+			}
+			require.NoError(t, tf.Destroy(ctx, destroyOpts...))
 		} else {
 			t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
 		}
@@ -205,6 +246,7 @@ func upgradeCluster(
 	target string,
 	toVersion ech.Version,
 	enableIntegrations bool,
+	dockerImgOverride *dockerImageOverrideConfig,
 ) {
 	t.Helper()
 	t.Logf("upgrade deployment to %s", toVersion)
@@ -214,7 +256,13 @@ func upgradeCluster(
 	ver := terraform.Var("stack_version", toVersion.String())
 	integrations := terraform.Var("integrations_server", strconv.FormatBool(enableIntegrations))
 	name := terraform.Var("name", deployName)
-	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, ver, integrations, name))
+
+	tfVars := []tfexec.ApplyOption{ecTarget, ecRegion, ecDeploymentTpl, ver, integrations, name}
+	if dockerImgOverride != nil {
+		tfVars = append(tfVars, dockerImgOverride.DockerVar(), dockerImgOverride.ImageTagVar())
+	}
+
+	require.NoError(t, tf.Apply(ctx, tfVars...))
 }
 
 // createESClient instantiate an HTTP API client with dedicated methods to query the Elasticsearch API.

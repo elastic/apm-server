@@ -255,6 +255,36 @@ func (c *Client) GetAPMErrorLogs(ctx context.Context, exclude ...types.Query) (*
 	return res, nil
 }
 
+func (c *Client) GetPanicLogs(ctx context.Context) (*search.Response, error) {
+	size := 100
+	res, err := c.es.Search().
+		Index("elastic-cloud-logs-*").
+		Request(&search.Request{
+			Size: &size,
+			Query: &types.Query{
+				Bool: &types.BoolQuery{
+					Must: []types.Query{
+						{
+							Match: map[string]types.MatchQuery{
+								"message": {Query: "panic"},
+							},
+						},
+						{
+							QueryString: &types.QueryStringQuery{
+								Query: `log.level: ("error" OR "ERROR")`,
+							},
+						},
+					},
+				},
+			},
+		}).Do(ctx)
+	if err != nil {
+		return search.NewResponse(), fmt.Errorf("cannot run search query: %w", err)
+	}
+
+	return res, nil
+}
+
 /* V7 */
 
 type docCountV7 struct {
