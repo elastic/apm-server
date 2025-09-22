@@ -18,6 +18,7 @@
 package integrationservertest
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"slices"
@@ -30,7 +31,10 @@ import (
 	"github.com/elastic/apm-server/integrationservertest/internal/ech"
 )
 
-const upgradeConfigFileName = "upgrade-config.yaml"
+const (
+	upgradeConfigFilename       = "upgrade-config.yaml"
+	dockerImageOverrideFilename = "docker-image-override.yaml"
+)
 
 func formatUpgradePath(p string) string {
 	splits := strings.Split(p, "->")
@@ -47,9 +51,6 @@ func TestUpgrade(t *testing.T) {
 		t.Fatal("no upgrade versions specified")
 	}
 	splits := strings.Split(upgradePathStr, "->")
-	if len(splits) < 2 {
-		t.Fatal("need to specify at least 2 upgrade versions")
-	}
 
 	var versions []ech.Version
 	for i, split := range splits {
@@ -67,15 +68,25 @@ func TestUpgrade(t *testing.T) {
 		versions = append(versions, version)
 	}
 
-	config, err := parseConfig(upgradeConfigFileName)
+	config, err := parseConfig(upgradeConfigFilename)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	dockerImgOverride, err := parseDockerImageOverride(dockerImageOverrideFilename)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			// File does not exist, do nothing.
+			dockerImgOverride = map[ech.Version]*dockerImageOverrideConfig{}
+		} else {
+			t.Fatal(err)
+		}
 	}
 
 	t.Run(formatUpgradePath(*upgradePath), func(t *testing.T) {
 		t.Run("Default", func(t *testing.T) {
 			t.Parallel()
-			steps := buildTestSteps(t, versions, config, false)
+			steps := buildTestSteps(t, versions, config, dockerImgOverride, false)
 			runner := testStepsRunner{
 				Target: *target,
 				Steps:  steps,
@@ -85,7 +96,7 @@ func TestUpgrade(t *testing.T) {
 
 		t.Run("Reroute", func(t *testing.T) {
 			t.Parallel()
-			steps := buildTestSteps(t, versions, config, true)
+			steps := buildTestSteps(t, versions, config, dockerImgOverride, true)
 			runner := testStepsRunner{
 				Target: *target,
 				Steps:  steps,
@@ -95,7 +106,10 @@ func TestUpgrade(t *testing.T) {
 	})
 }
 
-func buildTestSteps(t *testing.T, versions ech.Versions, config upgradeTestConfig, reroute bool) []testStep {
+func buildTestSteps(
+	t *testing.T, versions ech.Versions,
+	config upgradeTestConfig, dockerImgOverride map[ech.Version]*dockerImageOverrideConfig, reroute bool,
+) []testStep {
 	t.Helper()
 
 	var steps []testStep
@@ -107,8 +121,9 @@ func buildTestSteps(t *testing.T, versions ech.Versions, config upgradeTestConfi
 		if i == 0 {
 			indicesManagedBy = append(indicesManagedBy, lifecycle)
 			steps = append(steps, createStep{
-				DeployVersion:    ver,
-				CleanupOnFailure: *cleanupOnFailure,
+				DeployVersion:       ver,
+				CleanupOnFailure:    *cleanupOnFailure,
+				DockerImageOverride: dockerImgOverride[ver],
 			})
 			if reroute {
 				steps = append(steps, createReroutePipelineStep{DataStreamNamespace: "reroute"})
@@ -139,6 +154,7 @@ func buildTestSteps(t *testing.T, versions ech.Versions, config upgradeTestConfi
 					// the same lifecycle management.
 					IndicesManagedBy: oldIndicesManagedBy,
 				}),
+				DockerImageOverride: dockerImgOverride[ver],
 			},
 			ingestStep{
 				CheckDataStreams: dataStreamsExpectations(asserts.DataStreamExpectation{
@@ -236,4 +252,27 @@ func parseConfig(filename string) (upgradeTestConfig, error) {
 	}
 
 	return config, nil
+}
+
+func parseDockerImageOverride(filename string) (map[ech.Version]*dockerImageOverrideConfig, error) {
+	b, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read %s: %w", filename, err)
+	}
+
+	config := map[string]*dockerImageOverrideConfig{}
+	if err = yaml.Unmarshal(b, &config); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal docker image override config: %w", err)
+	}
+
+	result := map[ech.Version]*dockerImageOverrideConfig{}
+	for k, v := range config {
+		version, err := ech.NewVersionFromString(k)
+		if err != nil {
+			return nil, fmt.Errorf("invalid version in docker image override config: %w", err)
+		}
+		result[version] = v
+	}
+
+	return result, nil
 }
