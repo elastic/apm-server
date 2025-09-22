@@ -17,5 +17,8 @@ module "ec_deployment" {
   stack_version       = var.stack_version
   integrations_server = var.integrations_server
 
+  docker_image              = var.ec_docker_image_override
+  docker_image_tag_override = var.ec_docker_image_tag_override
+
   tags = merge(local.ci_tags, module.tags.tags)
 }
