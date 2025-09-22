@@ -20,6 +20,7 @@ package monitoringtest
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -31,7 +32,7 @@ func ExpectOtelMetrics(
 	reader sdkmetric.Reader,
 	expectedMetrics map[string]any,
 ) {
-	assertOtelMetrics(t, reader, expectedMetrics, true, false)
+	assertOtelMetrics(t, reader, expectedMetrics, true, false, 0)
 }
 
 func ExpectContainOtelMetrics(
@@ -39,15 +40,15 @@ func ExpectContainOtelMetrics(
 	reader sdkmetric.Reader,
 	expectedMetrics map[string]any,
 ) {
-	assertOtelMetrics(t, reader, expectedMetrics, false, false)
+	assertOtelMetrics(t, reader, expectedMetrics, false, false, 0)
 }
 
-func ExpectContainOtelMetricsKeys(t *testing.T, reader sdkmetric.Reader, expectedMetricsKeys []string) {
+func EventuallyContainOtelMetricsKeys(t *testing.T, reader sdkmetric.Reader, expectedMetricsKeys []string, timeout time.Duration) {
 	expectedMetrics := make(map[string]any)
 	for _, metricKey := range expectedMetricsKeys {
 		expectedMetrics[metricKey] = nil
 	}
-	assertOtelMetrics(t, reader, expectedMetrics, false, true)
+	assertOtelMetrics(t, reader, expectedMetrics, false, true, timeout)
 }
 
 // assertOtelMetrics gathers all the metrics from `reader` and asserts that the value of those gathered metrics
@@ -62,55 +63,72 @@ func assertOtelMetrics(
 	reader sdkmetric.Reader,
 	expectedMetrics map[string]any,
 	fullMatch, skipValAssert bool,
+	wait time.Duration,
 ) {
 	t.Helper()
 
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
-	assert.NotEqual(t, 0, len(rm.ScopeMetrics))
-	var foundMetrics []string
+	var metrics []metricdata.Metrics
 	for _, sm := range rm.ScopeMetrics {
-		for _, m := range sm.Metrics {
-			switch d := m.Data.(type) {
-			case metricdata.Gauge[int64]:
-				assert.Equal(t, 1, len(d.DataPoints))
-				foundMetrics = append(foundMetrics, m.Name)
-				if skipValAssert {
-					continue
-				}
+		metrics = append(metrics, sm.Metrics...)
+	}
 
-				if v, ok := expectedMetrics[m.Name]; ok {
-					assert.EqualValues(t, v, d.DataPoints[0].Value, m.Name)
-				} else if fullMatch {
-					assert.Fail(t, "unexpected metric", m.Name)
-				}
+	// multiple metrics might
+	if wait != 0 && len(metrics) < len(expectedMetrics) {
+		assert.Eventually(t, func() bool {
+			reader.Collect(context.Background(), &rm)
+			metrics = metrics[:0]
+			for _, sm := range rm.ScopeMetrics {
+				metrics = append(metrics, sm.Metrics...)
+			}
 
-			case metricdata.Sum[int64]:
-				assert.Equal(t, 1, len(d.DataPoints))
-				foundMetrics = append(foundMetrics, m.Name)
-				if skipValAssert {
-					continue
-				}
+			return len(metrics) >= len(expectedMetrics)
+		}, wait, 10*time.Millisecond)
+	}
 
-				if v, ok := expectedMetrics[m.Name]; ok {
-					assert.EqualValues(t, v, d.DataPoints[0].Value, m.Name)
-				} else if fullMatch {
-					assert.Fail(t, "unexpected metric", m.Name)
-				}
+	assert.NotEmpty(t, metrics)
+	var foundMetrics []string
+	for _, m := range metrics {
+		switch d := m.Data.(type) {
+		case metricdata.Gauge[int64]:
+			assert.Equal(t, 1, len(d.DataPoints))
+			foundMetrics = append(foundMetrics, m.Name)
+			if skipValAssert {
+				continue
+			}
 
-			case metricdata.Histogram[int64]:
-				assert.Equal(t, 1, len(d.DataPoints))
-				foundMetrics = append(foundMetrics, m.Name)
-				if skipValAssert {
-					continue
-				}
+			if v, ok := expectedMetrics[m.Name]; ok {
+				assert.EqualValues(t, v, d.DataPoints[0].Value, m.Name)
+			} else if fullMatch {
+				assert.Fail(t, "unexpected metric", m.Name)
+			}
 
-				if v, ok := expectedMetrics[m.Name]; ok {
-					assert.EqualValues(t, v, d.DataPoints[0].Count, m.Name)
-				} else if fullMatch {
-					assert.Fail(t, "unexpected metric", m.Name)
-				}
+		case metricdata.Sum[int64]:
+			assert.Equal(t, 1, len(d.DataPoints))
+			foundMetrics = append(foundMetrics, m.Name)
+			if skipValAssert {
+				continue
+			}
+
+			if v, ok := expectedMetrics[m.Name]; ok {
+				assert.EqualValues(t, v, d.DataPoints[0].Value, m.Name)
+			} else if fullMatch {
+				assert.Fail(t, "unexpected metric", m.Name)
+			}
+
+		case metricdata.Histogram[int64]:
+			assert.Equal(t, 1, len(d.DataPoints))
+			foundMetrics = append(foundMetrics, m.Name)
+			if skipValAssert {
+				continue
+			}
+
+			if v, ok := expectedMetrics[m.Name]; ok {
+				assert.EqualValues(t, v, d.DataPoints[0].Count, m.Name)
+			} else if fullMatch {
+				assert.Fail(t, "unexpected metric", m.Name)
 			}
 		}
 	}

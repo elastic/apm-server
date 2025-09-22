@@ -54,12 +54,10 @@ func TestMonitoring(t *testing.T) {
 	runServerError := errors.New("runServer")
 	runServerFunc := func(ctx context.Context, args beater.ServerParams) error {
 		// run server for some time until storage metrics are reported by the storage manager
-		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			monitoringtest.ExpectContainOtelMetricsKeys(t, reader, []string{
-				"apm-server.sampling.tail.storage.lsm_size",
-				"apm-server.sampling.tail.storage.value_log_size",
-			})
-		}, time.Second, 10*time.Millisecond)
+		monitoringtest.EventuallyContainOtelMetricsKeys(t, reader, []string{
+			"apm-server.sampling.tail.storage.lsm_size",
+			"apm-server.sampling.tail.storage.value_log_size",
+		}, time.Second)
 
 		return runServerError
 	}
