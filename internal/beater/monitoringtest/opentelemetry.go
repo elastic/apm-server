@@ -75,8 +75,11 @@ func assertOtelMetrics(
 		metrics = append(metrics, sm.Metrics...)
 	}
 
-	// multiple metrics might
 	if wait != 0 && len(metrics) < len(expectedMetrics) {
+		// Metrics collection may yield an empty slice or only a subset of
+		// the expected metrics, so we should keep retrying until all required
+		// metrics are returned. This retry logic is performed here because
+		// we can’t place assertions inside an assert.Eventually call.
 		assert.Eventually(t, func() bool {
 			reader.Collect(context.Background(), &rm)
 			metrics = metrics[:0]
