@@ -42,7 +42,7 @@ func ExpectContainOtelMetrics(
 	assertOtelMetrics(t, reader, expectedMetrics, false, false)
 }
 
-func ExpectContainOtelMetricsKeys(t *testing.T, reader sdkmetric.Reader, expectedMetricsKeys []string) {
+func ExpectContainOtelMetricsKeys(t assert.TestingT, reader sdkmetric.Reader, expectedMetricsKeys []string) {
 	expectedMetrics := make(map[string]any)
 	for _, metricKey := range expectedMetricsKeys {
 		expectedMetrics[metricKey] = nil
@@ -58,13 +58,11 @@ func ExpectContainOtelMetricsKeys(t *testing.T, reader sdkmetric.Reader, expecte
 //
 // If `skipValAssert` is true, the value assertion will be skipped entirely i.e. only care about the metric keys.
 func assertOtelMetrics(
-	t *testing.T,
+	t assert.TestingT,
 	reader sdkmetric.Reader,
 	expectedMetrics map[string]any,
 	fullMatch, skipValAssert bool,
 ) {
-	t.Helper()
-
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
