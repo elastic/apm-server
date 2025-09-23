@@ -192,7 +192,7 @@ func TestLibbeatMetrics(t *testing.T) {
 		snapshot = monitoring.CollectStructSnapshot(libbeatRegistry, monitoring.Full, false)
 		output := snapshot["output"].(map[string]any)
 		events := output["events"].(map[string]any)
-		return events["active"] == int64(0)
+		return events["active"] == int64(0) && events["batches"] == int64(4)
 	}, 10*time.Second, 100*time.Millisecond)
 	assert.Equal(t, map[string]any{
 		"output": map[string]any{
