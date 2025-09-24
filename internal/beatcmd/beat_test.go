@@ -190,10 +190,11 @@ func TestLibbeatMetrics(t *testing.T) {
 		assert.NoError(t, appender.Close(context.Background()))
 	}()
 
-	require.NoError(t, appender.Add(context.Background(), "index", strings.NewReader("{}")))
-	require.NoError(t, appender.Add(context.Background(), "index", strings.NewReader("{}")))
-	require.NoError(t, appender.Add(context.Background(), "index", strings.NewReader("{}")))
-	require.NoError(t, appender.Add(context.Background(), "index", strings.NewReader("{}")))
+	const totalRequests = 4
+
+	for range totalRequests {
+		require.NoError(t, appender.Add(context.Background(), "index", strings.NewReader("{}")))
+	}
 
 	libbeatRegistry := monitoring.Default.GetRegistry("libbeat")
 	snapshot := monitoring.CollectStructSnapshot(libbeatRegistry, monitoring.Full, false)
@@ -201,13 +202,13 @@ func TestLibbeatMetrics(t *testing.T) {
 		"output": map[string]any{
 			"type": "elasticsearch",
 			"events": map[string]any{
-				"active": int64(4),
-				"total":  int64(4),
+				"active": int64(totalRequests),
+				"total":  int64(totalRequests),
 			},
 		},
 		"pipeline": map[string]any{
 			"events": map[string]any{
-				"total": int64(4),
+				"total": int64(totalRequests),
 			},
 		},
 	}, snapshot)
@@ -216,7 +217,7 @@ func TestLibbeatMetrics(t *testing.T) {
 		return appender.Stats().IndexersActive > 1
 	}, 10*time.Second, 50*time.Millisecond)
 
-	for i := 0; i < 4; i++ {
+	for range totalRequests {
 		unblockRequest := make(chan struct{})
 		requestsChan <- unblockRequest
 		unblockRequest <- struct{}{}
@@ -226,7 +227,7 @@ func TestLibbeatMetrics(t *testing.T) {
 		snapshot = monitoring.CollectStructSnapshot(libbeatRegistry, monitoring.Full, false)
 		output := snapshot["output"].(map[string]any)
 		events := output["events"].(map[string]any)
-		return events["active"] == int64(0)
+		return events["active"] == int64(0) && events["batches"] == int64(totalRequests)
 	}, 10*time.Second, 100*time.Millisecond)
 	assert.Equal(t, map[string]any{
 		"output": map[string]any{
@@ -236,8 +237,8 @@ func TestLibbeatMetrics(t *testing.T) {
 				"failed":  int64(2),
 				"toomany": int64(1),
 				"active":  int64(0),
-				"total":   int64(4),
-				"batches": int64(4),
+				"total":   int64(totalRequests),
+				"batches": int64(totalRequests),
 			},
 			"write": map[string]any{
 				"bytes": int64(132),
@@ -245,7 +246,7 @@ func TestLibbeatMetrics(t *testing.T) {
 		},
 		"pipeline": map[string]any{
 			"events": map[string]any{
-				"total": int64(4),
+				"total": int64(totalRequests),
 			},
 		},
 	}, snapshot)
@@ -255,7 +256,7 @@ func TestLibbeatMetrics(t *testing.T) {
 		"elasticsearch": map[string]any{
 			"bulk_requests": map[string]any{
 				"available": int64(10),
-				"completed": int64(4),
+				"completed": int64(totalRequests),
 			},
 			"indexers": map[string]any{
 				"active":    int64(2),
