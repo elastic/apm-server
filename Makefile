@@ -111,7 +111,7 @@ apm-server-fips apm-server-fips-msft: CGO_ENABLED=1
 apm-server apm-server-oss: CGO_ENABLED=0
 
 apm-server-fips: GOTAGS=requirefips
-apm-server-fips-msft: GOTAGS=requirefips,ms_tls13kdf,relaxfips
+apm-server-fips-msft: GOTAGS=requirefips,relaxfips
 
 apm-server-oss: SUFFIX=-oss
 apm-server-fips apm-server-fips-msft: SUFFIX=-fips
@@ -148,11 +148,15 @@ check-full: update check staticcheck
 check-approvals:
 	@go tool github.com/elastic/apm-tools/cmd/check-approvals
 
-check: check-fmt check-headers check-git-diff
+check: check-fmt check-headers check-git-diff check-fips-deps
 
 .PHONY: check-git-diff
 check-git-diff:
 	@sh script/check_git_clean.sh
+
+.PHONY: check-fips-deps
+check-fips-deps:
+	! go list -m $(MODULE_DEPS_FIPS) | grep -E -q 'github.com/jcmturner/aescts/v2|github.com/jcmturner/gofork|github.com/jcmturner/gokrb5/v8|github.com/xdg-go/pbkdf2|golang.org/x/crypto'
 
 BENCH_BENCHTIME?=100ms
 BENCH_COUNT?=1
