@@ -125,6 +125,233 @@ func TestRunnerParams(t *testing.T) {
 	}, m)
 }
 
+<<<<<<< HEAD
+=======
+// TestLibbeatMetrics tests the mapping of go-docappender OTel
+// metrics to legacy libbeat monitoring metrics.
+func TestLibbeatMetrics(t *testing.T) {
+	runnerParamsChan := make(chan RunnerParams, 1)
+	beat := newBeat(t, "output.elasticsearch.enabled: true", func(args RunnerParams) (Runner, error) {
+		runnerParamsChan <- args
+		return runnerFunc(func(ctx context.Context) error {
+			<-ctx.Done()
+			return ctx.Err()
+		}), nil
+	})
+	stop := runBeat(t, beat)
+	defer func() { assert.NoError(t, stop()) }()
+	args := <-runnerParamsChan
+
+	var requestIndex atomic.Int64
+	requestsChan := make(chan chan struct{})
+	defer close(requestsChan)
+	esClient := docappendertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-r.Context().Done():
+			return
+		case ch := <-requestsChan:
+			select {
+			case <-r.Context().Done():
+				return
+			case <-ch:
+			}
+		}
+		_, result := docappendertest.DecodeBulkRequest(r)
+		switch requestIndex.Add(1) {
+		case 2:
+			result.HasErrors = true
+			result.Items[0]["create"] = docappendertest.BulkIndexerResponseItem{Status: 400}
+		case 4:
+			result.HasErrors = true
+			result.Items[0]["create"] = docappendertest.BulkIndexerResponseItem{Status: 429}
+		default:
+			// success
+		}
+		json.NewEncoder(w).Encode(result)
+	})
+	appender, err := docappender.New(esClient, docappender.Config{
+		MeterProvider: args.MeterProvider,
+		FlushBytes:    1,
+		Scaling: docappender.ScalingConfig{
+			ActiveRatio:  10,
+			IdleInterval: 100 * time.Millisecond,
+			ScaleUp: docappender.ScaleActionConfig{
+				Threshold: 1,
+				CoolDown:  time.Minute,
+			},
+		},
+	})
+	require.NoError(t, err)
+	defer func() {
+		assert.NoError(t, appender.Close(context.Background()))
+	}()
+
+	const totalRequests = 4
+
+	for range totalRequests {
+		require.NoError(t, appender.Add(context.Background(), "index", strings.NewReader("{}")))
+	}
+
+	statsRegistry := beat.Monitoring.StatsRegistry()
+	libbeatRegistry := statsRegistry.GetRegistry("libbeat")
+	snapshot := monitoring.CollectStructSnapshot(libbeatRegistry, monitoring.Full, false)
+	assert.Equal(t, map[string]any{
+		"output": map[string]any{
+			"type": "elasticsearch",
+			"events": map[string]any{
+				"active": int64(totalRequests),
+				"total":  int64(totalRequests),
+			},
+		},
+		"pipeline": map[string]any{
+			"events": map[string]any{
+				"total": int64(totalRequests),
+			},
+		},
+	}, snapshot)
+
+	assert.Eventually(t, func() bool {
+		return appender.IndexersActive() > 1
+	}, 10*time.Second, 50*time.Millisecond)
+
+	for range totalRequests {
+		unblockRequest := make(chan struct{})
+		requestsChan <- unblockRequest
+		unblockRequest <- struct{}{}
+	}
+
+	assert.Eventually(t, func() bool {
+		snapshot = monitoring.CollectStructSnapshot(libbeatRegistry, monitoring.Full, false)
+		output := snapshot["output"].(map[string]any)
+		events := output["events"].(map[string]any)
+		return events["active"] == int64(0) && events["batches"] == int64(totalRequests)
+	}, 10*time.Second, 100*time.Millisecond)
+	assert.Equal(t, map[string]any{
+		"output": map[string]any{
+			"type": "elasticsearch",
+			"events": map[string]any{
+				"acked":   int64(2),
+				"failed":  int64(2),
+				"toomany": int64(1),
+				"active":  int64(0),
+				"total":   int64(totalRequests),
+				"batches": int64(totalRequests),
+			},
+			"write": map[string]any{
+				"bytes": int64(132),
+			},
+		},
+		"pipeline": map[string]any{
+			"events": map[string]any{
+				"total": int64(totalRequests),
+			},
+		},
+	}, snapshot)
+
+	snapshot = monitoring.CollectStructSnapshot(statsRegistry.GetRegistry("output"), monitoring.Full, false)
+	assert.Equal(t, map[string]any{
+		"elasticsearch": map[string]any{
+			"bulk_requests": map[string]any{
+				"available": int64(10),
+				"completed": int64(totalRequests),
+			},
+			"indexers": map[string]any{
+				"active":    int64(2),
+				"created":   int64(1),
+				"destroyed": int64(0),
+			},
+		},
+	}, snapshot)
+}
+
+// TestAddAPMServerMetrics tests basic functionality of the metrics collection and reporting
+func TestAddAPMServerMetrics(t *testing.T) {
+	r := monitoring.NewRegistry()
+	sm := metricdata.ScopeMetrics{
+		Metrics: []metricdata.Metrics{
+			{
+				Name: "apm-server.foo.request",
+				Data: metricdata.Sum[int64]{
+					DataPoints: []metricdata.DataPoint[int64]{
+						{
+							Value: 1,
+						},
+					},
+				},
+			},
+			{
+				Name: "apm-server.foo.response",
+				Data: metricdata.Sum[int64]{
+					DataPoints: []metricdata.DataPoint[int64]{
+						{
+							Value: 1,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	monitoring.NewFunc(r, "apm-server", func(m monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+
+		beatsMetrics := make(map[string]any)
+		addAPMServerMetricsToMap(beatsMetrics, sm.Metrics)
+		reportOnKey(v, beatsMetrics)
+	})
+
+	snapshot := monitoring.CollectStructSnapshot(r, monitoring.Full, false)
+	assert.Equal(t, map[string]any{
+		"foo": map[string]any{
+			"request":  int64(1),
+			"response": int64(1),
+		},
+	}, snapshot["apm-server"])
+}
+
+func TestMonitoringApmServer(t *testing.T) {
+	b := newNopBeat(t, "")
+	b.registerStatsMetrics()
+
+	// add metrics similar to lsm_size in storage_manager.go and events.processed in processor.go
+	meter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
+	lsmSizeGauge, _ := meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
+	lsmSizeGauge.Record(context.Background(), 123)
+
+	meter2 := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
+	processedCounter, _ := meter2.Int64Counter("apm-server.sampling.tail.events.processed")
+	processedCounter.Add(context.Background(), 456)
+
+	meter3 := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/foo")
+	otherCounter, _ := meter3.Int64Counter("apm-server.sampling.foo.request")
+	otherCounter.Add(context.Background(), 1)
+
+	// collect metrics
+	snapshot := monitoring.CollectStructSnapshot(b.Monitoring.StatsRegistry(), monitoring.Full, false)
+
+	// assert that the snapshot contains data for all scoped metrics
+	// with the same metric name prefix 'apm-server.sampling'
+	assert.Equal(t, map[string]any{
+		"apm-server": map[string]any{
+			"sampling": map[string]any{
+				"foo": map[string]any{
+					"request": int64(1),
+				},
+				"tail": map[string]any{
+					"storage": map[string]any{
+						"lsm_size": int64(123),
+					},
+					"events": map[string]any{
+						"processed": int64(456),
+					},
+				},
+			},
+		},
+	}, snapshot)
+}
+
+>>>>>>> 4ebaebcb (test(TestLibbeatMetrics): wait until batches count is expected value (#18730))
 func TestUnmanagedOutputRequired(t *testing.T) {
 	b := newBeat(t, "", func(args RunnerParams) (Runner, error) {
 		panic("unreachable")
