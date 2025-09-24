@@ -626,7 +626,6 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 				}
 			}
 			require.NoError(t, json.Unmarshal(doc, &out))
-			t.Log(string(doc))
 			if out.Transaction.ID != "" && out.Transaction.Name == "POST /intake/v2/events" {
 				assert.Equal(t, "HTTP 5xx", out.Transaction.Result)
 				assert.Equal(t, http.StatusServiceUnavailable, out.HTTP.Response.StatusCode)
