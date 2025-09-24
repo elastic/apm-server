@@ -79,7 +79,6 @@ jobs:
           restore-keys: |
             go-
       - env:
-          CGO_ENABLED: "0"
           GOFIPS140: "latest"
           # TODO: disable X25519MLKEM768 until upstream go issue is fixed https://github.com/golang/go/issues/74630#issuecomment-3224191006
           GODEBUG: "fips140=only,tlsmlkem=0"
