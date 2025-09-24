@@ -17,7 +17,6 @@ COPY .git /src/.git
 COPY script /src/script
 
 RUN --mount=type=cache,target=/root/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
     make apm-server-fips-msft
 
 COPY --chmod=0644 apm-server-fips.yml ./apm-server.yml
