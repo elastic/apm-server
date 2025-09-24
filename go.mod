@@ -1,10 +1,6 @@
 module github.com/elastic/apm-server
 
-<<<<<<< HEAD
-go 1.24.7
-=======
 go 1.25.1
->>>>>>> 632899af (feat: bump go to 1.25.1 (#18121))
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.4
