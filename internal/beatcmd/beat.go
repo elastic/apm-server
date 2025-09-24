@@ -372,10 +372,6 @@ func (b *Beat) Run(ctx context.Context) error {
 		}
 	}
 
-	g.Go(func() error {
-		return adjustMaxProcs(ctx, 30*time.Second, b.Info.Logger)
-	})
-
 	slogger := slog.New(zapslog.NewHandler(b.Info.Logger.Core()))
 	if err := adjustMemlimit(30*time.Second, slogger); err != nil {
 		return err
