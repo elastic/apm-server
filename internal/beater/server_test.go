@@ -621,27 +621,31 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	require.ErrorIs(t, err, context.Canceled)
 	require.Nil(t, resp)
 
-	select {
-	case <-time.After(time.Second):
-		assert.Fail(t, "timeout waiting for trace doc")
-	case doc := <-docs:
-		var out struct {
-			Transaction struct {
-				ID     string
-				Name   string
-				Result string
-			}
-			HTTP struct {
-				Response struct {
-					StatusCode int
+	timeout := time.After(time.Second)
+	done := false
+	for !done {
+		select {
+		case <-timeout:
+			require.Fail(t, "timeout waiting for trace doc")
+		case doc := <-docs:
+			var out struct {
+				Transaction struct {
+					ID     string
+					Name   string
+					Result string
+				}
+				HTTP struct {
+					Response struct {
+						StatusCode int `json:"status_code"`
+					}
 				}
 			}
-		}
-		require.NoError(t, json.Unmarshal(doc, &out))
-		if out.Transaction.ID != "" && out.Transaction.Name == "POST /intake/v2/events" {
-			assert.Equal(t, "HTTP 5xx", out.Transaction.Result)
-			assert.Equal(t, http.StatusServiceUnavailable, out.HTTP.Response.StatusCode)
-			break
+			require.NoError(t, json.Unmarshal(doc, &out))
+			if out.Transaction.ID != "" && out.Transaction.Name == "POST /intake/v2/events" {
+				assert.Equal(t, "HTTP 5xx", out.Transaction.Result)
+				assert.Equal(t, http.StatusServiceUnavailable, out.HTTP.Response.StatusCode)
+				done = true
+			}
 		}
 	}
 
@@ -651,7 +655,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	logs := srv.Logs.Filter(func(l observer.LoggedEntry) bool {
 		return l.Level == zapcore.ErrorLevel
 	}).AllUntimed()
-	assert.Len(t, logs, 1)
+	require.Len(t, logs, 1)
 	assert.Equal(t, logs[0].Message, "request timed out")
 	for _, f := range logs[0].Context {
 		switch f.Key {
