@@ -600,7 +600,6 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 
 	// Enable self instrumentation, simulate a client disconnecting when sending intakev2 request
 	// Check that tracer records the correct http status code
-	found := make(chan struct{})
 	reqCtx, reqCancel := context.WithCancel(context.Background())
 
 	escfg, docs := beatertest.ElasticsearchOutputConfig(t)
