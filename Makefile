@@ -111,7 +111,7 @@ apm-server-fips apm-server-fips-msft: CGO_ENABLED=1
 apm-server apm-server-oss: CGO_ENABLED=0
 
 apm-server-fips: GOTAGS=requirefips
-apm-server-fips-msft: GOTAGS=requirefips,ms_tls13kdf,relaxfips
+apm-server-fips-msft: GOTAGS=requirefips,relaxfips
 
 apm-server-oss: SUFFIX=-oss
 apm-server-fips apm-server-fips-msft: SUFFIX=-fips
