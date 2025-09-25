@@ -603,7 +603,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	found := make(chan struct{})
 	reqCtx, reqCancel := context.WithCancel(context.Background())
 
-	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
+	escfg, docs := beatertest.ElasticsearchOutputConfig(t)
 	srv := beatertest.NewServer(t, beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
 		map[string]interface{}{
 			"instrumentation.enabled": true,
