@@ -202,6 +202,7 @@ jobs:
       - uses: elastic/oblt-actions/google/auth@v1
         with:
           project-number: '911195782929'
+          project-id: 'elastic-observability-ci'
 
       - uses: elastic/oblt-actions/aws/auth@v1
         with:
@@ -211,7 +212,7 @@ jobs:
         with:
           export_to_environment: true
           secrets: |-
-            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
+            EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-pro-api-key
 
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
@@ -304,15 +305,12 @@ jobs:
 
       - name: Get token
         id: get_token
-        uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
+        uses: actions/create-github-app-token@v2
         with:
-          app_id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
-          private_key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
-          permissions: >-
-            {
-              "contents": "write",
-              "pull_requests": "write"
-            }
+          app-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
+          private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
+          permission-contents: write
+          permission-pull-requests: write
 
       # Required to use a service account, otherwise PRs created by
       # GitHub bot won't trigger any CI builds.
@@ -348,7 +346,7 @@ jobs:
         with:
           export_to_environment: true
           secrets: |-
-            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
+            EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-pro-api-key
 
       - name: Tear down benchmark environment
         if: always()

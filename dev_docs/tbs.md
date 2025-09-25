@@ -58,14 +58,17 @@ support this by enabling APM Servers to poll sampled traces data streams in mult
 ## Local buffering
 
 As mentioned above, APM Servers will buffer events locally until a sampling decision has been made.
-For this purpose, we use [BadgerDB](https://github.com/dgraph-io/badger). BadgerDB is designed for
+For this purpose, we use [Pebble](https://github.com/cockroachdb/pebble) as the local event storage database. Pebble is designed for
 fast writes, which is important for our use case: we write all events here, and read out only the
-sampled ones. All non-sampled events will be removed from the store through TTL expiry.
+sampled ones. All non-sampled events will be removed from the store through TTL expiry implemented in APM Server.
 
-We have implemented a configurable storage limit based on the size of the Badger database as reported
-by the SDK. This accounting has some lag of up to 1 minute and may allow the database to grow over
-the configured limit. The limit can be disabled by setting it to `0`.
+Event writes to the local database may stop to avoid filling the disk.
+By default, storage limit is `0` which makes APM Server align its disk usage with the disk size.
+APM server uses up to 80% of the disk size limit on the disk where the local tail-based sampling database is located.
+The last 20% of disk will not be used by APM Server.
+It is the recommended value as it automatically scales with the disk size.
+Alternatively, a concrete GB value can be set for the maximum amount of disk used for tail-based sampling.
 
-When writes to badger fail, or the storage limit has been reached, the default behavior is to sample
-all incoming traces. Eventually, this behavior will be configurable and allow users to either discard
+When event writes fail, or the storage limit has been reached, the default behavior is to sample
+all incoming traces. This behavior is configurable and allow users to either discard
 or sample incoming events when the disk is full.
