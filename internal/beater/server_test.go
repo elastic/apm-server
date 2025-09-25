@@ -625,14 +625,6 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	require.ErrorIs(t, err, context.Canceled)
 	require.Nil(t, resp)
 
-<<<<<<< HEAD
-	select {
-	case <-time.After(time.Second): // go apm agent takes time to send trace events
-		assert.Fail(t, "timeout waiting for trace doc")
-	case <-found:
-		// Have to wait a bit here to avoid racing on the order of metrics middleware and the batch processor from above.
-		time.Sleep(10 * time.Millisecond)
-=======
 	timeout := time.After(time.Second)
 	done := false
 	for !done {
@@ -659,7 +651,6 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 				done = true
 			}
 		}
->>>>>>> 45a14d0b (test(TestWrapServerAPMInstrumentationTimeout): wait for expected doc and don't skip assertions (#18757))
 	}
 
 	// Assert that logs contain expected values:
