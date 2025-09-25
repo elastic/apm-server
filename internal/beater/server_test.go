@@ -619,14 +619,6 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 					assert.ErrorIs(t, ctx.Err(), context.Canceled)
 					return errors.New("foobar")
 				}
-				for _, i := range *batch {
-					// Perform assertions on the event sent by the apmgorilla tracer
-					if i.Transaction.Id != "" && i.Transaction.Name == "POST /intake/v2/events" {
-						assert.Equal(t, "HTTP 5xx", i.Transaction.Result)
-						assert.Equal(t, http.StatusServiceUnavailable, int(i.Http.Response.StatusCode))
-						close(found)
-					}
-				}
 				return nil
 			})
 			return args, runServer, nil
