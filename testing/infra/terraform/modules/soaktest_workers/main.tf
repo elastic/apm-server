@@ -114,18 +114,28 @@ resource "google_compute_instance" "worker" {
     content = templatefile(
       "${path.module}/systemd.tpl",
       {
-        apmsoak_executable_path        = "/bin/apmsoak",
-        remote_user                    = "apmsoak",
-        remote_usergroup               = "apmsoak",
-        apm_server_url                 = var.apm_server_url,
-        apm_secret_token               = var.apm_secret_token,
+        apmsoak_executable_path = "/bin/apmsoak",
+        remote_user             = "apmsoak",
+        remote_usergroup        = "apmsoak",
+        apm_server_url          = var.apm_server_url,
+        apm_secret_token        = var.apm_secret_token,
+        scenarios_yml           = "${local.remote_working_dir}/scenarios.yml"
+      }
+    )
+    destination = "${local.remote_working_dir}/${local.service_name}"
+  }
+
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/scenarios.tpl",
+      {
         apm_loadgen_event_rate         = var.apm_loadgen_event_rate,
         apm_loadgen_agents_replicas    = var.apm_loadgen_agents_replicas,
         apm_loadgen_rewrite_timestamps = var.apm_loadgen_rewrite_timestamps
         apm_loadgen_rewrite_ids        = var.apm_loadgen_rewrite_ids
       }
     )
-    destination = "${local.remote_working_dir}/${local.service_name}"
+    destination = "${local.remote_working_dir}/scenarios.yml"
   }
 
   provisioner "remote-exec" {
