@@ -35,7 +35,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
-	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -45,6 +44,7 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.5.0"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -88,7 +88,7 @@ func TestOTLPGRPCTraces(t *testing.T) {
 			// NOTE(axw) don't use trace.WithStackTrace(true), as the stack trace value
 			// may change over time (e.g. due to changes in Go's testing package).
 			trace.WithAttributes(attribute.String(
-				semconv.AttributeExceptionStacktrace,
+				string(semconv.ExceptionStacktraceKey),
 				"not an actual real stack trace",
 			)),
 			trace.WithTimestamp(startTime.Add(2*time.Millisecond)),
@@ -513,8 +513,8 @@ func newMobileLogs(body interface{}) plog.Logs {
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
 	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
-	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
-	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKName, "android")
+	resourceAttrs.PutStr(string(semconv.TelemetrySDKLanguageKey), "java")
+	resourceAttrs.PutStr(string(semconv.TelemetrySDKNameKey), "android")
 
 	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 	otelLog := scopeLogs.LogRecords().AppendEmpty()
@@ -671,7 +671,7 @@ func newLogs(body interface{}) plog.Logs {
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
 	logs.ResourceLogs().At(0).Resource().Attributes().PutStr(
-		semconv.AttributeTelemetrySDKLanguage, "go",
+		string(semconv.TelemetrySDKLanguageKey), "go",
 	)
 	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 	otelLog := scopeLogs.LogRecords().AppendEmpty()
