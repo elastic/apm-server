@@ -1,7 +1,7 @@
 [[release-notes-head]]
 == APM version HEAD
 
-https://github.com/elastic/apm-server/compare/8.18\...8.x[View commits]
+https://github.com/elastic/apm-server/compare/8.17\...8.x[View commits]
 
 [float]
 ==== Bug fixes
