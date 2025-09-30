@@ -13,7 +13,11 @@
 
 https://github.com/elastic/apm-server/compare/v8.19.4\...v8.19.5[View commits]
 
-No significant changes.
+[float]
+==== Bug fixes
+
+- When running in Fleet, it is now possible to configure `frozen` values in the APM Server policy, thanks to a https://github.com/elastic/kibana/issues/234384[Kibana PR #234384].
+This might fix a bug that manifests in a rare number of HTTP 502 when APM Server runs behind a forward proxy and the `idle_timeout` of the proxy is higher than what is configured in APM Server.
 
 [float]
 [[apm-release-notes-8.19.4]]
