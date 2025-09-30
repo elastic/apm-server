@@ -17,7 +17,10 @@
 
 https://github.com/elastic/apm-server/compare/v8.18.7\...v8.18.8[View commits]
 
-No significant changes in this release.
+[float]
+==== Bug fixes
+
+- APM Integration on ECH or ECE uses recommended frozen values for infrastructure related configs. See the https://github.com/elastic/kibana/issues/234384[Kibana PR #234384].
 
 [float]
 [[apm-release-notes-8.18.7]]
