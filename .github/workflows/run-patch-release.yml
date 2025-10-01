@@ -45,16 +45,7 @@ jobs:
       RELEASE_BRANCH: ${{ needs.prepare.outputs.release-branch }}
       RELEASE_TYPE: ${{ needs.prepare.outputs.release-type }}
       RELEASE_VERSION: ${{ needs.prepare.outputs.release-version }}
-    permissions:
-      contents: write
     steps:
-      - uses: actions/checkout@v5
-        with:
-          # 0 indicates all history for all branches and tags.
-          fetch-depth: 0
-          # Use the makefile in the given release branch.
-          ref: ${{ env.RELEASE_BRANCH }}
-
       - name: Get token
         id: get_token
         uses: actions/create-github-app-token@v2
@@ -63,6 +54,14 @@ jobs:
           private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
           permission-contents: write
           permission-pull-requests: write
+
+      - uses: actions/checkout@v5
+        with:
+          # 0 indicates all history for all branches and tags.
+          fetch-depth: 0
+          # Use the makefile in the given release branch.
+          ref: ${{ env.RELEASE_BRANCH }}
+          token: ${{ steps.get_token.outputs.token }}
 
       # Required to use a service account, otherwise PRs created by
       # GitHub bot won't trigger any CI builds.

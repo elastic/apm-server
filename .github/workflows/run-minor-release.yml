@@ -44,8 +44,6 @@ jobs:
       RELEASE_BRANCH: ${{ needs.prepare.outputs.release-branch }}
       RELEASE_TYPE: ${{ needs.prepare.outputs.release-type }}
       RELEASE_VERSION: ${{ needs.prepare.outputs.release-version }}
-    permissions:
-      contents: write
     steps:
 
       - uses: elastic/oblt-actions/slack/send@v1
@@ -70,6 +68,7 @@ jobs:
         with:
           # 0 indicates all history for all branches and tags.
           fetch-depth: 0
+          token: ${{ steps.get_token.outputs.token }}
 
       # Required to use a service account, otherwise PRs created by
       # GitHub bot won't trigger any CI builds.
