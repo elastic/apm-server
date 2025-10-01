@@ -24,6 +24,12 @@ To check for security updates, go to [Security announcements for the Elastic sta
 % ### Fixes [elastic-apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
+## 9.1.5 [elastic-apm-9.1.5-release-notes]
+
+### Fixes [elastic-apm-9.1.0-fixes]
+
+* APM Integration on ECH or ECE uses recommended frozen values for infrastructure related configs. See the https://github.com/elastic/kibana/issues/234384[Kibana PR #234384].
+
 ## 9.1.4 [elastic-apm-9.1.4-release-notes]
 
 ## 9.1.3 [elastic-apm-9.1.3-release-notes]
