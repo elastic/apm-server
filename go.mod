@@ -14,15 +14,10 @@ require (
 	github.com/elastic/elastic-agent-libs v0.21.5
 	github.com/elastic/elastic-agent-system-metrics v0.11.11
 	github.com/elastic/gmux v0.3.2
-<<<<<<< HEAD
-	github.com/elastic/go-docappender/v2 v2.9.0
-	github.com/elastic/go-elasticsearch/v8 v8.17.1
-	github.com/elastic/go-sysinfo v1.15.0
-=======
 	github.com/elastic/go-docappender/v2 v2.11.3
+	github.com/elastic/go-elasticsearch/v8 v8.17.1
 	github.com/elastic/go-freelru v0.16.0
 	github.com/elastic/go-sysinfo v1.15.4
->>>>>>> 47f0a856 (build(deps): bump github.com/elastic/go-docappender/v2 from 2.11.2 to 2.11.3 (#18895))
 	github.com/elastic/go-ucfg v0.8.8
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
 	github.com/gofrs/flock v0.12.1
