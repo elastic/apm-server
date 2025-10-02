@@ -16,7 +16,7 @@ https://github.com/elastic/apm-server/compare/v8.19.4\...v8.19.5[View commits]
 [float]
 ==== Bug fixes
 
-- APM Integration on ECH or ECE uses recommended frozen values for infrastructure related configs. See the https://github.com/elastic/kibana/issues/234384[Kibana PR #234384].
+- APM Integration on ECH or ECE uses recommended frozen values for infrastructure related configs. The fix is applied through https://github.com/elastic/kibana/pull/235306[kibana#235306].
 
 [float]
 [[apm-release-notes-8.19.4]]
