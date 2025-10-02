@@ -5699,11 +5699,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sync
-Version: v0.16.0
+Version: v0.17.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.16.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.17.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
