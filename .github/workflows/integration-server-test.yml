@@ -118,6 +118,7 @@ jobs:
     if: always() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs:
+      - prepare
       - run-upgrade
       - run-upgrade-bc
       - run-standalone
