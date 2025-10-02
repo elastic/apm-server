@@ -77,11 +77,11 @@ func GeoIpLazyDownload() error {
 	io.Copy(io.Discard, resp.Body)
 	resp.Body.Close()
 
-	if err := srv.Close(); err != nil {
+	if err := waitGeoIPDownload(); err != nil {
 		return err
 	}
 
-	if err := waitGeoIPDownload(); err != nil {
+	if err := srv.Close(); err != nil {
 		return err
 	}
 
