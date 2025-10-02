@@ -1344,11 +1344,19 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.3.2/LIC
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-docappender/v2
+<<<<<<< HEAD
 Version: v2.9.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender/v2@v2.9.0/LICENSE:
+=======
+Version: v2.11.3
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender/v2@v2.11.3/LICENSE:
+>>>>>>> 47f0a856 (build(deps): bump github.com/elastic/go-docappender/v2 from 2.11.2 to 2.11.3 (#18895))
 
                                  Apache License
                            Version 2.0, January 2004
