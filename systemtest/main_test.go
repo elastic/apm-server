@@ -81,6 +81,10 @@ func GeoIpLazyDownload() error {
 		return err
 	}
 
+	if err := srv.Close(); err != nil {
+		return err
+	}
+
 	// Clean all datastreams containing tags.
 	cleanupElasticsearch()
 
