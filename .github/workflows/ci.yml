@@ -118,7 +118,10 @@ jobs:
         with:
           go-version-file: systemtest/go.mod
           cache: false
-      - run: docker compose up -d
+      - run: |
+            docker compose up -d &
+            make apm-server &
+            wait
       - uses: actions/cache@v4
         with:
           path: |
@@ -139,7 +142,10 @@ jobs:
         with:
           go-version-file: systemtest/go.mod
           cache: false
-      - run: docker compose up -d
+      - run: |
+            docker compose up -d &
+            make apm-server &
+            wait
       - uses: actions/cache@v4
         with:
           path: |
