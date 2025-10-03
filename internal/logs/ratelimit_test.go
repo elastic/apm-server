@@ -25,6 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestWithRateLimit(t *testing.T) {
