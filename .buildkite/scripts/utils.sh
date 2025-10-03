@@ -59,6 +59,11 @@ dra_process_other_branches() {
       fi
     fi
   fi
+  if [ "$BUILDKITE_PULL_REQUEST" == "false" ]; then
+    buildkite-agent annotate "Pull Requests are not supported by DRA. Look for the supported branches in ${BRANCHES_URL}" --style 'info' --context 'ctx-info-pr'
+    DRA_COMMAND=list
+    DRA_BRANCH=main
+  fi
   export DRA_BRANCH DRA_COMMAND VERSION
 }
 
