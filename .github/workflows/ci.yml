@@ -118,10 +118,6 @@ jobs:
         with:
           go-version-file: systemtest/go.mod
           cache: false
-      - run: |
-            docker compose up -d &
-            make apm-server &
-            wait
       - uses: actions/cache@v4
         with:
           path: |
@@ -129,6 +125,10 @@ jobs:
           key: systemtest-go-${{ hashFiles('systemtest/go.mod', 'go.mod') }}
           restore-keys: |
             systemtest-go-
+      - run: |
+            docker compose up -d &
+            make apm-server &
+            wait
       - env:
           GOTESTFLAGS: "-v"
           GH_TOKEN: ${{ github.token }}
@@ -142,10 +142,6 @@ jobs:
         with:
           go-version-file: systemtest/go.mod
           cache: false
-      - run: |
-            docker compose up -d &
-            make apm-server &
-            wait
       - uses: actions/cache@v4
         with:
           path: |
@@ -153,6 +149,10 @@ jobs:
           key: systemtest-go-${{ hashFiles('systemtest/go.mod', 'go.mod') }}
           restore-keys: |
             systemtest-go-
+      - run: |
+            docker compose up -d &
+            make apm-server &
+            wait
       - env:
           GOTESTFLAGS: "-v -tags=requirefips"
           GOFIPS140: "latest"
