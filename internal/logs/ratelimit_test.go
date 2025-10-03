@@ -19,34 +19,38 @@ package logs_test
 
 import (
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func TestWithRateLimit(t *testing.T) {
+<<<<<<< HEAD
 	core, observed := observer.New(zapcore.DebugLevel)
 	logger := logp.NewLogger("bo", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(in, core)
 	}))
+=======
+	synctest.Test(t, func(t *testing.T) {
+		logger, observed := logptest.NewTestingLoggerWithObserver(t, "bo")
+>>>>>>> fe05e398 (test: wrap ratelimit log test in synctest bubble (#18908))
 
-	const interval = 100 * time.Millisecond
-	limitedLogger := logger.WithOptions(logs.WithRateLimit(interval))
+		const interval = 100 * time.Millisecond
+		limitedLogger := logger.WithOptions(logs.WithRateLimit(interval))
 
-	// Log twice in quick succession; the 2nd call will be ignored due to rate-limiting.
-	limitedLogger.Info("hello")
-	limitedLogger.Info("hello")
-	assert.Equal(t, 1, observed.Len())
+		// Log twice in quick succession; the 2nd call will be ignored due to rate-limiting.
+		limitedLogger.Info("hello")
+		limitedLogger.Info("hello")
+		assert.Equal(t, 1, observed.Len())
 
-	// Sleep until the configured interval has elapsed, which should allow another
-	// record to be logged.
-	time.Sleep(interval)
-	limitedLogger.Info("hello")
-	assert.Equal(t, 2, observed.Len())
+		// Sleep until the configured interval has elapsed, which should allow another
+		// record to be logged.
+		time.Sleep(interval * 100)
+		limitedLogger.Info("hello")
+		assert.Equal(t, 2, observed.Len())
+	})
 }
