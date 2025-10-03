@@ -20,6 +20,7 @@ package apmservertest
 import (
 	"context"
 	"crypto/fips140"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -159,62 +160,53 @@ func (c *ServerCmd) cleanup() {
 // BuildServerBinary builds the apm-server binary for the given GOOS
 // and GOARCH, returning its absolute path.
 func BuildServerBinary(goos, goarch string) (string, error) {
-	apmServerBinaryMu.Lock()
-	defer apmServerBinaryMu.Unlock()
-	if binary := apmServerBinary[goos]; binary != "" {
-		return binary, nil
-	}
+	apmServerBinaryOnce.Do(func() {
+		repoRoot, err := getRepoRoot()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		name := "apm-server"
+		abspath := filepath.Join(repoRoot, "build", fmt.Sprintf("apm-server-%s-%s", goos, goarch))
+		if fips140.Enabled() {
+			abspath += "-fips"
+			name += "-fips"
+		}
+		if goos == "windows" {
+			abspath += ".exe"
+		}
 
-	repoRoot, err := getRepoRoot()
-	if err != nil {
-		return "", err
+		log.Printf("Building %s...", name)
+		cmd := exec.Command("make", name)
+		cmd.Dir = repoRoot
+		cmd.Env = append(cmd.Env, os.Environ()...)
+		cmd.Env = append(cmd.Env, "NOCP=1") // prevent race condition
+		cmd.Env = append(cmd.Env, "GOOS="+goos, "GOARCH="+goarch)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			log.Println(err)
+			return
+		}
+		log.Println("Built", abspath)
+		apmServerBinary = abspath
+	})
+	if apmServerBinary == "" {
+		return "", errors.New("failed to build apm-server binary")
 	}
-	name := "apm-server"
-	abspath := filepath.Join(repoRoot, "build", fmt.Sprintf("apm-server-%s-%s", goos, goarch))
-	if fips140.Enabled() {
-		abspath += "-fips"
-		name += "-fips"
-	}
-	if goos == "windows" {
-		abspath += ".exe"
-	}
-
-	log.Printf("Building %s...", name)
-	cmd := exec.Command("make", name)
-	cmd.Dir = repoRoot
-	cmd.Env = append(cmd.Env, os.Environ()...)
-	cmd.Env = append(cmd.Env, "NOCP=1") // prevent race condition
-	cmd.Env = append(cmd.Env, "GOOS="+goos, "GOARCH="+goarch)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return "", err
-	}
-	log.Println("Built", abspath)
-	apmServerBinary[goos] = abspath
-	return abspath, nil
+	return apmServerBinary, nil
 }
 
 func getRepoRoot() (string, error) {
-	repoRootMu.Lock()
-	defer repoRootMu.Unlock()
-	if repoRoot != "" {
-		return repoRoot, nil
-	}
-
 	// Build apm-server binary in the repo root.
 	output, err := exec.Command("go", "list", "-m", "-f={{.Dir}}/..").Output()
 	if err != nil {
 		return "", err
 	}
-	repoRoot = filepath.Clean(strings.TrimSpace(string(output)))
-	return repoRoot, nil
+	return filepath.Clean(strings.TrimSpace(string(output))), nil
 }
 
 var (
-	apmServerBinaryMu sync.Mutex
-	apmServerBinary   = make(map[string]string)
-
-	repoRootMu sync.Mutex
-	repoRoot   string
+	apmServerBinaryOnce sync.Once
+	apmServerBinary     string
 )
