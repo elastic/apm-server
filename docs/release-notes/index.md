@@ -20,6 +20,7 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 % ### Features and enhancements [elastic-apm-next-features-enhancements]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+% * Do not generate metrics or traces for pubsub bulk requests
 
 % ### Fixes [elastic-apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
