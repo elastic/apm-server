@@ -17,6 +17,8 @@ import (
 	"time"
 
 	"go.elastic.co/fastjson"
+	metricnoop "go.opentelemetry.io/otel/metric/noop"
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
@@ -68,6 +70,8 @@ func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceIDs <-chan str
 		FlushInterval:        p.config.FlushInterval,
 		DocumentBufferSize:   100, // Reduce memory footprint
 		IncludeSourceOnError: docappender.False,
+		TracerProvider:       tracenoop.NewTracerProvider(),
+		MeterProvider:        metricnoop.NewMeterProvider(),
 		// Disable autoscaling for the TBS sampled traces published documents.
 		Scaling: docappender.ScalingConfig{Disabled: true},
 		Logger:  zap.New(p.config.Logger.Core(), zap.WithCaller(true)),
