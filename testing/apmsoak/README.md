@@ -27,7 +27,8 @@ The Elastic internal soak testing infrastructure for APM Server has been decommi
 5. Authenticate with GCP by running `gcloud auth application-default login`
 6. Build an `apmsoak` binary. Example:
    ```
-   cd ../../systemtest/cmd/apmsoak && GOOS=linux GOARCH=386 go build .
+   GOOS=linux go build github.com/elastic/apm-perf/cmd/apmsoak
+
    ```
 
 For full guide refer to the official getting started guide for terraform google provider [here](https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/getting_started).
