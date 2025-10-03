@@ -29,15 +29,8 @@ import (
 )
 
 func TestWithRateLimit(t *testing.T) {
-<<<<<<< HEAD
-	core, observed := observer.New(zapcore.DebugLevel)
-	logger := logp.NewLogger("bo", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
-		return zapcore.NewTee(in, core)
-	}))
-=======
 	synctest.Test(t, func(t *testing.T) {
 		logger, observed := logptest.NewTestingLoggerWithObserver(t, "bo")
->>>>>>> fe05e398 (test: wrap ratelimit log test in synctest bubble (#18908))
 
 		const interval = 100 * time.Millisecond
 		limitedLogger := logger.WithOptions(logs.WithRateLimit(interval))
