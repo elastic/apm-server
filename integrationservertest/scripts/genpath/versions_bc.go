@@ -20,8 +20,10 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/elastic/apm-server/integrationservertest/internal/ech"
@@ -107,6 +109,10 @@ func getTestBCVersions(ctx context.Context, vsCache *ech.VersionsCache) (ech.Ver
 	for _, v := range filterReleasesForBCs(releases) {
 		bc, err := vsCache.GetLatestVersion(v)
 		if err != nil {
+			if errors.Is(err, ech.ErrNotFoundInEC) {
+				log.Printf("skipping version '%s' since it is not found\n", v)
+				continue
+			}
 			return nil, fmt.Errorf("failed to get latest version: %w", err)
 		}
 		bcs = append(bcs, bc)
