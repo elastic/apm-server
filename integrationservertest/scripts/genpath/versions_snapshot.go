@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -94,6 +95,9 @@ func convertActiveBranchesToVersions(activeBranches []string) ([]string, error) 
 	return versions, nil
 }
 
+// New main branch is now 9.3 but there are no 9.3 snapshots yet.
+var skipVersions = []string{"9.3"}
+
 func getTestSnapshotVersions(ctx context.Context, vsCache *ech.VersionsCache) (ech.Versions, error) {
 	activeBranches, err := queryActiveBranches(ctx)
 	if err != nil {
@@ -107,6 +111,9 @@ func getTestSnapshotVersions(ctx context.Context, vsCache *ech.VersionsCache) (e
 
 	var snapshots ech.Versions
 	for _, v := range activeVersions {
+		if slices.Contains(skipVersions, v) {
+			continue
+		}
 		snapshot, err := vsCache.GetLatestSnapshot(v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get latest snapshot: %w", err)
