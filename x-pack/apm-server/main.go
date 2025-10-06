@@ -13,6 +13,7 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"go.opentelemetry.io/otel/metric"
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/common/reload"
@@ -27,6 +28,7 @@ import (
 	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/beatcmd"
 	"github.com/elastic/apm-server/internal/beater"
+	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
@@ -102,7 +104,11 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 
 func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, error) {
 	tailSamplingConfig := args.Config.Sampling.Tail
-	es, err := args.NewElasticsearchClient(tailSamplingConfig.ESConfig, args.Logger)
+	es, err := elasticsearch.NewClientParams(elasticsearch.ClientParams{
+		Config:         tailSamplingConfig.ESConfig,
+		Logger:         args.Logger,
+		TracerProvider: tracenoop.NewTracerProvider(),
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Elasticsearch client for tail-sampling: %w", err)
 	}
