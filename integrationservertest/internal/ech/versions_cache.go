@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	ErrNotFoundInEC = errors.New("not found in EC")
+	ErrVersionNotFoundInEC = errors.New("version not found in EC")
 )
 
 func NewVersionsCache(ctx context.Context, client *Client, ecRegion string) (*VersionsCache, error) {
@@ -107,7 +107,7 @@ func (c *VersionsCache) CanUpgrade(from, to Version) bool {
 func (c *VersionsCache) GetLatestSnapshot(prefix string) (Version, error) {
 	ver, ok := c.fetchedSnapshots.LatestFor(prefix)
 	if !ok {
-		return Version{}, fmt.Errorf("snapshot '%s' for region %s: %w", prefix, c.region, ErrNotFoundInEC)
+		return Version{}, fmt.Errorf("snapshot '%s' for region %s: %w", prefix, c.region, ErrVersionNotFoundInEC)
 	}
 	return ver, nil
 }
@@ -116,7 +116,7 @@ func (c *VersionsCache) GetLatestSnapshot(prefix string) (Version, error) {
 func (c *VersionsCache) GetLatestVersion(prefix string) (Version, error) {
 	ver, ok := c.fetchedVersions.LatestFor(prefix)
 	if !ok {
-		return Version{}, fmt.Errorf("version '%s' for region %s: %w", prefix, c.region, ErrNotFoundInEC)
+		return Version{}, fmt.Errorf("version '%s' for region %s: %w", prefix, c.region, ErrVersionNotFoundInEC)
 	}
 	return ver, nil
 }

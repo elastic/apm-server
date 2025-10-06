@@ -109,7 +109,7 @@ func getTestBCVersions(ctx context.Context, vsCache *ech.VersionsCache) (ech.Ver
 	for _, v := range filterReleasesForBCs(releases) {
 		bc, err := vsCache.GetLatestVersion(v)
 		if err != nil {
-			if errors.Is(err, ech.ErrNotFoundInEC) {
+			if errors.Is(err, ech.ErrVersionNotFoundInEC) {
 				log.Printf("skipping version '%s' since it is not found\n", v)
 				continue
 			}

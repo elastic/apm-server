@@ -111,7 +111,7 @@ func getTestSnapshotVersions(ctx context.Context, vsCache *ech.VersionsCache) (e
 	for _, v := range activeVersions {
 		snapshot, err := vsCache.GetLatestSnapshot(v)
 		if err != nil {
-			if errors.Is(err, ech.ErrNotFoundInEC) {
+			if errors.Is(err, ech.ErrVersionNotFoundInEC) {
 				log.Printf("skipping snapshot '%s' since it is not found\n", v)
 				continue
 			}
