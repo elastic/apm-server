@@ -16,9 +16,15 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ## Next version [elastic-apm-next-release-notes]
 
+<<<<<<< HEAD
 ### Features and enhancements [elastic-apm-next-features-enhancements]
 
 ### Fixes [elastic-apm-next-fixes]
+=======
+% ### Features and enhancements [elastic-apm-next-features-enhancements]
+% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+% * Do not generate metrics or traces for pubsub bulk requests ([#18891](https://github.com/elastic/integrations/pull/18891))
+>>>>>>> dece0323 (fix: pass noop otel providers to pubsub docappender (#18891))
 
 % ### Fixes [elastic-apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
