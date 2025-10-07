@@ -118,6 +118,14 @@ type ServerParams struct {
 	// field will be nil.
 	KibanaClient *kibana.Client
 
+	// NewElasticsearchClient returns an elasticsearch.Client for cfg.
+	//
+	// This must be used whenever an elasticsearch client might be used
+	// for indexing. Under some configuration, the server will wrap the
+	// client's transport such that requests will be blocked until data
+	// streams have been initialised.
+	NewElasticsearchClient func(*elasticsearch.Config, *logp.Logger) (*elasticsearch.Client, error)
+
 	// GRPCServer holds a *grpc.Server to which services will be registered
 	// for receiving data, configuration requests, etc.
 	//
