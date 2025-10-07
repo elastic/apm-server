@@ -24,6 +24,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
+	"github.com/elastic/apm-server/internal/elasticsearch"
 )
 
 func TestMonitoring(t *testing.T) {
@@ -64,11 +65,12 @@ func TestMonitoring(t *testing.T) {
 	}
 	for i := 0; i < 2; i++ {
 		serverParams, runServer, err := wrapServer(beater.ServerParams{
-			Config:         cfg,
-			Logger:         logptest.NewTestingLogger(t, ""),
-			MeterProvider:  mp,
-			BatchProcessor: modelpb.ProcessBatchFunc(func(ctx context.Context, b *modelpb.Batch) error { return nil }),
-			Namespace:      "default",
+			Config:                 cfg,
+			Logger:                 logptest.NewTestingLogger(t, ""),
+			MeterProvider:          mp,
+			BatchProcessor:         modelpb.ProcessBatchFunc(func(ctx context.Context, b *modelpb.Batch) error { return nil }),
+			Namespace:              "default",
+			NewElasticsearchClient: elasticsearch.NewClient,
 		}, runServerFunc)
 		require.NoError(t, err)
 
