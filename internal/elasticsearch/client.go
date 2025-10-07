@@ -117,7 +117,7 @@ func NewClientParams(args ClientParams) (*Client, error) {
 	if _, ok := args.TracerProvider.(noop.TracerProvider); !ok {
 		// only enable tracing with apm agent if a non-noop tracerprovider
 		// has been passed.
-		// TODO replace apmelasticsearch with otel
+		// TODO replace apmelasticsearch with otel (https://github.com/elastic/apm-server/issues/18949)
 		transport = apmelasticsearch.WrapRoundTripper(transport)
 	}
 
