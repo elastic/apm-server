@@ -69,18 +69,12 @@ func New(config Config) (*Pubsub, error) {
 // ctx is canceled, or traceIDs is closed.
 func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceIDs <-chan string) error {
 	appender, err := docappender.New(p.config.Client, docappender.Config{
-<<<<<<< HEAD
-		CompressionLevel:   p.config.CompressionLevel,
-		FlushInterval:      p.config.FlushInterval,
-		DocumentBufferSize: 100, // Reduce memory footprint
-=======
 		CompressionLevel:     p.config.CompressionLevel,
 		FlushInterval:        p.config.FlushInterval,
 		DocumentBufferSize:   100, // Reduce memory footprint
 		IncludeSourceOnError: docappender.False,
 		TracerProvider:       tracenoop.NewTracerProvider(),
 		MeterProvider:        metricnoop.NewMeterProvider(),
->>>>>>> dece0323 (fix: pass noop otel providers to pubsub docappender (#18891))
 		// Disable autoscaling for the TBS sampled traces published documents.
 		Scaling: docappender.ScalingConfig{Disabled: true},
 		Logger:  zap.New(p.config.Logger.Core(), zap.WithCaller(true)),
