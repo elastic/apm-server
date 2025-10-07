@@ -458,21 +458,22 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
 	serverParams := ServerParams{
-		Config:           s.config,
-		Namespace:        s.config.DataStreams.Namespace,
-		Logger:           s.logger,
-		TracerProvider:   s.tracerProvider,
-		MeterProvider:    s.meterProvider,
-		Authenticator:    authenticator,
-		RateLimitStore:   ratelimitStore,
-		BatchProcessor:   batchProcessor,
-		AgentConfig:      agentConfigReporter,
-		SourcemapFetcher: sourcemapFetcher,
-		PublishReady:     publishReady,
-		KibanaClient:     kibanaClient,
-		GRPCServer:       grpcServer,
-		Semaphore:        semaphore.NewWeighted(int64(s.config.MaxConcurrentDecoders)),
-		BeatMonitoring:   s.beatMonitoring,
+		Config:                 s.config,
+		Namespace:              s.config.DataStreams.Namespace,
+		Logger:                 s.logger,
+		TracerProvider:         s.tracerProvider,
+		MeterProvider:          s.meterProvider,
+		Authenticator:          authenticator,
+		RateLimitStore:         ratelimitStore,
+		BatchProcessor:         batchProcessor,
+		AgentConfig:            agentConfigReporter,
+		SourcemapFetcher:       sourcemapFetcher,
+		PublishReady:           publishReady,
+		KibanaClient:           kibanaClient,
+		NewElasticsearchClient: newESClient(tracenoop.NewTracerProvider()),
+		GRPCServer:             grpcServer,
+		Semaphore:              semaphore.NewWeighted(int64(s.config.MaxConcurrentDecoders)),
+		BeatMonitoring:         s.beatMonitoring,
 	}
 	if s.wrapServer != nil {
 		// Wrap the serverParams and runServer function, enabling
