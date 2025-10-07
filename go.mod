@@ -38,11 +38,7 @@ require (
 	go.elastic.co/apm/module/apmotel/v2 v2.7.1
 	go.elastic.co/apm/v2 v2.7.1
 	go.elastic.co/fastjson v1.5.1
-<<<<<<< HEAD
-	go.opentelemetry.io/collector/pdata v1.41.0
-=======
 	go.opentelemetry.io/collector/pdata v1.43.0
->>>>>>> e835022b (build(deps): bump go.opentelemetry.io/collector/pdata from 1.42.0 to 1.43.0 in the otel group (#18982))
 	go.opentelemetry.io/otel v1.38.0
 	go.opentelemetry.io/otel/metric v1.38.0
 	go.opentelemetry.io/otel/sdk v1.38.0
@@ -228,15 +224,9 @@ require (
 	gitlab.com/digitalxero/go-conventional-commit v1.0.7 // indirect
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.7.0 // indirect
-<<<<<<< HEAD
-	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/collector/consumer v1.38.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.41.0 // indirect
-=======
 	go.opentelemetry.io/auto/sdk v1.2.0 // indirect
 	go.opentelemetry.io/collector/consumer v1.41.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.43.0 // indirect
->>>>>>> e835022b (build(deps): bump go.opentelemetry.io/collector/pdata from 1.42.0 to 1.43.0 in the otel group (#18982))
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.41.0 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
