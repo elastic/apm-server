@@ -20,9 +20,22 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 % ### Features and enhancements [elastic-apm-next-features-enhancements]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+% * Do not generate metrics or traces for pubsub bulk requests ([#18891](https://github.com/elastic/integrations/pull/18891))
 
 % ### Fixes [elastic-apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+
+## 9.2.0 [elastic-apm-9.2.0-release-notes]
+
+### Features and enhancements [9-2-0-features-enhancements]
+
+* [Failure store](https://www.elastic.co/docs/manage-data/data-store/data-streams/failure-store) enabled for all new datastreams. This is applied through [elasticsearch#131296](https://github.com/elastic/elasticsearch/pull/131296) and [elasticsearch#131395](https://github.com/elastic/elasticsearch/pull/131395)
+
+## 9.1.5 [elastic-apm-9.1.5-release-notes]
+
+### Fixes [elastic-apm-9.1.0-fixes]
+
+* APM Integration on ECH or ECE uses recommended frozen values for infrastructure related configs. The fix is applied through [kibana#235306](https://github.com/elastic/kibana/pull/235306)
 
 ## 9.1.4 [elastic-apm-9.1.4-release-notes]
 
@@ -50,6 +63,14 @@ To check for security updates, go to [Security announcements for the Elastic sta
 * Use representative count for the `event.success_count` metric if available ([#119995](https://github.com/elastic/elasticsearch/pull/119995))
 * Fix setting `event.dataset` to `data_stream.dataset` if `event.dataset` is empty, to have `event.dataset` in every `logs-*` data stream ([#129074](https://github.com/elastic/elasticsearch/pull/129074))
 * Fix missing trusted root certificate authority in the docker image ([#16928](https://github.com/elastic/apm-server/pull/16928))
+
+## 9.0.8 [elastic-apm-9.0.8-release-notes]
+
+### Fixes [elastic-apm-9.0.8-fixes]
+
+* APM Integration on ECH or ECE uses recommended frozen values for infrastructure related configs. The fix is applied through [kibana#235306](https://github.com/elastic/kibana/pull/235306).
+
+## 9.0.7 [elastic-apm-9.0.7-release-notes]
 
 ## 9.0.6 [elastic-apm-9.0.6-release-notes]
 
