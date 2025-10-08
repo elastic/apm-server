@@ -18,4 +18,4 @@
 package version
 
 // Version holds the APM Server version.
-const Version = "9.1.5"
+const Version = "9.1.6"
