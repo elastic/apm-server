@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.24.4
+go 1.24.7
 
 require (
 	github.com/DataDog/zstd v1.4.4 // indirect
@@ -14,7 +14,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20230226152057-060fa99b809f // indirect
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.17.29-0.20250618161339-bb9ad7633fb9
+	github.com/elastic/beats/v7 v7.17.30-0.20251007164142-601d00f8e800
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-client/v7 v7.8.1 // indirect
 	github.com/elastic/gmux v0.2.0
@@ -62,13 +62,13 @@ require (
 	go.uber.org/atomic v1.10.0
 	go.uber.org/multierr v1.9.0 // indirect
 	go.uber.org/zap v1.24.0
-	golang.org/x/crypto v0.39.0 // indirect
-	golang.org/x/mod v0.25.0 // indirect
-	golang.org/x/net v0.41.0
-	golang.org/x/sync v0.15.0
-	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/crypto v0.42.0 // indirect
+	golang.org/x/mod v0.28.0 // indirect
+	golang.org/x/net v0.44.0
+	golang.org/x/sync v0.17.0
+	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/time v0.5.0
-	golang.org/x/tools v0.34.0
+	golang.org/x/tools v0.37.0
 	google.golang.org/grpc v1.64.1
 	gotest.tools/gotestsum v1.7.0
 	howett.net/plist v1.0.0 // indirect
@@ -196,8 +196,9 @@ require (
 	golang.org/x/exp v0.0.0-20231127185646-65229373498e // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/oauth2 v0.18.0 // indirect
-	golang.org/x/term v0.32.0 // indirect
-	golang.org/x/text v0.26.0 // indirect
+	golang.org/x/telemetry v0.0.0-20250908211612-aef8a434d053 // indirect
+	golang.org/x/term v0.35.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
