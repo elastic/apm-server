@@ -46,11 +46,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.38.0
 	go.uber.org/zap v1.27.0
 	go.uber.org/zap/exp v0.3.0
-<<<<<<< HEAD
-	golang.org/x/net v0.43.0
-=======
 	golang.org/x/net v0.45.0
->>>>>>> ec3f59b4 (build(deps): bump the golang-org-x group with 3 updates (#19014))
 	golang.org/x/sync v0.17.0
 	golang.org/x/term v0.36.0
 	golang.org/x/time v0.14.0
