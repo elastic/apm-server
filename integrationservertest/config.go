@@ -56,7 +56,7 @@ func (cfg upgradeTestConfig) ExpectedLifecycle(version ech.Version) string {
 // LazyRollover checks if the upgrade path is expected to have lazy rollover.
 func (cfg upgradeTestConfig) LazyRollover(from, to ech.Version) bool {
 	for _, e := range cfg.LazyRolloverExceptions {
-		if e.matchVersion(from, to) {
+		if e.matchVersions(from, to) {
 			return false
 		}
 	}
@@ -119,13 +119,13 @@ func parseConfig(reader io.Reader) (upgradeTestConfig, error) {
 }
 
 type lazyRolloverException struct {
-	From lreVersionRange
-	To   lreVersionRange
+	From lreVersion
+	To   lreVersion
 }
 
-func (e lazyRolloverException) matchVersion(from, to ech.Version) bool {
+func (e lazyRolloverException) matchVersions(from, to ech.Version) bool {
 	// Either version not in range.
-	if !e.From.inRange(from) || !e.To.inRange(to) {
+	if !e.From.matchVersion(from) || !e.To.matchVersion(to) {
 		return false
 	}
 	// If both pattern have minor x, check if both version minors are the same.
@@ -135,48 +135,60 @@ func (e lazyRolloverException) matchVersion(from, to ech.Version) bool {
 	return true
 }
 
+type lreVersion struct {
+	Singular *wildcardVersion // Nil if range.
+	Range    *lreVersionRange // Nil if singular version.
+}
+
+func (r lreVersion) matchVersion(version ech.Version) bool {
+	// Range of versions.
+	if r.Range != nil {
+		return r.Range.inRange(version)
+	}
+
+	// Singular version only.
+	if r.Singular.Major != version.Major {
+		return false
+	}
+	// Both wildcards, return true since major is equal.
+	if r.Singular.Minor.isWildcard() && r.Singular.Patch.isWildcard() {
+		return true
+	}
+	// Only patch is wildcard, check minor.
+	if r.Singular.Patch.isWildcard() {
+		return *r.Singular.Minor.Num == version.Minor
+	}
+	// Only minor is wildcard, check patch.
+	return *r.Singular.Patch.Num == version.Patch
+}
+
+func (r lreVersion) isSingularWithMinorX() bool {
+	return r.Singular != nil && r.Singular.Minor.isX()
+}
+
 type lreVersionRange struct {
-	Start          lreVersion
+	Start          ech.Version
 	InclusiveStart bool
-	End            *lreVersion // Nil if there is only one version, i.e. not a range.
+	End            ech.Version
 	InclusiveEnd   bool
 }
 
 func (r lreVersionRange) inRange(version ech.Version) bool {
-	// Range of versions.
-	if r.End != nil {
-		// Ranges will never have wildcards, so we don't need to check those!
-		start := ech.NewVersion(r.Start.Major, *r.Start.Minor.Num, *r.Start.Patch.Num, "")
-		end := ech.NewVersion(r.End.Major, *r.End.Minor.Num, *r.End.Patch.Num, "")
-		cmpStart := start.Compare(version) < 0
-		if r.InclusiveStart {
-			cmpStart = start.Compare(version) <= 0
-		}
-		cmpEnd := end.Compare(version) > 0
-		if r.InclusiveEnd {
-			cmpEnd = end.Compare(version) >= 0
-		}
-		return cmpStart && cmpEnd
+	cmpStart := r.Start.Compare(version) < 0
+	if r.InclusiveStart {
+		cmpStart = r.Start.Compare(version) <= 0
 	}
-
-	// Singular version only.
-	if r.Start.Major != version.Major {
-		return false
+	cmpEnd := r.End.Compare(version) > 0
+	if r.InclusiveEnd {
+		cmpEnd = r.End.Compare(version) >= 0
 	}
-	// Both wildcards, return true since major is equal.
-	if r.Start.Minor.isWildcard() && r.Start.Patch.isWildcard() {
-		return true
-	}
-	// Only patch is wildcard, check minor.
-	if r.Start.Patch.isWildcard() {
-		return *r.Start.Minor.Num == version.Minor
-	}
-	// Only minor is wildcard, check patch.
-	return *r.Start.Patch.Num == version.Patch
+	return cmpStart && cmpEnd
 }
 
-func (r lreVersionRange) isSingularWithMinorX() bool {
-	return r.End == nil && r.Start.Minor.isX()
+type wildcardVersion struct {
+	Major uint64
+	Minor numberOrWildcard
+	Patch numberOrWildcard
 }
 
 type numberOrWildcard struct {
@@ -208,22 +220,12 @@ func parseNumberOrWildcard(s string) (numberOrWildcard, error) {
 	return numberOrWildcard{Num: &num, Str: s}, nil
 }
 
-type lreVersion struct {
-	Major uint64
-	Minor numberOrWildcard
-	Patch numberOrWildcard
-}
-
-func (v lreVersion) hasWildcards() bool {
-	return v.Minor.isWildcard() || v.Patch.isWildcard()
-}
-
 var (
 	lazyRolloverVersionRg      = regexp.MustCompile(`^(\d+).(\d+|\*|x).(\d+|\*)$`)
 	lazyRolloverVersionRangeRg = regexp.MustCompile(`^([\[(])\s*(\d+.\d+.\d+)\s*-\s*(\d+.\d+.\d+)\s*([])])$`)
 )
 
-func parseLazyRolloverExceptionVersionRange(s string) (lreVersionRange, error) {
+func parseLazyRolloverExceptionVersionRange(s string) (lreVersion, error) {
 	// Range of versions.
 	matches := lazyRolloverVersionRangeRg.FindStringSubmatch(s)
 	if len(matches) > 0 {
@@ -231,37 +233,19 @@ func parseLazyRolloverExceptionVersionRange(s string) (lreVersionRange, error) {
 		inclusiveEnd := matches[4] == "]"
 		start, err := ech.NewVersionFromString(matches[2])
 		if err != nil {
-			return lreVersionRange{}, fmt.Errorf("failed to parse '%s' start: %w", s, err)
+			return lreVersion{}, fmt.Errorf("failed to parse '%s' start: %w", s, err)
 		}
 		end, err := ech.NewVersionFromString(matches[3])
 		if err != nil {
-			return lreVersionRange{}, fmt.Errorf("failed to parse '%s' end: %w", s, err)
+			return lreVersion{}, fmt.Errorf("failed to parse '%s' end: %w", s, err)
 		}
-		return lreVersionRange{
-			Start: lreVersion{
-				Major: start.Major,
-				Minor: numberOrWildcard{
-					Num: &start.Minor,
-					Str: strconv.FormatUint(start.Minor, 10),
-				},
-				Patch: numberOrWildcard{
-					Num: &start.Patch,
-					Str: strconv.FormatUint(start.Patch, 10),
-				},
+		return lreVersion{
+			Range: &lreVersionRange{
+				Start:          start,
+				InclusiveStart: inclusiveStart,
+				End:            end,
+				InclusiveEnd:   inclusiveEnd,
 			},
-			InclusiveStart: inclusiveStart,
-			End: &lreVersion{
-				Major: end.Major,
-				Minor: numberOrWildcard{
-					Num: &end.Minor,
-					Str: strconv.FormatUint(end.Minor, 10),
-				},
-				Patch: numberOrWildcard{
-					Num: &end.Patch,
-					Str: strconv.FormatUint(end.Patch, 10),
-				},
-			},
-			InclusiveEnd: inclusiveEnd,
 		}, nil
 	}
 
@@ -270,20 +254,26 @@ func parseLazyRolloverExceptionVersionRange(s string) (lreVersionRange, error) {
 	if len(matches) > 0 {
 		major, err := strconv.ParseUint(matches[1], 10, 64)
 		if err != nil {
-			return lreVersionRange{}, fmt.Errorf("failed to parse '%s' major: %w", s, err)
+			return lreVersion{}, fmt.Errorf("failed to parse '%s' major: %w", s, err)
 		}
 		minor, err := parseNumberOrWildcard(matches[2])
 		if err != nil {
-			return lreVersionRange{}, fmt.Errorf("failed to parse '%s' minor: %w", s, err)
+			return lreVersion{}, fmt.Errorf("failed to parse '%s' minor: %w", s, err)
 		}
 		patch, err := parseNumberOrWildcard(matches[3])
 		if err != nil {
-			return lreVersionRange{}, fmt.Errorf("failed to parse '%s' patch: %w", s, err)
+			return lreVersion{}, fmt.Errorf("failed to parse '%s' patch: %w", s, err)
 		}
-		return lreVersionRange{Start: lreVersion{Major: major, Minor: minor, Patch: patch}}, nil
+		return lreVersion{
+			Singular: &wildcardVersion{
+				Major: major,
+				Minor: minor,
+				Patch: patch,
+			},
+		}, nil
 	}
 
-	return lreVersionRange{}, fmt.Errorf("invalid version pattern '%s'", s)
+	return lreVersion{}, fmt.Errorf("invalid version pattern '%s'", s)
 }
 
 func parseDockerImageOverride(filename string) (map[ech.Version]*dockerImageOverrideConfig, error) {
