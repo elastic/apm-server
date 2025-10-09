@@ -38,7 +38,7 @@ func TestStandaloneManaged_7_17_to_8_x_to_9_x_Snapshot(t *testing.T) {
 		return
 	}
 
-	config, err := parseConfig(upgradeConfigFilename)
+	config, err := parseConfigFile(upgradeConfigFilename)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +82,7 @@ func expectationsFor9x(
 	config upgradeTestConfig,
 ) map[string]asserts.DataStreamExpectation {
 	expect9 := maps.Clone(expect8)
-	if config.HasLazyRollover(version8, version9) {
+	if config.LazyRollover(version8, version9) {
 		for k, v := range expect9 {
 			expect9[k] = asserts.DataStreamExpectation{
 				PreferIlm:        v.PreferIlm,
