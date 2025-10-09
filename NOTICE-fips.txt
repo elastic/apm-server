@@ -5662,19 +5662,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-<<<<<<< HEAD
-Version: v0.43.0
-Licence type (autodetected): BSD-3-Clause
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.43.0/LICENSE:
-=======
 Version: v0.45.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.45.0/LICENSE:
->>>>>>> ec3f59b4 (build(deps): bump the golang-org-x group with 3 updates (#19014))
 
 Copyright 2009 The Go Authors.
 
@@ -14768,11 +14760,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/text
-Version: v0.28.0
+Version: v0.29.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/text@v0.28.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/text@v0.29.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
