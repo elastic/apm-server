@@ -55,10 +55,14 @@ Run the `run-patch-release` with any `8.19.x` version.
 ## Day after Feature Freeze
 
 * Trigger release workflow manually
-  * For **patch releases**: run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the **upcoming** patch release version - es: on `8.14.2` feature freeze you will use `8.14.2`).
+  * For **patch releases**: run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow. In "Use workflow from", specify the following values:
+       * Branch: Select the relevant `8.x` branch - e.g: `8.14` for `8.14.x` patch releases.
+       * Version: Specify the **upcoming** patch release version - e.g: on `8.14.2` feature freeze you will use `8.14.2`.
+   
     This workflow will: create the `update-<VERSION>` branch, update version constants across the codebase and create a PR targeting the release branch.
+    
     Release notes for patch releases **must be manually added** at least one day before release.
-    Create a PR targeting the `main` branch and add the backport label for the release branch.
+    Create a PR targeting the relevant `8.x` branch.
     To add release notes:
     * Add a new section to the existing release notes file ([Sample PR](https://github.com/elastic/apm-server/pull/12680)).
     * Review the [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) file and move relevant changelog entries from `head.asciidoc` to `release_version.asciidoc` if the change is backported to release_version. If changes do not apply to the version being released, keep them in the `head.asciidoc` file.

@@ -232,7 +232,7 @@ create-github-label:
 create-pull-request: BRANCH=$${BRANCH} TITLE=$${TITLE} TARGET_BRANCH=$${TARGET_BRANCH} BODY=$${BODY} BACKPORT_LABEL=$${BACKPORT_LABEL}
 
 create-pull-request:
-	@echo "::group::create-pull-request"
+	@echo "::group::create-pull-request $(BRANCH) -> $(TARGET_BRANCH)"
 	git push origin $(BRANCH)
 	echo "--label $(BACKPORT_LABEL)"
 	gh pr create \

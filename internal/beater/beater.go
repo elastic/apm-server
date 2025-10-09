@@ -330,21 +330,25 @@ func (s *Runner) Run(ctx context.Context) error {
 		return err
 	}
 	defer esoutput.DeregisterConnectCallback(callbackUUID)
-	newElasticsearchClient := func(cfg *elasticsearch.Config, logger *logp.Logger) (*elasticsearch.Client, error) {
-		httpTransport, err := elasticsearch.NewHTTPTransport(cfg, logger)
-		if err != nil {
-			return nil, err
+	newESClient := func(tp trace.TracerProvider) func(cfg *elasticsearch.Config, logger *logp.Logger) (*elasticsearch.Client, error) {
+		return func(cfg *elasticsearch.Config, logger *logp.Logger) (*elasticsearch.Client, error) {
+			httpTransport, err := elasticsearch.NewHTTPTransport(cfg, logger)
+			if err != nil {
+				return nil, err
+			}
+			transport := &waitReadyRoundTripper{Transport: httpTransport, ready: publishReady, drain: drain}
+			return elasticsearch.NewClientParams(elasticsearch.ClientParams{
+				Config:    cfg,
+				Transport: transport,
+				RetryOnError: func(_ *http.Request, err error) bool {
+					return !errors.Is(err, errServerShuttingDown)
+				},
+				Logger:         logger,
+				TracerProvider: tp,
+			})
 		}
-		transport := &waitReadyRoundTripper{Transport: httpTransport, ready: publishReady, drain: drain}
-		return elasticsearch.NewClientParams(elasticsearch.ClientParams{
-			Config:    cfg,
-			Transport: transport,
-			RetryOnError: func(_ *http.Request, err error) bool {
-				return !errors.Is(err, errServerShuttingDown)
-			},
-			Logger: logger,
-		})
 	}
+	newElasticsearchClient := newESClient(s.tracerProvider)
 
 	var sourcemapFetcher sourcemap.Fetcher
 	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
@@ -466,7 +470,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		SourcemapFetcher:       sourcemapFetcher,
 		PublishReady:           publishReady,
 		KibanaClient:           kibanaClient,
-		NewElasticsearchClient: newElasticsearchClient,
+		NewElasticsearchClient: newESClient(tracenoop.NewTracerProvider()),
 		GRPCServer:             grpcServer,
 		Semaphore:              semaphore.NewWeighted(int64(s.config.MaxConcurrentDecoders)),
 		BeatMonitoring:         s.beatMonitoring,
@@ -519,7 +523,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	if tracerServerListener != nil {
 		// use a batch processor without tracing to prevent the tracing processor from sending traces to itself
 		finalTracerBatchProcessor, closeTracerFinalBatchProcessor, err := s.newFinalBatchProcessor(
-			tracer, newElasticsearchClient, memLimitGB, s.logger, tracenoop.NewTracerProvider(), metricnoop.NewMeterProvider(),
+			tracer, newESClient(tracenoop.NewTracerProvider()), memLimitGB, s.logger, tracenoop.NewTracerProvider(), metricnoop.NewMeterProvider(),
 		)
 		if err != nil {
 			return err
