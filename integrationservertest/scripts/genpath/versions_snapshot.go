@@ -20,8 +20,10 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -109,6 +111,10 @@ func getTestSnapshotVersions(ctx context.Context, vsCache *ech.VersionsCache) (e
 	for _, v := range activeVersions {
 		snapshot, err := vsCache.GetLatestSnapshot(v)
 		if err != nil {
+			if errors.Is(err, ech.ErrVersionNotFoundInEC) {
+				log.Printf("skipping snapshot '%s' since it is not found\n", v)
+				continue
+			}
 			return nil, fmt.Errorf("failed to get latest snapshot: %w", err)
 		}
 		snapshots = append(snapshots, snapshot)
