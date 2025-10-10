@@ -52,7 +52,7 @@ resource "google_compute_firewall" "allow_ssh" {
 
 data "google_compute_image" "worker_image" {
   project = "ubuntu-os-cloud"
-  family  = "ubuntu-minimal-2004-lts"
+  family  = "ubuntu-minimal-2404-lts-amd64"
 }
 
 resource "google_compute_instance" "worker" {
