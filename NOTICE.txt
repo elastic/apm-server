@@ -2224,13 +2224,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/gofrs/flock
-Version: v0.12.1
+Version: v0.13.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/gofrs/flock@v0.12.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/gofrs/flock@v0.13.0/LICENSE:
 
-Copyright (c) 2018-2024, The Gofrs
+Copyright (c) 2018-2025, The Gofrs
 Copyright (c) 2015-2020, Tim Heckman
 All rights reserved.
 
@@ -2262,11 +2262,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/gofrs/uuid/v5
-Version: v5.3.0
+Version: v5.3.2
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/gofrs/uuid/v5@v5.3.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/gofrs/uuid/v5@v5.3.2/LICENSE:
 
 Copyright (C) 2013-2018 by Maxim Bublis <b@codemonkey.ru>
 
