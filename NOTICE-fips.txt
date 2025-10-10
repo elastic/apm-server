@@ -14686,11 +14686,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/exp
-Version: v0.0.0-20250106191152-7588d65b2ba8
+Version: v0.0.0-20250811191247-51f88131bc50
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/exp@v0.0.0-20250106191152-7588d65b2ba8/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/exp@v0.0.0-20250811191247-51f88131bc50/LICENSE:
 
 Copyright 2009 The Go Authors.
 
