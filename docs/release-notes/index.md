@@ -27,6 +27,10 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ## 9.2.0 [elastic-apm-9.2.0-release-notes]
 
+```{applies_to}
+stack: ga 9.2
+```
+
 ### Features and enhancements [9-2-0-features-enhancements]
 
 * [Failure store](https://www.elastic.co/docs/manage-data/data-store/data-streams/failure-store) enabled for all new datastreams. This is applied through [elasticsearch#131296](https://github.com/elastic/elasticsearch/pull/131296) and [elasticsearch#131395](https://github.com/elastic/elasticsearch/pull/131395)
@@ -39,9 +43,15 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ## 9.1.4 [elastic-apm-9.1.4-release-notes]
 
+_No new features, enhancements, or fixes._
+
 ## 9.1.3 [elastic-apm-9.1.3-release-notes]
 
+_No new features, enhancements, or fixes._
+
 ## 9.1.2 [elastic-apm-9.1.2-release-notes]
+
+_No new features, enhancements, or fixes._
 
 ## 9.1.1 [elastic-apm-9.1.1-release-notes]
 
@@ -72,9 +82,15 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ## 9.0.7 [elastic-apm-9.0.7-release-notes]
 
+_No new features, enhancements, or fixes._
+
 ## 9.0.6 [elastic-apm-9.0.6-release-notes]
 
+_No new features, enhancements, or fixes._
+
 ## 9.0.5 [elastic-apm-9.0.5-release-notes]
+
+_No new features, enhancements, or fixes._
 
 ## 9.0.4 [elastic-apm-9.0.4-release-notes]
 
