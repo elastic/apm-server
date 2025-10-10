@@ -19,8 +19,13 @@ require (
 	github.com/elastic/go-sysinfo v1.15.4
 	github.com/elastic/go-ucfg v0.8.8
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
+<<<<<<< HEAD
 	github.com/gofrs/flock v0.12.1
 	github.com/gofrs/uuid/v5 v5.3.0
+=======
+	github.com/gofrs/flock v0.13.0
+	github.com/gofrs/uuid/v5 v5.3.2
+>>>>>>> a5df212f (build(deps): bump github.com/gofrs/flock from 0.12.1 to 0.13.0 (#19069))
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.7.0
 	github.com/gorilla/mux v1.8.1
