@@ -410,8 +410,8 @@ func (sm *StorageManager) RotatePartitions() error {
 	return errors.Join(
 		wrapNonNilErr("event db delete range error: %w", sm.eventDB.DeleteRange(lb, ub, pebble.NoSync)),
 		wrapNonNilErr("decision db delete range error: %w", sm.decisionDB.DeleteRange(lb, ub, pebble.NoSync)),
-		wrapNonNilErr("event db compact error: %w", sm.eventDB.Compact(lb, ub, false)),
-		wrapNonNilErr("decision db compact error: %w", sm.decisionDB.Compact(lb, ub, false)),
+		wrapNonNilErr("event db compact error: %w", sm.eventDB.Compact(context.Background(), lb, ub, false)),
+		wrapNonNilErr("decision db compact error: %w", sm.decisionDB.Compact(context.Background(), lb, ub, false)),
 	)
 }
 
