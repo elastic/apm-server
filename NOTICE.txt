@@ -455,11 +455,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.19.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20251009110947-415d74d69ae5
+Version: v7.0.0-alpha2.0.20251010140453-98d1d4810b1c
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20251009110947-415d74d69ae5/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20251010140453-98d1d4810b1c/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -2435,13 +2435,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/gofrs/flock
-Version: v0.12.1
+Version: v0.13.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/gofrs/flock@v0.12.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/gofrs/flock@v0.13.0/LICENSE:
 
-Copyright (c) 2018-2024, The Gofrs
+Copyright (c) 2018-2025, The Gofrs
 Copyright (c) 2015-2020, Tim Heckman
 All rights reserved.
 
@@ -5170,11 +5170,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.45.0
+Version: v0.46.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.45.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.46.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -16279,11 +16279,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-Version: v0.42.0
+Version: v0.43.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.42.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.43.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -16390,11 +16390,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/text
-Version: v0.29.0
+Version: v0.30.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/text@v0.29.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/text@v0.30.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
