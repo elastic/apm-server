@@ -102,12 +102,12 @@ func parseConfig(reader io.Reader) (upgradeTestConfig, error) {
 		from, err := parseLazyRolloverExceptionVersionRange(e.From)
 		if err != nil {
 			return upgradeTestConfig{}, fmt.Errorf(
-				"failed to parse lazy-rollover-exception version '%s': %w", e.From, err)
+				"failed to parse lazy-rollover-exception from version '%s': %w", e.From, err)
 		}
 		to, err := parseLazyRolloverExceptionVersionRange(e.To)
 		if err != nil {
 			return upgradeTestConfig{}, fmt.Errorf(
-				"failed to parse lazy-rollover-exception version '%s': %w", e.From, err)
+				"failed to parse lazy-rollover-exception to version '%s': %w", e.To, err)
 		}
 		config.LazyRolloverExceptions = append(config.LazyRolloverExceptions, lazyRolloverException{
 			From: from,
