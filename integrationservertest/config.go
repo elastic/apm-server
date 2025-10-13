@@ -99,20 +99,11 @@ func parseConfig(reader io.Reader) (upgradeTestConfig, error) {
 	}
 
 	for _, e := range configYAML.LazyRolloverExceptions {
-		from, err := parseLazyRolloverExceptionVersionRange(e.From)
+		lre, err := parseLazyRolloverException(e.From, e.To)
 		if err != nil {
-			return upgradeTestConfig{}, fmt.Errorf(
-				"failed to parse lazy-rollover-exception from version '%s': %w", e.From, err)
+			return upgradeTestConfig{}, fmt.Errorf("failed to parse lazy-rollover exception: %w", err)
 		}
-		to, err := parseLazyRolloverExceptionVersionRange(e.To)
-		if err != nil {
-			return upgradeTestConfig{}, fmt.Errorf(
-				"failed to parse lazy-rollover-exception to version '%s': %w", e.To, err)
-		}
-		config.LazyRolloverExceptions = append(config.LazyRolloverExceptions, lazyRolloverException{
-			From: from,
-			To:   to,
-		})
+		config.LazyRolloverExceptions = append(config.LazyRolloverExceptions, lre)
 	}
 
 	return config, nil
@@ -218,6 +209,30 @@ func parseNumberOrWildcard(s string) (numberOrWildcard, error) {
 		return numberOrWildcard{}, err
 	}
 	return numberOrWildcard{Num: &num, Str: s}, nil
+}
+
+func parseLazyRolloverException(fromStr, toStr string) (lazyRolloverException, error) {
+	from, err := parseLazyRolloverExceptionVersionRange(fromStr)
+	if err != nil {
+		return lazyRolloverException{}, fmt.Errorf(
+			"failed to parse from version '%s': %w", fromStr, err)
+	}
+	to, err := parseLazyRolloverExceptionVersionRange(toStr)
+	if err != nil {
+		return lazyRolloverException{}, fmt.Errorf(
+			"failed to parse to version '%s': %w", toStr, err)
+	}
+	// Check that if one version have x wildcard, the other should also have it.
+	if (from.isSingularWithMinorX() && !to.isSingularWithMinorX()) ||
+		(!from.isSingularWithMinorX() && to.isSingularWithMinorX()) {
+		return lazyRolloverException{}, fmt.Errorf(
+			"both versions ('%s', '%s') should have special wildcard or none at all", fromStr, toStr)
+	}
+
+	return lazyRolloverException{
+		From: from,
+		To:   to,
+	}, nil
 }
 
 var (

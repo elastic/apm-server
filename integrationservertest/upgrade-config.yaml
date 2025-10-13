@@ -31,10 +31,9 @@ data-stream-lifecycle:
 # ```
 #
 # Both major and patch positions are not given the special wildcard (x) because
-# it is unlikely to be useful in our use cases. If due to some mistake, the
-# special wildcard (x) is used only in one of the strings, it is treated as a
-# normal wildcard (*), so the following example would be effectively the same
-# as 9.*.*.
+# it is unlikely to be useful in our use cases. The special wildcard (x) must
+# either appear in both from and to versions, or none at all. The following
+# example will be considered invalid.
 # ```
 #  - from: "9.x.*"
 #    to:   "9.1.2"
