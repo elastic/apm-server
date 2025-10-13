@@ -18,22 +18,12 @@
 package integrationservertest
 
 import (
-	"errors"
-	"fmt"
-	"os"
 	"slices"
 	"strings"
 	"testing"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/elastic/apm-server/integrationservertest/internal/asserts"
 	"github.com/elastic/apm-server/integrationservertest/internal/ech"
-)
-
-const (
-	upgradeConfigFilename       = "upgrade-config.yaml"
-	dockerImageOverrideFilename = "docker-image-override.yaml"
 )
 
 func formatUpgradePath(p string) string {
@@ -68,19 +58,14 @@ func TestUpgrade(t *testing.T) {
 		versions = append(versions, version)
 	}
 
-	config, err := parseConfig(upgradeConfigFilename)
+	config, err := parseConfigFile(upgradeConfigFilename)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	dockerImgOverride, err := parseDockerImageOverride(dockerImageOverrideFilename)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			// File does not exist, do nothing.
-			dockerImgOverride = map[ech.Version]*dockerImageOverrideConfig{}
-		} else {
-			t.Fatal(err)
-		}
+		t.Fatal(err)
 	}
 
 	t.Run(formatUpgradePath(*upgradePath), func(t *testing.T) {
@@ -141,7 +126,7 @@ func buildTestSteps(
 		// Upgrade deployment to new version and ingest.
 		prev := versions[i-1]
 		oldIndicesManagedBy := slices.Clone(indicesManagedBy)
-		if config.HasLazyRollover(prev, ver) {
+		if config.LazyRollover(prev, ver) {
 			indicesManagedBy = append(indicesManagedBy, lifecycle)
 		}
 		steps = append(steps,
@@ -202,77 +187,4 @@ func dataStreamsExpectations(expect asserts.DataStreamExpectation) map[string]as
 		"metrics-apm.service_summary.1m-%s":     expect,
 		"metrics-apm.transaction.1m-%s":         expect,
 	}
-}
-
-type upgradeTest struct {
-	Versions []string `yaml:"versions"`
-}
-
-type upgradeTestConfig struct {
-	UpgradeTests               map[string]upgradeTest `yaml:"upgrade-tests"`
-	DataStreamLifecycle        map[string]string      `yaml:"data-stream-lifecycle"`
-	LazyRolloverWithExceptions map[string][]string    `yaml:"lazy-rollover-with-exceptions"`
-}
-
-// ExpectedLifecycle returns the lifecycle management that is expected of the provided version.
-func (cfg upgradeTestConfig) ExpectedLifecycle(version ech.Version) string {
-	lifecycle, ok := cfg.DataStreamLifecycle[version.MajorMinor()]
-	if !ok {
-		return managedByILM
-	}
-	if strings.EqualFold(lifecycle, "DSL") {
-		return managedByDSL
-	}
-	return managedByILM
-}
-
-// HasLazyRollover checks if the upgrade path is expected to have lazy rollover.
-func (cfg upgradeTestConfig) HasLazyRollover(from, to ech.Version) bool {
-	exceptions, ok := cfg.LazyRolloverWithExceptions[to.MajorMinor()]
-	if !ok {
-		return false
-	}
-	for _, exception := range exceptions {
-		if strings.EqualFold(from.MajorMinor(), exception) {
-			return false
-		}
-	}
-	return true
-}
-
-func parseConfig(filename string) (upgradeTestConfig, error) {
-	b, err := os.ReadFile(filename)
-	if err != nil {
-		return upgradeTestConfig{}, fmt.Errorf("failed to read %s: %w", filename, err)
-	}
-
-	config := upgradeTestConfig{}
-	if err = yaml.Unmarshal(b, &config); err != nil {
-		return upgradeTestConfig{}, fmt.Errorf("failed to unmarshal upgrade test config: %w", err)
-	}
-
-	return config, nil
-}
-
-func parseDockerImageOverride(filename string) (map[ech.Version]*dockerImageOverrideConfig, error) {
-	b, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read %s: %w", filename, err)
-	}
-
-	config := map[string]*dockerImageOverrideConfig{}
-	if err = yaml.Unmarshal(b, &config); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal docker image override config: %w", err)
-	}
-
-	result := map[ech.Version]*dockerImageOverrideConfig{}
-	for k, v := range config {
-		version, err := ech.NewVersionFromString(k)
-		if err != nil {
-			return nil, fmt.Errorf("invalid version in docker image override config: %w", err)
-		}
-		result[version] = v
-	}
-
-	return result, nil
 }

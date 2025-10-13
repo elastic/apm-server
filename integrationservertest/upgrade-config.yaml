@@ -1,19 +1,78 @@
-# Define the expected data stream lifecycle of the minor version.
+# The expected data stream lifecycle of the minor version.
 # If not defined, defaults to ILM.
 data-stream-lifecycle:
   8.15: DSL
   8.16: DSL
 
-# Define versions that have lazy rollover, i.e. when upgrading from some older
-# version to the specified minor version, there will be lazy rollover.
-# Exceptions are specified as a list, i.e. no lazy rollover if upgrade is from
-# that minor version.
-lazy-rollover-with-exceptions:
-  8.16:
-  8.17:
-  8.18:
-    - "8.17"
-  8.19:
-  9.0:
-  9.1:
-  9.2:
+# Lazy rollover is by default expected for every single upgrade (be it between
+# majors, minors or patches). This configuration lists down the exceptions to
+# this expectation, in the form of from-version and to-version. During the
+# upgrade tests, when the upgrade e.g. 8.19.4 -> 9.0.1, matches with any of the
+# defined version pairs, there will be no lazy rollover expected in that upgrade.
+#
+#
+# There are 2 ways of defining the exception version:
+#
+#
+#  1. Using singular version with wildcards:
+#      - Match specific patch version               : <MAJOR>.<MINOR>.<PATCH>
+#      - Match any versions in minor                : <MAJOR>.<MINOR>.*
+#      - Match any versions in major                : <MAJOR>.*.*
+#      - Match any versions in major (special rule) : <MAJOR>.x.*
+#
+# Note that the minor position is given a special wildcard character (x).
+# This is because of a special rule when the pattern is used in both from and
+# to. For example, the following uses x in both from and to, and is used to
+# indicate that there is no lazy rollover from any 9.* patch to any other
+# 9.* patch iff the minor is the same.
+# ```
+#  - from: "9.x.*"
+#    to:   "9.x.*"
+# ```
+#
+# Both major and patch positions are not given the special wildcard (x) because
+# it is unlikely to be useful in our use cases. The special wildcard (x) must
+# either appear in both from and to versions, or none at all. The following
+# example will be considered invalid.
+# ```
+#  - from: "9.x.*"
+#    to:   "9.1.2"
+# ```
+#
+#
+#  2. Using ranges:
+#      - Square brackets for inclusive           e.g. [<VERSION_A> - <VERSION_B>]
+#      - Round brackets for exclusive            e.g. (<VERSION_A> - <VERSION_B>)
+#
+# When using ranges, the versions defined in the range cannot contain any
+# wildcards (*, x) and must be a full valid version with major, minor, patch.
+# The brackets can be mixed to have inclusive start, exclusive end i.e. [A-B)
+# or vice versa i.e. (A-B]. Here is an example:
+# ```
+#  - from: "(1.2.2 - 4.5.6]"
+#    to:   "[2.0.0 - 3.0.0)"
+# ```
+#
+# Based on the example above, if the upgrade test from-version is in range
+# e.g. 3.4.5 and to-version is also in range e.g. 2.6.7, the upgrade will be
+# expected to not have lazy rollover.
+lazy-rollover-exceptions:
+  # No lazy rollover from any 8.17 patch between [8.17.0, 8.17.7] to any other 8.17 patch between.
+  # This means that upgrading from e.g. 8.17.2 to 8.17.8 is expected to have rollover.
+  - from: "[8.17.0 - 8.17.7]"
+    to:   "[8.17.0 - 8.17.7]"
+  # No lazy rollover from any 8.17 patch after 8.17.8 to any other 8.17 patch after 8.17.8.
+  - from: "[8.17.8 - 8.18.0)"
+    to:   "[8.17.8 - 8.18.0)"
+  # No lazy rollover from any 8.18 patch to any other 8.18 patch.
+  - from: "8.18.*"
+    to:   "8.18.*"
+  # No lazy rollover from any 8.19 patch to any other 8.19 patch.
+  - from: "8.19.*"
+    to:   "8.19.*"
+  # No lazy rollover from any 9.* patch to any other 9.* patch iff minor is the same.
+  - from: "9.x.*"
+    to:   "9.x.*"
+  # No lazy rollover from any 9.2 patch to any other 9.3 patch.
+  - from: "9.2.*"
+    to:   "9.3.*"
