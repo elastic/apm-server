@@ -106,33 +106,8 @@ and stability issues that occur over an extended period. `apmsoak` command can b
 sustained and continuous load for the purpose of soak testing:
 
 ```console
-$ cd systemtest/cmd/apmsoak
-$ go run main.go -h
-Usage of /var/folders/k9/z1yw8fsn0sjbl5yy7z2rsdpr0000gn/T/go-build4164012609/b001/exe/main:
-  -agents-replicas int
-    	Number of agents replicas to use, each replica launches 4 agents, one for each type (default 1)
-  -event-rate value
-    	Event rate in format of {burst}/{interval}, 0/s evaluates to Inf (default 0/s)
-  -secret-token string
-    	secret token for APM Server
-  -secure
-    	validate the remote server TLS certificates
-  -server value
-	apm-server URL (default http://127.0.0.1:8200)
+$ go run  github.com/elastic/apm-perf/cmd/apmsoak run -h
 ```
-
-### Launching apmsoak on GCP
-
-Worker with `apmsoak` installed for generating load can be created on GCP using the `soaktest_workers`
-terraform module. The terraform module can be run as follows:
-
-```
-$ cd testing/apmsoak/
-$ make apply
-```
-
-Above command starts the apmsoak process as a systemd unit configured to send load at the specified rate.
-The module also installs `elastic-agent` to monitor the worker.
 
 ## Smoke testing
 

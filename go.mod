@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.25.1
+go 1.25.2
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.4
@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.4.0
 	github.com/elastic/apm-data v1.19.5
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251009110947-415d74d69ae5
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251010140453-98d1d4810b1c
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
 	github.com/elastic/elastic-agent-libs v0.24.1
 	github.com/elastic/elastic-agent-system-metrics v0.13.2
@@ -20,7 +20,7 @@ require (
 	github.com/elastic/go-sysinfo v1.15.4
 	github.com/elastic/go-ucfg v0.8.8
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
-	github.com/gofrs/flock v0.12.1
+	github.com/gofrs/flock v0.13.0
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.7.0
