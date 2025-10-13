@@ -223,8 +223,7 @@ func parseLazyRolloverException(fromStr, toStr string) (lazyRolloverException, e
 			"failed to parse to version '%s': %w", toStr, err)
 	}
 	// Check that if one version have x wildcard, the other should also have it.
-	if (from.isSingularWithMinorX() && !to.isSingularWithMinorX()) ||
-		(!from.isSingularWithMinorX() && to.isSingularWithMinorX()) {
+	if from.isSingularWithMinorX() != to.isSingularWithMinorX() {
 		return lazyRolloverException{}, fmt.Errorf(
 			"both versions ('%s', '%s') should have special wildcard or none at all", fromStr, toStr)
 	}
