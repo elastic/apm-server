@@ -61,12 +61,9 @@ lazy-rollover-exceptions:
   # This means that upgrading from e.g. 8.17.2 to 8.17.8 is expected to have rollover.
   - from: "[8.17.0 - 8.17.7]"
     to:   "[8.17.0 - 8.17.7]"
-  # No lazy rollover from any 8.17 patch after 8.17.8 to any other 8.17 patch after 8.17.8.
-  - from: "[8.17.8 - 8.18.0)"
-    to:   "[8.17.8 - 8.18.0)"
-  # No lazy rollover from any 8.18 patch to any other 8.18 patch.
-  - from: "8.18.*"
-    to:   "8.18.*"
+  # No lazy rollover from any 8.* patch between [8.17.8 - 8.19.0) to any other 8.* patch between.
+  - from: "[8.17.8 - 8.19.0)"
+    to:   "[8.17.8 - 8.19.0)"
   # No lazy rollover from any 8.19 patch to any other 8.19 patch.
   - from: "8.19.*"
     to:   "8.19.*"
