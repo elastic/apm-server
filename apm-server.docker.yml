@@ -337,7 +337,7 @@ output.elasticsearch:
   #enabled: true
 
   # Set gzip compression level.
-  #compression_level: 0
+  #compression_level: 5
 
   # Protocol - either `http` (default) or `https`.
   #protocol: "https"
@@ -377,6 +377,7 @@ output.elasticsearch:
   #timeout: 90
 
   # The bulk request size threshold, in bytes, before flushing to Elasticsearch.
+  # If compression is enabled, this is compressed bytes.
   # The value must have a suffix, e.g. `"2MB"`. The default is `1MB`.
   #flush_bytes: 1MB
 
