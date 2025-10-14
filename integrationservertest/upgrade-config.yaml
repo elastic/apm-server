@@ -59,9 +59,15 @@ data-stream-lifecycle:
 lazy-rollover-exceptions:
   # No lazy rollover from any 8.17 patch between [8.17.0, 8.17.7] to any other 8.17 patch between.
   # This means that upgrading from e.g. 8.17.2 to 8.17.8 is expected to have rollover.
+  # Note: 8.17.7 have apm-data version 12, while 8.17.8 have apm-data version 13.
+  # See 8.17.7: https://github.com/elastic/elasticsearch/blob/v8.17.7/x-pack/plugin/apm-data/src/main/resources/resources.yaml.
+  # See 8.17.8: https://github.com/elastic/elasticsearch/blob/v8.17.8/x-pack/plugin/apm-data/src/main/resources/resources.yaml.
   - from: "[8.17.0 - 8.17.7]"
     to:   "[8.17.0 - 8.17.7]"
   # No lazy rollover from any 8.* patch between [8.17.8 - 8.19.0) to any other 8.* patch between.
+  # Note: 8.17.8 onwards till latest 8.18 have same apm-data version 13.
+  # See 8.17: https://github.com/elastic/elasticsearch/blob/8.17/x-pack/plugin/apm-data/src/main/resources/resources.yaml
+  # See 8.18: https://github.com/elastic/elasticsearch/blob/8.18/x-pack/plugin/apm-data/src/main/resources/resources.yaml
   - from: "[8.17.8 - 8.19.0)"
     to:   "[8.17.8 - 8.19.0)"
   # No lazy rollover from any 8.19 patch to any other 8.19 patch.
