@@ -108,12 +108,8 @@ apm-server:
 
     # Optional configuration options for ssl communication.
 
-    # Passphrase for decrypting the Certificate Key.
-    # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
-    #key_passphrase: ''
-
-    # List of supported/valid protocol versions. By default TLS versions 1.1 up to 1.3 are enabled.
-    #supported_protocols: [TLSv1.1, TLSv1.2, TLSv1.3]
+    # List of supported/valid protocol versions. By default TLS versions 1.2 up to 1.3 are enabled.
+    #supported_protocols: [TLSv1.2, TLSv1.3]
 
     # Configure cipher suites to be used for SSL connections.
     # Note that cipher suites are not configurable for TLS 1.3.
@@ -261,9 +257,9 @@ apm-server:
     # production environments is strongly discouraged.
     #ssl.verification_mode: full
 
-    # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
-    # 1.2 are enabled.
-    #ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+    # List of supported/valid TLS versions. By default all TLS versions 1.2 up to
+    # 1.3 are enabled.
+    #ssl.supported_protocols: [TLSv1.2, TLSv1.3]
 
     # List of root certificates for HTTPS server verifications.
     #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
@@ -273,10 +269,6 @@ apm-server:
 
     # Client Certificate Key
     #ssl.key: "/etc/pki/client/cert.key"
-
-    # Optional passphrase for decrypting the Certificate Key.
-    # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
-    #ssl.key_passphrase: ''
 
     # Configure cipher suites to be used for SSL connections.
     #ssl.cipher_suites: []
@@ -292,6 +284,15 @@ apm-server:
 
     # Synchronization interval for multiple APM Servers. Should be in the order of tens of seconds or low minutes.
     #interval: 1m
+
+    # TTL determines how long trace events are retained in the local storage while waiting for a sampling decision to be made.
+    # A greater TTL value increases storage space requirements. Should be at least 2 * interval.
+    #ttl: 30m
+
+    # Defines the indexing behavior when trace events fail to be written to storage (e.g. when the storage limit is reached).
+    # When set to `false`, traces will bypass sampling and always be indexed, significantly increasing the indexing load.
+    # When set to `true`, traces will be discarded, there will be data loss potentially resulting in broken traces. The default is `false`.
+    #discard_on_write_failure: false
 
     # Criteria used to match a root transaction to a sample rate.
     #policies: []
@@ -398,9 +399,9 @@ output.elasticsearch:
   # production environments is strongly discouraged.
   #ssl.verification_mode: full
 
-  # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
-  # 1.2 are enabled.
-  #ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+  # List of supported/valid TLS versions. By default all TLS versions 1.2 up to
+  # 1.3 are enabled.
+  #ssl.supported_protocols: [TLSv1.2, TLSv1.3]
 
   # List of root certificates for HTTPS server verifications.
   #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
@@ -410,10 +411,6 @@ output.elasticsearch:
 
   # Client Certificate Key
   #ssl.key: "/etc/pki/client/cert.key"
-
-  # Optional passphrase for decrypting the Certificate Key.
-  # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
-  #ssl.key_passphrase: ''
 
   # Configure cipher suites to be used for SSL connections.
   #ssl.cipher_suites: []
@@ -518,9 +515,9 @@ output.elasticsearch:
   # production environments is strongly discouraged.
   #ssl.verification_mode: full
 
-  # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
-  # 1.2 are enabled.
-  #ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+  # List of supported/valid TLS versions. By default all TLS versions 1.2 up to
+  # 1.3 are enabled.
+  #ssl.supported_protocols: [TLSv1.2, TLSv1.3]
 
   # List of root certificates for HTTPS server verifications.
   #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
@@ -530,10 +527,6 @@ output.elasticsearch:
 
   # Client Certificate Key
   #ssl.key: "/etc/pki/client/cert.key"
-
-  # Optional passphrase for decrypting the Certificate Key.
-  # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
-  #ssl.key_passphrase: ''
 
   # Configure cipher suites to be used for SSL connections.
   #ssl.cipher_suites: []
@@ -677,9 +670,9 @@ output.elasticsearch:
   # production environments is strongly discouraged.
   #ssl.verification_mode: full
 
-  # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
-  # 1.2 are enabled.
-  #ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+  # List of supported/valid TLS versions. By default all TLS versions 1.2 up to
+  # 1.3 are enabled.
+  #ssl.supported_protocols: [TLSv1.2, TLSv1.3]
 
   # List of root certificates for HTTPS server verifications.
   #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
@@ -690,10 +683,6 @@ output.elasticsearch:
   # Client Certificate Key
   #ssl.key: "/etc/pki/client/cert.key"
 
-  # Optional passphrase for decrypting the Certificate Key.
-  # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
-  #ssl.key_passphrase: ''
-
   # Configure cipher suites to be used for SSL connections.
   #ssl.cipher_suites: []
 
@@ -703,27 +692,6 @@ output.elasticsearch:
   # Configure what types of renegotiation are supported. Valid options are
   # never, once, and freely. Default is never.
   #ssl.renegotiation: never
-
-  # Authentication type to use with Kerberos. Available options: keytab, password.
-  #kerberos.auth_type: password
-
-  # Path to the keytab file. It is used when auth_type is set to keytab.
-  #kerberos.keytab: /etc/krb5kdc/kafka.keytab
-
-  # Path to the Kerberos configuration.
-  #kerberos.config_path: /etc/path/config
-
-  # The service principal name.
-  #kerberos.service_name: HTTP/my-service@realm
-
-  # Name of the Kerberos user. It is used when auth_type is set to password.
-  #kerberos.username: elastic
-
-  # Password of the Kerberos user. It is used when auth_type is set to password.
-  #kerberos.password: changeme
-
-  # Kerberos realm.
-  #kerberos.realm: ELASTIC
 
 #============================= Instrumentation =============================
 
@@ -925,9 +893,9 @@ output.elasticsearch:
   # production environments is strongly discouraged.
   #ssl.verification_mode: full
 
-  # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
-  # 1.2 are enabled.
-  #ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+  # List of supported/valid TLS versions. By default all TLS versions 1.2 up to
+  # 1.3 are enabled.
+  #ssl.supported_protocols: [TLSv1.2, TLSv1.3]
 
   # List of root certificates for HTTPS server verifications.
   #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
@@ -937,10 +905,6 @@ output.elasticsearch:
 
   # Client Certificate Key
   #ssl.key: "/etc/pki/client/cert.key"
-
-  # Optional passphrase for decrypting the Certificate Key.
-  # It is recommended to use the provided keystore instead of entering the passphrase in plain text.
-  #ssl.key_passphrase: ''
 
   # Configure cipher suites to be used for SSL connections.
   #ssl.cipher_suites: []
