@@ -31,7 +31,7 @@ To check for security updates, go to [Security announcements for the Elastic sta
 stack: ga 9.2
 ```
 
-### Features and enhancements [9-2-0-features-enhancements]
+### Features and enhancements [apm-9.2.0-features-enhancements]
 
 * [Failure store](https://www.elastic.co/docs/manage-data/data-store/data-streams/failure-store) enabled for all new datastreams. This is applied through [elasticsearch#131296](https://github.com/elastic/elasticsearch/pull/131296) and [elasticsearch#131395](https://github.com/elastic/elasticsearch/pull/131395)
 
