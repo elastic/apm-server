@@ -1,4 +1,11 @@
 version: 2
+registries:
+  docker-elastic:
+    type: docker-registry
+    url: https://docker.elastic.co
+    username: ${{secrets.ELASTIC_DOCKER_USERNAME}}
+    password: ${{secrets.ELASTIC_DOCKER_PASSWORD}}
+
 updates:
   # go dependencies
   - package-ecosystem: "gomod"
@@ -36,6 +43,7 @@ updates:
   # docker
   - package-ecosystem: "docker"
     directory: "/packaging/docker/"
+    registries: "*"
     schedule:
       interval: "weekly"
     labels:
@@ -59,6 +67,7 @@ updates:
   # docker 8.x branch
   - package-ecosystem: "docker"
     target-branch: "8.19"
+    registries: "*"
     directory: "/packaging/docker/"
     schedule:
       interval: "weekly"
