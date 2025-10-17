@@ -32,7 +32,8 @@ retry() {
 
 #
 # An opinionated approach to detect if unsupported Unified Release branches
-# can be used, this is handy for testing feature branches in dry-run mode
+# can be used, this is handy for testing feature branches in dry-run mode.
+# In addition support for PRs is added by using the base branch of the PR.
 # It produces the below environment variables:
 # - VERSION
 # - DRA_COMMAND
@@ -58,6 +59,9 @@ dra_process_other_branches() {
         buildkite-agent annotate "It was not possible to know the original base branch for ${BUILDKITE_BRANCH}. This won't fail - this is a feature branch." --style 'info' --context 'ctx-info-feature-branch'
       fi
     fi
+  elif [[ -n "$BUILDKITE_PULL_REQUEST_BASE_BRANCH" ]]; then
+    DRA_BRANCH="$BUILDKITE_PULL_REQUEST_BASE_BRANCH"
+    DRA_COMMAND=list
   fi
   export DRA_BRANCH DRA_COMMAND VERSION
 }
