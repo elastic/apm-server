@@ -82,7 +82,7 @@ export GO_VERSION WORKSPACE
 get_os_details
 retry 5 curl -sL -o ${WORKSPACE}/gvm "https://github.com/andrewkroh/gvm/releases/download/v0.5.1/gvm-${OS_NAME}-${OS_ARCH}"
 chmod +x ${WORKSPACE}/gvm
-eval "$(${WORKSPACE}/gvm gvm --url=https://go.dev/dl $GO_VERSION)"
+eval "$(${WORKSPACE}/gvm --url=https://go.dev/dl $GO_VERSION)"
 echo "Golang version:"
 go version
 GOPATH=$(command go env GOPATH)
