@@ -1,4 +1,11 @@
 version: 2
+registries:
+  docker-elastic:
+    type: docker-registry
+    url: https://docker.elastic.co
+    username: ${{secrets.ELASTIC_DOCKER_USERNAME}}
+    password: ${{secrets.ELASTIC_DOCKER_PASSWORD}}
+
 updates:
   # go dependencies
   - package-ecosystem: "gomod"
@@ -34,9 +41,42 @@ updates:
   # docker
   - package-ecosystem: "docker"
     directory: "/packaging/docker/"
+    registries: "*"
     schedule:
       interval: "weekly"
+<<<<<<< HEAD
 
+=======
+    labels:
+      - "backport-active-9"
+    groups:
+      docker:
+        patterns:
+          - "*"
+  # go dependencies 8.x branch
+  - package-ecosystem: "gomod"
+    target-branch: "8.19"
+    directory: "/"
+    ignore:
+      - dependency-name: "github.com/elastic/beats/v7"
+    schedule:
+      interval: "weekly"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+  # docker 8.x branch
+  - package-ecosystem: "docker"
+    target-branch: "8.19"
+    registries: "*"
+    directory: "/packaging/docker/"
+    schedule:
+      interval: "weekly"
+    groups:
+      docker:
+        patterns:
+          - "*"
+>>>>>>> 45431a26 (dependabot: support elastic docker registries (#19151))
   # GitHub actions
   - package-ecosystem: "github-actions"
     directories:
