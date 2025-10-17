@@ -4,6 +4,7 @@ notify:
   - slack: "#observablt-bots"
     if: "build.state != 'passed'"
 
+
 env:
   IMAGE_UBUNTU_X86_64: "family/core-ubuntu-2404"
   IMAGE_UBUNTU_ARM_64: "core-ubuntu-2404-aarch64"
