@@ -34,6 +34,7 @@ spec:
     metadata:
       name: apm-server-package
     spec:
+      branch_configuration: "main 7.* 8.* 9.*"
       repository: elastic/apm-server
       pipeline_file: ".buildkite/package.yml"
       provider_settings:
@@ -41,14 +42,19 @@ spec:
         build_pull_requests: true
         build_tags: false
         filter_enabled: true
-        filter_condition: build.branch == "main" || build.branch == "8.x" || build.branch =~ /^[0-9]+\.[0-9]+$$/ || build.branch =~ /^feature\//
-      cancel_intermediate_builds: false
-      skip_intermediate_builds: false
+        filter_condition: >-
+          build.pull_request.id == null || (build.creator.name == 'elasticmachine' && build.pull_request.id != null)
+      cancel_intermediate_builds: true
+      cancel_intermediate_builds_branch_filter: "!main !7.* !8.* !9.*"
+      skip_intermediate_builds: true
+      skip_intermediate_builds_branch_filter: "!main !7.* !8.* !9.*"
       teams:
         obs-ds-intake-services: {}
         observablt-robots: {}
         everyone:
           access_level: READ_ONLY
+      env:
+        ELASTIC_PR_COMMENTS_ENABLED: 'true'
       schedules:
         Weekly 7.17:
           branch: "7.17"
