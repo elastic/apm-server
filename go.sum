@@ -171,8 +171,8 @@ github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 h1:br+XeQOcxNFSv+
 github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22/go.mod h1:gE+FV7xXv0/nBenviCvpvnvTpUkjJXtuOWs2UT+ZRtw=
 github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe h1:LDtn/A8Tsfz8DQlbXtmDud9ha9oOGriwJGB7V0Ozik8=
 github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe/go.mod h1:SIlGcpTnnosxZ3OvoRC7ADxhHdlsu/nwUdVMF9OkgYc=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251016143214-c60a12429ac5 h1:D/GYyf9XYY8y7FZPr2ZlvvJXEKKIc+rjni1N0eoCMIE=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251016143214-c60a12429ac5/go.mod h1:SozSmqEPmhF7+702aqhEZVG3/p+nIjHdPRpuFgybXVw=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251017065619-54e1de5af35c h1:r/GV8yKs/ZN+7gmi3CKFgx02qtIDfgsfYpMmB1BU4ug=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251017065619-54e1de5af35c/go.mod h1:+L8Vo0mgljDcuzTcKmqoRrQ7ujAGwOf+yDrg5i8GrX0=
 github.com/elastic/elastic-agent-autodiscover v0.10.0 h1:WJ4zl9uSfk1kHmn2B/0byQBLIL607Zt4LNfOgV7+XN0=
 github.com/elastic/elastic-agent-autodiscover v0.10.0/go.mod h1:Nf3zh9FcJ9nTTswTwDTUAqXmvQllOrNliM6xmORSxwE=
 github.com/elastic/elastic-agent-client/v7 v7.17.2 h1:Cl2TeABqWZgW40t5fchGWT/sRk4MDDLWA0d8iHHOxLA=
@@ -647,8 +647,8 @@ go.opentelemetry.io/collector/featuregate v1.43.0 h1:Aq8UR5qv1zNlbbkTyqv8kLJtnoQ
 go.opentelemetry.io/collector/featuregate v1.43.0/go.mod h1:d0tiRzVYrytB6LkcYgz2ESFTv7OktRPQe0QEQcPt1L4=
 go.opentelemetry.io/collector/pdata v1.43.0 h1:zVkj2hcjiMLwX+QDDNwb7iTh3LBjNXKv2qPSgj1Rzb4=
 go.opentelemetry.io/collector/pdata v1.43.0/go.mod h1:KsJzdDG9e5BaHlmYr0sqdSEKeEiSfKzoF+rdWU7J//w=
-go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0 h1:Hf9xI/XLML9ElpiHVDNwvqI0hIFlzV8dgIr35kV1kRU=
-go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0/go.mod h1:NfchwuyNoMcZ5MLHwPrODwUF1HWCXWrL31s8gSAdIKY=
+go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0 h1:RbKq8BG0FI8OiXhBfcRtqqHcZcka+gU3cskNuf05R18=
+go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0/go.mod h1:h06DGIukJOevXaj/xrNjhi/2098RZzcLTbc0jDAUbsg=
 go.opentelemetry.io/otel v1.38.0 h1:RkfdswUDRimDg0m2Az18RKOsnI8UDzppJAtj01/Ymk8=
 go.opentelemetry.io/otel v1.38.0/go.mod h1:zcmtmQ1+YmQM9wrNsTGV/q/uyusom3P8RxwExxkZhjM=
 go.opentelemetry.io/otel/metric v1.38.0 h1:Kl6lzIYGAh5M159u9NgiRkmoMKjvbsKtYRwgfrA6WpA=
