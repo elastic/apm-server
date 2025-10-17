@@ -175,8 +175,8 @@ if [ "${CI}" == "true" ] ; then
   OS_ARCH=amd64
   retry 5 curl -sL -o "${BASE_PROJECT}"/gvm "https://github.com/andrewkroh/gvm/releases/download/v0.5.2/gvm-${OS_NAME}-${OS_ARCH}"
   chmod +x "${BASE_PROJECT}"/gvm
-  retry 5 "${BASE_PROJECT}"/gvm install "$GO_VERSION"
-  eval "$("${BASE_PROJECT}"/gvm use "$GO_VERSION")"
+  retry 5 "${BASE_PROJECT}"/gvm install --url=https://go.dev/dl "$GO_VERSION"
+  eval "$("${BASE_PROJECT}"/gvm use --url=https://go.dev/dl "$GO_VERSION")"
   echo "Golang version:"
   go version
   GOPATH=$(command go env GOPATH)
