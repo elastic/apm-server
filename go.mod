@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.0
 	github.com/elastic/apm-data v1.19.5
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251016143230-a083aff1c456
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251017140223-9d6af17044df
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
 	github.com/elastic/elastic-agent-libs v0.24.2
 	github.com/elastic/elastic-agent-system-metrics v0.13.3
@@ -115,6 +115,7 @@ require (
 	github.com/elastic/go-windows v1.0.2 // indirect
 	github.com/elastic/gobench v0.0.0-20241125091404-f9fd2d295223 // indirect
 	github.com/elastic/gosigar v0.14.3 // indirect
+	github.com/elastic/mock-es v0.0.0-20250530054253-8c3b6053f9b6 // indirect
 	github.com/elastic/opentelemetry-lib v0.21.0 // indirect
 	github.com/elastic/pkcs8 v1.0.0 // indirect
 	github.com/elastic/sarama v1.19.1-0.20250603175145-7672917f26b6 // indirect
@@ -176,6 +177,7 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mileusna/useragent v1.3.4 // indirect
 	github.com/minio/minlz v1.0.1-0.20250507153514-87eb42fe8882 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
