@@ -10,6 +10,12 @@
 
 set -eo pipefail
 
+# Upload should not do much with the pre-command.
+if [[ "$BUILDKITE_COMMAND" =~ .*"upload".* ]]; then
+  echo "Skipped pre-command when running the Upload pipeline"
+  exit 0
+fi
+
 # shellcheck disable=SC1091
 source .buildkite/scripts/utils.sh
 
