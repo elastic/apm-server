@@ -10,6 +10,7 @@
 
 set -eo pipefail
 
+<<<<<<< HEAD
 retry() {
     local retries=$1
     shift
@@ -29,6 +30,16 @@ retry() {
     done
     return 0
 }
+=======
+# Upload should not do much with the pre-command.
+if [[ "$BUILDKITE_COMMAND" =~ .*"upload".* ]]; then
+  echo "Skipped pre-command when running the Upload pipeline"
+  exit 0
+fi
+
+# shellcheck disable=SC1091
+source .buildkite/scripts/utils.sh
+>>>>>>> ab654237 (fix(packaging): slack notifications and DRA branch for PRs (#19188))
 
 get_os_details() {
     case $(uname | tr '[:upper:]' '[:lower:]') in
