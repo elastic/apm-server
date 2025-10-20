@@ -1,4 +1,11 @@
 version: 2
+registries:
+  docker-elastic:
+    type: docker-registry
+    url: https://docker.elastic.co
+    username: ${{secrets.ELASTIC_DOCKER_USERNAME}}
+    password: ${{secrets.ELASTIC_DOCKER_PASSWORD}}
+
 updates:
   # go dependencies
   - package-ecosystem: "gomod"
@@ -34,9 +41,9 @@ updates:
   # docker
   - package-ecosystem: "docker"
     directory: "/packaging/docker/"
+    registries: "*"
     schedule:
       interval: "weekly"
-
   # GitHub actions
   - package-ecosystem: "github-actions"
     directories:
