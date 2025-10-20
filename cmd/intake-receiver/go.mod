@@ -1,6 +1,10 @@
 module github.com/elastic/apm-server/cmd/intake-receiver
 
+<<<<<<< HEAD
 go 1.25.1
+=======
+go 1.25.3
+>>>>>>> 0d452059 ([updatecli] Bump Golang version to 1.25.3 (#19199))
 
 require (
 	github.com/stretchr/testify v1.6.1
