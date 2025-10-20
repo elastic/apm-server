@@ -1,8 +1,8 @@
 notify:
   - slack: "#apm-server"
-    if: build.state == "failed"
+    if: build.state == "failed" && build.branch =~ /^(main|\d+\.\d+|\d+\.x)$$/
   - slack: "#observablt-bots"
-    if: "build.state != 'passed'"
+    if: build.state == "failed" && build.branch =~ /^(main|\d+\.\d+|\d+\.x)$$/
 
 env:
   IMAGE_UBUNTU_X86_64: "family/core-ubuntu-2404"
