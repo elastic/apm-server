@@ -1,6 +1,10 @@
 module github.com/elastic/apm-server/systemtest
 
+<<<<<<< HEAD
 go 1.25.1
+=======
+go 1.25.3
+>>>>>>> 0d452059 ([updatecli] Bump Golang version to 1.25.3 (#19199))
 
 require (
 	github.com/docker/docker v27.5.1+incompatible
