@@ -35,6 +35,7 @@ jobs:
       TF_VAR_BRANCH: ${{ github.ref_name }}
       TF_VAR_REPO: ${{ github.repository }}
       TF_VAR_CREATED_DATE: ${{ needs.prepare.outputs.date }}
+      TF_LOG: trace
     permissions:
       contents: read
       id-token: write
