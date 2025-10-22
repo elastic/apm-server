@@ -654,6 +654,7 @@ go.elastic.co/go-licence-detector v0.7.0 h1:qC31sfyfNcNx/zMYcLABU0ac3MbGHZgksCAb
 go.elastic.co/go-licence-detector v0.7.0/go.mod h1:f5ty8pjynzQD8BcS+s0qtlOGKc35/HKQxCVi8SHhV5k=
 go.opentelemetry.io/auto/sdk v1.2.0 h1:YpRtUFjvhSymycLS2T81lT6IGhcUP+LUPtv0iv1N8bM=
 go.opentelemetry.io/auto/sdk v1.2.0/go.mod h1:1deq2zL7rwjwC8mR7XgY2N+tlIl6pjmEUoLDENMEzwk=
+<<<<<<< HEAD
 go.opentelemetry.io/collector/consumer v1.41.0 h1:sV77khNsZd5YR+vNtHIJaRcTXIlszNX7ZePpXRpm9PA=
 go.opentelemetry.io/collector/consumer v1.41.0/go.mod h1:fDB3ZjVCv2+zFsF/6WSYBSX3pkux/qAYf2Tk/P6b9yA=
 go.opentelemetry.io/collector/featuregate v1.43.0 h1:Aq8UR5qv1zNlbbkTyqv8kLJtnoQMq/sG1/jS9o1cCJI=
@@ -664,6 +665,16 @@ go.opentelemetry.io/collector/semconv v0.121.0 h1:dtdgh5TsKWGZXIBMsyCMVrY1VgmyWl
 go.opentelemetry.io/collector/semconv v0.121.0/go.mod h1:te6VQ4zZJO5Lp8dM2XIhDxDiL45mwX0YAQQWRQ0Qr9U=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0 h1:sbiXRNDSWJOTobXh5HyQKjq6wUC5tNybqjIqDpAY4CU=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0/go.mod h1:69uWxva0WgAA/4bu2Yy70SLDBwZXuQ6PbBpbsa5iZrQ=
+=======
+go.opentelemetry.io/collector/consumer v1.43.0 h1:51pfN5h6PLlaBwGPtyHn6BdK0DgtVGRV0UYRPbbscbs=
+go.opentelemetry.io/collector/consumer v1.43.0/go.mod h1:v3J2g+6IwOPbLsnzL9cQfvgpmmsZt1YS7aXSNDFmJfk=
+go.opentelemetry.io/collector/featuregate v1.44.0 h1:/GeGhTD8f+FNWS7C4w1Dj0Ui9Jp4v2WAdlXyW1p3uG8=
+go.opentelemetry.io/collector/featuregate v1.44.0/go.mod h1:d0tiRzVYrytB6LkcYgz2ESFTv7OktRPQe0QEQcPt1L4=
+go.opentelemetry.io/collector/pdata v1.44.0 h1:q/EfWDDKrSaf4hjTIzyPeg1ZcCRg1Uj7VTFnGfNVdk8=
+go.opentelemetry.io/collector/pdata v1.44.0/go.mod h1:LnsjYysFc3AwMVh6KGNlkGKJUF2ReuWxtD9Hb3lSMZk=
+go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0 h1:RbKq8BG0FI8OiXhBfcRtqqHcZcka+gU3cskNuf05R18=
+go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0/go.mod h1:h06DGIukJOevXaj/xrNjhi/2098RZzcLTbc0jDAUbsg=
+>>>>>>> 9b5496d6 (build(deps): bump go.opentelemetry.io/collector/pdata from 1.43.0 to 1.44.0 in the otel group (#19260))
 go.opentelemetry.io/otel v1.38.0 h1:RkfdswUDRimDg0m2Az18RKOsnI8UDzppJAtj01/Ymk8=
 go.opentelemetry.io/otel v1.38.0/go.mod h1:zcmtmQ1+YmQM9wrNsTGV/q/uyusom3P8RxwExxkZhjM=
 go.opentelemetry.io/otel/metric v1.38.0 h1:Kl6lzIYGAh5M159u9NgiRkmoMKjvbsKtYRwgfrA6WpA=
