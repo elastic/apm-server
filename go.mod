@@ -227,13 +227,8 @@ require (
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.7.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.0 // indirect
-<<<<<<< HEAD
-	go.opentelemetry.io/collector/consumer v1.41.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.43.0 // indirect
-=======
 	go.opentelemetry.io/collector/consumer v1.43.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.44.0 // indirect
->>>>>>> 9b5496d6 (build(deps): bump go.opentelemetry.io/collector/pdata from 1.43.0 to 1.44.0 in the otel group (#19260))
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.43.0 // indirect
 	golang.org/x/exp v0.0.0-20250811191247-51f88131bc50 // indirect
