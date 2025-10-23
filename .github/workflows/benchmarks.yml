@@ -259,11 +259,12 @@ jobs:
         run: make index-benchmark-results
 
       - name: Download PNG
-        uses: elastic/oblt-actions/download-kibana-dashboard@test-kibana-dashboard
+        uses: elastic/oblt-actions/download-kibana-dashboard@v1
         with:
           kibana-host: ${{ secrets.KIBANA_BENCH_ENDPOINT }}
           kibana-user: ${{ secrets.KIBANA_BENCH_USERNAME }}
           kibana-password: ${{ secrets.KIBANA_BENCH_PASSWORD }}
+          dashboard-id: "a5bc8390-2f8e-11ed-a369-052d8245fa04"
           from-date: "now-30d"
           to-date: "now"
           png-filename: ${{ env.PNG_REPORT_FILE }}
