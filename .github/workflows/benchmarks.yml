@@ -259,19 +259,15 @@ jobs:
         run: make index-benchmark-results
 
       - name: Download PNG
-        run: >-
-          ${{ github.workspace }}/.ci/scripts/download-png-from-kibana.sh
-          ${{ secrets.KIBANA_BENCH_ENDPOINT }}
-          ${{ secrets.KIBANA_BENCH_USERNAME }}
-          ${{ secrets.KIBANA_BENCH_PASSWORD }}
-          $PNG_REPORT_FILE
-
-      - name: Upload PNG
-        uses: actions/upload-artifact@v4
+        uses: elastic/oblt-actions/download-kibana-dashboard@v1
         with:
-          name: kibana-png-report
-          path: ${{ env.WORKING_DIRECTORY }}/${{ env.PNG_REPORT_FILE }}
-          if-no-files-found: error
+          kibana-host: ${{ secrets.KIBANA_BENCH_ENDPOINT }}
+          kibana-user: ${{ secrets.KIBANA_BENCH_USERNAME }}
+          kibana-password: ${{ secrets.KIBANA_BENCH_PASSWORD }}
+          dashboard-id: "a5bc8390-2f8e-11ed-a369-052d8245fa04"
+          from-date: "now-30d"
+          to-date: "now"
+          png-filename: ${{ env.PNG_REPORT_FILE }}
 
       - name: Upload PNG to AWS S3
         id: s3-upload-png
