@@ -35,9 +35,15 @@ stack: ga 9.2
 
 * [Failure store](https://www.elastic.co/docs/manage-data/data-store/data-streams/failure-store) enabled for all new datastreams. This is applied through [elasticsearch#131296](https://github.com/elastic/elasticsearch/pull/131296) and [elasticsearch#131395](https://github.com/elastic/elasticsearch/pull/131395)
 
+## 9.1.6 [apm-9.1.6-release-notes]
+
+### Fixes [apm-9.1.6-fixes]
+
+* Fix `output.elasticsearch.bulk_requests.available` metric to correctly report the available bulk indexers [#18953](https://github.com/elastic/apm-server/pull/18953)
+
 ## 9.1.5 [apm-9.1.5-release-notes]
 
-### Fixes [apm-9.1.0-fixes]
+### Fixes [apm-9.1.5-fixes]
 
 * APM Integration on ECH or ECE uses recommended frozen values for infrastructure related configs. The fix is applied through [kibana#235306](https://github.com/elastic/kibana/pull/235306)
 
