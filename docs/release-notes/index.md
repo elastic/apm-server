@@ -32,9 +32,21 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ## 9.1.1 [elastic-apm-9.1.1-release-notes]
 
+<<<<<<< HEAD
 ### Fixes [elastic-apm-9.1.1-fixes]
 
 * Do not try to create apm-server monitoring registry if it already exists ([#17872](https://github.com/elastic/apm-server/pull/17872))
+=======
+## 9.1.6 [apm-9.1.6-release-notes]
+
+### Fixes [apm-9.1.6-fixes]
+
+* Fix `output.elasticsearch.bulk_requests.available` metric to correctly report the available bulk indexers [#18953](https://github.com/elastic/apm-server/pull/18953)
+
+## 9.1.5 [apm-9.1.5-release-notes]
+
+### Fixes [apm-9.1.5-fixes]
+>>>>>>> 7deec9f4 (Add changelog for v9.1.6 release (#19285))
 
 ## 9.1.0 [elastic-apm-9.1.0-release-notes]
 
