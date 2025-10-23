@@ -29,6 +29,12 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
+      - name: Debug force-branch
+        run: |
+          echo '${{ env.force-branch }} == "false" && ${{ github.ref }} != "refs/heads/main"'
+        env:
+          force-branch: ${{ inputs.force-branch }}
+
       - name: Validate version input
         if: inputs.force-branch == 'false' && github.ref != 'refs/heads/main'
         run: |
