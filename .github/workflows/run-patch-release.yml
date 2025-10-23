@@ -26,20 +26,6 @@ env:
   SLACK_CHANNEL: "#apm-server"
 
 jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Debug force-branch
-        run: |
-          echo '${{ env.force-branch }} == "false" && ${{ github.ref }} != "refs/heads/main"'
-        env:
-          force-branch: ${{ inputs.force-branch }}
-
-      - name: Validate version input
-        if: inputs.force-branch == 'false' && github.ref != 'refs/heads/main'
-        run: |
-          echo "::error::Use the main branch for releases or set force-branch to true" ; exit 1
-
   prepare:
     runs-on: ubuntu-latest
     outputs:
@@ -47,8 +33,12 @@ jobs:
       release-type: ${{ steps.prepare.outputs.release-type }}
       release-version: ${{ steps.prepare.outputs.release-version }}
       slack-thread: ${{ steps.prepare.outputs.slack-thread }}
-    needs: [ validate ]
     steps:
+      - name: Validate ref branch
+        if: ${{ ! inputs.force-branch && github.ref != 'refs/heads/main' }}
+        run: |
+          echo "::error::Use the main branch for releases or set force-branch to true" ; exit 1
+
       - uses: actions/checkout@v5
 
       - id: prepare
