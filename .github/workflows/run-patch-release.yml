@@ -8,6 +8,11 @@ on:
         description: 'The current version to be released, normally the `FF version` (semver format: major.minor.patch)'
         required: true
         type: string
+      force-branch:
+        description: 'The branch to force the release on (for testing purposes). For releases use always `main`.'
+        required: false
+        type: boolean
+        default: false
 
 # Avoid concurrency so we can watch the releases correctly
 concurrency:
@@ -21,6 +26,14 @@ env:
   SLACK_CHANNEL: "#apm-server"
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate version input
+        if: inputs.force-branch == 'false' && github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Use the main branch for releases or set force-branch to true" ; exit 1
+
   prepare:
     runs-on: ubuntu-latest
     outputs:
@@ -28,6 +41,7 @@ jobs:
       release-type: ${{ steps.prepare.outputs.release-type }}
       release-version: ${{ steps.prepare.outputs.release-version }}
       slack-thread: ${{ steps.prepare.outputs.slack-thread }}
+    needs: [ validate ]
     steps:
       - uses: actions/checkout@v5
 
