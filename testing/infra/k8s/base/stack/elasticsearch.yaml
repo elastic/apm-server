@@ -4,7 +4,7 @@ metadata:
   name: elasticsearch
 spec:
   # TODO: replace with a pinned version such as 9.0.0-aaaaaaaa-SNAPSHOT
-  version: 9.2.0-abc0bb3d-SNAPSHOT
+  version: 9.2.0-35caaf1a-SNAPSHOT
   auth:
     fileRealm:
       - secretName: elasticsearch-admin
