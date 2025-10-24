@@ -10,6 +10,7 @@ import (
 
 	"github.com/cockroachdb/pebble/v2"
 	"github.com/cockroachdb/pebble/v2/bloom"
+	"github.com/cockroachdb/pebble/v2/sstable"
 
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -46,18 +47,18 @@ func OpenEventPebble(storageDir string, cacheSize uint64, logger *logp.Logger) (
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logger.Named(logs.Sampling),
 		MemTableSize:       16 << 20,
-		Levels: []pebble.LevelOptions{
+		Levels: [7]pebble.LevelOptions{
 			{
 				BlockSize:    32 << 10, // the bigger the blocks, the better the compression and the smaller the index block
-				Compression:  func() pebble.Compression { return pebble.SnappyCompression },
+				Compression:  func() *sstable.CompressionProfile { return sstable.SnappyCompression },
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
 			},
 		},
 		Comparer: eventComparer(),
 		Cache:    cache,
-		MaxConcurrentCompactions: func() int {
-			return 2
+		CompactionConcurrencyRange: func() (lower int, upper int) {
+			return 1, 2
 		}, // Better utilizes CPU on larger instances
 	}
 	return pebble.Open(filepath.Join(storageDir, "event"), opts)
@@ -71,17 +72,17 @@ func OpenDecisionPebble(storageDir string, cacheSize uint64, logger *logp.Logger
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logger.Named(logs.Sampling),
 		MemTableSize:       2 << 20, // big memtables are slow to scan, and significantly slow the hot path
-		Levels: []pebble.LevelOptions{
+		Levels: [7]pebble.LevelOptions{
 			{
 				BlockSize:    2 << 10,
-				Compression:  func() pebble.Compression { return pebble.NoCompression },
+				Compression:  func() *sstable.CompressionProfile { return sstable.NoCompression },
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
 			},
 		},
 		Cache: cache,
-		MaxConcurrentCompactions: func() int {
-			return 2
+		CompactionConcurrencyRange: func() (lower int, upper int) {
+			return 1, 2
 		}, // Better utilizes CPU on larger instances
 	}
 	return pebble.Open(filepath.Join(storageDir, "decision"), opts)
