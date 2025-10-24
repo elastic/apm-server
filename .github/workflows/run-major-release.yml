@@ -8,6 +8,11 @@ on:
         description: 'The new version to be set, normally the version in the main branch (semver format: major.0.0)'
         required: true
         type: string
+      force-branch:
+        description: 'The branch to force the release on (for testing purposes). For releases use always `main`.'
+        required: false
+        type: boolean
+        default: false
 
 # Avoid concurrency so we can watch the releases correctly
 concurrency:
@@ -29,6 +34,10 @@ jobs:
       release-version: ${{ steps.prepare.outputs.release-version }}
       slack-thread: ${{ steps.prepare.outputs.slack-thread }}
     steps:
+      - name: Validate ref branch
+        if: ${{ ! inputs.force-branch && github.ref != 'refs/heads/main' }}
+        run: |
+          echo "::error::Use the main branch for releases or set force-branch to true" ; exit 1
       - uses: actions/checkout@v5
       - id: prepare
         uses: ./.github/workflows/prepare-release
