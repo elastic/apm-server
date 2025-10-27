@@ -11,11 +11,11 @@ Third party libraries used by the Elastic APM Server project:
 
 --------------------------------------------------------------------------------
 Dependency : github.com/KimMachineGun/automemlimit
-Version: v0.7.4
+Version: v0.7.5
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/!kim!machine!gun/automemlimit@v0.7.4/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/!kim!machine!gun/automemlimit@v0.7.5/LICENSE:
 
 MIT License
 
@@ -74,11 +74,11 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/cockroachdb/pebble/v2
-Version: v2.1.0
+Version: v2.1.1
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble/v2@v2.1.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble/v2@v2.1.1/LICENSE:
 
 Copyright (c) 2011 The LevelDB-Go Authors. All rights reserved.
 
@@ -455,11 +455,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.19.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20251022124708-19bdf8ce42d3
+Version: v7.0.0-alpha2.0.20251024134150-34f3c91d411b
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20251022124708-19bdf8ce42d3/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20251024134150-34f3c91d411b/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of

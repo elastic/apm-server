@@ -3,13 +3,13 @@ module github.com/elastic/apm-server
 go 1.25.3
 
 require (
-	github.com/KimMachineGun/automemlimit v0.7.4
+	github.com/KimMachineGun/automemlimit v0.7.5
 	github.com/cespare/xxhash/v2 v2.3.0
-	github.com/cockroachdb/pebble/v2 v2.1.0
+	github.com/cockroachdb/pebble/v2 v2.1.1
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.1
 	github.com/elastic/apm-data v1.19.5
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251022124708-19bdf8ce42d3
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251024134150-34f3c91d411b
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
 	github.com/elastic/elastic-agent-libs v0.24.2
 	github.com/elastic/elastic-agent-system-metrics v0.13.3
