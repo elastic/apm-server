@@ -3,7 +3,7 @@ module github.com/elastic/apm-server
 go 1.25.3
 
 require (
-	github.com/KimMachineGun/automemlimit v0.7.4
+	github.com/KimMachineGun/automemlimit v0.7.5
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/cockroachdb/pebble/v2 v2.0.7
 	github.com/dustin/go-humanize v1.0.1
