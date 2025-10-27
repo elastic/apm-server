@@ -3,11 +3,11 @@ module github.com/elastic/apm-server
 go 1.25.1
 
 require (
-	github.com/KimMachineGun/automemlimit v0.7.4
+	github.com/KimMachineGun/automemlimit v0.7.5
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
-	github.com/elastic/apm-aggregation v1.5.0
+	github.com/elastic/apm-aggregation v1.5.1
 	github.com/elastic/apm-data v1.19.5
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251027142856-ef549d93a9d0
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
@@ -28,7 +28,7 @@ require (
 	github.com/jaegertracing/jaeger-idl v0.6.0
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901
 	github.com/libp2p/go-reuseport v0.4.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.137.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.138.0
 	github.com/pkg/errors v0.9.1
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.10.1
@@ -193,8 +193,8 @@ require (
 	github.com/muesli/roff v0.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oklog/run v1.1.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.137.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.137.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.138.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.138.0 // indirect
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
@@ -247,11 +247,11 @@ require (
 	golang.org/x/crypto v0.43.0 // indirect
 	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
-	golang.org/x/mod v0.28.0 // indirect
+	golang.org/x/mod v0.29.0 // indirect
 	golang.org/x/sys v0.37.0 // indirect
-	golang.org/x/telemetry v0.0.0-20250908211612-aef8a434d053 // indirect
+	golang.org/x/telemetry v0.0.0-20251008203120-078029d740a8 // indirect
 	golang.org/x/text v0.30.0 // indirect
-	golang.org/x/tools v0.37.0 // indirect
+	golang.org/x/tools v0.38.0 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250811230008-5f3141c8851a // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
