@@ -9,6 +9,7 @@ set -eo pipefail
 
 TYPE="$1"
 
+
 MAKE_GOAL=release-manager-snapshot
 if [[ ${TYPE} == "staging" ]]; then
   MAKE_GOAL="release-manager-release"
