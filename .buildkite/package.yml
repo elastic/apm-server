@@ -63,11 +63,14 @@ steps:
 
   - label: "DRA"
     key: "dra"
-    command: ".buildkite/scripts/dra.sh"
+    command: ".buildkite/scripts/dra.sh {{matrix}}"
     agents:
       provider: "gcp"
       image: "${IMAGE_UBUNTU_X86_64}"
       machineType: "c2-standard-16"
+    matrix:
+      - "snapshot"
+      - "staging"
     depends_on:
       - step: "package"
         allow_failure: false

@@ -54,7 +54,6 @@ cat active-branches.json
 dra() {
   local workflow=$1
   local command=$2
-  local qualifier=${3:-""}
   echo "--- Run release manager $workflow (DRA command: $command)"
   set -x
   docker run --rm \
@@ -70,7 +69,6 @@ dra() {
       --commit $BUILDKITE_COMMIT \
       --workflow $workflow \
       --artifact-set main \
-      --qualifier "$qualifier" \
       --version $VERSION | tee rm-output.txt
   set +x
 
@@ -78,15 +76,14 @@ dra() {
 }
 
 if [[ "${TYPE}" == "staging" ]]; then
-  qualifier=$(fetch_elastic_qualifier "$DRA_BRANCH")
   # TODO: main and 8.x are not needed to run the DRA for staging
   #       but main is needed until we do alpha1 releases of 9.0.0
   if [[ "${DRA_BRANCH}" != "8.x" ]]; then
-    dra "${TYPE}" "$DRA_COMMAND" "${qualifier}"
+    dra "${TYPE}" "$DRA_COMMAND"
   fi
 fi
 
 if [[ "${TYPE}" == "snapshot" ]]; then
   # NOTE: qualifier is not needed for snapshots, let's unset it.
-  dra "${TYPE}" "$DRA_COMMAND" ""
+  dra "${TYPE}" "$DRA_COMMAND"
 fi
