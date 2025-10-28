@@ -8,23 +8,17 @@
 set -eo pipefail
 
 TYPE="$1"
+PLATFORM_TYPE=$(uname -m)
 
-
-MAKE_GOAL=release-manager-snapshot
-if [[ ${TYPE} == "staging" ]]; then
-  MAKE_GOAL="release-manager-release"
+MAKE_GOAL=package
+if [[ ${PLATFORM_TYPE} == "arm" || ${PLATFORM_TYPE} == "aarch64" ]]; then
+  MAKE_GOAL=package-docker
 fi
 
-# Prepare the context for using a different workspace
-# so the package can use the right folder location.
-# Buildkite uses the pipeline name for the workspace and
-# it breaks the package build process.
-cp -rf . ../apm-server
-cd ../apm-server
+if [[ ${TYPE} == "snapshot" ]]; then
+  MAKE_GOAL="${MAKE_GOAL}-snapshot"
+fi
 
-<<<<<<< HEAD
-PLATFORMS=$PLATFORMS PACKAGES=$PACKAGES \
-=======
 if [[ ${TYPE} == "staging" ]]; then
   echo "--- Prepare the Elastic Qualifier"
   # NOTE: load the shared functions
@@ -36,9 +30,6 @@ if [[ ${TYPE} == "staging" ]]; then
 fi
 
 echo "--- Run $MAKE_GOAL for $DRA_BRANCH"
->>>>>>> ffba995e (dra: use a google bucket that contains the elastic qualifier (#15350))
 make $MAKE_GOAL
 
-# Context switch back to the previous workspace
-# so the following steps and archive in Buidlkite work as expected
-cp -rf . ../apm-server-package
+ls -l build/distributions/
