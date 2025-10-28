@@ -27,16 +27,11 @@ echo "--- Changing permissions for the release manager"
 sudo chown -R :1000 build/
 ls -l build/distributions/
 
-if [[ "${BUILDKITE_PULL_REQUEST:-false}" == "true" ]]; then
-  echo "--- :arrow_right: Release Manager does not run on PRs, skipping"
-  exit 0
-fi
-
 # by default it uses the buildkite branch
 DRA_BRANCH="$BUILDKITE_BRANCH"
 # by default it publishes the DRA artifacts, for such it uses the collect command.
 DRA_COMMAND=collect
-VERSION=$(make get-version-only)
+VERSION=$(make get-version)
 BRANCHES_URL=https://storage.googleapis.com/artifacts-api/snapshots/branches.json
 curl -s "${BRANCHES_URL}" > active-branches.json
 if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then

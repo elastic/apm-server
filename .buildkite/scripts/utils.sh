@@ -1,15 +1,3 @@
-# An opinionated approach to manage the Elatic Qualifier for the DRA in a Google Bucket
-# Instead of using the ELASTIC_QUALIFIER env variable.
-fetch_elastic_qualifier() {
-  local branch=$1
-  qualifier=""
-  URL="https://storage.googleapis.com/dra-qualifier/$branch"
-  if curl -sf -o /dev/null "$URL" ; then
-    qualifier=$(curl -s "$URL")
-  fi
-  echo "$qualifier"
-}
-
 retry() {
   local retries=$1
   shift
