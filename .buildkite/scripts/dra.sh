@@ -75,15 +75,4 @@ dra() {
   create_annotation_dra_summary "$command" "$workflow" rm-output.txt
 }
 
-if [[ "${TYPE}" == "staging" ]]; then
-  # TODO: main and 8.x are not needed to run the DRA for staging
-  #       but main is needed until we do alpha1 releases of 9.0.0
-  if [[ "${DRA_BRANCH}" != "8.x" ]]; then
-    dra "${TYPE}" "$DRA_COMMAND"
-  fi
-fi
-
-if [[ "${TYPE}" == "snapshot" ]]; then
-  # NOTE: qualifier is not needed for snapshots, let's unset it.
-  dra "${TYPE}" "$DRA_COMMAND"
-fi
+dra "${TYPE}" "$DRA_COMMAND"
