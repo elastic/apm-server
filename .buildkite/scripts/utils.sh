@@ -38,8 +38,7 @@ retry() {
 # - DRA_COMMAND
 # - DRA_BRANCH
 dra_process_other_branches() {
-  ## Read current version without the qualifier
-  VERSION=$(make get-version-only)
+  VERSION=$(make get-version)
   DRA_BRANCH="$BUILDKITE_BRANCH"
   if [[ $BUILDKITE_BRANCH =~ "feature/" ]]; then
     buildkite-agent annotate "${BUILDKITE_BRANCH} will list DRA artifacts. Feature branches are not supported. Look for the supported branches in ${BRANCHES_URL}" --style 'info' --context 'ctx-info'

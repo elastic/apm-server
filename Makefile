@@ -167,10 +167,6 @@ endif
 get-version:
 	@echo $(APM_SERVER_VERSION)
 
-## get-version-only : Get the apm server version
-.PHONY: get-version-only
-get-version-only: get-version
-
 ##############################################################################
 # Documentation.
 ##############################################################################
