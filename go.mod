@@ -7,12 +7,22 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/cockroachdb/pebble/v2 v2.0.5
 	github.com/dustin/go-humanize v1.0.1
+<<<<<<< HEAD
 	github.com/elastic/apm-aggregation v1.2.0
 	github.com/elastic/apm-data v1.16.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251028085503-e38daf04f1de
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
 	github.com/elastic/elastic-agent-libs v0.21.5
 	github.com/elastic/elastic-agent-system-metrics v0.11.11
+=======
+	github.com/elastic/apm-aggregation v1.5.1
+	github.com/elastic/apm-data v1.19.5
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251028120529-050f43395a6a
+	github.com/elastic/elastic-agent-client/v7 v7.17.2
+	github.com/elastic/elastic-agent-libs v0.25.0
+	github.com/elastic/elastic-agent-system-metrics v0.13.3
+	github.com/elastic/elastic-transport-go/v8 v8.7.0
+>>>>>>> 7625e23b (build(deps): bump github.com/elastic/elastic-agent-libs from 0.24.2 to 0.25.0 (#19362))
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.11.3
 	github.com/elastic/go-elasticsearch/v8 v8.17.1
