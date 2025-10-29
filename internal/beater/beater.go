@@ -368,7 +368,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
 	runServer := newBaseRunServer(s.listener)
-	authenticator, err := auth.NewAuthenticator(s.config.AgentAuth, s.logger)
+	authenticator, err := auth.NewAuthenticator(s.config.AgentAuth, s.tracerProvider, s.logger)
 	if err != nil {
 		return err
 	}

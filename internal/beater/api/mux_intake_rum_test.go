@@ -45,7 +45,7 @@ func TestOPTIONS(t *testing.T) {
 
 	cfg := cfgEnabledRUM()
 	cfg.RumConfig.AllowOrigins = []string{"*"}
-	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth, logptest.NewTestingLogger(t, ""))
+	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth, tracenoop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 
 	lastMiddleware := func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
