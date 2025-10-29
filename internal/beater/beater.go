@@ -663,7 +663,11 @@ func (s *Runner) waitReady(
 		if err != nil {
 			return err
 		}
-		esOutputClient, err = elasticsearch.NewClient(esConfig, s.logger)
+		esOutputClient, err = elasticsearch.NewClientParams(elasticsearch.ClientParams{
+			Config:         esConfig,
+			Logger:         s.logger,
+			TracerProvider: s.tracerProvider,
+		})
 		if err != nil {
 			return err
 		}
