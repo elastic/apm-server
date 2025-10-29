@@ -49,6 +49,9 @@ cat active-branches.json
 dra() {
   local workflow=$1
   local command=$2
+  echo "--- Prepare release manager $workflow"
+  .ci/scripts/prepare-release-manager.sh "$workflow"
+
   echo "--- Run release manager $workflow (DRA command: $command)"
   set -x
   docker run --rm \
