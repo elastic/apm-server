@@ -173,7 +173,7 @@ func (m muxBuilder) build(cfg *config.Config) (sdkmetric.Reader, http.Handler, e
 
 	nopBatchProcessor := modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil })
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
-	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth, m.Logger)
+	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth, noop.NewTracerProvider(), m.Logger)
 	r, err := NewMux(
 		cfg,
 		nopBatchProcessor,

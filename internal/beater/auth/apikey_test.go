@@ -27,6 +27,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
@@ -52,7 +53,7 @@ func TestAPIKeyAuthorizer(t *testing.T) {
 	esConfig := elasticsearch.DefaultConfig()
 	esConfig.Hosts = elasticsearch.Hosts{srv.URL}
 	apikeyAuthConfig := config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 1, ESConfig: esConfig}
-	authenticator, err := NewAuthenticator(config.AgentAuth{APIKey: apikeyAuthConfig}, logptest.NewTestingLogger(t, ""))
+	authenticator, err := NewAuthenticator(config.AgentAuth{APIKey: apikeyAuthConfig}, noop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	credentials := base64.StdEncoding.EncodeToString([]byte("valid_id:key_value"))

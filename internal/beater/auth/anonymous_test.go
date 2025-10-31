@@ -25,6 +25,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -133,7 +134,7 @@ func getAnonymousAuthorizer(t testing.TB, cfg config.AnonymousAgentAuth) auth.Au
 	authenticator, err := auth.NewAuthenticator(config.AgentAuth{
 		SecretToken: "whatever", // required to enable anonymous auth
 		Anonymous:   cfg,
-	}, logptest.NewTestingLogger(t, ""))
+	}, noop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	_, authorizer, err := authenticator.Authenticate(context.Background(), "", "")
 	require.NoError(t, err)

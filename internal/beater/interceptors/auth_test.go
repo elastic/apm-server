@@ -25,6 +25,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/trace/noop"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -117,7 +118,7 @@ func TestUnaryAuthenticator(t *testing.T) {
 }
 
 func TestAuthorizationMetadataAuthenticator(t *testing.T) {
-	authenticator, err := auth.NewAuthenticator(config.AgentAuth{SecretToken: "abc123"}, logptest.NewTestingLogger(t, ""))
+	authenticator, err := auth.NewAuthenticator(config.AgentAuth{SecretToken: "abc123"}, noop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	interceptor := interceptors.Auth(authenticator)
 
