@@ -205,8 +205,20 @@ jobs:
           to-date: "now"
           png-filename: ${{ env.PNG_REPORT_FILE }}
 
+      - name: Debug PNG files
+        working-directory: "${{ github.workspace }}"
+        run: |
+          if [ -f "${{ env.PNG_REPORT_FILE }}" ]; then
+            echo "PNG report file exists in the top-level location."
+          elif [ -f " ${{ env.WORKING_DIRECTORY }}/${{ env.PNG_REPORT_FILE }}" ]; then
+            echo "PNG report file exists in the working directory."
+          else
+            echo "PNG report file does not exist in either location."
+          fi
+
       - name: Upload PNG to AWS S3
         id: s3-upload-png
+        working-directory: "${{ github.workspace }}"
         env:
           AWS_DEFAULT_REGION: us-east-1
         run: |
