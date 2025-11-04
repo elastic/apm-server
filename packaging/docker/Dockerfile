@@ -9,12 +9,7 @@ FROM golang:${GOLANG_VERSION} AS builder
 WORKDIR /src
 COPY go.mod go.sum /src/
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
-COPY Makefile *.mk /src/
-COPY cmd /src/cmd
-COPY internal /src/internal
-COPY x-pack /src/x-pack
-COPY .git /src/.git
-COPY script /src/script
+COPY . .
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
