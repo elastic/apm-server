@@ -53,3 +53,4 @@ testing/smoke/**/main.tf
 !testing/smoke/managed/main.tf
 testing/rally-cloud/build
 .bck
+gvm
