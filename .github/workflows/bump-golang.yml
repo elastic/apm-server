@@ -41,6 +41,15 @@ jobs:
         with:
           ref: '8.19'
 
+      - name: Get token
+        id: get_token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
+          private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - uses: elastic/oblt-actions/updatecli/run@v1
         with:
           command: apply --config .ci/updatecli/bump-golang.yml --values .ci/updatecli/values.d/scm.yml
@@ -56,6 +65,14 @@ jobs:
         with:
           ref: '7.17'
 
+      - name: Get token
+        id: get_token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
+          private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
+          permission-contents: write
+          permission-pull-requests: write
       - uses: elastic/oblt-actions/updatecli/run@v1
         with:
           command: --experimental apply --config .ci/updatecli/bump-golang.yml --values .ci/updatecli/values.d/scm.yml
