@@ -30,18 +30,21 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"reflect"
 	"runtime"
 	"strings"
 	"testing"
 	"time"
 
+<<<<<<< HEAD
 	"github.com/gogo/protobuf/proto"
 	"github.com/jaegertracing/jaeger-idl/proto-gen/api_v2"
+=======
+>>>>>>> 17a7a587 (test: replace gogoprotobuf reflect hack with proto pkg (#19487))
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+	coltracepb "go.opentelemetry.io/proto/otlp/collector/trace/v1"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 	"google.golang.org/grpc"
@@ -310,13 +313,8 @@ func TestServerOTLPGRPC(t *testing.T) {
 	baseURL, err := url.Parse(srv.URL)
 	require.NoError(t, err)
 	invokeExport := func(ctx context.Context, conn *grpc.ClientConn) error {
-		// We can't use go.opentelemetry.io/otel, as it has its own generated protobuf packages
-		// which which conflict with opentelemetry-collector's. Instead, use the types registered
-		// by the opentelemetry-collector packages.
-		requestType := proto.MessageType("opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest")
-		responseType := proto.MessageType("opentelemetry.proto.collector.trace.v1.ExportTraceServiceResponse")
-		request := reflect.New(requestType.Elem()).Interface()
-		response := reflect.New(responseType.Elem()).Interface()
+		request := &coltracepb.ExportTraceServiceRequest{}
+		response := &coltracepb.ExportTraceServiceResponse{}
 		return conn.Invoke(ctx, "/opentelemetry.proto.collector.trace.v1.TraceService/Export", request, response)
 	}
 
