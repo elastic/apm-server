@@ -40,6 +40,10 @@ require (
 	go.opentelemetry.io/otel/sdk v1.38.0
 	go.opentelemetry.io/otel/sdk/metric v1.38.0
 	go.opentelemetry.io/otel/trace v1.38.0
+<<<<<<< HEAD
+=======
+	go.opentelemetry.io/proto/otlp v1.9.0
+>>>>>>> e2a425df (build(deps): bump go.opentelemetry.io/proto/otlp in the otel group (#19499))
 	go.uber.org/zap v1.27.0
 	go.uber.org/zap/exp v0.3.0
 	golang.org/x/net v0.46.0
