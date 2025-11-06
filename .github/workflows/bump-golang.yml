@@ -32,7 +32,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
           GITHUB_BRANCH: 'main'
-          GITHUB_LABELS: 'backport-active-all'
+          GITHUB_LABELS: 'backport-active-9'
+
+  bump-819:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: '8.19'
+
+      - uses: elastic/oblt-actions/updatecli/run@v1
+        with:
+          command: --experimental apply --config .ci/updatecli/bump-golang.yml --values .ci/updatecli/values.d/scm.yml
+        env:
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
+          GITHUB_BRANCH: '8.19'
+          GITHUB_LABELS: 'backport-skip'
 
   bump-7:
     runs-on: ubuntu-latest
