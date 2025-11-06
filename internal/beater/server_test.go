@@ -35,11 +35,7 @@ import (
 	"testing"
 	"time"
 
-<<<<<<< HEAD
-	"github.com/gogo/protobuf/proto"
 	"github.com/jaegertracing/jaeger-idl/proto-gen/api_v2"
-=======
->>>>>>> 17a7a587 (test: replace gogoprotobuf reflect hack with proto pkg (#19487))
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
