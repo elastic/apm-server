@@ -32,7 +32,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
           GITHUB_BRANCH: 'main'
-          GITHUB_LABELS: 'backport-active-8, backport-active-9'
+          GITHUB_LABELS: 'backport-active-all'
 
   bump-7:
     runs-on: ubuntu-latest
