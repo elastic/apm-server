@@ -3,7 +3,7 @@ module github.com/elastic/apm-server/systemtest
 go 1.25.4
 
 require (
-	github.com/docker/docker v28.5.1+incompatible
+	github.com/docker/docker v28.5.2+incompatible
 	github.com/docker/go-connections v0.6.0
 	github.com/elastic/apm-perf v1.0.0
 	github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959
@@ -13,11 +13,11 @@ require (
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/stretchr/testify v1.11.1
-	github.com/testcontainers/testcontainers-go v0.39.0
+	github.com/testcontainers/testcontainers-go v0.40.0
 	github.com/tidwall/gjson v1.18.0
 	go.elastic.co/apm/v2 v2.7.1
 	go.elastic.co/fastjson v1.5.1
-	go.opentelemetry.io/collector/pdata v1.44.0
+	go.opentelemetry.io/collector/pdata v1.45.0
 	go.opentelemetry.io/otel v1.38.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.38.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.38.0
@@ -29,8 +29,8 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.38.0
 	go.opentelemetry.io/otel/trace v1.38.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/sync v0.17.0
-	golang.org/x/sys v0.37.0
+	golang.org/x/sync v0.18.0
+	golang.org/x/sys v0.38.0
 	golang.org/x/time v0.14.0
 	google.golang.org/grpc v1.76.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -58,7 +58,6 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
@@ -93,13 +92,13 @@ require (
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.44.0 // indirect
+	go.opentelemetry.io/collector/featuregate v1.45.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.7.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.41.0 // indirect
-	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
+	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/net v0.45.0 // indirect
+	golang.org/x/text v0.30.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250825161204-c5933d9347a5 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250825161204-c5933d9347a5 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
