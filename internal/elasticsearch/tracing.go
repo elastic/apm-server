@@ -22,18 +22,9 @@ import (
 	"strings"
 
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/trace/noop"
-)
-
-const (
-	// W3CTraceparentHeader is the standard W3C Trace-Context HTTP
-	// header for trace propagation.
-	W3CTraceparentHeader = "Traceparent"
-
-	// TracestateHeader is the standard W3C Trace-Context HTTP header
-	// for vendor-specific trace propagation.
-	TracestateHeader = "Tracestate"
 )
 
 func WrapRoundTripper(r http.RoundTripper, tp trace.TracerProvider) http.RoundTripper {
@@ -58,7 +49,7 @@ func (r *roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	defer span.End()
 	req = req.WithContext(ctx)
 
-	SetHeaders(req, span.SpanContext())
+	propagation.TraceContext{}.Inject(ctx, propagation.HeaderCarrier(req.Header))
 
 	span.SetAttributes(
 		attribute.String("db.type", "elasticsearch"),
@@ -76,23 +67,6 @@ func (r *roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	return resp, err
-}
-
-func SetHeaders(req *http.Request, traceContext trace.SpanContext) {
-	headerValue := FormatTraceparentHeader(traceContext)
-	req.Header[W3CTraceparentHeader] = []string{headerValue}
-	if tracestate := traceContext.TraceState().String(); tracestate != "" {
-		req.Header[TracestateHeader] = []string{tracestate}
-	}
-}
-
-func FormatTraceparentHeader(c trace.SpanContext) string {
-	sampled := "0"
-	if c.IsSampled() {
-		sampled = "1"
-	}
-
-	return "00-" + c.TraceFlags().String() + "-" + c.SpanID().String() + "-" + "0" + sampled
 }
 
 // CloseIdleConnections calls r.r.CloseIdleConnections if the method exists.
