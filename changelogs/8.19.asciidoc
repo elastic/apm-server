@@ -1,5 +1,6 @@
 [[apm-release-notes-8.19]]
 == APM version 8.19
+* <<apm-release-notes-8.19.7>>
 * <<apm-release-notes-8.19.6>>
 * <<apm-release-notes-8.19.5>>
 * <<apm-release-notes-8.19.4>>
@@ -7,6 +8,17 @@
 * <<apm-release-notes-8.19.2>>
 * <<apm-release-notes-8.19.1>>
 * <<apm-release-notes-8.19.0>>
+
+[float]
+[[apm-release-notes-8.19.7]]
+=== APM version 8.19.7
+
+https://github.com/elastic/apm-server/compare/v8.19.6\...v8.19.7[View commits]
+
+[float]
+==== Bug fixes
+
+- Fix build pipeline to ensure resulting binary info shows `vcs.modified=false` {pull}19510[19510]
 
 [float]
 [[apm-release-notes-8.19.6]]
