@@ -16,13 +16,25 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ## Next version [elastic-apm-next-release-notes]
 
+### Features and enhancements [elastic-apm-next-features-enhancements]
+% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
-% ### Features and enhancements [elastic-apm-next-features-enhancements]
+### Fixes [elastic-apm-next-fixes]
+% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+
+## 9.1.8 [9-1-8]
+
+
+% ### Features and enhancements [9-1-8-features-enhancements]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 % * Do not generate metrics or traces for pubsub bulk requests ([#18891](https://github.com/elastic/integrations/pull/18891))
 
-% ### Fixes [elastic-apm-next-fixes]
+_No new features or enhancements_ 
+
+% ### Fixes [9-1-8-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+
+_No new fixes_ 
 
 ## 9.1.4 [elastic-apm-9.1.4-release-notes]
 
