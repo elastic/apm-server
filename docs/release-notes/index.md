@@ -20,10 +20,19 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 % ### Features and enhancements [apm-next-features-enhancements]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
-% * Do not generate metrics or traces for pubsub bulk requests ([#18891](https://github.com/elastic/integrations/pull/18891))
 
 % ### Fixes [apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+
+## 9.2.1 [apm-9.2.1-release-notes]
+
+```{applies_to}
+stack: ga 9.2
+```
+
+### Fixes [apm-9.2.1-fixes]
+
+* Fix build pipeline to ensure resulting binary info shows `vcs.modified=false` ([#19252](https://github.com/elastic/apm-server/pull/19252))
 
 ## 9.2.0 [apm-9.2.0-release-notes]
 
@@ -34,6 +43,16 @@ stack: ga 9.2
 ### Features and enhancements [apm-9.2.0-features-enhancements]
 
 * [Failure store](https://www.elastic.co/docs/manage-data/data-store/data-streams/failure-store) enabled for all new datastreams. This is applied through [elasticsearch#131296](https://github.com/elastic/elasticsearch/pull/131296) and [elasticsearch#131395](https://github.com/elastic/elasticsearch/pull/131395)
+
+### Fixes [apm-9.2.0-fixes]
+
+* Fix `output.elasticsearch.bulk_requests.available` metric to correctly report the available bulk indexers [#18953](https://github.com/elastic/apm-server/pull/18953)
+
+## 9.1.7 [apm-9.1.7-release-notes]
+
+### Fixes [apm-9.1.7-fixes]
+
+* Fix build pipeline to ensure resulting binary info shows `vcs.modified=false` ([#19252](https://github.com/elastic/apm-server/pull/19252))
 
 ## 9.1.6 [apm-9.1.6-release-notes]
 
