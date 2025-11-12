@@ -46,11 +46,9 @@ import (
 	_ "google.golang.org/grpc/encoding/gzip"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/licenser"
 	"github.com/elastic/beats/v7/libbeat/outputs"
-	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
@@ -318,18 +316,6 @@ func (s *Runner) Run(ctx context.Context) error {
 		close(publishReady)
 		return nil
 	})
-	callbackUUID, err := esoutput.RegisterConnectCallback(func(*eslegclient.Connection, *logp.Logger) error {
-		select {
-		case <-publishReady:
-			return nil
-		default:
-		}
-		return errors.New("not ready for publishing events")
-	})
-	if err != nil {
-		return err
-	}
-	defer esoutput.DeregisterConnectCallback(callbackUUID)
 	newESClient := func(tp trace.TracerProvider) func(cfg *elasticsearch.Config, logger *logp.Logger) (*elasticsearch.Client, error) {
 		return func(cfg *elasticsearch.Config, logger *logp.Logger) (*elasticsearch.Client, error) {
 			httpTransport, err := elasticsearch.NewHTTPTransport(cfg, logger)
