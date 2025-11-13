@@ -19,6 +19,10 @@ Breaking changes can impact your Elastic applications, potentially disrupting no
 % **Action**<br> Steps for mitigating deprecation impact.
 % ::::
 
+## 9.1.8 [9-1-8]
+
+_No breaking changes_ 
+
 ## 9.0.0 [9-0-0]
 
 ::::{dropdown} Change server information endpoint "/" to only accept GET and HEAD requests
