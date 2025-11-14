@@ -58,6 +58,10 @@ func TestMonitoring(t *testing.T) {
 			monitoringtest.ExpectContainOtelMetricsKeys(c, reader, []string{
 				"apm-server.sampling.tail.storage.lsm_size",
 				"apm-server.sampling.tail.storage.value_log_size",
+				"apm-server.sampling.tail.storage.storage_limit",
+				"apm-server.sampling.tail.storage.disk_used",
+				"apm-server.sampling.tail.storage.disk_total",
+				"apm-server.sampling.tail.storage.disk_usage_threshold",
 			})
 		}, time.Second, 10*time.Millisecond)
 
