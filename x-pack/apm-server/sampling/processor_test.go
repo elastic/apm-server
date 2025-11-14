@@ -644,9 +644,16 @@ func TestStorageMonitoring(t *testing.T) {
 
 	require.NoError(t, config.DB.Flush())
 
-	metricsNames := []string{"apm-server.sampling.tail.storage.lsm_size", "apm-server.sampling.tail.storage.value_log_size"}
+	metricsNames := []string{
+		"apm-server.sampling.tail.storage.lsm_size",
+		"apm-server.sampling.tail.storage.value_log_size",
+		"apm-server.sampling.tail.storage.storage_limit",
+		"apm-server.sampling.tail.storage.disk_used",
+		"apm-server.sampling.tail.storage.disk_total",
+		"apm-server.sampling.tail.storage.disk_usage_threshold",
+	}
 	gaugeValues := getGaugeValues(t, tempdirConfig.metricReader, metricsNames...)
-	assert.Len(t, gaugeValues, 2)
+	assert.Len(t, gaugeValues, 6)
 
 	lsmSize := gaugeValues[0]
 	assert.NotZero(t, lsmSize)
