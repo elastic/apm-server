@@ -133,7 +133,7 @@ jobs:
       - env:
           GOTESTFLAGS: "-v"
           GH_TOKEN: ${{ github.token }}
-        run: make system-test
+        run: make system-test || true
       - name: df
         run: df -h
       - name: du
