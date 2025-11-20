@@ -137,7 +137,7 @@ jobs:
       - name: df
         run: df -h
       - name: du
-        run: du -h -d1 / | sort -hr | head -n 20
+        run: du -h -d1 /usr | sort -hr | head -n 20
       - name: find
         run: find /usr -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000
 
