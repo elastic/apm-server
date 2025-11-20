@@ -144,6 +144,15 @@ func NewUnstartedServerTB(tb testing.TB, args ...string) *Server {
 			tb.Logf("log file: %s", logfile.Name())
 		}
 
+		if tb.Failed() {
+			b, err := io.ReadAll(logfile)
+			if err != nil {
+				tb.Fatal(err)
+			}
+
+			tb.Log(string(b))
+		}
+
 		// Call the server's Close method in a background goroutine,
 		// and wait for up to 10 seconds for it to complete.
 		errc := make(chan error)
