@@ -154,8 +154,10 @@ jobs:
         run: make system-test || true
       - name: df
         run: df -h
+      - name: du1
+        run: du -h -d1 /home/runner/go | sort -hr | head -n 20
       - name: du2
-        run: du -h -d1 /home/runner | sort -hr | head -n 20
+        run: du -h -d1 /home/runner/.cache | sort -hr | head -n 20
       - name: find
         run: find /home -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000
 
