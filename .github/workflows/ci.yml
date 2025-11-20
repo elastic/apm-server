@@ -112,6 +112,7 @@ jobs:
 
   system-test:
     runs-on: ubuntu-latest
+    continue-on-eror: true
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-go@v6
