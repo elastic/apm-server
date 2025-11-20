@@ -133,6 +133,12 @@ jobs:
           GOTESTFLAGS: "-v"
           GH_TOKEN: ${{ github.token }}
         run: make system-test
+      - name: df
+        run: df -h
+      - name: du
+        run: du -h -d1 / | sort -hr | head -n 20
+      - name: find
+        run: find / -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000
 
   system-test-fips:
     runs-on: ubuntu-latest
