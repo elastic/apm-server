@@ -143,9 +143,10 @@ type SamplingConfig struct {
 
 // TailSamplingConfig holds APM Server tail-based sampling configuration.
 type TailSamplingConfig struct {
-	Enabled  bool
-	Interval time.Duration
-	Policies []TailSamplingPolicy
+	Enabled            bool
+	Interval           time.Duration
+	Policies           []TailSamplingPolicy
+	DiskUsageThreshold float64 `json:"disk_usage_threshold"`
 }
 
 func (t *TailSamplingConfig) MarshalJSON() ([]byte, error) {
