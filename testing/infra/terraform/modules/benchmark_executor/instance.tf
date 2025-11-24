@@ -16,7 +16,12 @@ data "aws_ami" "worker_ami" {
 
   filter {
     name   = "name"
-    values = ["al2023-ami-2023*-${local.ami_arch}-*"]
+    values = ["al2023-ami-*-${local.ami_arch}"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
   }
 }
 
