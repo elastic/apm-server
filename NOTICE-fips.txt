@@ -5125,11 +5125,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.46.0
+Version: v0.46.1-0.20251013234738-63d1a5100f82
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.46.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.46.1-0.20251013234738-63d1a5100f82/LICENSE:
 
 Copyright 2009 The Go Authors.
 
