@@ -44,6 +44,9 @@ provider "aws" {
 
 locals {
   name_prefix = "${coalesce(var.user_name, "unknown-user")}-bench"
+
+  # Detect if standalone APM server instance type is ARM (Graviton) based
+  standalone_apm_is_arm = can(regex("^(a1|t4g|c6g|c7g|m6g|m7g|r6g|r7g|x2gd)", var.standalone_apm_server_instance_size))
 }
 
 module "vpc" {
@@ -153,8 +156,9 @@ module "standalone_apm_server" {
   count  = var.run_standalone ? 1 : 0
   source = "../infra/terraform/modules/standalone_apm_server"
 
-  vpc_id              = module.vpc.vpc_id
-  aws_os              = "al2023-ami-2023.*-x86_64"
+  vpc_id = module.vpc.vpc_id
+  # Use appropriate AMI pattern based on instance architecture
+  aws_os              = local.standalone_apm_is_arm ? "al2023-ami-2023.*-arm64" : "al2023-ami-2023.*-x86_64"
   apm_instance_type   = var.standalone_apm_server_instance_size
   apm_volume_type     = var.standalone_apm_server_volume_type
   apm_volume_size     = var.apm_server_tail_sampling ? coalesce(var.standalone_apm_server_volume_size, 300) : var.standalone_apm_server_volume_size # Much larger disk for TBS setup because of 8.x TBS disk usage
