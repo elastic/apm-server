@@ -13,7 +13,7 @@ data "aws_ami" "worker_ami" {
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-${local.ami_arch}-ebs"]
+    values = ["al2023-ami-2023*-${local.ami_arch}-*"]
   }
 }
 
