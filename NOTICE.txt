@@ -16490,19 +16490,11 @@ Contents of probable licence file $GOMODCACHE/go.yaml.in/yaml/v2@v2.4.2/LICENSE:
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-<<<<<<< HEAD
-Version: v0.43.0
-Licence type (autodetected): BSD-3-Clause
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.43.0/LICENSE:
-=======
 Version: v0.45.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.45.0/LICENSE:
->>>>>>> 9e290bfb (build(deps): bump golang.org/x/crypto from 0.44.0 to 0.45.0 (#19602))
 
 Copyright 2009 The Go Authors.
 
