@@ -171,14 +171,35 @@ jobs:
         id: init
         run: make init
 
+      - name: Detect instance architecture
+        id: detect-arch
+        run: |
+          # Extract instance type from the profile file
+          INSTANCE_TYPE=$(grep -E "standalone_apm_server_instance_size|standalone_moxy_instance_size|worker_instance_type" ${{ env.TFVARS_SOURCE }} | head -1 | cut -d'=' -f2 | tr -d ' "')
+          echo "Instance type: $INSTANCE_TYPE"
+
+          # Detect if ARM instance type
+          if [[ "$INSTANCE_TYPE" =~ ^(a1|t4g|c6g|c7g|m6g|m7g|r6g|r7g|x2gd) ]]; then
+            echo "goarch=arm64" >> "$GITHUB_OUTPUT"
+            echo "Detected ARM64 architecture"
+          else
+            echo "goarch=amd64" >> "$GITHUB_OUTPUT"
+            echo "Detected AMD64 architecture"
+          fi
+
       - name: Build apmbench
         run: make apmbench $SSH_KEY terraform.tfvars
+        env:
+          APMBENCH_GOARCH: ${{ steps.detect-arch.outputs.goarch }}
 
       - name: Build APM Server and Moxy
         if: ${{ env.RUN_STANDALONE == 'true' }}
         run: |
           make apm-server
           make moxy
+        env:
+          APM_SERVER_GOARCH: ${{ steps.detect-arch.outputs.goarch }}
+          MOXY_GOARCH: ${{ steps.detect-arch.outputs.goarch }}
 
       - name: Override docker committed version
         if: ${{ ! inputs.runOnStable && env.RUN_STANDALONE == 'false' }}
