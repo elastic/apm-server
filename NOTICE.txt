@@ -4856,13 +4856,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : go.uber.org/zap
-Version: v1.27.0
+Version: v1.27.1
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.uber.org/zap@v1.27.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.uber.org/zap@v1.27.1/LICENSE:
 
-Copyright (c) 2016-2017 Uber Technologies, Inc.
+Copyright (c) 2016-2024 Uber Technologies, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
