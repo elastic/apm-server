@@ -10,11 +10,7 @@ x-logging: &default-logging
     max-size: "1g"
 services:
   elasticsearch:
-<<<<<<< HEAD
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.1.7-223f1516-SNAPSHOT
-=======
-    image: docker.elastic.co/elasticsearch/elasticsearch-wolfi:9.3.0-6f40f4f1-SNAPSHOT
->>>>>>> 887252ba (test: use wolfi images in docker compose (#19611))
+    image: docker.elastic.co/elasticsearch/elasticsearch-wolfi:9.1.7-223f1516-SNAPSHOT
     ports:
       - 9200:9200
     healthcheck:
@@ -45,11 +41,7 @@ services:
     logging: *default-logging
 
   kibana:
-<<<<<<< HEAD
-    image: docker.elastic.co/kibana/kibana:9.1.7-223f1516-SNAPSHOT
-=======
-    image: docker.elastic.co/kibana/kibana-wolfi:9.3.0-6f40f4f1-SNAPSHOT
->>>>>>> 887252ba (test: use wolfi images in docker compose (#19611))
+    image: docker.elastic.co/kibana/kibana-wolfi:9.1.7-223f1516-SNAPSHOT
     ports:
       - 5601:5601
     healthcheck:
