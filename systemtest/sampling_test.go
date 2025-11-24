@@ -101,6 +101,7 @@ func TestTailSampling(t *testing.T) {
 					SampleRate: 0.5,
 				},
 			},
+			DiskUsageThreshold: 0.9,
 		},
 	}
 	srv1.Config.Monitoring = &apmservertest.MonitoringConfig{
@@ -121,6 +122,7 @@ func TestTailSampling(t *testing.T) {
 					SampleRate: 0.5,
 				},
 			},
+			DiskUsageThreshold: 0.9,
 		},
 	}
 	srv2.Config.Monitoring = &apmservertest.MonitoringConfig{
