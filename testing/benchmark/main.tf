@@ -158,7 +158,7 @@ module "standalone_apm_server" {
 
   vpc_id = module.vpc.vpc_id
   # Use appropriate AMI pattern based on instance architecture
-  aws_os              = local.standalone_apm_is_arm ? "al2023-ami-2023.*-arm64" : "al2023-ami-2023.*-x86_64"
+  aws_os              = local.standalone_apm_is_arm ? "al2023-ami-2023" : "al2023-ami-2023.*-x86_64"
   apm_instance_type   = var.standalone_apm_server_instance_size
   apm_volume_type     = var.standalone_apm_server_volume_type
   apm_volume_size     = var.apm_server_tail_sampling ? coalesce(var.standalone_apm_server_volume_size, 60) : var.standalone_apm_server_volume_size
