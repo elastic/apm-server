@@ -1,6 +1,10 @@
 locals {
   moxy_port = "9200"
   bin_path  = "/tmp/moxy"
+
+  # Detect if instance type is ARM (Graviton) based
+  is_arm = can(regex("^(a1|t4g|c6g|c7g|m6g|m7g|r6g|r7g|x2gd)", var.instance_type))
+  ami_arch = local.is_arm ? "arm64" : "x86_64"
 }
 
 data "aws_ami" "worker_ami" {
@@ -9,7 +13,7 @@ data "aws_ami" "worker_ami" {
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-ebs"]
+    values = ["amzn2-ami-hvm-*-${local.ami_arch}-ebs"]
   }
 }
 
