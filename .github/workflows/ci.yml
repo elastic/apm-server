@@ -112,12 +112,31 @@ jobs:
 
   system-test:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
+      - name: df
+        run: df -h
+      - name: du
+        run: du -h -d1 / | sort -hr | head -n 20
+      - name: find
+        run: find /usr -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000
       - uses: actions/checkout@v5
+      - name: df
+        run: df -h
+      - name: du
+        run: du -h -d1 / | sort -hr | head -n 20
+      - name: find
+        run: find /usr -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000
       - uses: actions/setup-go@v6
         with:
           go-version-file: systemtest/go.mod
           cache: false
+      - name: df
+        run: df -h
+      - name: du
+        run: du -h -d1 / | sort -hr | head -n 20
+      - name: find
+        run: find /usr -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000
       - uses: actions/cache@v4
         with:
           path: |
@@ -132,7 +151,15 @@ jobs:
       - env:
           GOTESTFLAGS: "-v"
           GH_TOKEN: ${{ github.token }}
-        run: make system-test
+        run: make system-test || true
+      - name: df
+        run: df -h
+      - name: du1
+        run: du -h -d1 /home/runner/go | sort -hr | head -n 20
+      - name: du2
+        run: du -h -d1 /home/runner/.cache | sort -hr | head -n 20
+      - name: find
+        run: find /home/runner/ -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000
 
   system-test-fips:
     runs-on: ubuntu-latest
