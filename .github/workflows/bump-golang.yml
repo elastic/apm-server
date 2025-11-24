@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Get token
         id: get_token
@@ -37,7 +37,7 @@ jobs:
   bump-819:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: '8.19'
 
@@ -61,7 +61,7 @@ jobs:
   bump-7:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: '7.17'
 
