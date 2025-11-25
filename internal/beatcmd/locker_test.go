@@ -29,8 +29,12 @@ import (
 )
 
 func TestLocker(t *testing.T) {
+	configYAML := "output.console.enabled: true"
+	home := t.TempDir()
+	configYAML += "\npath.home: " + home
+
 	running := make(chan struct{})
-	beat1 := newBeat(t, `output.console.enabled: true`, func(RunnerParams) (Runner, error) {
+	beat1 := newBeat(t, configYAML, func(RunnerParams) (Runner, error) {
 		return runnerFunc(func(ctx context.Context) error {
 			close(running)
 			<-ctx.Done()
@@ -46,8 +50,9 @@ func TestLocker(t *testing.T) {
 
 	// Create another Beat using the same configuration and data directory;
 	// its Run method should fail to acquire the lock while beat1 is running.
-	beat2 := newBeat(t, `output.console.enabled: true`, func(RunnerParams) (Runner, error) {
-		panic("should not be called")
+	beat2 := newBeat(t, configYAML, func(RunnerParams) (Runner, error) {
+		t.Fatal("should not be called")
+		return nil, nil
 	})
 	err := beat2.Run(context.Background())
 	require.ErrorIs(t, err, ErrAlreadyLocked)

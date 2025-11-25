@@ -92,8 +92,13 @@ processors:
 }
 
 func initCfgfile(t testing.TB, content string) (home string) {
-	home = t.TempDir()
-	content += "\npath.home: " + home
+	_, after, _ := strings.Cut(content, "\npath.home: ")
+	home, _, _ = strings.Cut(after, "\n")
+
+	if home == "" {
+		home = t.TempDir()
+		content += "\npath.home: " + home
+	}
 
 	origConfigPath := cfgfile.GetPathConfig()
 	origConfigFile := strings.TrimSuffix(cfgfile.GetDefaultCfgfile(), ".yml")
@@ -103,7 +108,7 @@ func initCfgfile(t testing.TB, content string) (home string) {
 	})
 
 	configFile := filepath.Join(home, "testing.yml")
-	err := os.WriteFile(configFile, []byte(strings.TrimSpace(content)), 0644)
+	err := os.WriteFile(configFile, []byte(strings.TrimSpace(content)), 0o644)
 	require.NoError(t, err)
 	cfgfile.SetConfigPath(home)
 	cfgfile.ChangeDefaultCfgfileFlag("testing")
