@@ -5,7 +5,11 @@ go 1.25.4
 require (
 	github.com/KimMachineGun/automemlimit v0.7.5
 	github.com/cespare/xxhash/v2 v2.3.0
+<<<<<<< HEAD
 	github.com/cockroachdb/pebble/v2 v2.0.7
+=======
+	github.com/cockroachdb/pebble/v2 v2.1.2
+>>>>>>> aaa59d4f (build(deps): bump github.com/cockroachdb/pebble/v2 from 2.1.1 to 2.1.2 (#19663))
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.4.0
 	github.com/elastic/apm-data v1.19.5
