@@ -21,7 +21,8 @@ echo $${POLICY} | jq '.item' | \
     jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.expvar_enabled = {type: "bool", value: ${enable_expvar}}' |\
     jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.pprof_enabled = {type: "bool", value: ${enable_pprof}}' |\
     jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_storage_limit = {"value":"${tail_sampling_storage_limit}","type":"text"}' |\
-    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_enabled = {type: "bool", value: ${enable_tail_sampling}}' > policy.json
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_enabled = {type: "bool", value: ${enable_tail_sampling}}' |\
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_policies = {type: "yaml", value: "- sample_rate: ${tail_sampling_sample_rate}"}' > policy.json
 
 # Update the policy, hide output to prevent secret leakage.
 if ! curl -s -o response.txt -H 'content-type: application/json' -H 'kbn-xsrf: true' -X PUT -k -d@policy.json -u $${KIBANA_AUTH} $${KIBANA_ENDPOINT}; then

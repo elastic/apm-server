@@ -199,6 +199,7 @@ resource "aws_instance" "apm" {
       apm_port                               = "${local.apm_port}"
       apm_server_tail_sampling               = "${var.apm_server_tail_sampling}"
       apm_server_tail_sampling_storage_limit = "${var.apm_server_tail_sampling_storage_limit}"
+      apm_server_tail_sampling_sample_rate   = "${var.apm_server_tail_sampling_sample_rate}"
     })
   }
 

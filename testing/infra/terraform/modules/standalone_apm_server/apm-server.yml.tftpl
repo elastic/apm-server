@@ -15,7 +15,7 @@ apm-server:
       enabled: ${apm_server_tail_sampling}
       storage_limit: ${apm_server_tail_sampling_storage_limit}
       policies:
-        - sample_rate: 0.1
+        - sample_rate: ${apm_server_tail_sampling_sample_rate}
 output:
   elasticsearch:
     hosts: [ ${elasticsearch_url} ]

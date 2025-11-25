@@ -16,7 +16,6 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | Name | Version |
 |------|---------|
 | <a name="provider_ec"></a> [ec](#provider\_ec) | 0.5.1 |
-| <a name="provider_external"></a> [external](#provider\_external) | n/a |
 | <a name="provider_local"></a> [local](#provider\_local) | n/a |
 | <a name="provider_null"></a> [null](#provider\_null) | n/a |
 
@@ -37,7 +36,7 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | [null_resource.secret_token](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.shard_settings](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [ec_stack.deployment_version](https://registry.terraform.io/providers/elastic/ec/0.5.1/docs/data-sources/stack) | data source |
-| [external_external.secret_token](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
+| [local_sensitive_file.secret_token](https://registry.terraform.io/providers/hashicorp/local/latest/docs/data-sources/sensitive_file) | data source |
 
 ## Inputs
 
@@ -48,6 +47,7 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | <a name="input_apm_server_pprof"></a> [apm\_server\_pprof](#input\_apm\_server\_pprof) | Whether or not to enable APM Server's pprof endpoint. Defaults to false | `bool` | `false` | no |
 | <a name="input_apm_server_size"></a> [apm\_server\_size](#input\_apm\_server\_size) | Optional apm server instance size | `string` | `"1g"` | no |
 | <a name="input_apm_server_tail_sampling"></a> [apm\_server\_tail\_sampling](#input\_apm\_server\_tail\_sampling) | Whether or not to enable APM Server tail-based sampling. Defaults to false | `bool` | `false` | no |
+| <a name="input_apm_server_tail_sampling_sample_rate"></a> [apm\_server\_tail\_sampling\_sample\_rate](#input\_apm\_server\_tail\_sampling\_sample\_rate) | Sample rate of APM Server tail-based sampling. Defaults to 0.1 | `number` | `0.1` | no |
 | <a name="input_apm_server_tail_sampling_storage_limit"></a> [apm\_server\_tail\_sampling\_storage\_limit](#input\_apm\_server\_tail\_sampling\_storage\_limit) | Storage size limit of APM Server tail-based sampling. Defaults to 10GB | `string` | `"10GB"` | no |
 | <a name="input_apm_server_zone_count"></a> [apm\_server\_zone\_count](#input\_apm\_server\_zone\_count) | Optional apm server zone count | `number` | `1` | no |
 | <a name="input_custom_apm_integration_pkg_path"></a> [custom\_apm\_integration\_pkg\_path](#input\_custom\_apm\_integration\_pkg\_path) | Path to the zipped custom APM integration package, if empty custom apm integration pkg is not installed | `string` | `""` | no |
@@ -73,6 +73,8 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | <a name="output_admin_console_url"></a> [admin\_console\_url](#output\_admin\_console\_url) | n/a |
 | <a name="output_apm_secret_token"></a> [apm\_secret\_token](#output\_apm\_secret\_token) | The APM Secret token |
 | <a name="output_apm_url"></a> [apm\_url](#output\_apm\_url) | The secure APM URL |
+| <a name="output_deployment_id"></a> [deployment\_id](#output\_deployment\_id) | The deployment ID for the created cluster |
+| <a name="output_ech_apm_component_id"></a> [ech\_apm\_component\_id](#output\_ech\_apm\_component\_id) | APM or Integrations Server Cloud component ID |
 | <a name="output_elasticsearch_password"></a> [elasticsearch\_password](#output\_elasticsearch\_password) | The Elasticsearch password |
 | <a name="output_elasticsearch_url"></a> [elasticsearch\_url](#output\_elasticsearch\_url) | The secure Elasticsearch URL |
 | <a name="output_elasticsearch_username"></a> [elasticsearch\_username](#output\_elasticsearch\_username) | The Elasticsearch username |
