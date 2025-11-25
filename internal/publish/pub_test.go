@@ -18,33 +18,20 @@
 package publish_test
 
 import (
-	"bufio"
-	"compress/gzip"
 	"context"
-	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"go.elastic.co/fastjson"
-
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	"github.com/elastic/beats/v7/libbeat/publisher"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
-	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 	"github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-
-	"github.com/elastic/apm-data/model/modelpb"
 
 	"github.com/elastic/apm-server/internal/publish"
 )
@@ -95,124 +82,6 @@ func TestPublisherStopShutdownInactive(t *testing.T) {
 	// There are no active events, so the publisher should stop immediately
 	// and not wait for the context to be cancelled.
 	assert.NoError(t, publisher.Stop(context.Background()))
-}
-
-func BenchmarkPublisher(b *testing.B) {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
-	})
-
-	var indexed atomic.Int64
-	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
-		gzr, err := gzip.NewReader(r.Body)
-		assert.NoError(b, err)
-		defer gzr.Close()
-
-		var jsonw fastjson.Writer
-		jsonw.RawString(`{"items":[`)
-		first := true
-
-		scanner := bufio.NewScanner(gzr)
-		var n int64
-
-		// stop if there's no more data or we bump into an empty line
-		// Prevent an issue with clients appending newlines to
-		// valid requests
-		for scanner.Scan() && len(scanner.Bytes()) != 0 { // index
-			require.True(b, scanner.Scan())
-
-			if first {
-				first = false
-			} else {
-				jsonw.RawByte(',')
-			}
-			jsonw.RawString(`{"create":{"status":201}}`)
-			n++
-		}
-		assert.NoError(b, scanner.Err())
-		jsonw.RawString(`]}`)
-		w.Write(jsonw.Bytes())
-		indexed.Add(n)
-	})
-	srv := httptest.NewServer(mux)
-	defer srv.Close()
-
-	supporter, err := idxmgmt.DefaultSupport(
-		beat.Info{
-			Logger: logp.NewNopLogger(),
-		},
-		nil,
-	)
-	require.NoError(b, err)
-
-	outputGroup, err := outputs.Load(
-		supporter,
-		beat.Info{
-			Logger: logp.NewNopLogger(),
-		},
-		nil,
-		"elasticsearch",
-		config.MustNewConfigFrom(map[string]interface{}{
-			"hosts": []interface{}{srv.URL},
-		}),
-	)
-	require.NoError(b, err)
-
-	conf, err := config.NewConfigFrom(map[string]interface{}{
-		"mem.events":           4096,
-		"mem.flush.min_events": 2048,
-		"mem.flush.timeout":    "1s",
-	})
-	require.NoError(b, err)
-
-	namespace := config.Namespace{}
-	err = conf.Unpack(&namespace)
-	require.NoError(b, err)
-
-	pipeline, err := pipeline.New(
-		beat.Info{
-			Logger: logp.NewNopLogger(),
-		},
-		pipeline.Monitors{
-			Logger: logp.NewNopLogger(),
-		},
-		namespace,
-		outputGroup,
-		pipeline.Settings{
-			WaitCloseMode:  pipeline.WaitOnPipelineClose,
-			InputQueueSize: 2048,
-		},
-	)
-	require.NoError(b, err)
-
-	acker := publish.NewWaitPublishedAcker()
-	acker.Open()
-	publisher, err := publish.NewPublisher(
-		pipetool.WithACKer(pipeline, acker),
-	)
-	require.NoError(b, err)
-
-	batch := modelpb.Batch{
-		&modelpb.APMEvent{
-			Timestamp: modelpb.FromTime(time.Now()),
-		},
-	}
-	ctx := context.Background()
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			if err := publisher.ProcessBatch(ctx, &batch); err != nil {
-				b.Fatal(err)
-			}
-		}
-	})
-
-	// Close the publisher and wait for enqueued events to be published.
-	assert.NoError(b, publisher.Stop(context.Background()))
-	assert.NoError(b, acker.Wait(context.Background()))
-	assert.NoError(b, pipeline.Close())
-	assert.Equal(b, int64(b.N), indexed.Load())
 }
 
 func newBlockingPipeline(t testing.TB) (*pipeline.Pipeline, *mockClient) {
