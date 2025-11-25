@@ -93,7 +93,7 @@ resource "aws_instance" "moxy" {
     inline = [
       "sudo cp ${local.bin_path} moxy",
       "sudo chmod +x moxy",
-      "nohup ./moxy -port=${local.moxy_port} -password=${random_password.moxy_password.result} > moxy.log 2>&1 &",
+      "screen -d -m ./moxy -port=${local.moxy_port} -password=${random_password.moxy_password.result}",
       "sleep 1"
     ]
   }
