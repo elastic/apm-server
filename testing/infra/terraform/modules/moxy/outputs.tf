@@ -3,11 +3,6 @@ output "moxy_url" {
   description = "Moxy server URL"
 }
 
-output "moxy_ip" {
-  value       = aws_instance.moxy.public_ip
-  description = "Moxy server IP address"
-}
-
 output "moxy_password" {
   value       = random_password.moxy_password.result
   description = "Moxy server password"
