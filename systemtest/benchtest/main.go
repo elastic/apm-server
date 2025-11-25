@@ -56,6 +56,7 @@ type benchmark struct {
 }
 
 // getLogger returns a logger that does not depend on b.Log because b.Log does not work in testing.Benchmark.
+// See https://github.com/golang/go/issues/32066
 // Log to stdout to avoid interfering with benchmark output in stderr.
 func getLogger() (*zap.Logger, error) {
 	c := zap.NewDevelopmentConfig()
