@@ -154,10 +154,10 @@ module "standalone_apm_server" {
   source = "../infra/terraform/modules/standalone_apm_server"
 
   vpc_id              = module.vpc.vpc_id
-  aws_os              = "amzn2-ami-hvm-*-x86_64-ebs"
+  aws_os              = "al2023-ami-2023.*-x86_64"
   apm_instance_type   = var.standalone_apm_server_instance_size
   apm_volume_type     = var.standalone_apm_server_volume_type
-  apm_volume_size     = var.apm_server_tail_sampling ? coalesce(var.standalone_apm_server_volume_size, 60) : var.standalone_apm_server_volume_size
+  apm_volume_size     = var.apm_server_tail_sampling ? coalesce(var.standalone_apm_server_volume_size, 300) : var.standalone_apm_server_volume_size # Much larger disk for TBS setup because of 8.x TBS disk usage
   apm_iops            = var.standalone_apm_server_iops
   apm_server_bin_path = var.apm_server_bin_path
   ea_managed          = false
