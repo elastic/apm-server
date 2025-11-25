@@ -108,7 +108,7 @@ func initCfgfile(t testing.TB, content string) (home string) {
 	})
 
 	configFile := filepath.Join(home, "testing.yml")
-	err := os.WriteFile(configFile, []byte(strings.TrimSpace(content)), 0o644)
+	err := os.WriteFile(configFile, []byte(strings.TrimSpace(content)), 0644)
 	require.NoError(t, err)
 	cfgfile.SetConfigPath(home)
 	cfgfile.ChangeDefaultCfgfileFlag("testing")
