@@ -9,7 +9,7 @@ data "aws_ami" "worker_ami" {
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-ebs"]
+    values = ["al2023-ami-2023.*-x86_64"]
   }
 }
 
