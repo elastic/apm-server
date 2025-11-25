@@ -263,7 +263,7 @@ func run(ctx context.Context, serverURL string, period time.Duration) (<-chan ex
 				return
 			case <-ticker.C:
 				var e expvar
-				ctxWithTimeout, cancel := context.WithTimeout(ctx, period*3+time.Second)
+				ctxWithTimeout, cancel := context.WithTimeout(ctx, period+5*time.Second)
 				err := queryExpvar(ctxWithTimeout, &e, serverURL)
 				cancel()
 				if err != nil {
