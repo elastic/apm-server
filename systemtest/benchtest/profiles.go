@@ -44,7 +44,7 @@ func fetchProfile(urlPath string, duration time.Duration) (*profile.Profile, err
 		query.Set("seconds", strconv.Itoa(int(duration.Seconds())))
 		req.URL.RawQuery = query.Encode()
 
-		timeout := time.Duration(int64(duration) * 3)
+		timeout := duration * 3
 		ctx, cancel := context.WithTimeout(req.Context(), timeout)
 		defer cancel()
 		req = req.WithContext(ctx)
