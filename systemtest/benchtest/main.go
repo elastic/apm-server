@@ -62,6 +62,7 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, bool, error) 
 	var failed bool
 	var skipped bool
 	var collector *expvar.Collector
+	var reterr error
 	result := testing.Benchmark(func(b *testing.B) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
@@ -69,7 +70,8 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, bool, error) 
 		server := loadgencfg.Config.ServerURL.String()
 		collector, err = expvar.StartNewCollector(ctx, server, 100*time.Millisecond, zaptest.NewLogger(b))
 		if err != nil {
-			b.Error(err)
+			reterr = fmt.Errorf("expvar.StartNewCollector error: %w", err)
+			b.Error(reterr)
 			failed = b.Failed()
 			return
 		}
@@ -93,9 +95,11 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, bool, error) 
 		if !b.Failed() {
 			watcher, err := collector.WatchMetric(expvar.ActiveEvents, 0)
 			if err != nil {
-				b.Error(err)
+				reterr = fmt.Errorf("collector.WatchMetric error: %w", err)
+				b.Error(reterr)
 			} else if status := <-watcher; !status {
-				b.Error("failed to wait for APM server to be inactive")
+				reterr = fmt.Errorf("failed to wait for APM server to be inactive")
+				b.Error(reterr)
 			}
 		}
 		failed = b.Failed()
@@ -104,7 +108,7 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, bool, error) 
 	if result.Extra != nil {
 		addExpvarMetrics(&result, collector, benchConfig.Detailed)
 	}
-	return result, failed, skipped, nil
+	return result, failed, skipped, reterr
 }
 
 func addExpvarMetrics(result *testing.BenchmarkResult, collector *expvar.Collector, detailed bool) {
@@ -233,7 +237,8 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 				profileChan := profiles.record(name)
 				result, failed, skipped, err := runBenchmark(benchmark.f)
 				if err != nil {
-					return err
+					fmt.Fprintf(os.Stderr, "--- FAIL: %s\n", name)
+					return fmt.Errorf("benchmark %q failed: %w", name, err)
 				}
 				if skipped {
 					continue
