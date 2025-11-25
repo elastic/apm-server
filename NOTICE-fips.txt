@@ -74,11 +74,11 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/cockroachdb/pebble/v2
-Version: v2.1.1
+Version: v2.1.2
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble/v2@v2.1.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble/v2@v2.1.2/LICENSE:
 
 Copyright (c) 2011 The LevelDB-Go Authors. All rights reserved.
 
