@@ -30,7 +30,7 @@ inputs:
           enabled: ${apm_server_tail_sampling}
           storage_limit: ${apm_server_tail_sampling_storage_limit}
           policies:
-            - sample_rate: 0.1
+            - sample_rate: ${apm_server_tail_sampling_sample_rate}
     logging.level: debug
     logging.to_files: true
     logging.files:

@@ -32,8 +32,10 @@ This module can be used to create a standalone APM Server deployment against a s
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_apm_instance_type"></a> [apm\_instance\_type](#input\_apm\_instance\_type) | Optional apm server instance type override | `string` | `""` | no |
+| <a name="input_apm_iops"></a> [apm\_iops](#input\_apm\_iops) | Optional apm server disk IOPS override | `number` | `null` | no |
 | <a name="input_apm_server_bin_path"></a> [apm\_server\_bin\_path](#input\_apm\_server\_bin\_path) | Optionally use the apm-server binary from the specified path instead | `string` | `""` | no |
 | <a name="input_apm_server_tail_sampling"></a> [apm\_server\_tail\_sampling](#input\_apm\_server\_tail\_sampling) | Whether or not to enable APM Server tail-based sampling. Defaults to false | `bool` | `false` | no |
+| <a name="input_apm_server_tail_sampling_sample_rate"></a> [apm\_server\_tail\_sampling\_sample\_rate](#input\_apm\_server\_tail\_sampling\_sample\_rate) | Sample rate of APM Server tail-based sampling. Defaults to 0.1 | `number` | `0.1` | no |
 | <a name="input_apm_server_tail_sampling_storage_limit"></a> [apm\_server\_tail\_sampling\_storage\_limit](#input\_apm\_server\_tail\_sampling\_storage\_limit) | Storage size limit of APM Server tail-based sampling. Defaults to 10GB | `string` | `"10GB"` | no |
 | <a name="input_apm_volume_size"></a> [apm\_volume\_size](#input\_apm\_volume\_size) | Optional apm server volume size in GB override | `number` | `null` | no |
 | <a name="input_apm_volume_type"></a> [apm\_volume\_type](#input\_apm\_volume\_type) | Optional apm server volume type override | `string` | `null` | no |
@@ -44,6 +46,7 @@ This module can be used to create a standalone APM Server deployment against a s
 | <a name="input_elasticsearch_url"></a> [elasticsearch\_url](#input\_elasticsearch\_url) | The secure Elasticsearch URL | `string` | n/a | yes |
 | <a name="input_elasticsearch_username"></a> [elasticsearch\_username](#input\_elasticsearch\_username) | The Elasticsearch username | `string` | n/a | yes |
 | <a name="input_stack_version"></a> [stack\_version](#input\_stack\_version) | Optional stack version | `string` | `"latest"` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | Optional set of tags to use for all deployments | `map(string)` | `{}` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID to provision the EC2 instance | `string` | n/a | yes |
 
 ## Outputs

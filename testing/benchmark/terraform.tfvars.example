@@ -25,6 +25,7 @@ user_name = "USER"
 # Tail-based sampling settings of the APM Server.
 # apm_server_tail_sampling = false
 # apm_server_tail_sampling_storage_limit = "10GB"
+# apm_server_tail_sampling_sample_rate = 0.1
 
 # The Elasticsearch cluster node size.
 # elasticsearch_size = "1g"
