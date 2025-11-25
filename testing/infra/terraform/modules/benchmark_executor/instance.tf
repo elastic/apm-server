@@ -53,7 +53,9 @@ module "ec2_instance" {
 }
 
 resource "aws_key_pair" "worker" {
-  key_name   = "${var.user_name}_worker_key"
-  public_key = file(var.public_key)
-  tags       = merge(var.tags, local.ec2_tags)
+  # Use key_name_prefix instead of key_name to avoid interfering with concurrent runs
+  # As user_name is timestamp-based on CI
+  key_name_prefix = "${var.user_name}_worker_key"
+  public_key      = file(var.public_key)
+  tags            = merge(var.tags, local.ec2_tags)
 }
