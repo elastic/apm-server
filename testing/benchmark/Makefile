@@ -137,11 +137,6 @@ endif
 cat-apm-server-logs:
 	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(APM_SERVER_IP) "cat /var/log/apm-server/*"
 
-.PHONY: cat-moxy-logs
-cat-moxy-logs:
-	$(eval MOXY_IP = $(shell terraform output -raw moxy_ip))
-	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(MOXY_IP) "cat moxy.log"
-
 $(SSH_KEY):
 	@ssh-keygen -t rsa -b 4096 -C "$(USER)@elastic.co" -N "" -f $(SSH_KEY)
 
