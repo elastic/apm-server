@@ -41,7 +41,7 @@ var userAgent = fmt.Sprintf("Elastic-APM-Server/%s go-elasticsearch/%s", version
 
 type Client = elastictransport.Client
 
-// ClientParams holds parameters for NewClientParams.
+// ClientParams holds parameters for NewClient.
 type ClientParams struct {
 	// Config holds the user-defined configuration: Elasticsearch hosts,
 	// max retries, etc.
@@ -66,13 +66,7 @@ type ClientParams struct {
 }
 
 // NewClient returns a stack version-aware Elasticsearch client,
-// equivalent to NewClientParams(ClientParams{Config: config}).
-func NewClient(config *Config, logger *logp.Logger) (*Client, error) {
-	return NewClientParams(ClientParams{Config: config, Logger: logger})
-}
-
-// NewClientParams returns a stack version-aware Elasticsearch client.
-func NewClientParams(args ClientParams) (*Client, error) {
+func NewClient(args ClientParams) (*Client, error) {
 	if args.Config == nil {
 		return nil, errConfigMissing
 	}
