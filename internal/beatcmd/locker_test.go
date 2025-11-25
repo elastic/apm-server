@@ -47,9 +47,7 @@ func TestLocker(t *testing.T) {
 	// Create another Beat using the same configuration and data directory;
 	// its Run method should fail to acquire the lock while beat1 is running.
 	beat2 := newBeat(t, "", func(rp RunnerParams) (Runner, error) {
-		return runnerFunc(func(ctx context.Context) error {
 			panic("should not be called")
-		}), nil
 	})
 	err := beat2.Run(context.Background())
 	require.ErrorIs(t, err, ErrAlreadyLocked)
