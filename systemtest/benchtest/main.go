@@ -36,7 +36,6 @@ import (
 
 	"go.elastic.co/apm/v2/stacktrace"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-perf/loadgen"
@@ -56,7 +55,19 @@ type benchmark struct {
 	f    BenchmarkFunc
 }
 
+// getLogger returns a logger that does not depend on b.Log because b.Log does not work in testing.Benchmark.
+// Log to stdout to avoid interfering with benchmark output in stderr.
+func getLogger() (*zap.Logger, error) {
+	c := zap.NewDevelopmentConfig()
+	c.OutputPaths = []string{"stdout"}
+	return c.Build()
+}
+
 func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, bool, error) {
+	logger, err := getLogger()
+	if err != nil {
+		return testing.BenchmarkResult{}, false, false, err
+	}
 	// Run the benchmark. testing.Benchmark will invoke the function
 	// multiple times, but only returns the final result.
 	var failed bool
@@ -68,7 +79,7 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, bool, error) 
 		defer cancel()
 		var err error
 		server := loadgencfg.Config.ServerURL.String()
-		collector, err = expvar.StartNewCollector(ctx, server, 100*time.Millisecond, zaptest.NewLogger(b))
+		collector, err = expvar.StartNewCollector(ctx, server, 100*time.Millisecond, logger)
 		if err != nil {
 			reterr = fmt.Errorf("expvar.StartNewCollector error: %w", err)
 			b.Error(reterr)
