@@ -12,6 +12,19 @@ The scripts here are used to generate the docs at https://www.elastic.co/docs/so
 4. **Analyze results**: Run `analyze-benchmarks.sh` to generate benchstat analysis for each result
 5. **Summarize for documentation**: Create a summary table from the benchstat results for the documentation (can be done manually or using an LLM to extract geomean values from each `benchstat.txt` file)
 
+```bash
+# Run benchmarks on the tbs-arm-bench-92 branch
+BENCH_BRANCH=tbs-arm-bench-92 ./benchmark-tbs.sh
+
+# Wait for workflows to complete on GitHub Actions
+
+# Download all benchmark results using the saved run IDs
+BENCH_BRANCH=tbs-arm-bench-92 ./download-benchmarks.sh
+
+# Analyze the results
+./analyze-benchmarks.sh
+```
+
 ## benchmark-tbs.sh
 
 Triggers multiple Tail-Based Sampling (TBS) benchmark workflows on GitHub Actions with different ARM instance configurations.
@@ -19,7 +32,7 @@ Triggers multiple Tail-Based Sampling (TBS) benchmark workflows on GitHub Action
 ### Usage
 
 ```bash
-BENCH_BRANCH=tbs-arm-bench-92 .github/workflows/benchmark-tbs.sh
+BENCH_BRANCH=tbs-arm-bench-92 ./benchmark-tbs.sh
 ```
 
 ### Environment Variables
@@ -36,25 +49,6 @@ This script triggers 9 benchmark workflow runs with different configurations:
 
 The script runs configurations sequentially with 2-second delays between each and automatically saves each workflow run ID to `${BENCH_BRANCH}.txt` for later use with `download-benchmarks.sh`.
 
-### Example
-
-```bash
-# Run benchmarks on the tbs-arm-bench-92 branch
-BENCH_BRANCH=tbs-arm-bench-92 .github/workflows/benchmarks/benchmark-tbs.sh
-
-# Wait for workflows to complete on GitHub Actions
-
-# Download all benchmark results using the saved run IDs
-BENCH_BRANCH=tbs-arm-bench-92 .github/workflows/benchmarks/download-benchmarks.sh
-
-# Analyze the results
-.github/workflows/benchmarks/analyze-benchmarks.sh
-```
-
-### Error Handling
-
-The script will exit with an error if the `BENCH_BRANCH` environment variable is not set or is empty.
-
 ## download-benchmarks.sh
 
 Downloads benchmark result artifacts from completed GitHub workflow runs.
@@ -62,7 +56,8 @@ Downloads benchmark result artifacts from completed GitHub workflow runs.
 ### Usage
 
 ```bash
-BENCH_BRANCH=tbs-arm-bench-92 .github/workflows/benchmarks/download-benchmarks.sh
+# Download all benchmark results (after running benchmark-tbs.sh)
+BENCH_BRANCH=tbs-arm-bench-92 ./download-benchmarks.sh
 ```
 
 ### Environment Variables
@@ -73,13 +68,6 @@ BENCH_BRANCH=tbs-arm-bench-92 .github/workflows/benchmarks/download-benchmarks.s
 
 Reads workflow run IDs from `${BENCH_BRANCH}.txt` file (one per line). Each benchmark result is downloaded to a numbered directory (`benchmark-result-1`, `benchmark-result-2`, etc.).
 
-### Example
-
-```bash
-# Download all benchmark results (after running benchmark-tbs.sh)
-BENCH_BRANCH=tbs-arm-bench-92 .github/workflows/benchmarks/download-benchmarks.sh
-```
-
 ## analyze-benchmarks.sh
 
 Generates benchstat analysis for each downloaded benchmark result.
@@ -87,7 +75,8 @@ Generates benchstat analysis for each downloaded benchmark result.
 ### Usage
 
 ```bash
-.github/workflows/benchmarks/analyze-benchmarks.sh
+./analyze-benchmarks.sh
+# Creates benchmark-result-1/benchstat.txt, benchmark-result-2/benchstat.txt, etc.
 ```
 
 ### Description
@@ -97,10 +86,3 @@ For each `benchmark-result-*/benchmark-result.txt` file, runs `benchstat` and sa
 ### Requirements
 
 - `benchstat` must be installed (`go install golang.org/x/perf/cmd/benchstat@latest`)
-
-### Example
-
-```bash
-.github/workflows/benchmarks/analyze-benchmarks.sh
-# Creates benchmark-result-1/benchstat.txt, benchmark-result-2/benchstat.txt, etc.
-```
