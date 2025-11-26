@@ -6,6 +6,7 @@ locals {
   }
 
   # Detect if instance type is ARM (Graviton) based
+  # If we need to change this, remember to grep for other instance type checks in the codebase.
   is_arm   = can(regex("^(a1|t4g|c6g|c7g|m6g|m7g|r6g|r7g|x2gd)", var.instance_type))
   ami_arch = local.is_arm ? "arm64" : "x86_64"
 }

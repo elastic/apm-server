@@ -46,6 +46,7 @@ locals {
   name_prefix = "${coalesce(var.user_name, "unknown-user")}-bench"
 
   # Detect if standalone APM server instance type is ARM (Graviton) based
+  # If we need to change this, remember to grep for other instance type checks in the codebase.
   standalone_apm_is_arm = can(regex("^(a1|t4g|c6g|c7g|m6g|m7g|r6g|r7g|x2gd)", var.standalone_apm_server_instance_size))
 }
 
