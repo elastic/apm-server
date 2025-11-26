@@ -2,11 +2,8 @@ name: benchmarks
 
 # Secret access requires allowlist in https://github.com/elastic/oblt-infra/tree/main/conf/resources/repos/apm-server
 
-<<<<<<< HEAD
-=======
 # To call benchmarks workflow programmatically with different params, use the scripts in .github/workflows/benchmarks
 
->>>>>>> 1c6eecf4 (benchmark: Support ARM, add local scripts for parametrized benchmarks (#19619))
 on:
   workflow_dispatch:
     inputs:
