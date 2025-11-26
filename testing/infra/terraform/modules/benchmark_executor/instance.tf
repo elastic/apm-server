@@ -31,7 +31,7 @@ data "aws_security_group" "security_group" {
 
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "3.5.0"
+  version = "6.1.5"
 
   ami                         = data.aws_ami.worker_ami.id
   instance_type               = var.instance_type
