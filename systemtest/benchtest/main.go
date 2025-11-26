@@ -36,7 +36,6 @@ import (
 
 	"go.elastic.co/apm/v2/stacktrace"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-perf/loadgen"
@@ -44,7 +43,7 @@ import (
 	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
 )
 
-const waitInactiveTimeout = 60 * time.Second
+const waitInactiveTimeout = 90 * time.Second
 
 // BenchmarkFunc is the benchmark function type accepted by Run.
 type BenchmarkFunc func(*testing.B, *rate.Limiter)
@@ -56,20 +55,35 @@ type benchmark struct {
 	f    BenchmarkFunc
 }
 
+// getLogger returns a logger that does not depend on b.Log because b.Log does not work in testing.Benchmark.
+// See https://github.com/golang/go/issues/32066
+// Log to stdout to avoid interfering with benchmark output in stderr.
+func getLogger() (*zap.Logger, error) {
+	c := zap.NewDevelopmentConfig()
+	c.OutputPaths = []string{"stdout"}
+	return c.Build()
+}
+
 func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, bool, error) {
+	logger, err := getLogger()
+	if err != nil {
+		return testing.BenchmarkResult{}, false, false, err
+	}
 	// Run the benchmark. testing.Benchmark will invoke the function
 	// multiple times, but only returns the final result.
 	var failed bool
 	var skipped bool
 	var collector *expvar.Collector
+	var reterr error
 	result := testing.Benchmark(func(b *testing.B) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		var err error
 		server := loadgencfg.Config.ServerURL.String()
-		collector, err = expvar.StartNewCollector(ctx, server, 100*time.Millisecond, zaptest.NewLogger(b))
+		collector, err = expvar.StartNewCollector(ctx, server, 100*time.Millisecond, logger)
 		if err != nil {
-			b.Error(err)
+			reterr = fmt.Errorf("expvar.StartNewCollector error: %w", err)
+			b.Error(reterr)
 			failed = b.Failed()
 			return
 		}
@@ -93,9 +107,11 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, bool, error) 
 		if !b.Failed() {
 			watcher, err := collector.WatchMetric(expvar.ActiveEvents, 0)
 			if err != nil {
-				b.Error(err)
+				reterr = fmt.Errorf("collector.WatchMetric error: %w", err)
+				b.Error(reterr)
 			} else if status := <-watcher; !status {
-				b.Error("failed to wait for APM server to be inactive")
+				reterr = fmt.Errorf("failed to wait for APM server to be inactive")
+				b.Error(reterr)
 			}
 		}
 		failed = b.Failed()
@@ -104,7 +120,7 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, bool, error) 
 	if result.Extra != nil {
 		addExpvarMetrics(&result, collector, benchConfig.Detailed)
 	}
-	return result, failed, skipped, nil
+	return result, failed, skipped, reterr
 }
 
 func addExpvarMetrics(result *testing.BenchmarkResult, collector *expvar.Collector, detailed bool) {
@@ -233,7 +249,8 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 				profileChan := profiles.record(name)
 				result, failed, skipped, err := runBenchmark(benchmark.f)
 				if err != nil {
-					return err
+					fmt.Fprintf(os.Stderr, "--- FAIL: %s\n", name)
+					return fmt.Errorf("benchmark %q failed: %w", name, err)
 				}
 				if skipped {
 					continue
