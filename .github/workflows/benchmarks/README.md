@@ -2,7 +2,9 @@
 
 This directory contains utility scripts for users to run locally to kickstart and analyze APM Server benchmark workflows in different configurations.
 
-The scripts here are used to generate the docs at https://www.elastic.co/docs/solutions/observability/apm/transaction-sampling#_tail_based_sampling_performance_and_requirements
+The scripts here are used to generate the TBS benchmark docs at https://www.elastic.co/docs/solutions/observability/apm/transaction-sampling#_tail_based_sampling_performance_and_requirements
+
+To generate non-TBS benchmark, modify the benchmarks workflow inputs in `start-workflows.sh`, and use the other scripts as is.
 
 ## Workflow
 
@@ -21,13 +23,13 @@ BENCH_BRANCH=tbs-arm-bench-92 ./start-workflows.sh
 # Download all benchmark results using the saved run IDs
 BENCH_BRANCH=tbs-arm-bench-92 ./download-artifacts.sh
 
-# Analyze the results
+# Analyze the results by producing benchstat
 ./analyze-artifacts.sh
 ```
 
 ## start-workflows.sh
 
-Triggers multiple Tail-Based Sampling (TBS) benchmark workflows on GitHub Actions with different ARM instance configurations.
+Triggers multiple benchmark workflows on GitHub Actions with different instance configurations.
 
 ### Usage
 
@@ -43,11 +45,11 @@ BENCH_BRANCH=tbs-arm-bench-92 ./start-workflows.sh
 
 This script triggers 9 benchmark workflow runs with different configurations:
 - Tests 8GB, 16GB, and 32GB instance profiles
-- Compares TBS disabled vs enabled configurations
-- Tests both EBS gp3 volumes and local NVMe SSD storage
-- Uses ARM-based EC2 instances (c6gd series)
+- Compares 3 different TBS disabled vs enabled and disk configurations
 
 The script runs configurations sequentially with 2-second delays between each and automatically saves each workflow run ID to `${BENCH_BRANCH}.txt` for later use with `download-artifacts.sh`.
+
+The script can be modified to run in any other configurations, e.g. non-TBS.
 
 ## download-artifacts.sh
 
