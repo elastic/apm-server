@@ -2,12 +2,15 @@
 
 This directory contains utility scripts for users to run locally to kickstart and analyze APM Server benchmark workflows in different configurations.
 
+The scripts here are used to generate the docs at https://www.elastic.co/docs/solutions/observability/apm/transaction-sampling#_tail_based_sampling_performance_and_requirements
+
 ## Workflow
 
 1. **Run benchmarks**: Execute `benchmark-tbs.sh` to trigger multiple benchmark workflow runs on GitHub and save run IDs to `${BENCH_BRANCH}.txt`
 2. **Wait for completion**: Monitor the workflow runs on GitHub Actions until all benchmarks finish
 3. **Download results**: Run `download-benchmarks.sh` to fetch all benchmark artifacts using the saved run IDs
 4. **Analyze results**: Run `analyze-benchmarks.sh` to generate benchstat analysis for each result
+5. **Summarize for documentation**: Create a summary table from the benchstat results for the documentation (can be done manually or using an LLM to extract geomean values from each `benchstat.txt` file)
 
 ## benchmark-tbs.sh
 
