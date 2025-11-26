@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# This script is used for starting the workflows behind the documentation
-# https://www.elastic.co/docs/solutions/observability/apm/transaction-sampling#_tail_based_sampling_performance_and_requirements
-
 # Validate BENCH_BRANCH environment variable
 if [ -z "$BENCH_BRANCH" ]; then
   echo "Error: BENCH_BRANCH environment variable is not set or is empty. Set it to the branch on which the workflow should run."
