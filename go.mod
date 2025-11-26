@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.4.0
 	github.com/elastic/apm-data v1.19.5
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251121190645-8580e1a4ad09
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251126145333-8f175efd1c35
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
 	github.com/elastic/elastic-agent-libs v0.26.0
 	github.com/elastic/elastic-agent-system-metrics v0.13.4
@@ -230,7 +230,7 @@ require (
 	go.opentelemetry.io/collector/featuregate v1.45.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
-	golang.org/x/crypto v0.44.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/exp v0.0.0-20250911091902-df9299821621 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
 	golang.org/x/mod v0.29.0 // indirect
