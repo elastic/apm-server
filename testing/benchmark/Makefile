@@ -1,14 +1,22 @@
 APMBENCH_PATH ?= ../../systemtest/cmd/apmbench
 APMBENCH_GOOS ?= linux
-APMBENCH_GOARCH ?= amd64
 
 MOXY_GOOS ?= linux
-MOXY_GOARCH ?= amd64
 
 APM_SERVER_GOOS ?= linux
-APM_SERVER_GOARCH ?= amd64
 
 TFVARS_SOURCE ?= terraform.tfvars.example
+
+# Automatically detect architecture based on instance type in TFVARS_SOURCE
+DETECTED_ARCH = $(shell INSTANCE_TYPE=$$(grep -E "standalone_apm_server_instance_size|standalone_moxy_instance_size|worker_instance_type" $(TFVARS_SOURCE) | head -1 | cut -d'=' -f2 | tr -d ' "'); \
+	if [[ "$$INSTANCE_TYPE" =~ ^(a1|t4g|c6g|c7g|m6g|m7g|r6g|r7g|x2gd) ]]; then \
+		echo "arm64"; \
+	else \
+		echo "amd64"; \
+	fi)
+APMBENCH_GOARCH ?= $(DETECTED_ARCH)
+MOXY_GOARCH ?= $(DETECTED_ARCH)
+APM_SERVER_GOARCH ?= $(DETECTED_ARCH)
 
 BENCHMARK_WARMUP_TIME ?= 5m
 BENCHMARK_AGENTS ?= 64
