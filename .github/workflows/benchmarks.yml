@@ -2,7 +2,7 @@ name: benchmarks
 
 # Secret access requires allowlist in https://github.com/elastic/oblt-infra/tree/main/conf/resources/repos/apm-server
 
-# To call benchmarks workflow programmatically with different params, use the `gh workflow run` command.
+# To call benchmarks workflow programmatically with different params, use the scripts in .github/workflows/benchmarks
 
 on:
   workflow_dispatch:
@@ -202,6 +202,10 @@ jobs:
       - name: Cat standalone server logs
         if: ${{ env.RUN_STANDALONE == 'true' && failure() }}
         run: make cat-apm-server-logs
+
+      - name: Cat moxy logs
+        if: ${{ env.RUN_STANDALONE == 'true' && failure() }}
+        run: make cat-moxy-logs
 
       - name: Index benchmarks result
         run: make index-benchmark-results
