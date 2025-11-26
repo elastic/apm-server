@@ -113,7 +113,7 @@ require (
 	github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f // indirect
 	github.com/elastic/go-structform v0.0.12 // indirect
 	github.com/elastic/go-windows v1.0.2 // indirect
-	github.com/elastic/gobench v0.0.0-20241125091404-f9fd2d295223 // indirect
+	github.com/elastic/gobench v0.0.0-20250916092032-bff3bff26845 // indirect
 	github.com/elastic/gosigar v0.14.3 // indirect
 	github.com/elastic/mock-es v0.0.0-20250530054253-8c3b6053f9b6 // indirect
 	github.com/elastic/opentelemetry-lib v0.21.0 // indirect

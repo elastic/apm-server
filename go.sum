@@ -227,8 +227,8 @@ github.com/elastic/go-ucfg v0.8.8 h1:54KIF/2zFKfl0MzsSOCGOsZ3O2bnjFQJ0nDJcLhviyk
 github.com/elastic/go-ucfg v0.8.8/go.mod h1:4E8mPOLSUV9hQ7sgLEJ4bvt0KhMuDJa8joDT2QGAEKA=
 github.com/elastic/go-windows v1.0.2 h1:yoLLsAsV5cfg9FLhZ9EXZ2n2sQFKeDYrHenkcivY4vI=
 github.com/elastic/go-windows v1.0.2/go.mod h1:bGcDpBzXgYSqM0Gx3DM4+UxFj300SZLixie9u9ixLM8=
-github.com/elastic/gobench v0.0.0-20241125091404-f9fd2d295223 h1:fs4y5fkIRF/gnlmjwlMviwZGZjv0e5t1m8uvXtWHZzE=
-github.com/elastic/gobench v0.0.0-20241125091404-f9fd2d295223/go.mod h1:R4xA+4qAhrucHDf5TNKUNkrZc336WX5RG+bu2wVDOCc=
+github.com/elastic/gobench v0.0.0-20250916092032-bff3bff26845 h1:huZvwNongB2P1X1XJomjRxTitcLJLohr5/IZg4pVS5Y=
+github.com/elastic/gobench v0.0.0-20250916092032-bff3bff26845/go.mod h1:5AsY0WjYfcqssqh2y1YGUY6BJc22u4ZZW2MJ+xrhoyE=
 github.com/elastic/gosigar v0.14.3 h1:xwkKwPia+hSfg9GqrCUKYdId102m9qTJIIr7egmK/uo=
 github.com/elastic/gosigar v0.14.3/go.mod h1:iXRIGg2tLnu7LBdpqzyQfGDEidKCfWcCMS0WKyPWoMs=
 github.com/elastic/mock-es v0.0.0-20250530054253-8c3b6053f9b6 h1:JVNuBrmOoqLJgp9o68YBMnOrXCzQI3mCppW+suwRSlw=
