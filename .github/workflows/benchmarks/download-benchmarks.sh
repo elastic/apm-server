@@ -1,7 +1,18 @@
 #!/bin/bash
 
-# Read workflow run IDs from stdin
-mapfile -t run_ids
+# Validate BENCH_BRANCH environment variable
+if [ -z "$BENCH_BRANCH" ]; then
+  echo "Error: BENCH_BRANCH environment variable is not set or is empty"
+  exit 1
+fi
+
+# Read workflow run IDs from ${BENCH_BRANCH}.txt
+if [ ! -f "${BENCH_BRANCH}.txt" ]; then
+  echo "Error: File ${BENCH_BRANCH}.txt not found"
+  exit 1
+fi
+
+mapfile -t run_ids < "${BENCH_BRANCH}.txt"
 
 # Download each benchmark result and rename
 for i in "${!run_ids[@]}"; do
