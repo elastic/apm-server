@@ -9,9 +9,9 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.4.0
 	github.com/elastic/apm-data v1.19.5
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251126145333-8f175efd1c35
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20251127063529-46e1e32d1aac
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
-	github.com/elastic/elastic-agent-libs v0.26.0
+	github.com/elastic/elastic-agent-libs v0.26.2
 	github.com/elastic/elastic-agent-system-metrics v0.13.4
 	github.com/elastic/elastic-transport-go/v8 v8.7.0
 	github.com/elastic/gmux v0.3.2
@@ -104,7 +104,6 @@ require (
 	github.com/elastic/gosigar v0.14.3 // indirect
 	github.com/elastic/mock-es v0.0.0-20250530054253-8c3b6053f9b6 // indirect
 	github.com/elastic/opentelemetry-lib v0.21.0 // indirect
-	github.com/elastic/pkcs8 v1.0.0 // indirect
 	github.com/elastic/sarama v1.19.1-0.20250603175145-7672917f26b6 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
@@ -220,6 +219,7 @@ require (
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
+	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zclconf/go-cty v1.15.0 // indirect
 	gitlab.com/digitalxero/go-conventional-commit v1.0.7 // indirect
