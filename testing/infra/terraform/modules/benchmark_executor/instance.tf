@@ -4,6 +4,11 @@ locals {
     managed-by = "terraform"
     owner      = var.user_name
   }
+
+  # Detect if instance type is ARM (Graviton) based
+  # If we need to change this, remember to grep for other instance type checks in the codebase.
+  is_arm   = can(regex("^(a1|t4g|c6g|c7g|m6g|m7g|r6g|r7g|x2gd)", var.instance_type))
+  ami_arch = local.is_arm ? "arm64" : "x86_64"
 }
 
 data "aws_ami" "worker_ami" {
@@ -12,7 +17,12 @@ data "aws_ami" "worker_ami" {
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-ebs"]
+    values = ["al2023-ami-*-${local.ami_arch}"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
   }
 }
 
@@ -44,7 +54,9 @@ module "ec2_instance" {
 }
 
 resource "aws_key_pair" "worker" {
-  key_name   = "${var.user_name}_worker_key"
-  public_key = file(var.public_key)
-  tags       = merge(var.tags, local.ec2_tags)
+  # Use key_name_prefix instead of key_name to avoid interfering with concurrent runs
+  # As user_name is timestamp-based on CI
+  key_name_prefix = "${var.user_name}_worker_key"
+  public_key      = file(var.public_key)
+  tags            = merge(var.tags, local.ec2_tags)
 }
