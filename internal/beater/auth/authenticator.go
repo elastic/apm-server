@@ -152,7 +152,7 @@ func NewAuthenticator(cfg config.AgentAuth, tp trace.TracerProvider, logger *log
 		cfg.APIKey.ESConfig.Username = ""
 		cfg.APIKey.ESConfig.Password = ""
 		cfg.APIKey.ESConfig.APIKey = ""
-		client, err := elasticsearch.NewClientParams(elasticsearch.ClientParams{
+		client, err := elasticsearch.NewClient(elasticsearch.ClientParams{
 			Config:         cfg.APIKey.ESConfig,
 			Logger:         logger,
 			TracerProvider: tp,
