@@ -1,14 +1,18 @@
+TFVARS_SOURCE ?= terraform.tfvars.example
+
+# Automatically detect architecture based on instance type in TFVARS_SOURCE
+# If we need to change this, remember to grep for other instance type checks in the codebase.
+DETECTED_ARCH = $(shell grep -E "standalone_apm_server_instance_size|standalone_moxy_instance_size|worker_instance_type" $(TFVARS_SOURCE) | head -1 | cut -d'=' -f2 | tr -d ' "' | grep -qE '^(a1|t4g|c6g|c7g|m6g|m7g|r6g|r7g|x2gd)' && echo "arm64" || echo "amd64")
+
 APMBENCH_PATH ?= ../../systemtest/cmd/apmbench
 APMBENCH_GOOS ?= linux
-APMBENCH_GOARCH ?= amd64
+APMBENCH_GOARCH ?= $(DETECTED_ARCH)
 
 MOXY_GOOS ?= linux
-MOXY_GOARCH ?= amd64
+MOXY_GOARCH ?= $(DETECTED_ARCH)
 
 APM_SERVER_GOOS ?= linux
-APM_SERVER_GOARCH ?= amd64
-
-TFVARS_SOURCE ?= terraform.tfvars.example
+APM_SERVER_GOARCH ?= $(DETECTED_ARCH)
 
 BENCHMARK_WARMUP_TIME ?= 5m
 BENCHMARK_AGENTS ?= 64
@@ -136,6 +140,11 @@ endif
 .PHONY: cat-apm-server-logs
 cat-apm-server-logs:
 	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(APM_SERVER_IP) "cat /var/log/apm-server/*"
+
+.PHONY: cat-moxy-logs
+cat-moxy-logs:
+	$(eval MOXY_IP = $(shell terraform output -raw moxy_ip))
+	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(MOXY_IP) "cat moxy.log"
 
 $(SSH_KEY):
 	@ssh-keygen -t rsa -b 4096 -C "$(USER)@elastic.co" -N "" -f $(SSH_KEY)
