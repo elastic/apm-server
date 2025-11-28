@@ -29,11 +29,11 @@ jobs:
   test:
     strategy:
       matrix:
-        os: ['macos-latest', 'windows-latest', 'ubuntu-latest']
+        os: ['macos-latest', 'windows-2025', 'ubuntu-latest']
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v5
         with:
           go-version-file: .go-version
           cache: true
@@ -44,7 +44,7 @@ jobs:
   python-system-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       # As long as there are some disk space issues with the CI runners.
       - name: Free Disk Space
         continue-on-error: true
@@ -57,7 +57,7 @@ jobs:
           docker-images: true
           swap-storage: true
           tool-cache: false
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
           go-version-file: .go-version
           cache: true
@@ -66,8 +66,8 @@ jobs:
   go-system-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v5
         with:
           go-version-file: .go-version
           cache: true
