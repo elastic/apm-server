@@ -278,10 +278,10 @@ gofmt: add-headers
 ##############################################################################
 
 MODULE_DEPS=$(sort $(shell \
-  go list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
+  CGO_ENABLED=0 go list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
 
 MODULE_DEPS_FIPS=$(sort $(shell \
-  go list -deps -tags=darwin,linux,windows,requirefips -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
+  CGO_ENABLED=1 go list -deps -tags=linux,requirefips -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
 
 notice: NOTICE.txt NOTICE-fips.txt
 NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod
