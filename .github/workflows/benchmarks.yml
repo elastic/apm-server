@@ -105,7 +105,7 @@ jobs:
           go-version-file: 'go.mod'
           cache: false
 
-      - uses: rlespinasse/github-slug-action@ac4a3a266833ca6b6086466a921fae9f3c671596 # v5.3.0
+      - uses: rlespinasse/github-slug-action@6f7a8d2348e2a4aa5defafcdaafe5aef3f83bd4b # v5.4.0
 
       - name: Set up env
         run: |
