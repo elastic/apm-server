@@ -42,6 +42,11 @@ output "apm_server_ip" {
   description = "The APM Server EC2 IP address"
 }
 
+output "moxy_ip" {
+  value       = var.run_standalone ? module.moxy[0].moxy_ip : ""
+  description = "The Moxy EC2 IP address"
+}
+
 output "admin_console_url" {
   value       = var.run_standalone ? "https://cloud.elastic.co/deployments" : module.ec_deployment[0].admin_console_url
   description = "The admin console URL"
