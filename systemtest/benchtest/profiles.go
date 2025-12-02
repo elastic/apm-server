@@ -44,8 +44,7 @@ func fetchProfile(urlPath string, duration time.Duration) (*profile.Profile, err
 		query.Set("seconds", strconv.Itoa(int(duration.Seconds())))
 		req.URL.RawQuery = query.Encode()
 
-		timeout := time.Duration(float64(duration) * 1.5)
-		ctx := req.Context()
+		timeout := duration * 3
 		ctx, cancel := context.WithTimeout(req.Context(), timeout)
 		defer cancel()
 		req = req.WithContext(ctx)
@@ -108,7 +107,7 @@ func (p *profiles) recordCPU() error {
 		}
 		// We don't need the address in the profile, so discard it to reduce the size.
 		if err := profile.Aggregate(true, true, true, true, false); err != nil {
-			return fmt.Errorf("failed to fetch CPU profile: %w", err)
+			return fmt.Errorf("failed to aggregate CPU profile: %w", err)
 		}
 		profile = profile.Compact()
 		p.cpu = append(p.cpu, profile)
