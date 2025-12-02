@@ -33,15 +33,19 @@ actions:
 
 sources:
   beats:
-    kind: json
-    spec:
-      file: 'https://api.github.com/repos/elastic/beats/commits?sha={{ requiredEnv "BRANCH_NAME" }}&per_page=1'
-      key: '.[0].sha'
+    name: Get commit SHA of the latest elastic/beats for branch '{{ requiredEnv "BRANCH_NAME" }}'
+    kind: shell
     transformers:
       # substring 12 chars so it works for the condition
       - findsubmatch:
           pattern: ^(.{12}).*
           captureindex: 1
+    spec:
+      command: gh api repos/elastic/beats/commits/{{ requiredEnv "BRANCH_NAME" }} --jq .sha
+      environments:
+        - name: PATH
+        - name: HOME
+        - name: GITHUB_TOKEN
 
 conditions:
   is-already-updated:
