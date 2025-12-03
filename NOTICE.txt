@@ -6230,6 +6230,7 @@ Indirect dependencies
 
 
 --------------------------------------------------------------------------------
+<<<<<<< HEAD
 Dependency : github.com/DataDog/zstd
 Version: v1.5.6
 Licence type (autodetected): BSD-3-Clause
@@ -6267,6 +6268,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 --------------------------------------------------------------------------------
+=======
+>>>>>>> 63f66950 (fix: update NOTICE files to reflect binary deps (#19754))
 Dependency : github.com/Microsoft/go-winio
 Version: v0.6.2
 Licence type (autodetected): MIT
