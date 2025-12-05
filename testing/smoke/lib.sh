@@ -499,7 +499,7 @@ inspect_systemd_ulimits() {
 
     # Systemd default limits
     echo "--- Systemd Default Limits ---"
-    ssh -i "${KEY_NAME}" ${SSH_OPTS} "${APM_SERVER_SSH_USER}@${APM_SERVER_IP}" "systemctl show-defaults 2>/dev/null | grep -i limit || echo 'No default limit settings found'" 2>/dev/null || echo "Failed to retrieve systemd defaults"
+    ssh -i "${KEY_NAME}" ${SSH_OPTS} "${APM_SERVER_SSH_USER}@${APM_SERVER_IP}" "systemctl show 2>/dev/null | grep -i limit || echo 'No default limit settings found'" 2>/dev/null || echo "Failed to retrieve systemd defaults"
     echo ""
 
     # Systemd system configuration
