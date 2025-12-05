@@ -147,3 +147,18 @@ output "stack_version" {
   value       = module.ec_deployment.stack_version
   description = "The matching stack pack version from the provided stack_version"
 }
+
+output "apm_server_ip" {
+  value       = module.standalone_apm_server.apm_server_ip
+  description = "The APM Server EC2 IP address"
+}
+
+output "apm_server_ssh_user" {
+  value       = module.standalone_apm_server.apm_server_ssh_user
+  description = "The SSH user for the APM Server EC2 instance"
+}
+
+output "apm_server_os" {
+  value       = module.standalone_apm_server.apm_server_os
+  description = "The operating system name for the APM Server EC2 instance"
+}

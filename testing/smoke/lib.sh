@@ -93,6 +93,9 @@ terraform_apply() {
     APM_SERVER_URL=$(terraform output -raw apm_server_url)
     KIBANA_URL=$(terraform output -raw kibana_url)
     STACK_VERSION=$(terraform output -raw stack_version)
+    APM_SERVER_IP=$(terraform output -raw apm_server_ip)
+    APM_SERVER_SSH_USER=$(terraform output -raw apm_server_ssh_user)
+    APM_SERVER_OS=$(terraform output -raw apm_server_os)
 }
 
 terraform_destroy() {
@@ -447,4 +450,73 @@ retry() {
     fi
   done
   return 0
+}
+
+inspect_systemd_ulimits() {
+    if [[ -z ${APM_SERVER_IP} ]] || [[ -z ${APM_SERVER_SSH_USER} ]] || [[ -z ${APM_SERVER_OS} ]]; then
+        echo "-> Warning: Missing terraform outputs for ulimit inspection (IP, SSH user, or OS)"
+        return 0
+    fi
+
+    if [[ -z ${KEY_NAME} ]]; then
+        echo "-> Warning: Missing SSH key for ulimit inspection"
+        return 0
+    fi
+
+    echo "-> Inspecting systemd ulimit values for apm-server on ${APM_SERVER_OS}..."
+    echo "-> Connecting to ${APM_SERVER_SSH_USER}@${APM_SERVER_IP}"
+
+    local SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10"
+
+    # Get apm-server PID
+    local PID
+    PID=$(ssh -i "${KEY_NAME}" ${SSH_OPTS} "${APM_SERVER_SSH_USER}@${APM_SERVER_IP}" "systemctl show apm-server --property MainPID --value 2>/dev/null || echo ''" 2>/dev/null || echo "")
+    
+    if [[ -z ${PID} ]] || [[ ${PID} == "0" ]]; then
+        echo "-> Warning: Could not get apm-server PID from systemctl, trying pgrep..."
+        PID=$(ssh -i "${KEY_NAME}" ${SSH_OPTS} "${APM_SERVER_SSH_USER}@${APM_SERVER_IP}" "pgrep -f apm-server | head -1 2>/dev/null || echo ''" 2>/dev/null || echo "")
+    fi
+
+    echo ""
+    echo "=== Systemd Ulimit Inspection for ${APM_SERVER_OS} ==="
+    echo ""
+
+    # Systemd unit file limits
+    echo "--- Systemd Unit File Limits ---"
+    ssh -i "${KEY_NAME}" ${SSH_OPTS} "${APM_SERVER_SSH_USER}@${APM_SERVER_IP}" "systemctl show apm-server 2>/dev/null | grep -i limit || echo 'No limit settings found in unit file'" 2>/dev/null || echo "Failed to retrieve unit file limits"
+    echo ""
+
+    # Actual process limits (if PID is available)
+    if [[ -n ${PID} ]] && [[ ${PID} != "0" ]]; then
+        echo "--- Actual Process Limits (PID: ${PID}) ---"
+        ssh -i "${KEY_NAME}" ${SSH_OPTS} "${APM_SERVER_SSH_USER}@${APM_SERVER_IP}" "cat /proc/${PID}/limits 2>/dev/null || echo 'Failed to read process limits'" 2>/dev/null || echo "Failed to retrieve process limits"
+        echo ""
+    else
+        echo "--- Actual Process Limits ---"
+        echo "Could not determine apm-server PID"
+        echo ""
+    fi
+
+    # Systemd default limits
+    echo "--- Systemd Default Limits ---"
+    ssh -i "${KEY_NAME}" ${SSH_OPTS} "${APM_SERVER_SSH_USER}@${APM_SERVER_IP}" "systemctl show-defaults 2>/dev/null | grep -i limit || echo 'No default limit settings found'" 2>/dev/null || echo "Failed to retrieve systemd defaults"
+    echo ""
+
+    # Systemd system configuration
+    echo "--- Systemd System Configuration ---"
+    ssh -i "${KEY_NAME}" ${SSH_OPTS} "${APM_SERVER_SSH_USER}@${APM_SERVER_IP}" "grep -E '^[^#]*Limit' /etc/systemd/system.conf /etc/systemd/user.conf 2>/dev/null | grep -v '^#' || echo 'No limit settings in systemd config files'" 2>/dev/null || echo "Failed to read systemd config files"
+    echo ""
+
+    # OS-specific system limits
+    echo "--- OS System Limits Configuration ---"
+    ssh -i "${KEY_NAME}" ${SSH_OPTS} "${APM_SERVER_SSH_USER}@${APM_SERVER_IP}" "for f in /etc/security/limits.conf /etc/security/limits.d/*.conf; do [ -f \"\$f\" ] && echo \"=== \$f ===\" && grep -v '^#' \"\$f\" | grep -v '^$' || true; done" 2>/dev/null || echo "Failed to read limits configuration files"
+    echo ""
+
+    # Current ulimit for the apm-server user
+    echo "--- Current Ulimit for apm-server User ---"
+    ssh -i "${KEY_NAME}" ${SSH_OPTS} "${APM_SERVER_SSH_USER}@${APM_SERVER_IP}" "sudo -u apm-server sh -c 'ulimit -a' 2>/dev/null || echo 'Could not retrieve ulimit for apm-server user'" 2>/dev/null || echo "Failed to retrieve user ulimit"
+    echo ""
+
+    echo "=== End of Ulimit Inspection for ${APM_SERVER_OS} ==="
+    echo ""
 }

@@ -48,6 +48,7 @@ do
     # so there should be no new documents indexed. Delete all existing data.
     delete_all
     healthcheck 1
+    inspect_systemd_ulimits || true
     send_events
     ${ASSERT_EVENTS_FUNC} ${OBSERVER_VERSION}
 done
