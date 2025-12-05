@@ -35,7 +35,7 @@ func Tracing(tp trace.TracerProvider) grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (any, error) {
-		ctx, span := tracer.Start(ctx, info.FullMethod)
+		ctx, span := tracer.Start(ctx, info.FullMethod, trace.WithSpanKind(trace.SpanKindServer))
 		defer span.End()
 
 		resp, err := handler(ctx, req)
