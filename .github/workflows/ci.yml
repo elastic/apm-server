@@ -46,6 +46,7 @@ jobs:
     strategy:
       matrix:
         os: ['macos-latest', 'ubuntu-latest', 'windows-2025']
+      fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
@@ -61,7 +62,11 @@ jobs:
           key: go-${{ hashFiles('go.mod') }}
           restore-keys: |
             go-
-      - run: go test -v -race ./...
+      - run: go test -v -race ./... 2>&1 | tee test.output
+      - uses: ./.github/workflows/test-report
+        with:
+          job_name: ${{ github.job }}-${{ matrix.os }}
+          token: ${{ secrets.MERGIFY_TOKEN }}
 
   test-integration-server-internal:
     runs-on: ubuntu-latest
@@ -87,7 +92,10 @@ jobs:
           EC_REGION: "gcp-us-west2"
         # run integrationservertest/internal tests
         # integrationservertest themselves are run in the integration-server-test pipeline
-        run: cd ./integrationservertest && go test -v -race ./internal/...
+        run: cd ./integrationservertest && go test -v -race ./internal/... 2>&1 | tee ../test.output
+      - uses: ./.github/workflows/test-report
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
 
   test-fips:
     runs-on: ubuntu-latest
@@ -108,7 +116,10 @@ jobs:
           GOFIPS140: "latest"
           # TODO: disable X25519MLKEM768 until upstream go issue is fixed https://github.com/golang/go/issues/74630#issuecomment-3224191006
           GODEBUG: "fips140=only,tlsmlkem=0"
-        run: go test -v -race -tags=requirefips ./...
+        run: go test -v -race -tags=requirefips ./... 2>&1 | tee test.output
+      - uses: ./.github/workflows/test-report
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
 
   system-test:
     runs-on: ubuntu-latest
@@ -137,6 +148,9 @@ jobs:
           GOTESTFLAGS: "-v"
           GH_TOKEN: ${{ github.token }}
         run: make system-test
+      - uses: ./.github/workflows/test-report
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
 
   system-test-fips:
     runs-on: ubuntu-latest
@@ -168,6 +182,9 @@ jobs:
           GODEBUG: "fips140=only,tlsmlkem=0"
           GH_TOKEN: ${{ github.token }}
         run: make system-test
+      - uses: ./.github/workflows/test-report
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
 
   test-package:
     runs-on: ubuntu-latest
