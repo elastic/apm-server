@@ -15,11 +15,11 @@ output "apm_server_ip" {
 }
 
 output "apm_server_ssh_user" {
-  value       = local.image_ssh_users[var.aws_os]
+  value       = var.aws_os == "" ? "unknown" : local.image_ssh_users[var.aws_os]
   description = "The SSH user for the APM Server EC2 instance"
 }
 
 output "apm_server_os" {
-  value       = var.aws_os
+  value       = var.aws_os == "" ? "undefined" : var.aws_os
   description = "The operating system name for the APM Server EC2 instance"
 }
