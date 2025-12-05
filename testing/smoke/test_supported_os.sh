@@ -39,6 +39,7 @@ fi
 
 for os in "${os_names[@]}"
 do
+    echo "-> Running basic supported OS smoke test for version ${VERSION} on ${os}"
     cleanup_tfvar
     append_tfvar "aws_provisioner_key_name" ${KEY_NAME}
     append_tfvar "aws_os" "$os"
