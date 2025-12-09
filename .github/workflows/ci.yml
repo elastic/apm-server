@@ -61,7 +61,7 @@ jobs:
           key: go-${{ hashFiles('go.mod') }}
           restore-keys: |
             go-
-      - run: go test -v -race ./...
+      - run: make test
 
   test-integration-server-internal:
     runs-on: ubuntu-latest
@@ -105,10 +105,11 @@ jobs:
           restore-keys: |
             go-
       - env:
+          GOTAGS: "requirefips"
           GOFIPS140: "latest"
           # TODO: disable X25519MLKEM768 until upstream go issue is fixed https://github.com/golang/go/issues/74630#issuecomment-3224191006
           GODEBUG: "fips140=only,tlsmlkem=0"
-        run: go test -v -race -tags=requirefips ./...
+        run: make test
 
   system-test:
     runs-on: ubuntu-latest
@@ -162,7 +163,8 @@ jobs:
             make apm-server &
             wait
       - env:
-          GOTESTFLAGS: "-v -tags=requirefips"
+          GOTESTFLAGS: "-v"
+          GOTAGS: "requirefips"
           GOFIPS140: "latest"
           # TODO: disable X25519MLKEM768 until upstream go issue is fixed https://github.com/golang/go/issues/74630#issuecomment-3224191006
           GODEBUG: "fips140=only,tlsmlkem=0"
