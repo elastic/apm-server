@@ -27,8 +27,13 @@ require (
 	github.com/libp2p/go-reuseport v0.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/ryanuber/go-glob v1.0.0
+<<<<<<< HEAD
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/pflag v1.0.9
+=======
+	github.com/spf13/cobra v1.10.2
+	github.com/spf13/pflag v1.0.10
+>>>>>>> 6f6e1544 (build(deps): bump github.com/spf13/cobra from 1.10.1 to 1.10.2 in the spf13 group (#19799))
 	github.com/stretchr/testify v1.11.1
 	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.1
 	go.elastic.co/apm/module/apmgorilla/v2 v2.7.1
@@ -232,6 +237,11 @@ require (
 	go.opentelemetry.io/collector/consumer v1.43.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.47.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
+<<<<<<< HEAD
+=======
+	go.yaml.in/yaml/v2 v2.4.2 // indirect
+	go.yaml.in/yaml/v3 v3.0.4 // indirect
+>>>>>>> 6f6e1544 (build(deps): bump github.com/spf13/cobra from 1.10.1 to 1.10.2 in the spf13 group (#19799))
 	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/exp v0.0.0-20250811191247-51f88131bc50 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
