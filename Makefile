@@ -81,7 +81,7 @@ $(APM_SERVER_BINARIES):
 .PHONY: apm-server-build
 apm-server-build:
 	env CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) MS_GOTOOLCHAIN_TELEMETRY_ENABLED=0 \
-	go build -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) -tags=grpcnotrace,$(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
+	go build -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) -tags=grpcnotrace,pebblegozstd,$(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
 
 build/apm-server-linux-% build/apm-server-fips-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
@@ -125,13 +125,13 @@ apm-server apm-server-oss apm-server-fips apm-server-fips-msft:
 
 .PHONY: test
 test:
-	@go test $(GOMODFLAG) $(GOTESTFLAGS) -race ./...
+	@go test $(GOMODFLAG) $(GOTESTFLAGS) -tags=grpcnotrace,pebblegozstd,$(GOTAGS) -race ./...
 
 .PHONY: system-test
 system-test:
 	# CGO is disabled when building APM Server binary, so the race detector in this case
 	# would only work on the parts that don't involve APM Server binary.
-	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -race -timeout=20m ./...)
+	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -tags=grpcnotrace,pebblegozstd,$(GOTAGS) -race -timeout=20m ./...)
 
 .PHONY:
 clean:
@@ -278,10 +278,10 @@ gofmt: add-headers
 ##############################################################################
 
 MODULE_DEPS=$(sort $(shell \
-  CGO_ENABLED=0 go list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
+  CGO_ENABLED=0 go list -deps -tags=darwin,linux,windows,grpcnotrace,pebblegozstd -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
 
 MODULE_DEPS_FIPS=$(sort $(shell \
-  CGO_ENABLED=1 go list -deps -tags=linux,requirefips -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
+  CGO_ENABLED=1 go list -deps -tags=linux,requirefips,grpcnotrace,pebblegozstd -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
 
 notice: NOTICE.txt NOTICE-fips.txt
 NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod
@@ -396,6 +396,5 @@ api-docs: ## Generate bundled OpenAPI documents
 
 .PHONY: api-docs-lint
 api-docs-lint: ## Run spectral API docs linter
-	@echo "api-docs-lint is temporarily disabled"
-	@exit 1
+	@npx @stoplight/spectral-cli lint "docs/spec/openapi/bundled.yaml" --ruleset "docs/spec/openapi/.spectral.yaml"
 
