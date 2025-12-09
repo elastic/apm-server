@@ -28,16 +28,10 @@ require (
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
-<<<<<<< HEAD
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.1
-	go.elastic.co/apm/module/apmhttp/v2 v2.7.1
-	go.elastic.co/apm/module/apmotel/v2 v2.7.1
-	go.elastic.co/apm/v2 v2.7.1
-=======
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.2
 	go.elastic.co/apm/module/apmhttp/v2 v2.7.2
 	go.elastic.co/apm/module/apmotel/v2 v2.7.2
 	go.elastic.co/apm/v2 v2.7.2
->>>>>>> 3c433e99 (build(deps): bump the go-agent group with 3 updates (#19757))
 	go.elastic.co/fastjson v1.5.1
 	go.opentelemetry.io/collector/pdata v1.46.0
 	go.opentelemetry.io/otel v1.38.0

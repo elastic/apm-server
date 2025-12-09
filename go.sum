@@ -622,8 +622,8 @@ github.com/zclconf/go-cty-debug v0.0.0-20240509010212-0d6042c53940 h1:4r45xpDWB6
 github.com/zclconf/go-cty-debug v0.0.0-20240509010212-0d6042c53940/go.mod h1:CmBdvvj3nqzfzJ6nTCIwDTPZ56aVGvDrmztiO5g3qrM=
 gitlab.com/digitalxero/go-conventional-commit v1.0.7 h1:8/dO6WWG+98PMhlZowt/YjuiKhqhGlOCwlIV8SqqGh8=
 gitlab.com/digitalxero/go-conventional-commit v1.0.7/go.mod h1:05Xc2BFsSyC5tKhK0y+P3bs0AwUtNuTp+mTpbCU/DZ0=
-go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.1 h1:nA7I325lIxf6hlVN1SdoOuVJG3gadWlejWngfadGUP8=
-go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.1/go.mod h1:+Xna0uioc2zNzfQzal40RfZ5PPLd2jRBsv49TGHmF8Y=
+go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.2 h1:oy9PA89RuFAbGO4Mhvv0lzwUuHgX1HJUXYZfuR7WJn8=
+go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.2/go.mod h1:Nlv96Nq6AvRhG10NHyWCgU1zWGF9cS8G7l1RXgr3WIs=
 go.elastic.co/apm/module/apmhttp/v2 v2.7.2 h1:grLycchDH4B6aGRkZjIV/sweAivJDl8IcP+nCorktm8=
 go.elastic.co/apm/module/apmhttp/v2 v2.7.2/go.mod h1:N9CJn3x7cyFnZ54WKxgm/t76drcsmSpu6aU8zGwP4zQ=
 go.elastic.co/apm/module/apmotel/v2 v2.7.2 h1:cAs0vv6laivMlhPGrgsdTqoG1u6fuiDctoWizHaqQOA=
