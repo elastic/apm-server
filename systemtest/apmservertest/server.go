@@ -139,6 +139,16 @@ func NewUnstartedServerTB(tb testing.TB, args ...string) *Server {
 	logfile := createLogfile(tb, "apm-server")
 	s.Log = logfile
 	tb.Cleanup(func() {
+		defer func() {
+			if tb.Failed() {
+				b, err := os.ReadFile(logfile.Name())
+				if err != nil {
+					tb.Fatal(err)
+				}
+
+				tb.Log(string(b))
+			}
+		}()
 		defer logfile.Close()
 		if tb.Failed() {
 			tb.Logf("log file: %s", logfile.Name())
