@@ -19,7 +19,7 @@ jobs:
           private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
           permission-organization-projects: write
           permission-issues: read
-      - uses: octokit/graphql-action@abaeca7ba4f0325d63b8de7ef943c2418d161b93 # v2.x
+      - uses: octokit/graphql-action@ddde8ebb2493e79f390e6449c725c21663a67505 # v2.x
         id: add_to_project
         with:
           query: |
