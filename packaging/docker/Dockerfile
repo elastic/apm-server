@@ -9,12 +9,7 @@ FROM golang:${GOLANG_VERSION} AS builder
 WORKDIR /src
 COPY go.mod go.sum /src/
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
-COPY Makefile *.mk /src/
-COPY cmd /src/cmd
-COPY internal /src/internal
-COPY x-pack /src/x-pack
-COPY .git /src/.git
-COPY script /src/script
+COPY . .
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
@@ -24,13 +19,13 @@ COPY --chmod=0644 apm-server.yml ./apm-server.yml
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 
-FROM cgr.dev/chainguard/static:latest@sha256:b00a88ca2a8136cdbd86a8aa834c3f69c17debb295a38055f7babfc2c9f9a02b AS builder-certs
+FROM cgr.dev/chainguard/static:latest@sha256:d44809cee093b550944c1f666ff13301f92484bfdd2e53ecaac82b5b6f89647d AS builder-certs
 
 ################################################################################
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:aff810919642215e15c993b9bbc110dbcc446608730ad24499dafd9df7a8f8f4
+FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:e14a8cbcaa0c26b77140ac85d40a47b5e910a4068686b02ebcad72126e9b5f86
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION

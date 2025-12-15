@@ -136,7 +136,7 @@ data "aws_subnets" "public_subnets" {
   }
   filter {
     name   = "availability-zone"
-    values = ["${data.aws_region.current.name}a"]
+    values = ["${data.aws_region.current.region}a"]
   }
 }
 

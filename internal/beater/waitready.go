@@ -39,7 +39,7 @@ func waitReady(
 ) error {
 	tracer := tp.Tracer("github.com/elastic/apm-server/internal/beater")
 	logger.Info("blocking ingestion until all preconditions are satisfied")
-	ctx, span := tracer.Start(ctx, "wait_for_preconditions")
+	ctx, span := tracer.Start(ctx, "wait_for_preconditions", trace.WithSpanKind(trace.SpanKindInternal))
 	defer span.End()
 	var ticker *time.Ticker
 	for {

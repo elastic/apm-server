@@ -120,7 +120,10 @@ func TestMetadataFetcher(t *testing.T) {
 			esConfig := elasticsearch.DefaultConfig()
 			esConfig.Hosts = []string{ts.URL}
 
-			esClient, err := elasticsearch.NewClient(esConfig, logptest.NewTestingLogger(t, ""))
+			esClient, err := elasticsearch.NewClient(elasticsearch.ClientParams{
+				Config: esConfig,
+				Logger: logptest.NewTestingLogger(t, ""),
+			})
 			require.NoError(t, err)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
@@ -268,7 +271,10 @@ func TestInvalidation(t *testing.T) {
 			esConfig := elasticsearch.DefaultConfig()
 			esConfig.Hosts = []string{ts.URL}
 
-			esClient, err := elasticsearch.NewClient(esConfig, logptest.NewTestingLogger(t, ""))
+			esClient, err := elasticsearch.NewClient(elasticsearch.ClientParams{
+				Config: esConfig,
+				Logger: logptest.NewTestingLogger(t, ""),
+			})
 			require.NoError(t, err)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)

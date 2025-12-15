@@ -38,7 +38,10 @@ func TestHasPrivilegesError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := NewClient(&Config{Hosts: Hosts{server.Listener.Addr().String()}}, logptest.NewTestingLogger(t, ""))
+	client, err := NewClient(ClientParams{
+		Config: &Config{Hosts: Hosts{server.Listener.Addr().String()}},
+		Logger: logptest.NewTestingLogger(t, ""),
+	})
 	require.NoError(t, err)
 
 	resp, err := HasPrivileges(context.Background(), client, HasPrivilegesRequest{}, "foo")

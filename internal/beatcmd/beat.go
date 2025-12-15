@@ -46,12 +46,9 @@ import (
 	"github.com/elastic/beats/v7/libbeat/api"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
-	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
-	"github.com/elastic/beats/v7/libbeat/licenser"
 	"github.com/elastic/beats/v7/libbeat/management"
 	"github.com/elastic/beats/v7/libbeat/monitoring/report"
 	"github.com/elastic/beats/v7/libbeat/monitoring/report/log"
-	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 	"github.com/elastic/beats/v7/libbeat/pprof"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/file"
@@ -61,7 +58,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring/report/buffer"
 	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/elastic-agent-libs/service"
-	libversion "github.com/elastic/elastic-agent-libs/version"
 	"github.com/elastic/elastic-agent-system-metrics/metric/system/host"
 	metricreport "github.com/elastic/elastic-agent-system-metrics/report"
 	sysinfo "github.com/elastic/go-sysinfo"
@@ -101,6 +97,9 @@ type BeatParams struct {
 	// ElasticLicensed indicates whether this build of APM Server
 	// is licensed with the Elastic License v2.
 	ElasticLicensed bool
+
+	// Logger holds the logger used by the runner
+	Logger *logp.Logger
 }
 
 // NewBeat creates a new Beat.
@@ -148,6 +147,7 @@ func NewBeat(args BeatParams) (*Beat, error) {
 				Hostname:        hostname,
 				StartTime:       time.Now(),
 				EphemeralID:     ephemeralID,
+				Logger:          args.Logger,
 			},
 			Keystore:   keystore,
 			Config:     &beat.BeatConfig{Output: cfg.Output},
@@ -174,7 +174,9 @@ func (b *Beat) init() error {
 	if err := configureLogging(b.Config); err != nil {
 		return fmt.Errorf("failed to configure logging: %w", err)
 	}
-	b.Beat.Info.Logger = logp.NewLogger("")
+	if b.Info.Logger == nil {
+		b.Info.Logger = logp.NewLogger("")
+	}
 
 	// log paths values to help with troubleshooting
 	b.Info.Logger.Infof("%s", paths.Paths.String())
@@ -378,18 +380,6 @@ func (b *Beat) Run(ctx context.Context) error {
 	})
 
 	logSystemInfo(b.Info)
-
-	cleanup, err := b.registerElasticsearchVersionCheck()
-	if err != nil {
-		return err
-	}
-	defer cleanup()
-
-	cleanup, err = b.registerClusterUUIDFetching()
-	if err != nil {
-		return err
-	}
-	defer cleanup()
 
 	statsRegistry := b.Monitoring.StatsRegistry()
 
@@ -737,75 +727,6 @@ func addDocappenderOutputElasticsearchMetrics(ctx context.Context, v monitoring.
 	monitoring.ReportInt(v, "destroyed", indexersDestroyed)
 	monitoring.ReportInt(v, "active", indexersCreated-indexersDestroyed+1)
 	v.OnRegistryFinished()
-}
-
-// registerElasticsearchVerfication registers a global callback to make sure
-// the Elasticsearch instance we are connecting to has a valid license, and is
-// at least on the same version as APM Server.
-//
-// registerElasticsearchVerification returns a cleanup function which must be
-// called on shutdown.
-func (b *Beat) registerElasticsearchVersionCheck() (func(), error) {
-	uuid, err := elasticsearch.RegisterGlobalCallback(func(conn *eslegclient.Connection, logger *logp.Logger) error {
-		if err := licenser.FetchAndVerify(conn, logger); err != nil {
-			return err
-		}
-		esVersion := conn.GetVersion()
-		beatVersion, err := libversion.New(b.Info.Version)
-		if err != nil {
-			return err
-		}
-		if esVersion.LessThanMajorMinor(beatVersion) {
-			return fmt.Errorf(
-				"%w Elasticsearch: %s, APM Server: %s",
-				elasticsearch.ErrTooOld, esVersion.String(), b.Info.Version,
-			)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return func() { elasticsearch.DeregisterGlobalCallback(uuid) }, nil
-}
-
-func (b *Beat) registerClusterUUIDFetching() (func(), error) {
-	callback := b.clusterUUIDFetchingCallback()
-	uuid, err := elasticsearch.RegisterConnectCallback(callback)
-	if err != nil {
-		return nil, err
-	}
-	return func() { elasticsearch.DeregisterConnectCallback(uuid) }, nil
-}
-
-// Build and return a callback to fetch the Elasticsearch cluster_uuid for monitoring
-func (b *Beat) clusterUUIDFetchingCallback() elasticsearch.ConnectCallback {
-	stateRegistry := b.Monitoring.StateRegistry()
-	elasticsearchRegistry := stateRegistry.GetOrCreateRegistry("outputs.elasticsearch")
-	clusterUUIDRegVar := monitoring.NewString(elasticsearchRegistry, "cluster_uuid")
-
-	callback := func(esClient *eslegclient.Connection, _ *logp.Logger) error {
-		var response struct {
-			ClusterUUID string `json:"cluster_uuid"`
-		}
-
-		status, body, err := esClient.Request("GET", "/", "", nil, nil)
-		if err != nil {
-			return fmt.Errorf("error querying /: %w", err)
-		}
-		if status > 299 {
-			return fmt.Errorf("error querying /. Status: %d. Response body: %s", status, body)
-		}
-		err = json.Unmarshal(body, &response)
-		if err != nil {
-			return fmt.Errorf("error unmarshaling json when querying /. Body: %s", body)
-		}
-
-		clusterUUIDRegVar.Set(response.ClusterUUID)
-		return nil
-	}
-
-	return callback
 }
 
 func (b *Beat) setupMonitoring() (report.Reporter, error) {

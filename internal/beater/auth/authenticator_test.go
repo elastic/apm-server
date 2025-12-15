@@ -25,12 +25,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.elastic.co/apm/v2/apmtest"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
@@ -39,7 +41,7 @@ import (
 )
 
 func TestAuthenticatorNone(t *testing.T) {
-	authenticator, err := NewAuthenticator(config.AgentAuth{}, logptest.NewTestingLogger(t, ""))
+	authenticator, err := NewAuthenticator(config.AgentAuth{}, noop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	// If the server has no configured auth methods, all requests are allowed.
@@ -57,7 +59,7 @@ func TestAuthenticatorAuthRequired(t *testing.T) {
 		APIKey: config.APIKeyAgentAuth{Enabled: true, ESConfig: elasticsearch.DefaultConfig()},
 	}
 	for _, cfg := range []config.AgentAuth{withSecretToken, withAPIKey} {
-		authenticator, err := NewAuthenticator(cfg, logptest.NewTestingLogger(t, ""))
+		authenticator, err := NewAuthenticator(cfg, noop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 
 		details, authz, err := authenticator.Authenticate(context.Background(), "", "")
@@ -77,7 +79,7 @@ func TestAuthenticatorAuthRequired(t *testing.T) {
 }
 
 func TestAuthenticatorSecretToken(t *testing.T) {
-	authenticator, err := NewAuthenticator(config.AgentAuth{SecretToken: "valid"}, logptest.NewTestingLogger(t, ""))
+	authenticator, err := NewAuthenticator(config.AgentAuth{SecretToken: "valid"}, noop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	details, authz, err := authenticator.Authenticate(context.Background(), headers.Bearer, "invalid")
@@ -115,7 +117,7 @@ func TestAuthenticatorAPIKey(t *testing.T) {
 	esConfig.Hosts = elasticsearch.Hosts{srv.URL}
 	authenticator, err := NewAuthenticator(config.AgentAuth{
 		APIKey: config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 100, ESConfig: esConfig},
-	}, logptest.NewTestingLogger(t, ""))
+	}, noop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	credentials := base64.StdEncoding.EncodeToString([]byte("id_value:key_value"))
@@ -146,7 +148,7 @@ func TestAuthenticatorAPIKeyErrors(t *testing.T) {
 	esConfig.Backoff.Max = time.Nanosecond
 	authenticator, err := NewAuthenticator(config.AgentAuth{
 		APIKey: config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 100, ESConfig: esConfig},
-	}, logptest.NewTestingLogger(t, ""))
+	}, noop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
 	// Make sure that we can't auth with an empty secret token if secret token auth is not configured, but API Key auth is.
@@ -186,7 +188,7 @@ func TestAuthenticatorAPIKeyErrors(t *testing.T) {
 	esConfig.Hosts = elasticsearch.Hosts{srv.URL}
 	authenticator, err = NewAuthenticator(config.AgentAuth{
 		APIKey: config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 2, ESConfig: esConfig},
-	}, logptest.NewTestingLogger(t, ""))
+	}, noop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	details, authz, err = authenticator.Authenticate(context.Background(), headers.APIKey, credentials)
 	assert.Equal(t, ErrAuthFailed, err)
@@ -206,7 +208,7 @@ func TestAuthenticatorAPIKeyErrors(t *testing.T) {
 	esConfig.Hosts = elasticsearch.Hosts{srv.URL}
 	authenticator, err = NewAuthenticator(config.AgentAuth{
 		APIKey: config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 100, ESConfig: esConfig},
-	}, logptest.NewTestingLogger(t, ""))
+	}, noop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	details, authz, err = authenticator.Authenticate(context.Background(), headers.APIKey, credentials)
 	assert.Equal(t, ErrAuthFailed, err)
@@ -241,35 +243,35 @@ func TestAuthenticatorAPIKeyCache(t *testing.T) {
 	}))
 	defer srv.Close()
 
+	exporter := &manualExporter{}
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporter)))
+
 	esConfig := elasticsearch.DefaultConfig()
 	esConfig.Hosts = elasticsearch.Hosts{srv.URL}
 	apikeyAuthConfig := config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 2, ESConfig: esConfig}
-	authenticator, err := NewAuthenticator(config.AgentAuth{APIKey: apikeyAuthConfig}, logptest.NewTestingLogger(t, ""))
+	authenticator, err := NewAuthenticator(config.AgentAuth{APIKey: apikeyAuthConfig}, tp, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
-	_, spans, _ := apmtest.WithTransaction(func(ctx context.Context) {
-		for i := 0; i < apikeyAuthConfig.LimitPerMin+1; i++ {
-			_, _, err := authenticator.Authenticate(ctx, headers.APIKey, validCredentials)
-			assert.NoError(t, err)
-		}
-	})
-	assert.Len(t, spans, 1)
-	assert.Equal(t, "elasticsearch", spans[0].Subtype)
-
-	_, spans, _ = apmtest.WithTransaction(func(ctx context.Context) {
-		// API Key checks are cached based on the API Key ID, not the full credential.
-		_, _, err := authenticator.Authenticate(ctx, headers.APIKey, validCredentials2)
+	for i := 0; i < apikeyAuthConfig.LimitPerMin+1; i++ {
+		_, _, err := authenticator.Authenticate(context.Background(), headers.APIKey, validCredentials)
 		assert.NoError(t, err)
-	})
-	assert.Len(t, spans, 0)
-
-	_, spans, _ = apmtest.WithTransaction(func(ctx context.Context) {
-		for i := 0; i < apikeyAuthConfig.LimitPerMin+1; i++ {
-			_, _, err = authenticator.Authenticate(ctx, headers.APIKey, invalidCredentials)
-			assert.Equal(t, ErrAuthFailed, err)
-		}
-	})
+	}
+	spans := exporter.payloads()
 	assert.Len(t, spans, 1)
+	assert.Equal(t, "Elasticsearch: GET _security/user/_has_privileges", spans[0].Name())
+	exporter.clear()
+
+	// API Key checks are cached based on the API Key ID, not the full credential.
+	_, _, err = authenticator.Authenticate(context.Background(), headers.APIKey, validCredentials2)
+	assert.NoError(t, err)
+	assert.Len(t, exporter.payloads(), 0)
+	exporter.clear()
+
+	for i := 0; i < apikeyAuthConfig.LimitPerMin+1; i++ {
+		_, _, err = authenticator.Authenticate(context.Background(), headers.APIKey, invalidCredentials)
+		assert.Equal(t, ErrAuthFailed, err)
+	}
+	assert.Len(t, exporter.payloads(), 1)
 
 	credentials := base64.StdEncoding.EncodeToString([]byte("id_value3:key_value"))
 	_, _, err = authenticator.Authenticate(context.Background(), headers.APIKey, credentials)
@@ -280,7 +282,7 @@ func TestAuthenticatorAnonymous(t *testing.T) {
 	// Anonymous access is only effective when some other auth method is enabled.
 	authenticator, err := NewAuthenticator(config.AgentAuth{
 		Anonymous: config.AnonymousAgentAuth{Enabled: true},
-	}, logptest.NewTestingLogger(t, ""))
+	}, noop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	details, authz, err := authenticator.Authenticate(context.Background(), "", "")
 	assert.NoError(t, err)
@@ -290,10 +292,38 @@ func TestAuthenticatorAnonymous(t *testing.T) {
 	authenticator, err = NewAuthenticator(config.AgentAuth{
 		SecretToken: "secret_token",
 		Anonymous:   config.AnonymousAgentAuth{Enabled: true},
-	}, logptest.NewTestingLogger(t, ""))
+	}, noop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	details, authz, err = authenticator.Authenticate(context.Background(), "", "")
 	assert.NoError(t, err)
 	assert.Equal(t, AuthenticationDetails{Method: MethodAnonymous}, details)
 	assert.Equal(t, newAnonymousAuth(nil, nil), authz)
+}
+
+type manualExporter struct {
+	mu    sync.Mutex
+	spans []sdktrace.ReadOnlySpan
+}
+
+func (e *manualExporter) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.spans = append(e.spans, spans...)
+	return nil
+}
+
+func (e *manualExporter) Shutdown(ctx context.Context) error {
+	return nil
+}
+
+func (e *manualExporter) payloads() []sdktrace.ReadOnlySpan {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return e.spans
+}
+
+func (e *manualExporter) clear() {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.spans = nil
 }

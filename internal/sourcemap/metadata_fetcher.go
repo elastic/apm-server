@@ -137,7 +137,7 @@ func (s *MetadataESFetcher) startBackgroundSync(ctx context.Context) {
 }
 
 func (s *MetadataESFetcher) sync(ctx context.Context) error {
-	ctx, tx := s.tracer.Start(ctx, "MetadataESFetcher.sync")
+	ctx, tx := s.tracer.Start(ctx, "MetadataESFetcher.sync", trace.WithSpanKind(trace.SpanKindInternal))
 	defer tx.End()
 
 	sourcemaps := make(map[identifier]string)
@@ -208,7 +208,7 @@ func (s *MetadataESFetcher) clearScroll(ctx context.Context, scrollID string) {
 }
 
 func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifier]string) {
-	ctx, span := s.tracer.Start(ctx, "MetadataESFetcher.update")
+	ctx, span := s.tracer.Start(ctx, "MetadataESFetcher.update", trace.WithSpanKind(trace.SpanKindInternal))
 	defer span.End()
 
 	s.mu.Lock()
@@ -270,7 +270,7 @@ func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifie
 }
 
 func (s *MetadataESFetcher) initialSearch(ctx context.Context, updates map[identifier]string) (*esSearchSourcemapResponse, error) {
-	ctx, span := s.tracer.Start(ctx, "MetadataESFetcher.initialSearch")
+	ctx, span := s.tracer.Start(ctx, "MetadataESFetcher.initialSearch", trace.WithSpanKind(trace.SpanKindInternal))
 	defer span.End()
 
 	resp, err := s.runSearchQuery(ctx)
@@ -371,7 +371,7 @@ func parseResponse(body io.ReadCloser, logger *logp.Logger) (*esSearchSourcemapR
 }
 
 func (s *MetadataESFetcher) scrollsearch(ctx context.Context, scrollID string, updates map[identifier]string) (*esSearchSourcemapResponse, error) {
-	ctx, span := s.tracer.Start(ctx, "MetadataESFetcher.scrollSearch")
+	ctx, span := s.tracer.Start(ctx, "MetadataESFetcher.scrollSearch", trace.WithSpanKind(trace.SpanKindInternal))
 	defer span.End()
 
 	resp, err := s.runScrollSearchQuery(ctx, scrollID)

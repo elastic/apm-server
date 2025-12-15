@@ -170,7 +170,7 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) (string,
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 	cfg := &config.Config{}
-	auth, _ := auth.NewAuthenticator(cfg.AgentAuth, logptest.NewTestingLogger(t, ""))
+	auth, _ := auth.NewAuthenticator(cfg.AgentAuth, noop.NewTracerProvider(), logptest.NewTestingLogger(t, ""))
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
 	router, err := api.NewMux(
 		cfg,

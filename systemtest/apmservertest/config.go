@@ -143,23 +143,26 @@ type SamplingConfig struct {
 
 // TailSamplingConfig holds APM Server tail-based sampling configuration.
 type TailSamplingConfig struct {
-	Enabled  bool
-	Interval time.Duration
-	Policies []TailSamplingPolicy
+	Enabled            bool
+	Interval           time.Duration
+	Policies           []TailSamplingPolicy
+	DiskUsageThreshold float64
 }
 
 func (t *TailSamplingConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		Enabled  bool                 `json:"enabled"`
-		Interval string               `json:"interval"`
-		Policies []TailSamplingPolicy `json:"policies,omitempty"`
+		Enabled            bool                 `json:"enabled"`
+		Interval           string               `json:"interval"`
+		Policies           []TailSamplingPolicy `json:"policies,omitempty"`
+		DiskUsageThreshold float64              `json:"disk_usage_threshold,omitempty"`
 	}
 	return json.Marshal(config{
-		Enabled:  t.Enabled,
-		Interval: durationString(t.Interval),
-		Policies: t.Policies,
+		Enabled:            t.Enabled,
+		Interval:           durationString(t.Interval),
+		Policies:           t.Policies,
+		DiskUsageThreshold: t.DiskUsageThreshold,
 	})
 }
 

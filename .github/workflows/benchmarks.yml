@@ -2,62 +2,10 @@ name: benchmarks
 
 # Secret access requires allowlist in https://github.com/elastic/oblt-infra/tree/main/conf/resources/repos/apm-server
 
+# To call benchmarks workflow programmatically with different params, use the scripts in .github/workflows/benchmarks
+
 on:
   workflow_dispatch:
-    inputs:
-      runStandalone:
-        description: 'Benchmark against standalone APM Server with Moxy'
-        required: false
-        type: boolean
-        default: false
-      enableTailSampling:
-        description: 'Enable tail-based sampling on APM server'
-        required: false
-        type: boolean
-        default: false
-      tailSamplingStorageLimit:
-        description: 'Storage size limit of tail-based sampling on APM server'
-        required: false
-        type: string
-        default: "10GB"
-      tailSamplingSampleRate:
-        description: 'Blanket sample rate used by tail-based sampling'
-        required: false
-        type: string
-        default: "0.1"
-      profile:
-        description: 'System profile for benchmark, e.g. system-profiles/8GBx1zone.tfvars'
-        required: false
-        type: string
-        # defaults set below (TFVARS_SOURCE)
-      runOnStable:
-        description: 'Benchmark on latest stable version instead of a build from commit'
-        required: false
-        type: boolean
-        default: false
-      benchmarkAgents:
-        description: 'Number of benchmark agents sending data to APM Server'
-        required: false
-        type: string
-        # defaults set in Makefile
-      benchmarkRun:
-        description: 'Benchmark scenarios that only match regex, e.g. BenchmarkAgentAll'
-        required: false
-        type: string
-        # defaults set in Makefile
-      warmupTime:
-        description: 'Benchmark warmup time for APM Server e.g. 3s, 5m, 2h'
-        required: false
-        type: string
-        # defaults set below (Set up env)
-      pgoExport:
-        description: 'Benchmark with PGO export'
-        required: false
-        type: boolean
-        default: false
-  workflow_call:
-    # Identical to workflow_dispatch inputs
-    # GH Actions YAML parser doesn't support anchors yet: https://github.com/actions/runner/issues/1182
     inputs:
       runStandalone:
         description: 'Benchmark against standalone APM Server with Moxy'
@@ -150,14 +98,14 @@ jobs:
       GOBENCH_USERNAME: ${{ secrets.GOBENCH_USERNAME }}
       GOBENCH_HOST: ${{ secrets.GOBENCH_HOST }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
           cache: false
 
-      - uses: rlespinasse/github-slug-action@ac4a3a266833ca6b6086466a921fae9f3c671596 # v5.3.0
+      - uses: rlespinasse/github-slug-action@6f7a8d2348e2a4aa5defafcdaafe5aef3f83bd4b # v5.4.0
 
       - name: Set up env
         run: |
@@ -255,26 +203,38 @@ jobs:
         if: ${{ env.RUN_STANDALONE == 'true' && failure() }}
         run: make cat-apm-server-logs
 
+      - name: Cat moxy logs
+        if: ${{ env.RUN_STANDALONE == 'true' && failure() }}
+        run: make cat-moxy-logs
+
       - name: Index benchmarks result
         run: make index-benchmark-results
 
       - name: Download PNG
-        run: >-
-          ${{ github.workspace }}/.ci/scripts/download-png-from-kibana.sh
-          ${{ secrets.KIBANA_BENCH_ENDPOINT }}
-          ${{ secrets.KIBANA_BENCH_USERNAME }}
-          ${{ secrets.KIBANA_BENCH_PASSWORD }}
-          $PNG_REPORT_FILE
-
-      - name: Upload PNG
-        uses: actions/upload-artifact@v4
+        uses: elastic/oblt-actions/download-kibana-dashboard@v1
         with:
-          name: kibana-png-report
-          path: ${{ env.WORKING_DIRECTORY }}/${{ env.PNG_REPORT_FILE }}
-          if-no-files-found: error
+          kibana-host: ${{ secrets.KIBANA_BENCH_ENDPOINT }}
+          kibana-user: ${{ secrets.KIBANA_BENCH_USERNAME }}
+          kibana-password: ${{ secrets.KIBANA_BENCH_PASSWORD }}
+          dashboard-id: "a5bc8390-2f8e-11ed-a369-052d8245fa04"
+          from-date: "now-30d"
+          to-date: "now"
+          png-filename: ${{ env.PNG_REPORT_FILE }}
+
+      - name: Debug PNG files
+        working-directory: "${{ github.workspace }}"
+        run: |
+          if [ -f "${{ env.PNG_REPORT_FILE }}" ]; then
+            echo "PNG report file exists in the top-level location."
+          elif [ -f " ${{ env.WORKING_DIRECTORY }}/${{ env.PNG_REPORT_FILE }}" ]; then
+            echo "PNG report file exists in the working directory."
+          else
+            echo "PNG report file does not exist in either location."
+          fi
 
       - name: Upload PNG to AWS S3
         id: s3-upload-png
+        working-directory: "${{ github.workspace }}"
         env:
           AWS_DEFAULT_REGION: us-east-1
         run: |
@@ -283,7 +243,7 @@ jobs:
           echo "png_report_url=https://elastic-apm-server-benchmark-reports.s3.amazonaws.com/${DEST_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Upload benchmark result
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: benchmark-result
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_RESULT }}
@@ -297,7 +257,7 @@ jobs:
         run: make cp-cpuprof
 
       - name: Upload CPU profile
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: cpu-profile
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}

@@ -24,9 +24,7 @@ import (
 	"io"
 	"net/http"
 
-	"go.elastic.co/apm/module/apmelasticsearch/v2"
 	"go.opentelemetry.io/otel/trace"
-	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/elastic/apm-server/internal/version"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -43,7 +41,7 @@ var userAgent = fmt.Sprintf("Elastic-APM-Server/%s go-elasticsearch/%s", version
 
 type Client = elastictransport.Client
 
-// ClientParams holds parameters for NewClientParams.
+// ClientParams holds parameters for NewClient.
 type ClientParams struct {
 	// Config holds the user-defined configuration: Elasticsearch hosts,
 	// max retries, etc.
@@ -68,13 +66,7 @@ type ClientParams struct {
 }
 
 // NewClient returns a stack version-aware Elasticsearch client,
-// equivalent to NewClientParams(ClientParams{Config: config}).
-func NewClient(config *Config, logger *logp.Logger) (*Client, error) {
-	return NewClientParams(ClientParams{Config: config, Logger: logger})
-}
-
-// NewClientParams returns a stack version-aware Elasticsearch client.
-func NewClientParams(args ClientParams) (*Client, error) {
+func NewClient(args ClientParams) (*Client, error) {
 	if args.Config == nil {
 		return nil, errConfigMissing
 	}
@@ -114,12 +106,7 @@ func NewClientParams(args ClientParams) (*Client, error) {
 		apikey = base64.StdEncoding.EncodeToString([]byte(args.Config.APIKey))
 	}
 
-	if _, ok := args.TracerProvider.(noop.TracerProvider); !ok {
-		// only enable tracing with apm agent if a non-noop tracerprovider
-		// has been passed.
-		// TODO replace apmelasticsearch with otel (https://github.com/elastic/apm-server/issues/18949)
-		transport = apmelasticsearch.WrapRoundTripper(transport)
-	}
+	transport = WrapRoundTripper(transport, args.TracerProvider)
 
 	return elastictransport.New(elastictransport.Config{
 		APIKey:        apikey,

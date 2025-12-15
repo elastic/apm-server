@@ -54,3 +54,4 @@ testing/smoke/**/secret_token_value.json
 !testing/smoke/managed/main.tf
 testing/rally-cloud/build
 .bck
+gvm

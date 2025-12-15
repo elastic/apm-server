@@ -24,6 +24,8 @@ import (
 	"fmt"
 	"time"
 
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/elasticsearch"
@@ -141,7 +143,7 @@ type APIKeyAuthenticationDetails struct {
 
 // NewAuthenticator creates an Authenticator with config, authenticating
 // clients with one of the allowed methods.
-func NewAuthenticator(cfg config.AgentAuth, logger *logp.Logger) (*Authenticator, error) {
+func NewAuthenticator(cfg config.AgentAuth, tp trace.TracerProvider, logger *logp.Logger) (*Authenticator, error) {
 	b := Authenticator{secretToken: cfg.SecretToken}
 	if cfg.APIKey.Enabled {
 		// Do not use apm-server's credentials for API Key requests;
@@ -150,7 +152,11 @@ func NewAuthenticator(cfg config.AgentAuth, logger *logp.Logger) (*Authenticator
 		cfg.APIKey.ESConfig.Username = ""
 		cfg.APIKey.ESConfig.Password = ""
 		cfg.APIKey.ESConfig.APIKey = ""
-		client, err := elasticsearch.NewClient(cfg.APIKey.ESConfig, logger)
+		client, err := elasticsearch.NewClient(elasticsearch.ClientParams{
+			Config:         cfg.APIKey.ESConfig,
+			Logger:         logger,
+			TracerProvider: tp,
+		})
 		if err != nil {
 			return nil, err
 		}

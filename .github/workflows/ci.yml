@@ -28,12 +28,12 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
           cache: false
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             ~/go/pkg/mod/cache
@@ -48,12 +48,12 @@ jobs:
         os: ['macos-latest', 'ubuntu-latest', 'windows-2025']
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
           cache: false
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           enableCrossOsArchive: true
           path: |
@@ -61,17 +61,17 @@ jobs:
           key: go-${{ hashFiles('go.mod') }}
           restore-keys: |
             go-
-      - run: go test -v -race ./...
+      - run: make test
 
   test-integration-server-internal:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
           go-version-file: integrationservertest/go.mod
           cache: false
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             ~/go/pkg/mod/cache
@@ -92,12 +92,12 @@ jobs:
   test-fips:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
           cache: false
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             ~/go/pkg/mod/cache
@@ -105,27 +105,32 @@ jobs:
           restore-keys: |
             go-
       - env:
+          GOTAGS: "requirefips"
           GOFIPS140: "latest"
           # TODO: disable X25519MLKEM768 until upstream go issue is fixed https://github.com/golang/go/issues/74630#issuecomment-3224191006
           GODEBUG: "fips140=only,tlsmlkem=0"
-        run: go test -v -race -tags=requirefips ./...
+        run: make test
 
   system-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
           go-version-file: systemtest/go.mod
           cache: false
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             ~/go/pkg/mod/cache
           key: systemtest-go-${{ hashFiles('systemtest/go.mod', 'go.mod') }}
           restore-keys: |
             systemtest-go-
-      - run: |
+      - env:
+          NOCP: "1"
+          GOOS: "linux"
+          GOARCH: "amd64"
+        run: |
             docker compose up -d &
             make apm-server &
             wait
@@ -137,24 +142,29 @@ jobs:
   system-test-fips:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
           go-version-file: systemtest/go.mod
           cache: false
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             ~/go/pkg/mod/cache
           key: systemtest-go-${{ hashFiles('systemtest/go.mod', 'go.mod') }}
           restore-keys: |
             systemtest-go-
-      - run: |
+      - env:
+          NOCP: "1"
+          GOOS: "linux"
+          GOARCH: "amd64"
+        run: |
             docker compose up -d &
             make apm-server &
             wait
       - env:
-          GOTESTFLAGS: "-v -tags=requirefips"
+          GOTESTFLAGS: "-v"
+          GOTAGS: "requirefips"
           GOFIPS140: "latest"
           # TODO: disable X25519MLKEM768 until upstream go issue is fixed https://github.com/golang/go/issues/74630#issuecomment-3224191006
           GODEBUG: "fips140=only,tlsmlkem=0"
@@ -164,7 +174,7 @@ jobs:
   test-package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
@@ -180,7 +190,7 @@ jobs:
     env:
       GENERATE_WOLFI_IMAGES: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
@@ -202,10 +212,10 @@ jobs:
     runs-on: ubuntu-latest
     if: ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true ) || github.actor == 'dependabot[bot]'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62 # v47.0.0
+        uses: tj-actions/changed-files@e0021407031f5be11a464abee9a0776171c79891 # v47.0.1
         with:
           files: .go-version
 
