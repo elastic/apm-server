@@ -7,7 +7,7 @@ require (
 	github.com/docker/go-connections v0.6.0
 	github.com/elastic/apm-perf v1.0.0
 	github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959
-	github.com/elastic/go-elasticsearch/v8 v8.19.0
+	github.com/elastic/go-elasticsearch/v8 v8.19.1
 	github.com/elastic/go-lumber v0.1.1
 	github.com/elastic/go-sysinfo v1.15.4
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
@@ -52,7 +52,7 @@ require (
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/ebitengine/purego v0.8.4 // indirect
-	github.com/elastic/elastic-transport-go/v8 v8.7.0 // indirect
+	github.com/elastic/elastic-transport-go/v8 v8.8.0 // indirect
 	github.com/elastic/go-windows v1.0.2 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
