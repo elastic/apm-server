@@ -101,6 +101,9 @@ type BeatParams struct {
 	// ElasticLicensed indicates whether this build of APM Server
 	// is licensed with the Elastic License v2.
 	ElasticLicensed bool
+
+	// Logger holds the logger used by the runner
+	Logger *logp.Logger
 }
 
 // NewBeat creates a new Beat.
@@ -148,6 +151,7 @@ func NewBeat(args BeatParams) (*Beat, error) {
 				Hostname:        hostname,
 				StartTime:       time.Now(),
 				EphemeralID:     ephemeralID,
+				Logger:          args.Logger,
 			},
 			Keystore:   keystore,
 			Config:     &beat.BeatConfig{Output: cfg.Output},
@@ -174,7 +178,9 @@ func (b *Beat) init() error {
 	if err := configureLogging(b.Config); err != nil {
 		return fmt.Errorf("failed to configure logging: %w", err)
 	}
-	b.Beat.Info.Logger = logp.NewLogger("")
+	if b.Info.Logger == nil {
+		b.Info.Logger = logp.NewLogger("")
+	}
 
 	// log paths values to help with troubleshooting
 	b.Info.Logger.Infof("%s", paths.Paths.String())
