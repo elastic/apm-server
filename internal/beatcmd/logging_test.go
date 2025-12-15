@@ -27,18 +27,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
-func init() {
-	// Configure tests to log at debug level, and to send
-	// logs to logp.ObserverLogs(). It is important to not
-	// log to files by default in tests, as logp will keep
-	// the files open and prevent temporary directories from
-	// being removed on Windows.
-	logOptions = append(logOptions,
-		logp.ToObserverOutput(),
-		logp.WithLevel(logp.DebugLevel),
-	)
-}
-
 var environments = []logp.Environment{
 	logp.DefaultEnvironment,
 	logp.SystemdEnvironment,
