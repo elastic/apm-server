@@ -45,7 +45,7 @@ CURRENT_RELEASE ?= $(shell gh release list --exclude-drafts --exclude-pre-releas
 RELEASE_BRANCH ?= $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)
 NEXT_PROJECT_MINOR_VERSION ?= $(PROJECT_MAJOR_VERSION).$(shell expr $(PROJECT_MINOR_VERSION) + 1).0
 NEXT_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) + 1)
-BRANCH_PATCH = bump-to-next-patch-$(NEXT_RELEASE)
+BRANCH_PATCH = update-$(NEXT_RELEASE)
 endif
 
 # BASE_BRANCH select by release type (default patch)
