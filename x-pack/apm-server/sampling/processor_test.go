@@ -799,19 +799,19 @@ func TestReadSubscriberPositionFile(t *testing.T) {
 		{
 			name: "valid json",
 			setupFile: func(path string) error {
-				return os.WriteFile(path, []byte(`{}`), 0o644)
+				return os.WriteFile(path, []byte(`{}`), 0644)
 			},
 		},
 		{
 			name: "invalid json",
 			setupFile: func(path string) error {
-				return os.WriteFile(path, []byte(`not_json`), 0o644)
+				return os.WriteFile(path, []byte(`not_json`), 0644)
 			},
 		},
 		{
 			name: "bad perm",
 			setupFile: func(path string) error {
-				return os.WriteFile(path, []byte{}, 0o000)
+				return os.WriteFile(path, []byte{}, 0000)
 			},
 		},
 	} {
