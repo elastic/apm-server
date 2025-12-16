@@ -10,13 +10,15 @@ permissions:
 
 jobs:
   filter:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     timeout-minutes: 1
     outputs:
       matrix: ${{ steps.generator.outputs.matrix }}
     steps:
       - id: generator
         uses: elastic/oblt-actions/elastic/active-branches@v1
+        with:
+          filter-branches: true
   bump:
     needs:
       - filter
