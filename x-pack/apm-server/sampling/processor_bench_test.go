@@ -21,7 +21,10 @@ import (
 )
 
 func BenchmarkProcess(b *testing.B) {
-	processor, err := sampling.NewProcessor(newTempdirConfigLogger(b, logp.NewNopLogger()).Config, logp.NewNopLogger())
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config: newTempdirConfigLogger(b, logp.NewNopLogger()).Config,
+		Logger: logp.NewNopLogger(),
+	})
 	require.NoError(b, err)
 	go processor.Run()
 	b.Cleanup(func() { processor.Stop(context.Background()) })
