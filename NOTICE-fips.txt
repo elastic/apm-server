@@ -922,11 +922,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-l
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-system-metrics
-Version: v0.13.4
+Version: v0.13.5
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-system-metrics@v0.13.4/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-system-metrics@v0.13.5/LICENSE.txt:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3444,11 +3444,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/pdata
-Version: v1.47.0
+Version: v1.48.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.47.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.48.0/LICENSE:
 
 
                                  Apache License
@@ -9672,13 +9672,13 @@ Exhibit B - “Incompatible With Secondary Licenses” Notice
 
 --------------------------------------------------------------------------------
 Dependency : github.com/hashicorp/go-version
-Version: v1.7.0
+Version: v1.8.0
 Licence type (autodetected): MPL-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/hashicorp/go-version@v1.7.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/hashicorp/go-version@v1.8.0/LICENSE:
 
-Copyright (c) 2014 HashiCorp, Inc.
+Copyright IBM Corp. 2014, 2025
 
 Mozilla Public License, version 2.0
 
@@ -13408,11 +13408,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/cons
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/featuregate
-Version: v1.47.0
+Version: v1.48.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/featuregate@v1.47.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/featuregate@v1.48.0/LICENSE:
 
 
                                  Apache License
