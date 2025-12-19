@@ -1027,9 +1027,12 @@ func TestPotentialRaceCondition(t *testing.T) {
 	var batch modelpb.Batch
 	assert.NoError(t, reader.ReadTraceEvents("trace1", &batch))
 	assert.Len(t, batch, 2)
+	assert.Equal(t, batch[0].Transaction.Id, "transaction1")
+	assert.Equal(t, batch[1].Transaction.Id, "transaction2")
 	batch = nil
 	assert.NoError(t, reader.ReadTraceEvents("trace2", &batch))
 	assert.Len(t, batch, 1)
+	assert.Equal(t, batch[0].Transaction.Id, "transaction3")
 }
 
 type testConfig struct {
