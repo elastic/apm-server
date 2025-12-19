@@ -875,11 +875,11 @@ func TestPotentialRaceCondition(t *testing.T) {
 
 	flushInterval := time.Second
 	tempdirConfig := newTempdirConfig(t)
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), 15*flushInterval)
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), 10*flushInterval)
 	defer cancel()
 
-	// Wrap existing storage with blockingRW so we can control the flow.
 	tempdirConfig.Config.FlushInterval = flushInterval
+	// Wrap existing storage with blockingRW so we can control the flow.
 	tempdirConfig.Config.Storage = &blockingRW{
 		ctx:                 timeoutCtx,
 		unblockWriteEvent:   unblockWriteEvent,
@@ -915,9 +915,6 @@ func TestPotentialRaceCondition(t *testing.T) {
 	err = processor.ProcessBatch(context.Background(), &batch1)
 	require.NoError(t, err)
 	assert.Len(t, batch1, 0)
-	// Sleep for more than flush interval so that sampling decision will be made on
-	// first transaction, but write sampled is blocked so trace won't be published yet.
-	time.Sleep(2 * flushInterval)
 	monitoringtest.ExpectContainAndNotContainOtelMetrics(t, tempdirConfig.metricReader,
 		map[string]any{
 			"apm-server.sampling.tail.events.processed": 1,
@@ -960,7 +957,8 @@ func TestPotentialRaceCondition(t *testing.T) {
 				Duration: 1000000,
 			},
 		}}
-		// Wait for second transaction to be written to storage first before sending.
+		// Wait for second transaction to be written to storage first before sending,
+		// otherwise second transaction may be dropped.
 		<-tx2Done
 		err = processor.ProcessBatch(context.Background(), &batch3)
 		require.NoError(t, err)
@@ -969,7 +967,16 @@ func TestPotentialRaceCondition(t *testing.T) {
 
 	// Unblock write sampled so that the first transaction is published.
 	unblockWriteSampled <- struct{}{}
-	time.Sleep(2 * flushInterval)
+	// Wait for first transaction (sampled) to be published.
+	select {
+	case batch := <-reported:
+		if len(batch) != 1 {
+			t.Fatal("expected only one event in first publish")
+		}
+		assert.Equal(t, batch[0].Transaction.Id, "transaction1")
+	case <-timeoutCtx.Done():
+		t.Fatal("test timed out")
+	}
 	monitoringtest.ExpectContainAndNotContainOtelMetrics(t, tempdirConfig.metricReader,
 		map[string]any{
 			// This comes from second transaction, since we record it before finish processing somehow.
@@ -998,22 +1005,31 @@ func TestPotentialRaceCondition(t *testing.T) {
 		},
 	)
 
-	// Unblock write sampled once so that the third transaction gets sampled.
+	// Unblock write sampled so that the third transaction gets sampled.
 	unblockWriteSampled <- struct{}{}
-	if timeoutCtx.Err() != nil {
-		t.Fatal("test timed out from blocking writes")
+	select {
+	case batch := <-reported:
+		if len(batch) != 1 {
+			t.Fatal("expected only one event in second publish")
+		}
+		assert.Equal(t, batch[0].Transaction.Id, "transaction3")
+	case <-timeoutCtx.Done():
+		t.Fatal("test timed out")
 	}
-	time.Sleep(2 * flushInterval)
+
+	// Stop processor so we can examine DB.
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, tempdirConfig.Config.DB.Flush())
 	close(reported)
+	db := tempdirConfig.Config.DB
+	reader := newUnlimitedReadWriter(db)
 
-	// Check that the reported transactions does not contain second transaction.
-	for batch := range reported {
-		for _, event := range batch {
-			assert.NotEqual(t, event.Transaction.Name, "transaction2")
-		}
-	}
+	var batch modelpb.Batch
+	assert.NoError(t, reader.ReadTraceEvents("trace1", &batch))
+	assert.Len(t, batch, 2)
+	batch = nil
+	assert.NoError(t, reader.ReadTraceEvents("trace2", &batch))
+	assert.Len(t, batch, 1)
 }
 
 type testConfig struct {
