@@ -2,15 +2,7 @@ name: smoke-tests-os-sched
 run-name: Smoke Tests OS Scheduled
 
 on:
-  workflow_dispatch:
-    inputs:
-      BRANCH_NOTE:
-        description: |
-          REMINDER: This checkbox does nothing, only serves as a reminder.
-          The above "Use workflow from" does not change the checkout ref for "smoke-tests-os-sched" to that branch!
-          Use "smoke-tests-os" instead for testing changes in your branch.
-        type: boolean
-        required: false
+  workflow_dispatch: ~
   schedule:
     - cron: '0 3 * * 1-5'
 
