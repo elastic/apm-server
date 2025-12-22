@@ -663,6 +663,7 @@ func newBeat(t testing.TB, configYAML string, newRunner NewRunnerFunc) *Beat {
 	beat, err := NewBeat(BeatParams{
 		NewRunner:       newRunner,
 		ElasticLicensed: true,
+		Logger:          logptest.NewTestingLogger(t, ""),
 	})
 	require.NoError(t, err)
 	return beat
