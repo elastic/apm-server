@@ -902,7 +902,7 @@ func TestPotentialRaceCondition(t *testing.T) {
 	go processor.Run()
 	defer processor.Stop(context.Background())
 
-	// Send first transaction, which will be written to storage since write event is unblocked.
+	// Send root transaction, which will be written to storage since write event is unblocked.
 	unblockWriteEvent <- struct{}{}
 	batch1 := modelpb.Batch{{
 		Trace: &modelpb.Trace{Id: "trace1"},
@@ -925,11 +925,8 @@ func TestPotentialRaceCondition(t *testing.T) {
 		},
 	)
 
-	// Send second transaction, which will be blocked from writing to storage for now.
-	// At the same time, send some other transaction with high event duration
-	// to kick second transaction out from getting sampled.
+	// Send child transaction, which will be blocked from writing to storage for now.
 	var wg sync.WaitGroup
-	tx2Done := make(chan struct{})
 	wg.Go(func() {
 		batch2 := modelpb.Batch{{
 			Trace: &modelpb.Trace{Id: "trace1"},
@@ -938,31 +935,11 @@ func TestPotentialRaceCondition(t *testing.T) {
 				Id:      "transaction2",
 				Sampled: true,
 			},
+			ParentId: "transaction1",
 		}}
 		err = processor.ProcessBatch(context.Background(), &batch2)
 		require.NoError(t, err)
 		assert.Len(t, batch2, 0)
-		close(tx2Done)
-	})
-
-	wg.Go(func() {
-		batch3 := modelpb.Batch{{
-			Trace: &modelpb.Trace{Id: "trace2"},
-			Transaction: &modelpb.Transaction{
-				Type:    "type",
-				Id:      "transaction3",
-				Sampled: true,
-			},
-			Event: &modelpb.Event{
-				Duration: 1000000,
-			},
-		}}
-		// Wait for second transaction to be written to storage first before sending,
-		// otherwise second transaction may be dropped.
-		<-tx2Done
-		err = processor.ProcessBatch(context.Background(), &batch3)
-		require.NoError(t, err)
-		assert.Len(t, batch3, 0)
 	})
 
 	// Unblock write sampled so that the first transaction is published.
@@ -989,32 +966,27 @@ func TestPotentialRaceCondition(t *testing.T) {
 		},
 	)
 
-	// Unblock write event twice so that the second transaction and others are written to storage.
-	unblockWriteEvent <- struct{}{}
+	// Unblock write event so that the second transaction is written to storage.
 	unblockWriteEvent <- struct{}{}
 	wg.Wait()
 	monitoringtest.ExpectContainAndNotContainOtelMetrics(t, tempdirConfig.metricReader,
 		map[string]any{
-			// This comes from third transaction being processed.
-			"apm-server.sampling.tail.events.processed": 1,
-			// This comes from second and third transaction being stored.
-			"apm-server.sampling.tail.events.stored": 2,
+			// This comes from second transaction being stored.
+			"apm-server.sampling.tail.events.stored": 1,
 		},
 		[]string{
 			"apm-server.sampling.tail.events.sampled",
+			"apm-server.sampling.tail.events.processed",
 		},
 	)
 
-	// Unblock write sampled so that the third transaction gets sampled.
+	// Unblock write sampled to check if second transaction gets sampled.
+	// It should not be sampled since the trace is already be sampled previously.
 	unblockWriteSampled <- struct{}{}
 	select {
-	case batch := <-reported:
-		if len(batch) != 1 {
-			t.Fatal("expected only one event in second publish")
-		}
-		assert.Equal(t, batch[0].Transaction.Id, "transaction3")
-	case <-timeoutCtx.Done():
-		t.Fatal("test timed out")
+	case <-reported:
+		t.Fatal("no transaction should be reported here")
+	case <-time.After(2 * flushInterval):
 	}
 
 	// Stop processor so we can examine DB.
@@ -1029,10 +1001,6 @@ func TestPotentialRaceCondition(t *testing.T) {
 	assert.Len(t, batch, 2)
 	assert.Equal(t, batch[0].Transaction.Id, "transaction1")
 	assert.Equal(t, batch[1].Transaction.Id, "transaction2")
-	batch = nil
-	assert.NoError(t, reader.ReadTraceEvents("trace2", &batch))
-	assert.Len(t, batch, 1)
-	assert.Equal(t, batch[0].Transaction.Id, "transaction3")
 }
 
 type testConfig struct {
