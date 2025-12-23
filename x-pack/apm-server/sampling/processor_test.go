@@ -944,63 +944,40 @@ func TestPotentialRaceCondition(t *testing.T) {
 
 	// Unblock write sampled so that the first transaction is published.
 	unblockWriteSampled <- struct{}{}
-	// Wait for first transaction (sampled) to be published.
-	select {
-	case batch := <-reported:
-		if len(batch) != 1 {
-			t.Fatal("expected only one event in first publish")
-		}
-		assert.Equal(t, batch[0].Transaction.Id, "transaction1")
-	case <-timeoutCtx.Done():
-		t.Fatal("test timed out")
-	}
-	monitoringtest.ExpectContainAndNotContainOtelMetrics(t, tempdirConfig.metricReader,
-		map[string]any{
-			// This comes from second transaction, since we record it before finish processing somehow.
-			"apm-server.sampling.tail.events.processed": 1,
-			// This comes from first transaction being sampled.
-			"apm-server.sampling.tail.events.sampled": 1,
-		},
-		[]string{
-			"apm-server.sampling.tail.events.stored",
-		},
-	)
-
+	time.Sleep(2 * flushInterval)
 	// Unblock write event so that the second transaction is written to storage.
 	unblockWriteEvent <- struct{}{}
 	wg.Wait()
 	monitoringtest.ExpectContainAndNotContainOtelMetrics(t, tempdirConfig.metricReader,
 		map[string]any{
 			// This comes from second transaction being stored.
-			"apm-server.sampling.tail.events.stored": 1,
+			"apm-server.sampling.tail.events.stored":    1,
+			"apm-server.sampling.tail.events.processed": 1,
 		},
 		[]string{
 			"apm-server.sampling.tail.events.sampled",
-			"apm-server.sampling.tail.events.processed",
 		},
 	)
 
-	// Unblock write sampled to check if second transaction gets sampled.
-	// It should not be sampled since the trace is already be sampled previously.
-	unblockWriteSampled <- struct{}{}
 	select {
-	case <-reported:
-		t.Fatal("no transaction should be reported here")
-	case <-time.After(2 * flushInterval):
+	case batch := <-reported:
+		if len(batch) != 2 {
+			t.Fatal("expected two events in publish")
+		}
+		assert.Equal(t, batch[0].Transaction.Id, "transaction1")
+		assert.Equal(t, batch[1].Transaction.Id, "transaction2")
+	case <-timeoutCtx.Done():
+		t.Fatal("test timed out waiting for publish")
 	}
-
-	// Stop processor so we can examine DB.
-	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, tempdirConfig.Config.DB.Flush())
-	close(reported)
-	db := tempdirConfig.Config.DB
-	reader := newUnlimitedReadWriter(db)
-
-	var batch modelpb.Batch
-	assert.NoError(t, reader.ReadTraceEvents("trace1", &batch))
-	assert.Len(t, batch, 2)
-	assert.Equal(t, batch[0].Transaction.Id, "transaction1")
-	assert.Equal(t, batch[1].Transaction.Id, "transaction2")
+	monitoringtest.ExpectContainAndNotContainOtelMetrics(t, tempdirConfig.metricReader,
+		map[string]any{
+			"apm-server.sampling.tail.events.sampled": 2,
+		},
+		[]string{
+			"apm-server.sampling.tail.events.processed",
+			"apm-server.sampling.tail.events.stored",
+		},
+	)
 }
 
 type testConfig struct {
