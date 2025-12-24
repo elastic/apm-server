@@ -45,9 +45,6 @@ type Processor struct {
 	eventStore   eventstorage.RW
 	eventMetrics eventMetrics
 
-	ongoingTracesMux sync.RWMutex
-	ongoingTraces    map[string]uint32
-
 	stopMu   sync.Mutex
 	stopping chan struct{}
 	stopped  chan struct{}
@@ -77,7 +74,6 @@ func NewProcessor(config Config, logger *logp.Logger) (*Processor, error) {
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
 		groups:            newTraceGroups(meter, config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
 		eventStore:        eventstorage.NewShardLockReadWriter(runtime.GOMAXPROCS(0), config.Storage),
-		ongoingTraces:     make(map[string]uint32),
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
 	}
