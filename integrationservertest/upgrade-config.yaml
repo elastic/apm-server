@@ -79,3 +79,6 @@ lazy-rollover-exceptions:
   # No lazy rollover from any 9.2 patch to any other 9.3 patch.
   - from: "9.2.*"
     to:   "9.3.*"
+  # No lazy rollover from any 9.3 patch to any other 9.4 patch.
+  - from: "9.3.*"
+    to:   "9.4.*"

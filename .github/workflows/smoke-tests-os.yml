@@ -7,7 +7,11 @@ on:
       branch:
         required: true
         type: string
-  workflow_dispatch: ~
+  workflow_dispatch:
+    inputs:
+      branch:
+        required: true
+        type: string
 
 # limit the access of the generated GITHUB_TOKEN
 permissions:
@@ -15,14 +19,20 @@ permissions:
 
 jobs:
   prepare:
-    name: Generate smoke tests list
+    name: Prepare smoke tests OS
     runs-on: ubuntu-latest
     outputs:
       date: ${{ steps.generate.outputs.date }}
+      version: ${{ steps.generate.outputs.version }}
     steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch }}
       - id: generate
         name: Generate date
-        run: echo "date=$(date +%s)" >> "${GITHUB_OUTPUT}"
+        run: |
+          echo "date=$(date +%s)" >> "${GITHUB_OUTPUT}"
+          echo "version=$(make get-version)" >> "${GITHUB_OUTPUT}"
         shell: bash
 
   smoke-tests-os:
@@ -40,24 +50,17 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.branch }}
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: ~1.10.0
           terraform_wrapper: false
-      - name: Get version
-        run: echo "VERSION=$(make get-version)" >> "${GITHUB_ENV}"
       - name: Setup cluster env
         uses: ./.github/workflows/setup-cluster-env
-
       - uses: elastic/oblt-actions/aws/auth@v1
-
       - uses: elastic/oblt-actions/google/auth@v1
         with:
           project-number: '911195782929'
           project-id: 'elastic-observability-ci'
-
       - uses: google-github-actions/get-secretmanager-secrets@bc9c54b29fdffb8a47776820a7d26e77b379d262 # v3.0.0
         with:
           export_to_environment: true
@@ -65,4 +68,4 @@ jobs:
             EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-pro-api-key
       - name: Run smoke tests OS
         working-directory: ${{ github.workspace }}/testing/smoke/supported-os
-        run: ./test.sh ${VERSION}-SNAPSHOT
+        run: ./test.sh "${{ needs.prepare.outputs.version }}"
