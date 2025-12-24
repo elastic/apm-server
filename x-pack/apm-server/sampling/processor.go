@@ -44,7 +44,8 @@ type Processor struct {
 	eventStore   eventstorage.RW
 	eventMetrics eventMetrics
 
-	ongoingTraces sync.Map
+	ongoingTracesMux sync.RWMutex
+	ongoingTraces    map[string]uint32
 
 	stopMu   sync.Mutex
 	stopping chan struct{}
@@ -75,6 +76,7 @@ func NewProcessor(config Config, logger *logp.Logger) (*Processor, error) {
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
 		groups:            newTraceGroups(meter, config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
 		eventStore:        config.Storage,
+		ongoingTraces:     make(map[string]uint32),
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
 	}
@@ -229,6 +231,9 @@ sampling policies without service name specified.
 		return false, false, p.eventStore.WriteTraceSampled(event.Trace.Id, false)
 	}
 
+	// Mark the trace as ongoing since there's an incoming root transaction.
+	p.addOngoingTrace(event.Trace.Id)
+	defer p.removeOngoingTrace(event.Trace.Id)
 	// The root transaction was admitted to the sampling reservoir, so we
 	// can proceed to write the transaction to storage; we may index it later,
 	// after finalising the sampling decision.
@@ -255,15 +260,27 @@ func (p *Processor) processSpan(event *modelpb.APMEvent) (report, stored bool, _
 }
 
 func (p *Processor) addOngoingTrace(traceID string) {
-	p.ongoingTraces.Store(traceID, struct{}{})
+	p.ongoingTracesMux.Lock()
+	defer p.ongoingTracesMux.Unlock()
+
+	p.ongoingTraces[traceID]++
 }
 
 func (p *Processor) removeOngoingTrace(traceID string) {
-	p.ongoingTraces.Delete(traceID)
+	p.ongoingTracesMux.Lock()
+	defer p.ongoingTracesMux.Unlock()
+
+	p.ongoingTraces[traceID]--
+	if p.ongoingTraces[traceID] == 0 {
+		delete(p.ongoingTraces, traceID)
+	}
 }
 
 func (p *Processor) hasOngoingTrace(traceID string) bool {
-	_, ok := p.ongoingTraces.Load(traceID)
+	p.ongoingTracesMux.RLock()
+	defer p.ongoingTracesMux.RUnlock()
+
+	_, ok := p.ongoingTraces[traceID]
 	return ok
 }
 
@@ -278,8 +295,7 @@ func (p *Processor) waitForOngoingTrace(ctx context.Context, traceID string, loo
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			_, ok := p.ongoingTraces.Load(traceID)
-			if !ok {
+			if !p.hasOngoingTrace(traceID) {
 				return nil
 			}
 		}
@@ -453,6 +469,7 @@ func (p *Processor) Run() error {
 		}
 	})
 	g.Go(func() error {
+		defer close(ongoingSampledTraceIDs)
 		// TODO(axw) pace the publishing over the flush interval?
 		// Alternatively we can rely on backpressure from the reporter,
 		// removing the artificial one second timeout from publisher code
