@@ -147,6 +147,9 @@ type ShardLockReadWriter struct {
 }
 
 func NewShardLockReadWriter(numShards int, nextRW RW) *ShardLockReadWriter {
+	if numShards <= 0 {
+		panic("ShardLockReadWriter numShards must be greater than zero")
+	}
 	rws := make([]*lockedReadWriter, numShards)
 	for i := 0; i < numShards; i++ {
 		rws[i] = newLockedReadWriter(nextRW)
