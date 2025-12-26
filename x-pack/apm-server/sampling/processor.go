@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime"
 	"sync"
 	"time"
 
@@ -17,10 +18,11 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/elastic-agent-libs/logp"
+
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
-	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 const (
@@ -71,7 +73,7 @@ func NewProcessor(config Config, logger *logp.Logger) (*Processor, error) {
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
 		groups:            newTraceGroups(meter, config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
-		eventStore:        config.Storage,
+		eventStore:        eventstorage.NewShardLockReadWriter(runtime.GOMAXPROCS(0), config.Storage),
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
 	}
