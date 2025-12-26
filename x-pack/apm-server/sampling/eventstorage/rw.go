@@ -194,7 +194,7 @@ func (s *ShardLockReadWriter) getReadWriter(traceID string) *lockedReadWriter {
 }
 
 type lockedReadWriter struct {
-	mu sync.Mutex
+	mu sync.RWMutex
 	rw RW
 }
 
@@ -203,8 +203,8 @@ func newLockedReadWriter(rw RW) *lockedReadWriter {
 }
 
 func (rw *lockedReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	rw.mu.Lock()
-	defer rw.mu.Unlock()
+	rw.mu.RLock()
+	defer rw.mu.RUnlock()
 	return rw.rw.ReadTraceEvents(traceID, out)
 }
 
@@ -221,8 +221,8 @@ func (rw *lockedReadWriter) WriteTraceSampled(traceID string, sampled bool) erro
 }
 
 func (rw *lockedReadWriter) IsTraceSampled(traceID string) (bool, error) {
-	rw.mu.Lock()
-	defer rw.mu.Unlock()
+	rw.mu.RLock()
+	defer rw.mu.RUnlock()
 	return rw.rw.IsTraceSampled(traceID)
 }
 
