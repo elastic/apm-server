@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/cespare/xxhash/v2"
+
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
