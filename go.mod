@@ -5,7 +5,11 @@ go 1.25.5
 require (
 	github.com/KimMachineGun/automemlimit v0.7.5
 	github.com/cespare/xxhash/v2 v2.3.0
+<<<<<<< HEAD
 	github.com/cockroachdb/pebble/v2 v2.0.6
+=======
+	github.com/cockroachdb/pebble/v2 v2.1.3
+>>>>>>> 310231d4 (build(deps): bump github.com/cockroachdb/pebble/v2 from 2.1.2 to 2.1.3 (#19999))
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.3.0
 	github.com/elastic/apm-data v1.19.2
@@ -84,7 +88,7 @@ require (
 	github.com/cockroachdb/fifo v0.0.0-20240816210425-c5d0cb0b6fc0 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
-	github.com/cockroachdb/swiss v0.0.0-20250624142022-d6e517c1d961 // indirect
+	github.com/cockroachdb/swiss v0.0.0-20251224182025-b0f6560f979b // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
 	github.com/cyphar/filepath-securejoin v0.3.6 // indirect
