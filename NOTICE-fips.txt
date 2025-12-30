@@ -455,11 +455,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.19.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20251031181001-be9871f5dab9
+Version: v7.0.0-alpha2.0.20251230084137-d5447f54c591
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20251031181001-be9871f5dab9/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20251230084137-d5447f54c591/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -711,11 +711,11 @@ SOFTWARE
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-libs
-Version: v0.25.1
+Version: v0.28.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.25.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.28.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -8091,11 +8091,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/opentelemetry-l
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/sarama
-Version: v1.19.1-0.20250603175145-7672917f26b6
+Version: v1.19.1-0.20251224062803-313637a62841
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/sarama@v1.19.1-0.20250603175145-7672917f26b6/LICENSE.md:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/sarama@v1.19.1-0.20251224062803-313637a62841/LICENSE.md:
 
 # MIT License
 
@@ -11744,11 +11744,11 @@ Contents of probable licence file $GOMODCACHE/github.com/prometheus/client_model
 
 --------------------------------------------------------------------------------
 Dependency : github.com/prometheus/common
-Version: v0.66.1
+Version: v0.67.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/prometheus/common@v0.66.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/prometheus/common@v0.67.1/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -12242,11 +12242,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/shirou/gopsutil/v4
-Version: v4.25.8
+Version: v4.25.10
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/shirou/gopsutil/v4@v4.25.8/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/shirou/gopsutil/v4@v4.25.10/LICENSE:
 
 gopsutil is distributed under BSD license reproduced below.
 
@@ -13196,11 +13196,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/auto/sdk@v1.2.
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/consumer
-Version: v1.43.0
+Version: v1.47.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.43.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.47.0/LICENSE:
 
 
                                  Apache License
@@ -13649,11 +13649,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : go.yaml.in/yaml/v2
-Version: v2.4.2
+Version: v2.4.3
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.yaml.in/yaml/v2@v2.4.2/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.yaml.in/yaml/v2@v2.4.3/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -13860,11 +13860,11 @@ Contents of probable licence file $GOMODCACHE/go.yaml.in/yaml/v2@v2.4.2/LICENSE:
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/exp
-Version: v0.0.0-20250811191247-51f88131bc50
+Version: v0.0.0-20251113190631-e25ba8c21ef6
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/exp@v0.0.0-20250811191247-51f88131bc50/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/exp@v0.0.0-20251113190631-e25ba8c21ef6/LICENSE:
 
 Copyright 2009 The Go Authors.
 
