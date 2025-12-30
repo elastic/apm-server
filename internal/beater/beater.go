@@ -54,6 +54,7 @@ import (
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
+	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-ucfg"
 
@@ -1073,6 +1074,6 @@ func (nopProcessingSupporter) Processors() []string {
 	return nil
 }
 
-func (nopProcessingSupporter) Create(cfg beat.ProcessingConfig, _ bool) (beat.Processor, error) {
+func (nopProcessingSupporter) Create(cfg beat.ProcessingConfig, _ bool, _ *paths.Path) (beat.Processor, error) {
 	return cfg.Processor, nil
 }
