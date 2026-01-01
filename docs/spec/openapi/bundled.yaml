@@ -853,6 +853,14 @@ components:
                     - string
                     - integer
                   maxLength: 1024
+                roles:
+                  description: Roles the user is a member of.
+                  type:
+                    - 'null'
+                    - array
+                  items:
+                    type: string
+                    maxLength: 1024
                 username:
                   description: Name of the user.
                   type:
@@ -1654,6 +1662,14 @@ components:
                 - string
                 - integer
               maxLength: 1024
+            roles:
+              description: Roles the user is a member of.
+              type:
+                - 'null'
+                - array
+              items:
+                type: string
+                maxLength: 1024
             username:
               description: Name of the user.
               type:
@@ -3029,6 +3045,14 @@ components:
                     - string
                     - integer
                   maxLength: 1024
+                roles:
+                  description: Roles the user is a member of.
+                  type:
+                    - 'null'
+                    - array
+                  items:
+                    type: string
+                    maxLength: 1024
                 username:
                   description: Name of the user.
                   type:
@@ -4092,6 +4116,14 @@ components:
                 - 'null'
                 - string
               maxLength: 1024
+            ur:
+              description: Roles the user is a member of.
+              type:
+                - 'null'
+                - array
+              items:
+                type: string
+                maxLength: 1024
       required:
         - se
     MetadataEventv3:
