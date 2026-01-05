@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -21,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -978,6 +980,85 @@ func TestPotentialRaceCondition(t *testing.T) {
 			"apm-server.sampling.tail.events.stored",
 		},
 	)
+}
+
+func TestPotentialRaceConditionConcurrent(t *testing.T) {
+	flushInterval := 5 * time.Second
+	tempdirConfig := newTempdirConfig(t)
+	tempdirConfig.Config.FlushInterval = flushInterval
+	tempdirConfig.Config.Policies = []sampling.Policy{
+		{SampleRate: 1.0},
+	}
+
+	var reportedMu sync.Mutex
+	reported := map[string]struct{}{}
+	tempdirConfig.Config.BatchProcessor = modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+		reportedMu.Lock()
+		defer reportedMu.Unlock()
+		for _, b := range batch.Clone() {
+			reported[b.Transaction.Id] = struct{}{}
+		}
+		return nil
+	})
+
+	processor, err := sampling.NewProcessor(tempdirConfig.Config, logptest.NewTestingLogger(t, ""))
+	require.NoError(t, err)
+	go processor.Run()
+	defer processor.Stop(context.Background())
+
+	var processed atomic.Int64
+	var lateArrivals atomic.Int64
+	eg, ctx := errgroup.WithContext(context.Background())
+	for i := 0; i < 1000; i++ {
+		eg.Go(func() error {
+			first := true
+			index := i * 100000000
+
+			timer := time.NewTimer(flushInterval + 2*time.Second)
+			defer timer.Stop()
+
+			for {
+				select {
+				case <-timer.C:
+					return nil
+				case <-ctx.Done():
+					return ctx.Err()
+				default:
+				}
+
+				batch := modelpb.Batch{{
+					Trace: &modelpb.Trace{Id: fmt.Sprintf("trace%d", i)},
+					Transaction: &modelpb.Transaction{
+						Type:    "type",
+						Id:      fmt.Sprintf("transaction%08d", index),
+						Sampled: true,
+					},
+				}}
+
+				if first {
+					first = false
+				} else {
+					batch[0].ParentId = fmt.Sprintf("bar%08d", index)
+				}
+
+				if err := processor.ProcessBatch(ctx, &batch); err != nil {
+					return err
+				}
+				index++
+				processed.Add(1)
+				lateArrivals.Add(int64(len(batch)))
+				time.Sleep(time.Duration(rand.Intn(5)) * time.Millisecond)
+			}
+		})
+	}
+
+	require.NoError(t, eg.Wait())
+	require.NoError(t, processor.Stop(context.Background()))
+
+	reportedMu.Lock()
+	defer reportedMu.Unlock()
+	reportedPlusLateArrivals := int64(len(reported)) + lateArrivals.Load()
+	assert.Equal(t, reportedPlusLateArrivals, processed.Load())
 }
 
 type testConfig struct {

@@ -7,9 +7,6 @@ package eventstorage
 import (
 	"errors"
 	"fmt"
-	"sync"
-
-	"github.com/cespare/xxhash/v2"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -141,94 +138,4 @@ func (s StorageLimitReadWriter) IsTraceSampled(traceID string) (bool, error) {
 func (s StorageLimitReadWriter) DeleteTraceEvent(traceID, id string) error {
 	// Technically DeleteTraceEvent writes, but it should have a net effect of reducing disk usage
 	return s.nextRW.DeleteTraceEvent(traceID, id)
-}
-
-type ShardLockReadWriter struct {
-	rws []*lockedReadWriter
-}
-
-func NewShardLockReadWriter(numShards int, nextRW RW) *ShardLockReadWriter {
-	if numShards <= 0 {
-		panic("ShardLockReadWriter numShards must be greater than zero")
-	}
-	rws := make([]*lockedReadWriter, numShards)
-	for i := 0; i < numShards; i++ {
-		rws[i] = newLockedReadWriter(nextRW)
-	}
-	return &ShardLockReadWriter{rws: rws}
-}
-
-// ReadTraceEvents calls ReadTraceEvents, using a sharded, locked RW.
-func (s *ShardLockReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	return s.getReadWriter(traceID).ReadTraceEvents(traceID, out)
-}
-
-// WriteTraceEvent calls WriteTraceEvent, using a sharded, locked RW.
-func (s *ShardLockReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
-	return s.getReadWriter(traceID).WriteTraceEvent(traceID, id, event)
-}
-
-// WriteTraceSampled calls WriteTraceSampled, using a sharded, locked, RW.
-func (s *ShardLockReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
-	return s.getReadWriter(traceID).WriteTraceSampled(traceID, sampled)
-}
-
-// IsTraceSampled calls IsTraceSampled, using a sharded, locked RW.
-func (s *ShardLockReadWriter) IsTraceSampled(traceID string) (bool, error) {
-	return s.getReadWriter(traceID).IsTraceSampled(traceID)
-}
-
-// DeleteTraceEvent calls DeleteTraceEvent, using a sharded, locked RW.
-func (s *ShardLockReadWriter) DeleteTraceEvent(traceID, id string) error {
-	return s.getReadWriter(traceID).DeleteTraceEvent(traceID, id)
-}
-
-// getReadWriter returns a lockedReadWriter for the given trace ID.
-//
-// This method is idempotent, which is necessary to avoid transaction
-// conflicts and ensure all events are reported once a sampling decision
-// has been recorded.
-func (s *ShardLockReadWriter) getReadWriter(traceID string) *lockedReadWriter {
-	var h xxhash.Digest
-	_, _ = h.WriteString(traceID)
-	return s.rws[h.Sum64()%uint64(len(s.rws))]
-}
-
-type lockedReadWriter struct {
-	mu sync.RWMutex
-	rw RW
-}
-
-func newLockedReadWriter(rw RW) *lockedReadWriter {
-	return &lockedReadWriter{rw: rw}
-}
-
-func (rw *lockedReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	rw.mu.RLock()
-	defer rw.mu.RUnlock()
-	return rw.rw.ReadTraceEvents(traceID, out)
-}
-
-func (rw *lockedReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
-	rw.mu.Lock()
-	defer rw.mu.Unlock()
-	return rw.rw.WriteTraceEvent(traceID, id, event)
-}
-
-func (rw *lockedReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
-	rw.mu.Lock()
-	defer rw.mu.Unlock()
-	return rw.rw.WriteTraceSampled(traceID, sampled)
-}
-
-func (rw *lockedReadWriter) IsTraceSampled(traceID string) (bool, error) {
-	rw.mu.RLock()
-	defer rw.mu.RUnlock()
-	return rw.rw.IsTraceSampled(traceID)
-}
-
-func (rw *lockedReadWriter) DeleteTraceEvent(traceID, id string) error {
-	rw.mu.Lock()
-	defer rw.mu.Unlock()
-	return rw.rw.DeleteTraceEvent(traceID, id)
 }

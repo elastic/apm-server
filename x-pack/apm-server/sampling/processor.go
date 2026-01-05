@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
 	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
@@ -44,6 +45,7 @@ type Processor struct {
 
 	eventStore   eventstorage.RW
 	eventMetrics eventMetrics
+	shardLock    *shardLock
 
 	stopMu   sync.Mutex
 	stopping chan struct{}
@@ -73,7 +75,8 @@ func NewProcessor(config Config, logger *logp.Logger) (*Processor, error) {
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
 		groups:            newTraceGroups(meter, config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
-		eventStore:        eventstorage.NewShardLockReadWriter(runtime.GOMAXPROCS(0), config.Storage),
+		eventStore:        config.Storage,
+		shardLock:         newShardLock(runtime.GOMAXPROCS(0)),
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
 	}
@@ -172,6 +175,9 @@ func (p *Processor) processTransaction(event *modelpb.APMEvent) (report, stored 
 		return true, false, nil
 	}
 
+	p.shardLock.RLock(event.Trace.Id)
+	defer p.shardLock.RUnlock(event.Trace.Id)
+
 	traceSampled, err := p.eventStore.IsTraceSampled(event.Trace.Id)
 	switch err {
 	case nil:
@@ -232,6 +238,9 @@ sampling policies without service name specified.
 }
 
 func (p *Processor) processSpan(event *modelpb.APMEvent) (report, stored bool, _ error) {
+	p.shardLock.RLock(event.Trace.Id)
+	defer p.shardLock.RUnlock(event.Trace.Id)
+
 	traceSampled, err := p.eventStore.IsTraceSampled(event.Trace.Id)
 	if err != nil {
 		if err == eventstorage.ErrNotFound {
@@ -445,6 +454,7 @@ func (p *Processor) Run() error {
 				}
 			}
 
+			p.shardLock.Lock(traceID)
 			if err := p.eventStore.WriteTraceSampled(traceID, true); err != nil {
 				p.rateLimitedLogger.Warnf(
 					"received error writing sampled trace: %s", err,
@@ -452,7 +462,9 @@ func (p *Processor) Run() error {
 			}
 
 			events = events[:0]
-			if err := p.eventStore.ReadTraceEvents(traceID, &events); err != nil {
+			err = p.eventStore.ReadTraceEvents(traceID, &events)
+			p.shardLock.Unlock(traceID)
+			if err != nil {
 				p.rateLimitedLogger.Warnf(
 					"received error reading trace events: %s", err,
 				)
@@ -537,4 +549,41 @@ func sendTraceIDs(ctx context.Context, out chan<- string, traceIDs []string) err
 		}
 	}
 	return nil
+}
+
+type shardLock struct {
+	locks []sync.RWMutex
+}
+
+func newShardLock(numShards int) *shardLock {
+	if numShards <= 0 {
+		panic("shardLock numShards must be greater than zero")
+	}
+	locks := make([]sync.RWMutex, numShards)
+	for i := 0; i < numShards; i++ {
+		locks[i] = sync.RWMutex{}
+	}
+	return &shardLock{locks: locks}
+}
+
+func (s *shardLock) Lock(id string) {
+	s.getLock(id).Lock()
+}
+
+func (s *shardLock) Unlock(id string) {
+	s.getLock(id).Unlock()
+}
+
+func (s *shardLock) RLock(id string) {
+	s.getLock(id).RLock()
+}
+
+func (s *shardLock) RUnlock(id string) {
+	s.getLock(id).RUnlock()
+}
+
+func (s *shardLock) getLock(id string) *sync.RWMutex {
+	var h xxhash.Digest
+	_, _ = h.WriteString(id)
+	return &s.locks[h.Sum64()%uint64(len(s.locks))]
 }
