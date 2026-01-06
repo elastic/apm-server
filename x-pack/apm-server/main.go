@@ -132,32 +132,36 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 		}
 	}
 
-	return sampling.NewProcessor(sampling.Config{
-		BatchProcessor: args.BatchProcessor,
-		MeterProvider:  args.MeterProvider,
-		LocalSamplingConfig: sampling.LocalSamplingConfig{
-			FlushInterval:         tailSamplingConfig.Interval,
-			MaxDynamicServices:    1000,
-			Policies:              policies,
-			IngestRateDecayFactor: tailSamplingConfig.IngestRateDecayFactor,
-		},
-		RemoteSamplingConfig: sampling.RemoteSamplingConfig{
-			CompressionLevel: tailSamplingConfig.ESConfig.CompressionLevel,
-			Elasticsearch:    es,
-			SampledTracesDataStream: sampling.DataStreamConfig{
-				Type:      "traces",
-				Dataset:   "apm.sampled",
-				Namespace: args.Namespace,
+	return sampling.NewProcessor(sampling.ProcessorParams{
+		Config: sampling.Config{
+			BatchProcessor: args.BatchProcessor,
+			MeterProvider:  args.MeterProvider,
+			LocalSamplingConfig: sampling.LocalSamplingConfig{
+				FlushInterval:         tailSamplingConfig.Interval,
+				MaxDynamicServices:    1000,
+				Policies:              policies,
+				IngestRateDecayFactor: tailSamplingConfig.IngestRateDecayFactor,
 			},
-			UUID: samplerUUID.String(),
+			RemoteSamplingConfig: sampling.RemoteSamplingConfig{
+				CompressionLevel: tailSamplingConfig.ESConfig.CompressionLevel,
+				Elasticsearch:    es,
+				SampledTracesDataStream: sampling.DataStreamConfig{
+					Type:      "traces",
+					Dataset:   "apm.sampled",
+					Namespace: args.Namespace,
+				},
+				UUID: samplerUUID.String(),
+			},
+			StorageConfig: sampling.StorageConfig{
+				DB:                    db,
+				Storage:               db.NewReadWriter(tailSamplingConfig.StorageLimitParsed, tailSamplingConfig.DiskUsageThreshold),
+				TTL:                   tailSamplingConfig.TTL,
+				DiscardOnWriteFailure: tailSamplingConfig.DiscardOnWriteFailure,
+			},
 		},
-		StorageConfig: sampling.StorageConfig{
-			DB:                    db,
-			Storage:               db.NewReadWriter(tailSamplingConfig.StorageLimitParsed, tailSamplingConfig.DiskUsageThreshold),
-			TTL:                   tailSamplingConfig.TTL,
-			DiscardOnWriteFailure: tailSamplingConfig.DiscardOnWriteFailure,
-		},
-	}, args.Logger)
+		Logger:         args.Logger,
+		StatusReporter: args.StatusReporter,
+	})
 }
 
 func getDB(storageDir string, cacheSize uint64, mp metric.MeterProvider, logger *logp.Logger) (*eventstorage.StorageManager, error) {
@@ -269,6 +273,7 @@ func Main() error {
 				MeterProvider:   args.MeterProvider,
 				MetricsGatherer: args.MetricsGatherer,
 				BeatMonitoring:  args.BeatMonitoring,
+				StatusReporter:  args.StatusReporter,
 			})
 		},
 	)
