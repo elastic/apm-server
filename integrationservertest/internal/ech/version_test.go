@@ -37,10 +37,10 @@ func newVersionsFromStrings(strs []string) (Versions, error) {
 }
 
 func TestVersions_Sort(t *testing.T) {
-	got, err := newVersionsFromStrings([]string{"9.0.0-SNAPSHOT", "8.14.5", "7.17.28", "9.0.0"})
+	got, err := newVersionsFromStrings([]string{"9.0.0-SNAPSHOT", "8.14.5", "7.17.29", "9.0.0"})
 	require.NoError(t, err)
 
-	expected, err := newVersionsFromStrings([]string{"7.17.28", "8.14.5", "9.0.0", "9.0.0-SNAPSHOT"})
+	expected, err := newVersionsFromStrings([]string{"7.17.29", "8.14.5", "9.0.0", "9.0.0-SNAPSHOT"})
 	require.NoError(t, err)
 
 	got.Sort()

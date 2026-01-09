@@ -45,9 +45,9 @@ spec:
         filter_condition: >-
           build.pull_request.id == null || (build.creator.name == 'elasticmachine' && build.pull_request.id != null)
       cancel_intermediate_builds: true
-      cancel_intermediate_builds_branch_filter: "!main !7.* !8.* !9.*"
+      cancel_intermediate_builds_branch_filter: "!main !8.* !9.*"
       skip_intermediate_builds: true
-      skip_intermediate_builds_branch_filter: "!main !7.* !8.* !9.*"
+      skip_intermediate_builds_branch_filter: "!main !8.* !9.*"
       teams:
         obs-ds-intake-services: {}
         observablt-robots: {}
@@ -55,8 +55,3 @@ spec:
           access_level: READ_ONLY
       env:
         ELASTIC_PR_COMMENTS_ENABLED: 'true'
-      schedules:
-        Weekly 7.17:
-          branch: "7.17"
-          cronline: "@weekly"
-          message: Builds `7.17` DRA
