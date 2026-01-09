@@ -14,7 +14,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20230226152057-060fa99b809f // indirect
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.17.30-0.20251120204030-1ed52bf59d36
+	github.com/elastic/beats/v7 v7.17.30-0.20251209195345-e235c8e13c4c
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-client/v7 v7.8.1 // indirect
 	github.com/elastic/gmux v0.2.0
@@ -134,7 +134,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
-	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/h2non/filetype v1.1.1 // indirect
 	github.com/hashicorp/cronexpr v1.1.2 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect

@@ -1,4 +1,4 @@
-FROM golang:1.24.10
+FROM golang:1.24.11
 MAINTAINER Nicolas Ruflin <ruflin@elastic.co>
 
 RUN apt-get update
