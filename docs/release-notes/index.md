@@ -36,6 +36,10 @@ _No new features or enhancements_
 
 _No new fixes_ 
 
+## 9.2.4 [apm-9.2.3-release-notes]
+
+_No new features, enhancements, or fixes._
+
 ## 9.2.3 [apm-9.2.3-release-notes]
 
 _No new features, enhancements, or fixes._
