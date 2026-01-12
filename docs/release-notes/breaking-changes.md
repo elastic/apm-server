@@ -23,7 +23,27 @@ Breaking changes can impact your Elastic applications, potentially disrupting no
 
 ## 9.3.0 [9-3-0]
 
-_No breaking changes_ 
+_No breaking changes_
+
+## 9.2.4 [9-2-4]
+
+_No breaking changes_
+
+## 9.2.3 [9-2-3]
+
+_No breaking changes_
+
+## 9.2.2 [9-2-2]
+
+_No breaking changes_
+
+## 9.2.1 [9-2-1]
+
+_No breaking changes_
+
+## 9.2.0 [9-2-0]
+
+_No breaking changes_
 
 ## 9.0.0 [9-0-0]
 
