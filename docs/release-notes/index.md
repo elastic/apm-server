@@ -72,6 +72,10 @@ stack: ga 9.2
 
 * Fix `output.elasticsearch.bulk_requests.available` metric to correctly report the available bulk indexers [#18953](https://github.com/elastic/apm-server/pull/18953)
 
+## 9.1.10 [apm-9.1.10-release-notes]
+
+_No new features, enhancements, or fixes._
+
 ## 9.1.9 [apm-9.1.9-release-notes]
 
 _No new features, enhancements, or fixes._
