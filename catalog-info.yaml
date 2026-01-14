@@ -41,11 +41,25 @@ spec:
         build_pull_requests: true
         build_tags: false
         filter_enabled: true
+<<<<<<< HEAD
         filter_condition: build.branch == "main" || build.branch == "8.x" || build.branch =~ /^[0-9]+\.[0-9]+$$/ || build.branch =~ /^feature\//
       cancel_intermediate_builds: false
       skip_intermediate_builds: false
+=======
+        filter_condition: >-
+          build.pull_request.id == null || (build.creator.name == 'elasticmachine' && build.pull_request.id != null)
+      cancel_intermediate_builds: true
+      cancel_intermediate_builds_branch_filter: "!main !8.* !9.*"
+      skip_intermediate_builds: true
+      skip_intermediate_builds_branch_filter: "!main !8.* !9.*"
+>>>>>>> 6ad29d71 (7.17 reached EoL (#20092))
       teams:
         obs-ds-intake-services: {}
         observablt-robots: {}
         everyone:
           access_level: READ_ONLY
+<<<<<<< HEAD
+=======
+      env:
+        ELASTIC_PR_COMMENTS_ENABLED: 'true'
+>>>>>>> 6ad29d71 (7.17 reached EoL (#20092))
