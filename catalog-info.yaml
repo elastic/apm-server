@@ -36,10 +36,29 @@ spec:
     spec:
       repository: elastic/apm-server
       pipeline_file: ".buildkite/package.yml"
+<<<<<<< HEAD
       cancel_intermediate_builds: false
       skip_intermediate_builds: false
+=======
+      provider_settings:
+        build_branches: true
+        build_pull_requests: true
+        build_tags: false
+        filter_enabled: true
+        filter_condition: >-
+          build.pull_request.id == null || (build.creator.name == 'elasticmachine' && build.pull_request.id != null)
+      cancel_intermediate_builds: true
+      cancel_intermediate_builds_branch_filter: "!main !8.* !9.*"
+      skip_intermediate_builds: true
+      skip_intermediate_builds_branch_filter: "!main !8.* !9.*"
+>>>>>>> 6ad29d71 (7.17 reached EoL (#20092))
       teams:
         apm-server: {}
         observablt-robots: {}
         everyone:
           access_level: READ_ONLY
+<<<<<<< HEAD
+=======
+      env:
+        ELASTIC_PR_COMMENTS_ENABLED: 'true'
+>>>>>>> 6ad29d71 (7.17 reached EoL (#20092))

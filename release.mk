@@ -149,8 +149,12 @@ patch-release:
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-docs VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
+<<<<<<< HEAD
 	$(MAKE) update-version-legacy VERSION=$(NEXT_RELEASE) PREVIOUS_VERSION=$(RELEASE_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: update docs versions to $(NEXT_RELEASE)"
+=======
+	$(MAKE) create-commit COMMIT_MESSAGE="$(RELEASE_BRANCH): update versions to $(RELEASE_VERSION)"
+>>>>>>> 6ad29d71 (7.17 reached EoL (#20092))
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
 	$(MAKE) create-pull-request BRANCH=$(BRANCH_PATCH) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(NEXT_RELEASE): update docs" BODY="Merge before the final Release build."
 
@@ -238,6 +242,7 @@ update-version:
 		$(SED) -E -e 's#(Version[[:blank:]]*)=[[:blank:]]*"[0-9]+\.[0-9]+\.[0-9]+#\1= "$(VERSION)#g' internal/version/version.go; \
 	fi
 
+<<<<<<< HEAD
 ## Update the version in the different files with the hardcoded version. Legacy stuff
 ## @DEPRECATED: likely in the 7.17 branch
 .PHONY: update-version-legacy
@@ -254,6 +259,8 @@ update-version-legacy:
 		$(SED) -E -e 's#(version[[:blank:]]*):[[:blank:]]*$(PREVIOUS_VERSION)#\1: $(VERSION)#g' apmpackage/apm/manifest.yml; \
 	fi
 
+=======
+>>>>>>> 6ad29d71 (7.17 reached EoL (#20092))
 ## Update project version in the Makefile.
 .PHONY: update-version-makefile
 update-version-makefile: VERSION=$${VERSION}

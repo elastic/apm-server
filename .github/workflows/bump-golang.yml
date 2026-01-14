@@ -61,6 +61,7 @@ jobs:
           GITHUB_BRANCH: 'main'
           GITHUB_LABELS: ${{ needs.labels.outputs.backports }}
 
+<<<<<<< HEAD
       - if: ${{ failure() }}
         uses: elastic/oblt-actions/slack/send@v1
   bump-7:
@@ -81,6 +82,11 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     needs: [bump, bump-7]
+=======
+  notify:
+    runs-on: ubuntu-latest
+    needs: [bump, bump-819]
+>>>>>>> 6ad29d71 (7.17 reached EoL (#20092))
     if: always()
     steps:
       - id: check
