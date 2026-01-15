@@ -454,16 +454,17 @@ func (p *Processor) Run() error {
 				}
 			}
 
+			// We lock before WriteTraceSampled here to prevent race condition with IsTraceSampled from incoming events.
 			p.shardLock.Lock(traceID)
 			if err := p.eventStore.WriteTraceSampled(traceID, true); err != nil {
 				p.rateLimitedLogger.Warnf(
 					"received error writing sampled trace: %s", err,
 				)
 			}
+			p.shardLock.Unlock(traceID)
 
 			events = events[:0]
 			err = p.eventStore.ReadTraceEvents(traceID, &events)
-			p.shardLock.Unlock(traceID)
 			if err != nil {
 				p.rateLimitedLogger.Warnf(
 					"received error reading trace events: %s", err,
@@ -560,9 +561,6 @@ func newShardLock(numShards int) *shardLock {
 		panic("shardLock numShards must be greater than zero")
 	}
 	locks := make([]sync.RWMutex, numShards)
-	for i := 0; i < numShards; i++ {
-		locks[i] = sync.RWMutex{}
-	}
 	return &shardLock{locks: locks}
 }
 

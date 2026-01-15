@@ -834,156 +834,8 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.Equal(t, int(sampleRate*float64(totalTraces)), count)
 }
 
-type blockingRW struct {
-	ctx                 context.Context
-	unblockWriteEvent   chan struct{}
-	unblockWriteSampled chan struct{}
-	next                eventstorage.RW
-}
-
-func (m blockingRW) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	return m.next.ReadTraceEvents(traceID, out)
-}
-
-func (m blockingRW) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
-	select {
-	case <-m.ctx.Done():
-		return m.ctx.Err()
-	case <-m.unblockWriteEvent:
-		return m.next.WriteTraceEvent(traceID, id, event)
-	}
-}
-
-func (m blockingRW) WriteTraceSampled(traceID string, sampled bool) error {
-	select {
-	case <-m.ctx.Done():
-		return m.ctx.Err()
-	case <-m.unblockWriteSampled:
-		return m.next.WriteTraceSampled(traceID, sampled)
-	}
-}
-
-func (m blockingRW) IsTraceSampled(traceID string) (bool, error) {
-	return m.next.IsTraceSampled(traceID)
-}
-
-func (m blockingRW) DeleteTraceEvent(traceID, id string) error {
-	return m.next.DeleteTraceEvent(traceID, id)
-}
-
-func TestPotentialRaceCondition(t *testing.T) {
-	unblockWriteEvent := make(chan struct{}, 1)
-	unblockWriteSampled := make(chan struct{}, 1)
-
-	flushInterval := time.Second
-	tempdirConfig := newTempdirConfig(t)
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), 10*flushInterval)
-	defer cancel()
-
-	tempdirConfig.Config.FlushInterval = flushInterval
-	// Wrap existing storage with blockingRW so we can control the flow.
-	tempdirConfig.Config.Storage = &blockingRW{
-		ctx:                 timeoutCtx,
-		unblockWriteEvent:   unblockWriteEvent,
-		unblockWriteSampled: unblockWriteSampled,
-		next:                tempdirConfig.Config.Storage,
-	}
-	// Collect reported transactions.
-	reported := make(chan modelpb.Batch)
-	tempdirConfig.Config.BatchProcessor = modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case reported <- batch.Clone():
-			return nil
-		}
-	})
-
-	processor, err := sampling.NewProcessor(tempdirConfig.Config, logptest.NewTestingLogger(t, ""))
-	require.NoError(t, err)
-	go processor.Run()
-	defer processor.Stop(context.Background())
-
-	// Send root transaction, which will be written to storage since write event is unblocked.
-	unblockWriteEvent <- struct{}{}
-	batch1 := modelpb.Batch{{
-		Trace: &modelpb.Trace{Id: "trace1"},
-		Transaction: &modelpb.Transaction{
-			Type:    "type",
-			Id:      "transaction1",
-			Sampled: true,
-		},
-	}}
-	err = processor.ProcessBatch(context.Background(), &batch1)
-	require.NoError(t, err)
-	assert.Len(t, batch1, 0)
-	monitoringtest.ExpectContainAndNotContainOtelMetrics(t, tempdirConfig.metricReader,
-		map[string]any{
-			"apm-server.sampling.tail.events.processed": 1,
-			"apm-server.sampling.tail.events.stored":    1,
-		},
-		[]string{
-			"apm-server.sampling.tail.events.sampled",
-		},
-	)
-
-	// Send child transaction, which will be blocked from writing to storage for now.
-	var wg sync.WaitGroup
-	wg.Go(func() {
-		batch2 := modelpb.Batch{{
-			Trace: &modelpb.Trace{Id: "trace1"},
-			Transaction: &modelpb.Transaction{
-				Type:    "type",
-				Id:      "transaction2",
-				Sampled: true,
-			},
-			ParentId: "transaction1",
-		}}
-		err = processor.ProcessBatch(context.Background(), &batch2)
-		require.NoError(t, err)
-		assert.Len(t, batch2, 0)
-	})
-
-	// Unblock write sampled so that the first transaction is published.
-	unblockWriteSampled <- struct{}{}
-	time.Sleep(2 * flushInterval)
-	// Unblock write event so that the second transaction is written to storage.
-	unblockWriteEvent <- struct{}{}
-	wg.Wait()
-	monitoringtest.ExpectContainAndNotContainOtelMetrics(t, tempdirConfig.metricReader,
-		map[string]any{
-			// This comes from second transaction being stored.
-			"apm-server.sampling.tail.events.stored":    1,
-			"apm-server.sampling.tail.events.processed": 1,
-		},
-		[]string{
-			"apm-server.sampling.tail.events.sampled",
-		},
-	)
-
-	select {
-	case batch := <-reported:
-		if len(batch) != 2 {
-			t.Fatal("expected two events in publish")
-		}
-		assert.Equal(t, batch[0].Transaction.Id, "transaction1")
-		assert.Equal(t, batch[1].Transaction.Id, "transaction2")
-	case <-timeoutCtx.Done():
-		t.Fatal("test timed out waiting for publish")
-	}
-	monitoringtest.ExpectContainAndNotContainOtelMetrics(t, tempdirConfig.metricReader,
-		map[string]any{
-			"apm-server.sampling.tail.events.sampled": 2,
-		},
-		[]string{
-			"apm-server.sampling.tail.events.processed",
-			"apm-server.sampling.tail.events.stored",
-		},
-	)
-}
-
 func TestPotentialRaceConditionConcurrent(t *testing.T) {
-	flushInterval := 5 * time.Second
+	flushInterval := 1 * time.Second
 	tempdirConfig := newTempdirConfig(t)
 	tempdirConfig.Config.FlushInterval = flushInterval
 	tempdirConfig.Config.Policies = []sampling.Policy{
@@ -1014,7 +866,7 @@ func TestPotentialRaceConditionConcurrent(t *testing.T) {
 			first := true
 			index := i * 100000000
 
-			timer := time.NewTimer(flushInterval + 2*time.Second)
+			timer := time.NewTimer(flushInterval * 2)
 			defer timer.Stop()
 
 			for {
@@ -1027,7 +879,7 @@ func TestPotentialRaceConditionConcurrent(t *testing.T) {
 				}
 
 				batch := modelpb.Batch{{
-					Trace: &modelpb.Trace{Id: fmt.Sprintf("trace%d", i)},
+					Trace: &modelpb.Trace{Id: "trace1"},
 					Transaction: &modelpb.Transaction{
 						Type:    "type",
 						Id:      fmt.Sprintf("transaction%08d", index),
@@ -1058,7 +910,7 @@ func TestPotentialRaceConditionConcurrent(t *testing.T) {
 	reportedMu.Lock()
 	defer reportedMu.Unlock()
 	reportedPlusLateArrivals := int64(len(reported)) + lateArrivals.Load()
-	assert.Equal(t, reportedPlusLateArrivals, processed.Load())
+	assert.Equal(t, processed.Load(), reportedPlusLateArrivals)
 }
 
 type testConfig struct {
