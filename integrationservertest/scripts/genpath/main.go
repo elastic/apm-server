@@ -117,7 +117,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	upgradePaths := constructUpgradePaths(versions, vsCache)
+	upgradePaths, err := constructUpgradePaths(versions, vsCache)
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Output as JSON so that it can be decoded onto the workflow YAML.
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.SetEscapeHTML(false)
@@ -198,13 +201,16 @@ type upgradePair struct {
 }
 
 // constructUpgradePaths constructs upgrade paths for provided versions.
-func constructUpgradePaths(versions ech.Versions, vsCache *ech.VersionsCache) []string {
+func constructUpgradePaths(versions ech.Versions, vsCache *ech.VersionsCache) ([]string, error) {
 	// For each provided version, randomly select some from-versions to form
 	// upgrade pairs.
 	latestEachMajor := latestOfEachMajor(versions)
 	upgradePairs := map[upgradePair]struct{}{}
 	for _, to := range versions {
 		upgradeFromVersions := getUpgradeFromVersions(to, vsCache)
+		if len(upgradeFromVersions) == 0 {
+			return nil, fmt.Errorf("no upgrade paths found for version '%s'", to)
+		}
 		// Randomly choose 1 from-version.
 		for _, from := range choose(upgradeFromVersions, 1) {
 			upgradePairs[upgradePair{from, to}] = struct{}{}
@@ -267,7 +273,7 @@ func constructUpgradePaths(versions ech.Versions, vsCache *ech.VersionsCache) []
 		upgradePaths = append(upgradePaths, sb.String())
 	}
 
-	return upgradePaths
+	return upgradePaths, nil
 }
 
 func findNextPath(to ech.Version, upgradePairs map[upgradePair]struct{}) (upgradePair, bool) {
@@ -283,6 +289,9 @@ func findNextPath(to ech.Version, upgradePairs map[upgradePair]struct{}) (upgrad
 func choose[T any](list []T, n int) []T {
 	if n < 0 {
 		panic("choose: n cannot be negative")
+	}
+	if len(list) == 0 || n == 0 {
+		return nil
 	}
 
 	if n == 1 {
