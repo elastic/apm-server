@@ -61,7 +61,7 @@ func TestMonitoring(t *testing.T) {
 				"apm-server.sampling.tail.storage.storage_limit",
 				"apm-server.sampling.tail.storage.disk_used",
 				"apm-server.sampling.tail.storage.disk_total",
-				"apm-server.sampling.tail.storage.disk_usage_threshold",
+				"apm-server.sampling.tail.storage.disk_usage_threshold_pct",
 			})
 		}, time.Second, 10*time.Millisecond)
 

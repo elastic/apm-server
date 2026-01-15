@@ -23,12 +23,13 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
+
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub/pubsubtest"
-	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestProcessUnsampled(t *testing.T) {
@@ -650,7 +651,7 @@ func TestStorageMonitoring(t *testing.T) {
 		"apm-server.sampling.tail.storage.storage_limit",
 		"apm-server.sampling.tail.storage.disk_used",
 		"apm-server.sampling.tail.storage.disk_total",
-		"apm-server.sampling.tail.storage.disk_usage_threshold",
+		"apm-server.sampling.tail.storage.disk_usage_threshold_pct",
 	}
 	gaugeValues := getGaugeValues(t, tempdirConfig.metricReader, metricsNames...)
 	assert.Len(t, gaugeValues, 6)
