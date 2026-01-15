@@ -84,6 +84,19 @@ func assertOtelMetrics(
 					assert.Fail(t, "unexpected metric", m.Name)
 				}
 
+			case metricdata.Gauge[float64]:
+				assert.Equal(t, 1, len(d.DataPoints))
+				foundMetrics = append(foundMetrics, m.Name)
+				if skipValAssert {
+					continue
+				}
+
+				if v, ok := expectedMetrics[m.Name]; ok {
+					assert.EqualValues(t, v, d.DataPoints[0].Value, m.Name)
+				} else if fullMatch {
+					assert.Fail(t, "unexpected metric", m.Name)
+				}
+
 			case metricdata.Sum[int64]:
 				assert.Equal(t, 1, len(d.DataPoints))
 				foundMetrics = append(foundMetrics, m.Name)
