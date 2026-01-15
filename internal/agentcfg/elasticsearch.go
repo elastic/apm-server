@@ -152,7 +152,7 @@ func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
 	refresh := func() bool {
 		// refresh returns a bool that indicates whether Run should return
 		// immediately without error, e.g. due to invalid Elasticsearch config.
-		ctx, tx := f.tracer.Start(ctx, "ElasticsearchFetcher.refresh")
+		ctx, tx := f.tracer.Start(ctx, "ElasticsearchFetcher.refresh", trace.WithSpanKind(trace.SpanKindInternal))
 		defer tx.End()
 
 		if err := f.refreshCache(ctx); err != nil {
@@ -220,7 +220,7 @@ type cacheResult struct {
 }
 
 func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
-	ctx, span := f.tracer.Start(ctx, "ElasticsearchFetcher.refreshCache")
+	ctx, span := f.tracer.Start(ctx, "ElasticsearchFetcher.refreshCache", trace.WithSpanKind(trace.SpanKindInternal))
 	defer span.End()
 
 	scrollID := ""

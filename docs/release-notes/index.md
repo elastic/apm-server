@@ -24,6 +24,26 @@ To check for security updates, go to [Security announcements for the Elastic sta
 % ### Fixes [apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
+## 9.3.0 [apm-9.3.0-release-notes]
+
+% ### Features and enhancements [apm-9.3.0-features-enhancements]
+% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+
+_No new features or enhancements_ 
+
+% ### Fixes [apm-9.3.0-fixes]
+% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+
+_No new fixes_ 
+
+## 9.2.4 [apm-9.2.4-release-notes]
+
+_No new features, enhancements, or fixes._
+
+## 9.2.3 [apm-9.2.3-release-notes]
+
+_No new features, enhancements, or fixes._
+
 ## 9.2.2 [apm-9.2.2-release-notes]
 
 _No new features, enhancements, or fixes._
@@ -51,6 +71,14 @@ stack: ga 9.2
 ### Fixes [apm-9.2.0-fixes]
 
 * Fix `output.elasticsearch.bulk_requests.available` metric to correctly report the available bulk indexers [#18953](https://github.com/elastic/apm-server/pull/18953)
+
+## 9.1.10 [apm-9.1.10-release-notes]
+
+_No new features, enhancements, or fixes._
+
+## 9.1.9 [apm-9.1.9-release-notes]
+
+_No new features, enhancements, or fixes._
 
 ## 9.1.8 [apm-9.1.8-release-notes]
 

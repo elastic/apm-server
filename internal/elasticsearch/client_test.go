@@ -34,14 +34,17 @@ import (
 
 func TestClient(t *testing.T) {
 	t.Run("no config", func(t *testing.T) {
-		goESClient, err := NewClient(nil, logptest.NewTestingLogger(t, ""))
+		goESClient, err := NewClient(ClientParams{})
 		assert.Error(t, err)
 		assert.Nil(t, goESClient)
 	})
 
 	t.Run("valid config", func(t *testing.T) {
 		cfg := Config{Hosts: Hosts{"localhost:9200", "localhost:9201"}}
-		goESClient, err := NewClient(&cfg, logptest.NewTestingLogger(t, ""))
+		goESClient, err := NewClient(ClientParams{
+			Config: &cfg,
+			Logger: logptest.NewTestingLogger(t, ""),
+		})
 		require.NoError(t, err)
 		assert.NotNil(t, goESClient)
 	})
@@ -60,7 +63,10 @@ func TestClientCustomHeaders(t *testing.T) {
 		Hosts:   Hosts{srv.URL},
 		Headers: map[string]string{"custom": "header"},
 	}
-	client, err := NewClient(&cfg, logptest.NewTestingLogger(t, ""))
+	client, err := NewClient(ClientParams{
+		Config: &cfg,
+		Logger: logptest.NewTestingLogger(t, ""),
+	})
 	require.NoError(t, err)
 
 	req, err := http.NewRequest(http.MethodPost, "/_bulk", bytes.NewReader([]byte("{}")))
@@ -73,7 +79,6 @@ func TestClientCustomHeaders(t *testing.T) {
 	case <-time.After(1 * time.Second):
 		t.Fatal("timed out while waiting for request")
 	}
-
 }
 
 func TestClientCustomUserAgent(t *testing.T) {
@@ -88,7 +93,10 @@ func TestClientCustomUserAgent(t *testing.T) {
 	cfg := Config{
 		Hosts: Hosts{srv.URL},
 	}
-	client, err := NewClient(&cfg, logptest.NewTestingLogger(t, ""))
+	client, err := NewClient(ClientParams{
+		Config: &cfg,
+		Logger: logptest.NewTestingLogger(t, ""),
+	})
 	require.NoError(t, err)
 
 	req, err := http.NewRequest(http.MethodPost, "/_bulk", bytes.NewReader([]byte("{}")))
@@ -179,7 +187,10 @@ func TestClientRetryableStatuses(t *testing.T) {
 				MaxRetries: maxRetries,
 				Hosts:      []string{srv.URL},
 			}
-			client, err := NewClient(&c, logptest.NewTestingLogger(t, ""))
+			client, err := NewClient(ClientParams{
+				Config: &c,
+				Logger: logptest.NewTestingLogger(t, ""),
+			})
 			require.NoError(t, err)
 
 			var buf bytes.Buffer

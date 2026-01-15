@@ -286,7 +286,7 @@ func TestBatchProcessorTimeout(t *testing.T) {
 
 	cfg := elasticsearch.DefaultConfig()
 	cfg.Hosts = []string{""}
-	client, err := elasticsearch.NewClientParams(elasticsearch.ClientParams{
+	client, err := elasticsearch.NewClient(elasticsearch.ClientParams{
 		Config:    cfg,
 		Transport: transport,
 		Logger:    logptest.NewTestingLogger(t, ""),

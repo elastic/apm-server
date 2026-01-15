@@ -58,32 +58,9 @@ jobs:
           GITHUB_BRANCH: '8.19'
           GITHUB_LABELS: 'backport-skip'
 
-  bump-7:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: '7.17'
-
-      - name: Get token
-        id: get_token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
-          private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
-          permission-contents: write
-          permission-pull-requests: write
-      - uses: elastic/oblt-actions/updatecli/run@v1
-        with:
-          command: --experimental apply --config .ci/updatecli/bump-golang.yml --values .ci/updatecli/values.d/scm.yml
-        env:
-          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
-          GITHUB_BRANCH: '7.17'
-          GITHUB_LABELS: 'backport-skip'
-
   notify:
     runs-on: ubuntu-latest
-    needs: [bump, bump-7, bump-819]
+    needs: [bump, bump-819]
     if: always()
     steps:
       - id: check
