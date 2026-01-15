@@ -47,7 +47,7 @@ var (
 	useSnapshots = flag.Bool(
 		"snapshots",
 		false,
-		"Use SNAPSHOT versions instead of released versions / BCs.",
+		"Use SNAPSHOTs instead of released versions / BCs for tested versions.",
 	)
 
 	// majorMinorCutoff determines the version cutoff for testing.
@@ -147,15 +147,10 @@ func fetchTestVersions(ctx context.Context, vsCache *ech.VersionsCache) (ech.Ver
 func getUpgradeFromVersions(version ech.Version, vsCache *ech.VersionsCache) ech.Versions {
 	upgradeFromVersions := vsCache.GetUpgradeFromVersions(version).
 		Filter(func(v ech.Version) bool {
-			// Filter out non-SNAPSHOTs if we are testing SNAPSHOTs and vice-versa.
-			snapshotFilter := !v.IsSnapshot()
-			if *useSnapshots {
-				snapshotFilter = v.IsSnapshot()
-			}
 			// Filter out versions that don't meet our defined version cutoff.
 			// Also filter out versions that has same major-minor as current version,
 			// since we don't care about patch upgrades in this test.
-			return snapshotFilter && versionMeetCutoff(v) && v.MajorMinor() != version.MajorMinor()
+			return versionMeetCutoff(v) && v.MajorMinor() != version.MajorMinor()
 		})
 
 	// We only care about the latest patch of each major-minor.
