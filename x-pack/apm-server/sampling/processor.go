@@ -20,6 +20,7 @@ import (
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
+	"github.com/elastic/beats/v7/libbeat/management/status"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
@@ -40,12 +41,19 @@ type Processor struct {
 	rateLimitedLogger *logp.Logger
 	groups            *traceGroups
 
-	eventStore   eventstorage.RW
-	eventMetrics eventMetrics
+	eventStore     eventstorage.RW
+	eventMetrics   eventMetrics
+	statusReporter status.StatusReporter
 
 	stopMu   sync.Mutex
 	stopping chan struct{}
 	stopped  chan struct{}
+}
+
+type ProcessorParams struct {
+	Config         Config
+	Logger         *logp.Logger
+	StatusReporter status.StatusReporter
 }
 
 type eventMetrics struct {
@@ -58,7 +66,9 @@ type eventMetrics struct {
 }
 
 // NewProcessor returns a new Processor, for tail-sampling trace events.
-func NewProcessor(config Config, logger *logp.Logger) (*Processor, error) {
+func NewProcessor(params ProcessorParams) (*Processor, error) {
+	config := params.Config
+	logger := params.Logger
 	if err := config.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid tail-sampling config: %w", err)
 	}
@@ -72,6 +82,7 @@ func NewProcessor(config Config, logger *logp.Logger) (*Processor, error) {
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
 		groups:            newTraceGroups(meter, config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
 		eventStore:        config.Storage,
+		statusReporter:    params.StatusReporter,
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
 	}
@@ -119,13 +130,17 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 		if err != nil {
 			failed = true
 			stored = false
+			msg := ""
 			if p.config.DiscardOnWriteFailure {
 				report = false
-				p.rateLimitedLogger.With(logp.Error(err)).Warn("processing trace failed, discarding by default")
+				msg = "processing trace failed, discarding by default"
+				p.rateLimitedLogger.With(logp.Error(err)).Warn(msg)
 			} else {
 				report = true
-				p.rateLimitedLogger.With(logp.Error(err)).Warn("processing trace failed, indexing by default")
+				msg = "processing trace failed, indexing by default"
+				p.rateLimitedLogger.With(logp.Error(err)).Warn(msg)
 			}
+			p.statusReporter.UpdateStatus(status.Degraded, "sampling: "+msg+": "+err.Error())
 		}
 
 		if !report {
@@ -134,6 +149,10 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 			events[i], events[n-1] = events[n-1], events[i]
 			events = events[:n-1]
 			i--
+		}
+
+		if report || stored {
+			p.statusReporter.UpdateStatus(status.Running, "")
 		}
 
 		p.updateProcessorMetrics(report, stored, failed)
@@ -203,11 +222,13 @@ func (p *Processor) processTransaction(event *modelpb.APMEvent) (report, stored 
 	reservoirSampled, err := p.groups.sampleTrace(event)
 	if err == errTooManyTraceGroups {
 		// Too many trace groups, drop the transaction.
-		p.rateLimitedLogger.Warn(`
+		msg := `
 Tail-sampling service group limit reached, discarding trace events.
 This is caused by having many unique service names while relying on
 sampling policies without service name specified.
-`[1:])
+`[1:]
+		p.rateLimitedLogger.Warn(msg)
+		p.statusReporter.UpdateStatus(status.Degraded, msg)
 		return false, false, nil
 	} else if err != nil {
 		return false, false, err
@@ -359,7 +380,6 @@ func (p *Processor) Run() error {
 			case <-p.stopping:
 			case <-p.stopped:
 			}
-
 		}()
 		return pubsub.SubscribeSampledTraceIDs(
 			ctx, initialSubscriberPosition, remoteSampledTraceIDs, subscriberPositions,

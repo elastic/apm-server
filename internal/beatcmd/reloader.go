@@ -31,6 +31,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
+	"github.com/elastic/beats/v7/libbeat/management/status"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
@@ -71,6 +72,8 @@ type RunnerParams struct {
 	MetricsGatherer *apmotel.Gatherer
 
 	BeatMonitoring beat.Monitoring
+
+	StatusReporter status.StatusReporter
 }
 
 // Runner is an interface returned by NewRunnerFunc.
@@ -81,7 +84,7 @@ type Runner interface {
 
 // NewReloader returns a new Reloader which creates Runners using the provided
 // beat.Info and NewRunnerFunc.
-func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricGatherer *apmotel.Gatherer, tracerProvider trace.TracerProvider, beatMonitoring beat.Monitoring) (*Reloader, error) {
+func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricGatherer *apmotel.Gatherer, tracerProvider trace.TracerProvider, beatMonitoring beat.Monitoring, reporter status.StatusReporter) (*Reloader, error) {
 	r := &Reloader{
 		info:      info,
 		logger:    info.Logger,
@@ -92,6 +95,7 @@ func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerF
 		meterProvider:  meterProvider,
 		metricGatherer: metricGatherer,
 		beatMonitoring: beatMonitoring,
+		statusReporter: reporter,
 	}
 	if err := registry.RegisterList(reload.InputRegName, reloadableListFunc(r.reloadInputs)); err != nil {
 		return nil, fmt.Errorf("failed to register inputs reloader: %w", err)
@@ -116,6 +120,7 @@ type Reloader struct {
 	meterProvider  metric.MeterProvider
 	metricGatherer *apmotel.Gatherer
 	beatMonitoring beat.Monitoring
+	statusReporter status.StatusReporter
 
 	runner     Runner
 	stopRunner func() error
@@ -271,6 +276,7 @@ func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C)
 		MeterProvider:   r.meterProvider,
 		MetricsGatherer: r.metricGatherer,
 		BeatMonitoring:  r.beatMonitoring,
+		StatusReporter:  r.statusReporter,
 	})
 	if err != nil {
 		return err

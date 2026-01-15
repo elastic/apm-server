@@ -29,6 +29,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/management/status"
 	"github.com/elastic/beats/v7/libbeat/version"
 	"github.com/elastic/elastic-agent-libs/logp"
 
@@ -140,6 +141,9 @@ type ServerParams struct {
 
 	// BeatMonitoring holds the beat monitoring registries
 	BeatMonitoring beat.Monitoring
+
+	// StatusReporter holds the status reporter
+	StatusReporter status.StatusReporter
 }
 
 // newBaseRunServer returns the base RunServerFunc.
