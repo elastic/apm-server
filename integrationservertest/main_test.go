@@ -24,8 +24,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/elastic/apm-server/integrationservertest/internal/ech"
 )
 
@@ -53,13 +51,6 @@ var (
 )
 
 var vsCache *ech.VersionsCache
-
-func getLatestSnapshot(t *testing.T, prefix string) ech.Version {
-	t.Helper()
-	ver, err := vsCache.GetLatestSnapshot(prefix)
-	require.NoError(t, err)
-	return ver
-}
 
 func TestMain(m *testing.M) {
 	flag.Parse()
