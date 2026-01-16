@@ -9,18 +9,17 @@ ssh-keygen -f ${KEY_NAME} -N ""
 # Load common lib
 . $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
 
-# Get all the snapshot versions from the current region.
-get_latest_snapshot
-
 # APM `major.minor` version e.g. 8.17.
 APM_SERVER_VERSION=$(echo ${1} | cut -d '.' -f1-2)
-# `VERSIONS` only contains snapshot versions and is in sorted order.
-# We retrieve the appropriate stack snapshot version from the list by:
-# 1. Selecting the ones that start with APM's `major.minor`.
-# 2. Get the last one, which should be latest.
-VERSION=$(echo ${VERSIONS} | jq -r --arg VS ${APM_SERVER_VERSION} '[.[] | select(. | startswith($VS))] | last')
-OBSERVER_VERSION=$(echo ${VERSION} | cut -d '-' -f1 )
-MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
+
+# Get latest snapshot for the version, and if not available, fallback to released version.
+get_latest_snapshot_for "${APM_SERVER_VERSION}"
+if [[ -n "$VERSION" ]]; then
+  get_latest_version_for "${APM_SERVER_VERSION}"
+fi
+
+OBSERVER_VERSION=$(echo "${VERSION}" | cut -d '-' -f1 )
+MAJOR_VERSION=$(echo "${VERSION}" | cut -d '.' -f1 )
 
 if [[ ${MAJOR_VERSION} -eq 8 ]] || [[ ${MAJOR_VERSION} -eq 9 ]]; then
     ASSERT_EVENTS_FUNC=data_stream_assertions

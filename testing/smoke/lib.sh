@@ -9,7 +9,7 @@ get_versions() {
         return 1
     fi
     # initialize terraform, so we can obtain the configured region.
-    terraform_init
+    # terraform_init
 
     local REGION=$(echo var.region | terraform console | tr -d '"')
     local EC_VERSION_ENDPOINT="https://cloud.elastic.co/api/v1/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=false"
@@ -21,33 +21,24 @@ get_versions() {
     VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | contains("-") | not)] | sort_by(.| split(".") | map(tonumber))')
 }
 
-get_latest_version() {
-    if [[ -z "${VERSIONS}" ]]; then
-        echo "-> Version not set, call get_versions first"
-        return 1
-    fi
-    local version
-    version=$(echo ${VERSIONS} | jq -r -c "max_by(. | select(. | startswith(\"${1}\")) | if endswith(\"-SNAPSHOT\") then .[:-9] else . end | split(\".\") | map(tonumber))")
-    echo "${version}"
-}
-
-get_latest_patch() {
+get_latest_version_for() {
     if [[ -z "${1}" ]]; then
-        echo "-> Version not set"
+        echo "-> Version parameter not set"
         return 1
     fi
-    LATEST_PATCH=$(get_latest_version "${1}" | cut -d '.' -f3)
+    get_versions
+    VERSION=$(echo ${VERSIONS} | jq -r -c "max_by(. | select(. | startswith(\"${1}\")) | if endswith(\"-SNAPSHOT\") then .[:-9] else . end | split(\".\") | map(tonumber))")
 }
 
-get_latest_snapshot() {
+get_snapshots() {
     if [[ -z ${EC_API_KEY} ]]; then
         echo "-> ESS API Key not set, please set the EC_API_KEY environment variable."
         return 1
     fi
     # initialize terraform, so we can obtain the configured region.
-    terraform_init
+    # terraform_init
 
-    local REGION=$(echo var.region | terraform console | tr -d '"')
+    # local REGION=$(echo var.region | terraform console | tr -d '"')
     local EC_VERSION_ENDPOINT="https://cloud.elastic.co/api/v1/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=true"
     local RES
     local RC=0
@@ -58,13 +49,13 @@ get_latest_snapshot() {
     VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | contains("-SNAPSHOT"))] | sort' | sed 's#-SNAPSHOT#.0#g' | jq -r -c ' sort_by(.| split(".") | map(tonumber))' | sed 's#.0"#-SNAPSHOT"#g' | jq -r -c .)
 }
 
-get_latest_snapshot_for_version() {
+get_latest_snapshot_for() {
     if [[ -z "${1}" ]]; then
-        echo "-> Version not set"
+        echo "-> Version parameter not set"
         return 1
     fi
-    get_latest_snapshot
-    LATEST_SNAPSHOT_VERSION=$(echo "$VERSIONS" | jq -r -c "map(select(. | startswith(\"${1}\"))) | .[-1]")
+    get_snapshots
+    VERSION=$(echo "$VERSIONS" | jq -r -c "map(select(. | startswith(\"${1}\"))) | .[-1]")
 }
 
 terraform_init() {
