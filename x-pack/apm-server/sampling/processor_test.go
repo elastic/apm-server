@@ -26,17 +26,12 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub/pubsubtest"
-<<<<<<< HEAD
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
-=======
->>>>>>> 67a5a2bc (tbs: Fix potential data race (#19948))
 )
 
 func TestProcessUnsampled(t *testing.T) {

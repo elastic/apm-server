@@ -12,11 +12,8 @@ import (
 	"sync"
 	"time"
 
-<<<<<<< HEAD
-	"github.com/pkg/errors"
-=======
 	"github.com/cespare/xxhash/v2"
->>>>>>> 67a5a2bc (tbs: Fix potential data race (#19948))
+	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
