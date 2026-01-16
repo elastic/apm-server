@@ -162,16 +162,42 @@ func getUpgradeFromVersions(version ech.Version, vsCache *ech.VersionsCache) ech
 			return keepSnapshots && versionMeetCutoff(v) && v.MajorMinor() != version.MajorMinor()
 		})
 
+	// If there are multiple same versions, always prefer the SNAPSHOT one.
+	if *useSnapshots {
+		upgradeFromVersions = preferSnapshots(upgradeFromVersions)
+	}
 	// We only care about the latest patch of each major-minor.
 	return latestOfEachMajorMinor(upgradeFromVersions)
+}
+
+func preferSnapshots(versions ech.Versions) ech.Versions {
+	versions.Sort()
+
+	result := make(ech.Versions, 0)
+	for i, version := range versions {
+		if i == 0 {
+			result = append(result, version)
+			continue
+		}
+		prevVersion := result[len(result)-1]
+		if version.MajorMinorPatch() == prevVersion.MajorMinorPatch() {
+			result[len(result)-1] = version
+		} else {
+			result = append(result, version)
+		}
+	}
+
+	result.Sort()
+	return result
 }
 
 // latestOfEachMajorMinor returns only versions that are the latest patches of
 // their respective major-minor.
 func latestOfEachMajorMinor(versions ech.Versions) ech.Versions {
+	versions.Sort()
+
 	var currMajorMinor string
 	result := make(ech.Versions, 0)
-
 	for i := len(versions) - 1; i >= 0; i-- {
 		version := versions[i]
 		if version.MajorMinor() != currMajorMinor {
