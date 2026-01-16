@@ -18,17 +18,30 @@
 package integrationservertest
 
 import (
+	"errors"
 	"maps"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/integrationservertest/internal/asserts"
 	"github.com/elastic/apm-server/integrationservertest/internal/ech"
 )
 
 func TestStandaloneManaged_7_17_to_8_x_to_9_x_Snapshot(t *testing.T) {
-	from7 := getLatestSnapshot(t, "7.17")
-	to8 := getLatestSnapshot(t, "8")
-	to9 := getLatestSnapshot(t, "9")
+	getLatestTestVersion := func(t *testing.T, prefix string) ech.Version {
+		t.Helper()
+		ver, err := vsCache.GetLatestSnapshot(prefix)
+		if errors.Is(err, ech.ErrVersionNotFoundInEC) {
+			ver, err = vsCache.GetLatestVersion(prefix)
+		}
+		require.NoError(t, err)
+		return ver
+	}
+
+	from7 := getLatestTestVersion(t, "7.17")
+	to8 := getLatestTestVersion(t, "8")
+	to9 := getLatestTestVersion(t, "9")
 	if !vsCache.CanUpgrade(from7, to8) {
 		t.Fatalf("upgrade from %s to %s is not allowed", from7, to8)
 		return

@@ -47,7 +47,7 @@ var (
 	useSnapshots = flag.Bool(
 		"snapshots",
 		false,
-		"Use SNAPSHOT versions instead of released versions / BCs.",
+		"Use SNAPSHOTs instead of released versions / BCs for tested versions.",
 	)
 
 	// majorMinorCutoff determines the version cutoff for testing.
@@ -117,7 +117,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	upgradePaths := constructUpgradePaths(versions, vsCache)
+	upgradePaths, err := constructUpgradePaths(versions, vsCache)
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Output as JSON so that it can be decoded onto the workflow YAML.
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.SetEscapeHTML(false)
@@ -147,27 +150,54 @@ func fetchTestVersions(ctx context.Context, vsCache *ech.VersionsCache) (ech.Ver
 func getUpgradeFromVersions(version ech.Version, vsCache *ech.VersionsCache) ech.Versions {
 	upgradeFromVersions := vsCache.GetUpgradeFromVersions(version).
 		Filter(func(v ech.Version) bool {
-			// Filter out non-SNAPSHOTs if we are testing SNAPSHOTs and vice-versa.
-			snapshotFilter := !v.IsSnapshot()
-			if *useSnapshots {
-				snapshotFilter = v.IsSnapshot()
+			// Only remove SNAPSHOTs if we do not use SNAPSHOTS as the tested versions.
+			// Otherwise, we will still allow SNAPSHOTs to be part of the upgrade path.
+			keepSnapshots := true
+			if v.IsSnapshot() && !*useSnapshots {
+				keepSnapshots = false
 			}
 			// Filter out versions that don't meet our defined version cutoff.
 			// Also filter out versions that has same major-minor as current version,
 			// since we don't care about patch upgrades in this test.
-			return snapshotFilter && versionMeetCutoff(v) && v.MajorMinor() != version.MajorMinor()
+			return keepSnapshots && versionMeetCutoff(v) && v.MajorMinor() != version.MajorMinor()
 		})
 
+	// If there are multiple same versions, always prefer the SNAPSHOT one.
+	if *useSnapshots {
+		upgradeFromVersions = preferSnapshots(upgradeFromVersions)
+	}
 	// We only care about the latest patch of each major-minor.
 	return latestOfEachMajorMinor(upgradeFromVersions)
+}
+
+func preferSnapshots(versions ech.Versions) ech.Versions {
+	versions.Sort()
+
+	result := make(ech.Versions, 0)
+	for i, version := range versions {
+		if i == 0 {
+			result = append(result, version)
+			continue
+		}
+		prevVersion := result[len(result)-1]
+		if version.MajorMinorPatch() == prevVersion.MajorMinorPatch() {
+			result[len(result)-1] = version
+		} else {
+			result = append(result, version)
+		}
+	}
+
+	result.Sort()
+	return result
 }
 
 // latestOfEachMajorMinor returns only versions that are the latest patches of
 // their respective major-minor.
 func latestOfEachMajorMinor(versions ech.Versions) ech.Versions {
+	versions.Sort()
+
 	var currMajorMinor string
 	result := make(ech.Versions, 0)
-
 	for i := len(versions) - 1; i >= 0; i-- {
 		version := versions[i]
 		if version.MajorMinor() != currMajorMinor {
@@ -203,13 +233,16 @@ type upgradePair struct {
 }
 
 // constructUpgradePaths constructs upgrade paths for provided versions.
-func constructUpgradePaths(versions ech.Versions, vsCache *ech.VersionsCache) []string {
+func constructUpgradePaths(versions ech.Versions, vsCache *ech.VersionsCache) ([]string, error) {
 	// For each provided version, randomly select some from-versions to form
 	// upgrade pairs.
 	latestEachMajor := latestOfEachMajor(versions)
 	upgradePairs := map[upgradePair]struct{}{}
 	for _, to := range versions {
 		upgradeFromVersions := getUpgradeFromVersions(to, vsCache)
+		if len(upgradeFromVersions) == 0 {
+			return nil, fmt.Errorf("no upgrade paths found for version '%s'", to)
+		}
 		// Randomly choose 1 from-version.
 		for _, from := range choose(upgradeFromVersions, 1) {
 			upgradePairs[upgradePair{from, to}] = struct{}{}
@@ -272,7 +305,7 @@ func constructUpgradePaths(versions ech.Versions, vsCache *ech.VersionsCache) []
 		upgradePaths = append(upgradePaths, sb.String())
 	}
 
-	return upgradePaths
+	return upgradePaths, nil
 }
 
 func findNextPath(to ech.Version, upgradePairs map[upgradePair]struct{}) (upgradePair, bool) {
@@ -288,6 +321,9 @@ func findNextPath(to ech.Version, upgradePairs map[upgradePair]struct{}) (upgrad
 func choose[T any](list []T, n int) []T {
 	if n < 0 {
 		panic("choose: n cannot be negative")
+	}
+	if len(list) == 0 || n == 0 {
+		return nil
 	}
 
 	if n == 1 {
