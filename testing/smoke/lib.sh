@@ -9,7 +9,7 @@ get_versions() {
         return 1
     fi
     # initialize terraform, so we can obtain the configured region.
-    # terraform_init
+    terraform_init
 
     local REGION=$(echo var.region | terraform console | tr -d '"')
     local EC_VERSION_ENDPOINT="https://cloud.elastic.co/api/v1/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=false"
@@ -36,9 +36,9 @@ get_snapshots() {
         return 1
     fi
     # initialize terraform, so we can obtain the configured region.
-    # terraform_init
+    terraform_init
 
-    # local REGION=$(echo var.region | terraform console | tr -d '"')
+    local REGION=$(echo var.region | terraform console | tr -d '"')
     local EC_VERSION_ENDPOINT="https://cloud.elastic.co/api/v1/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=true"
     local RES
     local RC=0
