@@ -42,6 +42,18 @@ func ExpectContainOtelMetrics(
 	assertOtelMetrics(t, reader, expectedMetrics, false, false)
 }
 
+func ExpectContainAndNotContainOtelMetrics(
+	t *testing.T,
+	reader sdkmetric.Reader,
+	expectedMetrics map[string]any,
+	notExpectedMetricKeys []string,
+) {
+	foundMetricKeys := assertOtelMetrics(t, reader, expectedMetrics, false, false)
+	for _, key := range notExpectedMetricKeys {
+		assert.NotContains(t, foundMetricKeys, key)
+	}
+}
+
 func ExpectContainOtelMetricsKeys(t assert.TestingT, reader sdkmetric.Reader, expectedMetricsKeys []string) {
 	expectedMetrics := make(map[string]any)
 	for _, metricKey := range expectedMetricsKeys {
@@ -62,7 +74,7 @@ func assertOtelMetrics(
 	reader sdkmetric.Reader,
 	expectedMetrics map[string]any,
 	fullMatch, skipValAssert bool,
-) {
+) []string {
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
@@ -131,8 +143,9 @@ func assertOtelMetrics(
 		expectedMetricsKeys = append(expectedMetricsKeys, k)
 	}
 	if fullMatch {
-		assert.ElementsMatch(t, expectedMetricsKeys, foundMetrics)
+		assert.ElementsMatch(t, foundMetrics, expectedMetricsKeys)
 	} else {
 		assert.Subset(t, foundMetrics, expectedMetricsKeys)
 	}
+	return foundMetrics
 }
