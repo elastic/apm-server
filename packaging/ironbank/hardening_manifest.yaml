@@ -46,9 +46,6 @@ resources:
       value: 93dcc18adc78c65a028a84799ecf8ad40c936fdfc5f2a57b1acda5a8117fa82c
 # List of project maintainers
 maintainers:
-  - email: "ivan.fernandez@elastic.co"
-    name: "Ivan Fernandez Calvo"
-    username: "ivan.fernandez"
   - email: "victor.martinez@elastic.co"
     name: "Victor Martinez"
-    username: "victor.martinez"
+    username: "v1v"
