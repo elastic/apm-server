@@ -20,8 +20,9 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
+
+	"github.com/elastic/apm-server/internal/logs"
 )
 
 const (
@@ -56,6 +57,10 @@ const (
 	defaultValueLogSize = 0
 
 	gb = float64(1 << 30)
+
+	// configuredDiskUsageThresholdMultiplier is the multiplier for the stored configured disk usage threshold.
+	// It is used to convert float64 disk usage to uint64 to be stored in atomic.Uint64.
+	configuredDiskUsageThresholdMultiplier = 1000
 )
 
 type StorageManagerOptions func(*StorageManager)
@@ -140,11 +145,21 @@ type StorageManager struct {
 	// meterProvider is the OTel meter provider
 	meterProvider  metric.MeterProvider
 	storageMetrics storageMetrics
+
+	// configuredStorageLimit stores the configured storage limit (0 means unlimited)
+	configuredStorageLimit atomic.Uint64
+	// configuredDiskUsageThreshold stores the configured disk usage threshold as percentage (0-1),
+	// multiplied by configuredDiskUsageThresholdMultiplier
+	configuredDiskUsageThreshold atomic.Uint64
 }
 
 type storageMetrics struct {
-	lsmSizeGauge      metric.Int64Gauge
-	valueLogSizeGauge metric.Int64Gauge
+	lsmSizeGauge            metric.Int64Gauge
+	valueLogSizeGauge       metric.Int64Gauge
+	storageLimitGauge       metric.Int64Gauge
+	diskUsedGauge           metric.Int64Gauge
+	diskTotalGauge          metric.Int64Gauge
+	diskUsageThresholdGauge metric.Float64Gauge
 }
 
 // NewStorageManager returns a new StorageManager with pebble DB at storageDir.
@@ -175,6 +190,10 @@ func NewStorageManager(storageDir string, logger *logp.Logger, opts ...StorageMa
 
 		sm.storageMetrics.lsmSizeGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
 		sm.storageMetrics.valueLogSizeGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.value_log_size")
+		sm.storageMetrics.storageLimitGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.storage_limit")
+		sm.storageMetrics.diskUsedGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.disk_used")
+		sm.storageMetrics.diskTotalGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.disk_total")
+		sm.storageMetrics.diskUsageThresholdGauge, _ = meter.Float64Gauge("apm-server.sampling.tail.storage.disk_usage_threshold_pct")
 	}
 
 	if err := sm.reset(); err != nil {
@@ -280,10 +299,22 @@ func (sm *StorageManager) updateDiskUsage() {
 		sm.storageMetrics.valueLogSizeGauge.Record(context.Background(), int64(defaultValueLogSize))
 	}
 
+	// Record storage limit metric
+	if sm.storageMetrics.storageLimitGauge != nil {
+		sm.storageMetrics.storageLimitGauge.Record(context.Background(), int64(sm.configuredStorageLimit.Load()))
+	}
+
 	if sm.getDiskUsageFailed.Load() {
 		// Skip GetDiskUsage under the assumption that
 		// it will always get the same error if GetDiskUsage ever returns one,
 		// such that it does not keep logging GetDiskUsage errors.
+		// Record zero values for disk metrics when disk usage check failed
+		if sm.storageMetrics.diskUsedGauge != nil {
+			sm.storageMetrics.diskUsedGauge.Record(context.Background(), 0)
+		}
+		if sm.storageMetrics.diskTotalGauge != nil {
+			sm.storageMetrics.diskTotalGauge.Record(context.Background(), 0)
+		}
 		return
 	}
 	usage, err := sm.getDiskUsage()
@@ -292,10 +323,32 @@ func (sm *StorageManager) updateDiskUsage() {
 		sm.getDiskUsageFailed.Store(true)
 		sm.cachedDiskStat.used.Store(0)
 		sm.cachedDiskStat.total.Store(0) // setting total to 0 to disable any running disk usage threshold checks
+		// Record zero values for disk metrics when disk usage check failed
+		if sm.storageMetrics.diskUsedGauge != nil {
+			sm.storageMetrics.diskUsedGauge.Record(context.Background(), 0)
+		}
+		if sm.storageMetrics.diskTotalGauge != nil {
+			sm.storageMetrics.diskTotalGauge.Record(context.Background(), 0)
+		}
 		return
 	}
 	sm.cachedDiskStat.used.Store(usage.UsedBytes)
 	sm.cachedDiskStat.total.Store(usage.TotalBytes)
+
+	// Record disk utilization metrics
+	if sm.storageMetrics.diskUsedGauge != nil {
+		sm.storageMetrics.diskUsedGauge.Record(context.Background(), int64(usage.UsedBytes))
+	}
+	if sm.storageMetrics.diskTotalGauge != nil {
+		sm.storageMetrics.diskTotalGauge.Record(context.Background(), int64(usage.TotalBytes))
+	}
+	// Record disk usage threshold as a percentage (0-1)
+	if sm.storageMetrics.diskUsageThresholdGauge != nil {
+		sm.storageMetrics.diskUsageThresholdGauge.Record(
+			context.Background(),
+			float64(sm.configuredDiskUsageThreshold.Load())/configuredDiskUsageThresholdMultiplier,
+		)
+	}
 }
 
 // diskUsed returns the actual used disk space in bytes.
@@ -429,6 +482,11 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 
 // NewReadWriter returns a read writer configured with storage limit and disk usage threshold.
 func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskUsageThreshold float64) RW {
+	// Store configured values for monitoring metrics
+	sm.configuredStorageLimit.Store(storageLimit)
+	// Store disk usage threshold as percentage (0-1), multiplied by configuredDiskUsageThresholdMultiplier
+	sm.configuredDiskUsageThreshold.Store(uint64(diskUsageThreshold * configuredDiskUsageThresholdMultiplier))
+
 	var rw RW = SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
