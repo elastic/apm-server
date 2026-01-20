@@ -60,7 +60,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/service"
 	"github.com/elastic/elastic-agent-system-metrics/metric/system/host"
 	metricreport "github.com/elastic/elastic-agent-system-metrics/report"
-	sysinfo "github.com/elastic/go-sysinfo"
+	"github.com/elastic/go-sysinfo"
 	"github.com/elastic/go-sysinfo/types"
 
 	"github.com/elastic/apm-server/internal/version"
@@ -248,7 +248,7 @@ func (b *Beat) loadMeta(metaPath string) error {
 	// meta.json does not exist, or the contents are invalid: write a new file.
 	//
 	// Write a temporary file, and then atomically move it into place in case
-	// of errors occurring half way through.
+	// of errors occurring halfway through.
 
 	encodedMeta, err := json.Marshal(meta{
 		UUID:       b.Info.ID,
@@ -292,14 +292,12 @@ func openRegular(filename string) (*os.File, error) {
 
 func (b *Beat) Run(ctx context.Context) error {
 	defer b.Info.Logger.Sync()
-	var panicErr error
 	defer func() {
 		if r := recover(); r != nil {
 			b.Info.Logger.Fatalw("exiting due to panic",
 				"panic", r,
 				zap.Stack("stack"),
 			)
-			panicErr = fmt.Errorf("exiting due to panic: %v", r)
 		}
 	}()
 	defer b.Info.Logger.Infof("%s stopped.", b.Info.Beat)
@@ -431,7 +429,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	if err := g.Wait(); err != nil && !errors.Is(err, context.Canceled) {
 		return err
 	}
-	return panicErr
+	return nil
 }
 
 // registerMetrics registers metrics with the internal monitoring API. This data
