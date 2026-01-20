@@ -48,6 +48,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/licenser"
+	"github.com/elastic/beats/v7/libbeat/management/status"
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
@@ -90,6 +91,7 @@ type Runner struct {
 	metricGatherer *apmotel.Gatherer
 	beatMonitoring beat.Monitoring
 	listener       net.Listener
+	statusReporter status.StatusReporter
 }
 
 // RunnerParams holds parameters for NewRunner.
@@ -120,6 +122,9 @@ type RunnerParams struct {
 	//
 	// If WrapServer is nil, no wrapping will occur.
 	WrapServer WrapServerFunc
+
+	// StatusReporter holds a status reporter
+	StatusReporter status.StatusReporter
 }
 
 // NewRunner returns a new Runner that runs APM Server with the given parameters.
@@ -176,6 +181,7 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		metricGatherer: args.MetricsGatherer,
 		beatMonitoring: args.BeatMonitoring,
 		listener:       listener,
+		statusReporter: args.StatusReporter,
 	}, nil
 }
 
@@ -458,6 +464,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		GRPCServer:             grpcServer,
 		Semaphore:              semaphore.NewWeighted(int64(s.config.MaxConcurrentDecoders)),
 		BeatMonitoring:         s.beatMonitoring,
+		StatusReporter:         s.statusReporter,
 	}
 	if s.wrapServer != nil {
 		// Wrap the serverParams and runServer function, enabling

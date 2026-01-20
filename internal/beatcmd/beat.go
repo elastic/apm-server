@@ -292,12 +292,14 @@ func openRegular(filename string) (*os.File, error) {
 
 func (b *Beat) Run(ctx context.Context) error {
 	defer b.Info.Logger.Sync()
+	var panicErr error
 	defer func() {
 		if r := recover(); r != nil {
 			b.Info.Logger.Fatalw("exiting due to panic",
 				"panic", r,
 				zap.Stack("stack"),
 			)
+			panicErr = fmt.Errorf("exiting due to panic: %v", r)
 		}
 	}()
 	defer b.Info.Logger.Infof("%s stopped.", b.Info.Beat)
@@ -395,7 +397,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	if b.Manager.Enabled() {
-		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer, b.tracerProvider, b.Monitoring)
+		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer, b.tracerProvider, b.Monitoring, b.Manager)
 		if err != nil {
 			return err
 		}
@@ -418,6 +420,7 @@ func (b *Beat) Run(ctx context.Context) error {
 			MeterProvider:   b.meterProvider,
 			MetricsGatherer: b.metricGatherer,
 			BeatMonitoring:  b.Monitoring,
+			StatusReporter:  b.Manager,
 		})
 		if err != nil {
 			return err
@@ -428,7 +431,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	if err := g.Wait(); err != nil && !errors.Is(err, context.Canceled) {
 		return err
 	}
-	return nil
+	return panicErr
 }
 
 // registerMetrics registers metrics with the internal monitoring API. This data
