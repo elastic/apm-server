@@ -906,7 +906,11 @@ func TestPotentialRaceConditionConcurrent(t *testing.T) {
 		return nil
 	})
 
-	processor, err := sampling.NewProcessor(tempdirConfig.Config, logptest.NewTestingLogger(t, ""))
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         tempdirConfig.Config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: noopStatusReport{},
+	})
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
