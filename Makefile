@@ -372,7 +372,7 @@ ifndef UPGRADE_PATH
 endif
 	@cd integrationservertest && go test -run=TestUpgrade -v -timeout=90m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
 
-# Run integration server standalone test on one scenario - Managed7 / Managed8 / Managed9
+# Run integration server standalone test on one scenario - Managed8 / Managed9
 .PHONY: integration-server-test/standalone
 integration-server-test/standalone:
 ifndef SCENARIO

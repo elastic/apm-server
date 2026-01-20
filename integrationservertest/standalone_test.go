@@ -26,15 +26,10 @@ import (
 )
 
 func TestStandaloneManaged_7_17_to_8_x_to_9_x_Snapshot(t *testing.T) {
-	from7 := getLatestSnapshot(t, "7.17")
-	to8 := getLatestSnapshot(t, "8")
+	from8 := getLatestSnapshot(t, "8")
 	to9 := getLatestSnapshot(t, "9")
-	if !vsCache.CanUpgrade(from7, to8) {
-		t.Fatalf("upgrade from %s to %s is not allowed", from7, to8)
-		return
-	}
-	if !vsCache.CanUpgrade(to8, to9) {
-		t.Fatalf("upgrade from %s to %s is not allowed", to8, to9)
+	if !vsCache.CanUpgrade(from8, to9) {
+		t.Fatalf("upgrade from %s to %s is not allowed", from8, to9)
 		return
 	}
 
@@ -43,21 +38,15 @@ func TestStandaloneManaged_7_17_to_8_x_to_9_x_Snapshot(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Run("Managed7", func(t *testing.T) {
-		t.Parallel()
-		runner := managed7Runner(from7, to8, to9, config)
-		runner.Run(t)
-	})
-
 	t.Run("Managed8", func(t *testing.T) {
 		t.Parallel()
-		runner := managed8Runner(from7, to8, to9, config)
+		runner := managed8Runner(from8, to9, config)
 		runner.Run(t)
 	})
 
 	t.Run("Managed9", func(t *testing.T) {
 		t.Parallel()
-		runner := managed9Runner(from7, to8, to9, config)
+		runner := managed9Runner(from8, to9, config)
 		runner.Run(t)
 	})
 }
@@ -67,11 +56,6 @@ var (
 		PreferIlm:        true,
 		DSManagedBy:      managedByILM,
 		IndicesManagedBy: []string{managedByILM},
-	}
-	expectILMRollover = asserts.DataStreamExpectation{
-		PreferIlm:        true,
-		DSManagedBy:      managedByILM,
-		IndicesManagedBy: []string{managedByILM, managedByILM},
 	}
 )
 
@@ -94,22 +78,9 @@ func expectationsFor9x(
 	return expect9
 }
 
-func managed7Runner(fromVersion7, toVersion8, toVersion9 ech.Version, config upgradeTestConfig) testStepsRunner {
-	expect8 := map[string]asserts.DataStreamExpectation{
-		// These data streams are created in 7.x as well, so when we ingest
-		// again in 8.x, they will be rolled over.
-		"traces-apm-%s":                     expectILMRollover,
-		"metrics-apm.app.opbeans_python-%s": expectILMRollover,
-		"metrics-apm.internal-%s":           expectILMRollover,
-		"logs-apm.error-%s":                 expectILMRollover,
-		// These data streams are only created in 8.x, so they will only have
-		// 1 index per.
-		"metrics-apm.service_destination.1m-%s": expectILM,
-		"metrics-apm.service_transaction.1m-%s": expectILM,
-		"metrics-apm.service_summary.1m-%s":     expectILM,
-		"metrics-apm.transaction.1m-%s":         expectILM,
-	}
-	expect9 := expectationsFor9x(toVersion8, toVersion9, expect8, config)
+func managed8Runner(fromVersion8, toVersion9 ech.Version, config upgradeTestConfig) testStepsRunner {
+	expect8 := dataStreamsExpectations(expectILM)
+	expect9 := expectationsFor9x(fromVersion8, toVersion9, expect8, config)
 
 	// These data streams are created in 7.x, but not used in 8.x and 9.x,
 	// so we ignore them to avoid wrong assertions.
@@ -122,83 +93,15 @@ func managed7Runner(fromVersion7, toVersion8, toVersion9 ech.Version, config upg
 	return testStepsRunner{
 		Target: *target,
 		Steps: []testStep{
-			// Start from 7.x.
+			// Start from 8.x.
 			createStep{
-				DeployVersion:     fromVersion7,
+				DeployVersion:     fromVersion8,
 				APMDeploymentMode: apmStandalone,
+				CleanupOnFailure:  *cleanupOnFailure,
 			},
-			ingestV7Step{},
+			ingestStep{CheckDataStreams: expect8},
 			// Migrate to managed.
 			migrateManagedStep{},
-			ingestV7Step{},
-			// Upgrade to 8.x.
-			upgradeV7Step{NewVersion: toVersion8},
-			ingestStep{
-				IgnoreDataStreams: ignoredDataStreams,
-				CheckDataStreams:  expect8,
-			},
-			// Resolve deprecations and upgrade to 9.x.
-			resolveDeprecationsStep{},
-			upgradeStep{
-				NewVersion:        toVersion9,
-				IgnoreDataStreams: ignoredDataStreams,
-				CheckDataStreams:  expect8,
-			},
-			ingestStep{
-				IgnoreDataStreams: ignoredDataStreams,
-				CheckDataStreams:  expect9,
-			},
-			checkErrorLogsStep{
-				ESErrorLogsIgnored: esErrorLogs{
-					eventLoopShutdown,
-					addIndexTemplateTracesError,
-				},
-				APMErrorLogsIgnored: apmErrorLogs{
-					bulkIndexingFailed,
-					tlsHandshakeError,
-					esReturnedUnknown503,
-					refreshCache403,
-					refreshCache503,
-					refreshCacheCtxDeadline,
-					refreshCacheESConfigInvalid,
-					preconditionClusterInfoCtxCanceled,
-					waitServerReadyCtxCanceled,
-					grpcServerStopped,
-					populateSourcemapFetcher403,
-					syncSourcemapFetcher403,
-				},
-			},
-		},
-	}
-}
-
-func managed8Runner(fromVersion7, toVersion8, toVersion9 ech.Version, config upgradeTestConfig) testStepsRunner {
-	expect8 := dataStreamsExpectations(expectILM)
-	expect9 := expectationsFor9x(toVersion8, toVersion9, expect8, config)
-
-	// These data streams are created in 7.x, but not used in 8.x and 9.x,
-	// so we ignore them to avoid wrong assertions.
-	ignoredDataStreams := []string{
-		"metrics-apm.app.opbeans_node-%s",
-		"metrics-apm.app.opbeans_ruby-%s",
-		"metrics-apm.app.opbeans_go-%s",
-	}
-
-	return testStepsRunner{
-		Target: *target,
-		Steps: []testStep{
-			// Start from 7.x.
-			createStep{
-				DeployVersion:     fromVersion7,
-				APMDeploymentMode: apmStandalone,
-				CleanupOnFailure:  *cleanupOnFailure,
-			},
-			ingestV7Step{},
-			// Upgrade to 8.x.
-			upgradeV7Step{NewVersion: toVersion8},
-			ingestStep{CheckDataStreams: expect8},
-			// Migrate to managed
-			migrateManagedStep{},
 			ingestStep{CheckDataStreams: expect8},
 			// Resolve deprecations and upgrade to 9.x.
 			resolveDeprecationsStep{},
@@ -231,22 +134,19 @@ func managed8Runner(fromVersion7, toVersion8, toVersion9 ech.Version, config upg
 	}
 }
 
-func managed9Runner(fromVersion7, toVersion8, toVersion9 ech.Version, config upgradeTestConfig) testStepsRunner {
+func managed9Runner(fromVersion8, toVersion9 ech.Version, config upgradeTestConfig) testStepsRunner {
 	expect8 := dataStreamsExpectations(expectILM)
-	expect9 := expectationsFor9x(toVersion8, toVersion9, expect8, config)
+	expect9 := expectationsFor9x(fromVersion8, toVersion9, expect8, config)
 
 	return testStepsRunner{
 		Target: *target,
 		Steps: []testStep{
-			// Start from 7.x.
+			// Start from 8.x.
 			createStep{
-				DeployVersion:     fromVersion7,
+				DeployVersion:     fromVersion8,
 				APMDeploymentMode: apmStandalone,
 				CleanupOnFailure:  *cleanupOnFailure,
 			},
-			ingestV7Step{},
-			// Upgrade to 8.x.
-			upgradeV7Step{NewVersion: toVersion8},
 			ingestStep{CheckDataStreams: expect8},
 			// Resolve deprecations and upgrade to 9.x.
 			resolveDeprecationsStep{},
