@@ -156,7 +156,7 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 			i--
 		}
 
-		if report || stored {
+		if stored {
 			p.statusReporter.UpdateStatus(status.Running, "")
 		}
 
