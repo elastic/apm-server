@@ -15,11 +15,6 @@ on:
         required: false
         type: boolean
         default: true
-      run-standalone-tests:
-        description: 'Run standalone-to-managed tests'
-        required: false
-        type: boolean
-        default: true
   schedule:
     - cron: '0 2 * * 1-5'
 
@@ -91,28 +86,6 @@ jobs:
           export TF_VAR_CREATED_DATE=$(date +%s)
           SCENARIO="${{ matrix.scenario }}" UPGRADE_PATH="${{ matrix.upgrade-path }}" make integration-server-test/upgrade
 
-  run-standalone:
-    if: ${{ !contains(inputs.run-standalone-tests, 'false') }}
-    name: Standalone-to-managed
-    runs-on: ubuntu-latest
-    needs: prepare
-    strategy:
-      fail-fast: false
-      matrix:
-        scenario:
-          - 'Managed7'
-          - 'Managed8'
-          - 'Managed9'
-    steps:
-      - uses: actions/checkout@v6
-      - name: Setup
-        uses: ./.github/workflows/setup-integration-server-test
-      - name: "Run standalone-to-managed tests"
-        working-directory: ${{ github.workspace }}
-        run: |
-          export TF_VAR_CREATED_DATE=$(date +%s)
-          SCENARIO="${{ matrix.scenario }}" make integration-server-test/standalone
-
   notify:
     name: Notify
     if: always() && github.ref == 'refs/heads/main'
@@ -121,7 +94,6 @@ jobs:
       - prepare
       - run-upgrade
       - run-upgrade-bc
-      - run-standalone
     steps:
       - id: check
         uses: elastic/oblt-actions/check-dependent-jobs@v1

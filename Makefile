@@ -372,19 +372,6 @@ ifndef UPGRADE_PATH
 endif
 	@cd integrationservertest && go test -run=TestUpgrade -v -timeout=90m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
 
-# Run integration server standalone test on one scenario - Managed8 / Managed9
-.PHONY: integration-server-test/standalone
-integration-server-test/standalone:
-ifndef SCENARIO
-	$(error SCENARIO is not set)
-endif
-	@cd integrationservertest && go test -run=TestStandaloneManaged.*/$(SCENARIO) -v -timeout=90m -cleanup-on-failure=true -target="pro" ./
-
-# Run integration server standalone test on all scenarios
-.PHONY: integration-server-test/standalone-all
-integration-server-test/standalone-all:
-	@cd integrationservertest && go test -run=TestStandaloneManaged -v -timeout=90m -cleanup-on-failure=true -target="pro" ./
-
 ##############################################################################
 # Generating and linting API documentation
 ##############################################################################
