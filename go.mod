@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.25.5
+go 1.25.6
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.5
@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.1
 	github.com/elastic/apm-data v1.19.5
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260114091924-7e90e2cbcc05
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260120142721-0f2cd4f5e0ba
 	github.com/elastic/elastic-agent-client/v7 v7.17.2
 	github.com/elastic/elastic-agent-libs v0.31.0
 	github.com/elastic/elastic-agent-system-metrics v0.13.5
