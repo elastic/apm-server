@@ -230,13 +230,11 @@ func (p *Processor) processTransaction(event *modelpb.APMEvent) (report, stored 
 	reservoirSampled, err := p.groups.sampleTrace(event)
 	if err == errTooManyTraceGroups {
 		// Too many trace groups, drop the transaction.
-		msg := `
+		p.rateLimitedLogger.Warn(`
 Tail-sampling service group limit reached, discarding trace events.
 This is caused by having many unique service names while relying on
 sampling policies without service name specified.
-`[1:]
-		p.rateLimitedLogger.Warn(msg)
-		p.statusReporter.UpdateStatus(status.Degraded, msg)
+`[1:])
 		return false, false, nil
 	} else if err != nil {
 		return false, false, err
