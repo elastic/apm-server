@@ -44,6 +44,8 @@ import (
 	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/encoding/gzip"
 
+	"github.com/elastic/elastic-agent-libs/paths"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
@@ -60,6 +62,7 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
+
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -1065,6 +1068,6 @@ func (nopProcessingSupporter) Processors() []string {
 	return nil
 }
 
-func (nopProcessingSupporter) Create(cfg beat.ProcessingConfig, _ bool) (beat.Processor, error) {
+func (s nopProcessingSupporter) Create(cfg beat.ProcessingConfig, _ bool, _ *paths.Path) (beat.Processor, error) {
 	return cfg.Processor, nil
 }
