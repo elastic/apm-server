@@ -30,7 +30,6 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/elastic/elastic-agent-libs/paths"
 	"go.elastic.co/apm/module/apmgrpc/v2"
 	"go.elastic.co/apm/module/apmotel/v2"
 	"go.elastic.co/apm/v2"
@@ -44,6 +43,8 @@ import (
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/encoding/gzip"
+
+	"github.com/elastic/elastic-agent-libs/paths"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
