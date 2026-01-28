@@ -155,11 +155,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kamstrup/intmap v0.5.1 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
-<<<<<<< HEAD
-	github.com/klauspost/compress v1.18.1 // indirect
-=======
 	github.com/klauspost/compress v1.18.3 // indirect
->>>>>>> fe984f44 (build(deps): bump github.com/elastic/go-docappender/v2 from 2.12.0 to 2.12.1 (#20211))
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
@@ -230,10 +226,6 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zclconf/go-cty v1.15.0 // indirect
 	gitlab.com/digitalxero/go-conventional-commit v1.0.7 // indirect
-<<<<<<< HEAD
-=======
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.2 // indirect
->>>>>>> fe984f44 (build(deps): bump github.com/elastic/go-docappender/v2 from 2.12.0 to 2.12.1 (#20211))
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.7.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
