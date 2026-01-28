@@ -151,11 +151,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kamstrup/intmap v0.5.1 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
-<<<<<<< HEAD
-	github.com/klauspost/compress v1.18.1 // indirect
-=======
 	github.com/klauspost/compress v1.18.3 // indirect
->>>>>>> fe984f44 (build(deps): bump github.com/elastic/go-docappender/v2 from 2.12.0 to 2.12.1 (#20211))
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
