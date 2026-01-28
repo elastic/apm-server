@@ -136,7 +136,7 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 		if err != nil {
 			failed = true
 			stored = false
-			msg := ""
+			var msg string
 			if p.config.DiscardOnWriteFailure {
 				report = false
 				msg = "processing trace failed, discarding by default"
