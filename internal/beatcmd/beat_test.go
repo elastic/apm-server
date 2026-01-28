@@ -423,7 +423,7 @@ func TestRunManager_Reloader(t *testing.T) {
 			}
 			return nil
 		}), nil
-	}, nil, nil, nil, beat.NewMonitoring())
+	}, nil, nil, nil, beat.NewMonitoring(), nil)
 	require.NoError(t, err)
 
 	agentInfo := &proto.AgentInfo{
@@ -553,7 +553,7 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 		Logger: logptest.NewTestingLogger(t, "beat"),
 	}, registry, func(_ RunnerParams) (Runner, error) {
 		return nil, errors.New("newRunner error")
-	}, nil, nil, nil, beat.NewMonitoring())
+	}, nil, nil, nil, beat.NewMonitoring(), nil)
 	require.NoError(t, err)
 
 	onObserved := func(observed *proto.CheckinObserved, currentIdx int) {
