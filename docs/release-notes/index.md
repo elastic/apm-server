@@ -33,7 +33,107 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ## 9.1.1 [elastic-apm-9.1.1-release-notes]
 
+<<<<<<< HEAD
 ### Fixes [elastic-apm-9.1.1-fixes]
+=======
+% ### Fixes [apm-9.3.0-fixes]
+% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+
+_No new fixes_ 
+
+## 9.2.5 [apm-9.2.5-release-notes]
+
+```{applies_to}
+stack: ga 9.2
+```
+
+### Fixes [apm-9.2.5-fixes]
+
+* Fix potential data race in Tail Based Sampling ([#20139](https://github.com/elastic/apm-server/pull/20139))
+* Fix self-instrumentation missing span kind in some traces ([#20199](https://github.com/elastic/apm-server/pull/20199)) ([#20212](https://github.com/elastic/apm-server/pull/20212))
+
+## 9.2.4 [apm-9.2.4-release-notes]
+
+_No new features, enhancements, or fixes._
+
+## 9.2.3 [apm-9.2.3-release-notes]
+
+_No new features, enhancements, or fixes._
+
+## 9.2.2 [apm-9.2.2-release-notes]
+
+_No new features, enhancements, or fixes._
+
+## 9.2.1 [apm-9.2.1-release-notes]
+
+```{applies_to}
+stack: ga 9.2
+```
+
+### Fixes [apm-9.2.1-fixes]
+
+* Fix build pipeline to ensure resulting binary info shows `vcs.modified=false` ([#19252](https://github.com/elastic/apm-server/pull/19252))
+
+## 9.2.0 [apm-9.2.0-release-notes]
+
+```{applies_to}
+stack: ga 9.2
+```
+
+### Features and enhancements [apm-9.2.0-features-enhancements]
+
+* [Failure store](https://www.elastic.co/docs/manage-data/data-store/data-streams/failure-store) enabled for all new datastreams. This is applied through [elasticsearch#131296](https://github.com/elastic/elasticsearch/pull/131296) and [elasticsearch#131395](https://github.com/elastic/elasticsearch/pull/131395)
+
+### Fixes [apm-9.2.0-fixes]
+
+* Fix `output.elasticsearch.bulk_requests.available` metric to correctly report the available bulk indexers [#18953](https://github.com/elastic/apm-server/pull/18953)
+
+## 9.1.10 [apm-9.1.10-release-notes]
+
+_No new features, enhancements, or fixes._
+
+## 9.1.9 [apm-9.1.9-release-notes]
+
+_No new features, enhancements, or fixes._
+
+## 9.1.8 [apm-9.1.8-release-notes]
+
+_No new features, enhancements, or fixes._
+
+## 9.1.7 [apm-9.1.7-release-notes]
+
+### Fixes [apm-9.1.7-fixes]
+
+* Fix build pipeline to ensure resulting binary info shows `vcs.modified=false` ([#19252](https://github.com/elastic/apm-server/pull/19252))
+
+## 9.1.6 [apm-9.1.6-release-notes]
+
+### Fixes [apm-9.1.6-fixes]
+
+* Fix `output.elasticsearch.bulk_requests.available` metric to correctly report the available bulk indexers [#18953](https://github.com/elastic/apm-server/pull/18953)
+
+## 9.1.5 [apm-9.1.5-release-notes]
+
+### Fixes [apm-9.1.5-fixes]
+
+* APM Integration on ECH or ECE uses recommended frozen values for infrastructure related configs. The fix is applied through [kibana#235306](https://github.com/elastic/kibana/pull/235306)
+
+## 9.1.4 [apm-9.1.4-release-notes]
+
+_No new features, enhancements, or fixes._
+
+## 9.1.3 [apm-9.1.3-release-notes]
+
+_No new features, enhancements, or fixes._
+
+## 9.1.2 [apm-9.1.2-release-notes]
+
+_No new features, enhancements, or fixes._
+
+## 9.1.1 [apm-9.1.1-release-notes]
+
+### Fixes [apm-9.1.1-fixes]
+>>>>>>> 2e88a7f5 (docs: release notes for v9.2.5 (#20239))
 
 * Fix Fleet-managed apm-server hanging or crashing on config hot reload due to duplicate monitoring registry ([#17872](https://github.com/elastic/apm-server/pull/17872))
 
