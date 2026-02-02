@@ -970,6 +970,63 @@ func TestPotentialRaceConditionConcurrent(t *testing.T) {
 	assert.Equal(t, processed.Load(), reportedPlusLateArrivals)
 }
 
+type statusUpdate struct {
+	state status.Status
+	msg   string
+}
+
+type mockStatusReporter struct {
+	mutex   sync.RWMutex
+	updates []statusUpdate
+}
+
+func (m *mockStatusReporter) UpdateStatus(status status.Status, msg string) {
+	m.mutex.Lock()
+	m.updates = append(m.updates, statusUpdate{status, msg})
+	m.mutex.Unlock()
+}
+
+func (m *mockStatusReporter) GetUpdates() []statusUpdate {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return append([]statusUpdate{}, m.updates...)
+}
+
+func TestProcessStatusReporter(t *testing.T) {
+	expectedErrMsg := "forced error"
+
+	var statusReporter mockStatusReporter
+	tempdirConfig := newTempdirConfig(t)
+	tempdirConfig.Config.Storage = errorRW{err: errors.New(expectedErrMsg)}
+
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         tempdirConfig.Config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: &statusReporter,
+	})
+	require.NoError(t, err)
+	go processor.Run()
+	defer processor.Stop(context.Background())
+
+	in := modelpb.Batch{{
+		Trace: &modelpb.Trace{
+			Id: "0102030405060708090a0b0c0d0e0f10",
+		},
+		Transaction: &modelpb.Transaction{
+			Type:    "type",
+			Id:      "0102030405060708",
+			Sampled: true,
+		},
+	}}
+	err = processor.ProcessBatch(context.Background(), &in)
+	require.NoError(t, err)
+
+	statusUpdates := statusReporter.GetUpdates()
+	require.Equal(t, len(statusUpdates), 1)
+	assert.Equal(t, status.Degraded, statusUpdates[0].state)
+	assert.Contains(t, statusUpdates[0].msg, expectedErrMsg)
+}
+
 type testConfig struct {
 	sampling.Config
 	tempDir      string
