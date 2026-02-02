@@ -45,7 +45,7 @@ stack: ga 9.2
 ### Fixes [apm-9.2.5-fixes]
 
 * Fix potential data race in Tail Based Sampling ([#20139](https://github.com/elastic/apm-server/pull/20139))
-* Add missing span kind to Open Telemetry traces ([#20199](https://github.com/elastic/apm-server/pull/20199))
+* Fix self-instrumentation missing span kind in some traces ([#20199](https://github.com/elastic/apm-server/pull/20199)) ([#20212](https://github.com/elastic/apm-server/pull/20212))
 
 ## 9.2.4 [apm-9.2.4-release-notes]
 
