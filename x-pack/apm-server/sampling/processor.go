@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/cespare/xxhash/v2"
+	"github.com/elastic/beats/v7/x-pack/libbeat/statusreporterhelper"
 	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
@@ -88,7 +89,7 @@ func NewProcessor(params ProcessorParams) (*Processor, error) {
 		groups:            newTraceGroups(meter, config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
 		eventStore:        config.Storage,
 		shardLock:         newShardLock(runtime.GOMAXPROCS(0)),
-		statusReporter:    params.StatusReporter,
+		statusReporter:    statusreporterhelper.New(params.StatusReporter, params.Logger, "apm sampling processor"),
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
 	}
