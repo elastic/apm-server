@@ -3655,19 +3655,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/pdata
-<<<<<<< HEAD
-Version: v1.50.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.50.0/LICENSE:
-=======
 Version: v1.51.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.51.0/LICENSE:
->>>>>>> 313b9fe8 (build(deps): bump the otel group across 1 directory with 6 updates (#20250))
 
 
                                  Apache License
@@ -13453,19 +13445,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/cons
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/featuregate
-<<<<<<< HEAD
-Version: v1.50.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/featuregate@v1.50.0/LICENSE:
-=======
 Version: v1.51.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/featuregate@v1.51.0/LICENSE:
->>>>>>> 313b9fe8 (build(deps): bump the otel group across 1 directory with 6 updates (#20250))
 
 
                                  Apache License
