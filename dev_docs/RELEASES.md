@@ -6,34 +6,38 @@ This documentation is for 9.x releases. If you are releasing a 8.x look [here](.
 
 ## Patch Release
 
-1. Create a *Test Plan*.
-2. Ensure all relevant backport PRs are merged. We use backport labels on PRs and automation to ensure labels are set.
-3. Run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow
+1. [Compare](https://github.com/elastic/apm-server/compare/) the commits in the release branch against the last tag to ensure all changes are reflected in the release notes, e.g. when releasing `v9.2.5`, compare [v9.2.4 <- 9.2](https://github.com/elastic/apm-server/compare/v9.2.4..9.2)
+2. Create a *Test Plan*. Open a GitHub issue of type "Test Plan", go through the changes in libraries and fill in the issue template with a list of PRs that need to be tested.
+3. Ensure all relevant backport PRs are merged. We use backport labels on PRs and automation to ensure labels are set.
+4. Run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow
     - In "Use workflow from", select `main` branch.
-    - Then in "The version", specify the **upcoming** patch release version - es: on `8.14.2` feature freeze you will use `8.14.2`).
+    - Then in "The version", specify the **upcoming** patch release version - e.g. on `9.2.5` feature freeze you will use `9.2.5`.
     - This workflow will:
         - Create the `update-<VERSION>` branch.
         - Update version constants across the codebase and create a PR targeting the release branch.
-4. Release notes for patch releases **must be manually added** at least one day before release.
-5. Create a PR targeting the `main` branch and add the backport label for the release branch. To add release notes:
-    - Add a new section to the existing release notes file ([Sample PR](https://github.com/elastic/apm-server/pull/12680)).
-    - Review the [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) file and move relevant changelog entries from `head.asciidoc` to `release_version.asciidoc` if the change is backported to release_version. If changes do not apply to the version being released, keep them in the `head.asciidoc` file.
-    - Review the commits in the release to ensure all changes are reflected in the release notes. Check for backported changes without release notes in `release_version.asciidoc`.
+5. Release notes for patch releases **must be manually added** at least one day before release.
+6. To add release notes:
+    - Create a new branch.
+    - Add a new section to the existing release notes file [`docs/release-notes/index.md`](../docs/release-notes/index.md).
+    - Fill in the fixes, breaking changes and deprecations sections from the comparison from point 1, linking the PR that contributed to them.
+    - Create a PR from your branch targeting the `main` branch, no labels needed on the PR.
     - Add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2485)).
     - The PR should be merged the day before release.
 
 ## Minor Release
 
-1. Create a *Test Plan*.
-2. Run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the minor release version the release is for). This workflow will:
+1. [Compare](https://github.com/elastic/apm-server/compare/) the commits in the release branch against the last tag of the previous minor to ensure all changes are reflected in the release notes, e.g. when releasing `v9.3.0`, compare [v9.2.6 <- 9.3](https://github.com/elastic/apm-server/compare/v9.2.6..9.3)
+2. Create a *Test Plan*. Open a GitHub issue of type "Test Plan", go through the changes in libraries and fill in the issue template with a list of PRs that need to be tested.
+3. Run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the minor release version the release is for). This workflow will:
     - Create a new release branch using the stack version (X.Y).
     - Update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`.
     - Create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`.
 
 ## Major Release
 
-1. Create a *Test Plan*.
-2. Run the [`run-major-release`](https://github.com/elastic/apm-server/actions/workflows/run-major-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the major release version the release is for). This workflow will:
+1. [Compare](https://github.com/elastic/apm-server/compare/) the commits in the release branch against the last tag of the previous minor to ensure all changes are reflected in the release notes, e.g. when releasing `v9.0.0`, compare [v8.18.6 <- 9.0](https://github.com/elastic/apm-server/compare/v8.18.6..9.0)
+2. Create a *Test Plan*. Open a GitHub issue of type "Test Plan", go through the changes in libraries and fill in the issue template with a list of PRs that need to be tested.
+3. Run the [`run-major-release`](https://github.com/elastic/apm-server/actions/workflows/run-major-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the major release version the release is for). This workflow will:
     - Create a new release branch using the stack version (X.Y).
     - Update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`.
     - Create a PR on `main` titled `<major>.0: update docs, mergify, versions and changelogs`.
