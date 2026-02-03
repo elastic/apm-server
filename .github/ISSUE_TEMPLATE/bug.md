@@ -11,7 +11,7 @@ for general questions. If you have a question or an unconfirmed bug, please
 visit the [forums](https://discuss.elastic.co/c/apm).
 
 For security vulnerabilities please only send reports to security@elastic.co.
-See https://github.com/elastic/.github/blob/main/SECURITY.md for more information.
+See https://github.com/elastic/.github/blob/main/SECURITY.md for more information. 
 
 Please fill in the following details to help us reproduce the bug:
 -->
