@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"runtime"
+	"time"
 )
 
 const (
@@ -147,11 +148,14 @@ func doExpvar(req *http.Request, out *expvar) (string, error) {
 // * Context is done.
 func WaitUntilServerInactive(ctx context.Context, server string) error {
 	result := expvar{LibbeatStats: LibbeatStats{ActiveEvents: 1}}
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+
 	for result.ActiveEvents > 0 {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		default:
+		case <-ticker.C:
 			if err := queryExpvar(ctx, &result, server); err != nil {
 				return err
 			}
