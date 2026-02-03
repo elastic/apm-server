@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'The current version to be released, normally the `FF version` (semver format: major.minor.patch)'
+        description: 'The version to be bumped to (semver format: major.minor.patch). e.g. when told "bump the project and documentation versions on the 9.2 branch to 9.2.6", fill in `9.2.6`.'
         required: true
         type: string
 
@@ -89,8 +89,7 @@ jobs:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
           message: |-
-            Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` is Today.
-            All the relevant PRs and issues have been created.
+            PRs to bump versions in `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` branch to `${{ env.RELEASE_VERSION }}` have been created.
           thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
 
       - if: failure()
