@@ -4,5 +4,5 @@ contact_links:
     url: https://discuss.elastic.co/c/apm
     about: Ask (and answer) questions here.
   - name: Security Vulnerability
-    url: https://www.elastic.co/community/security
+    url: https://github.com/elastic/.github/blob/main/SECURITY.md
     about: Send security vulnerability reports to security@elastic.co.
