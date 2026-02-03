@@ -15,9 +15,10 @@ import (
 	"time"
 
 	"github.com/cespare/xxhash/v2"
-	"github.com/elastic/beats/v7/x-pack/libbeat/statusreporterhelper"
 	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/elastic/beats/v7/x-pack/libbeat/statusreporterhelper"
 
 	"github.com/elastic/apm-data/model/modelpb"
 
