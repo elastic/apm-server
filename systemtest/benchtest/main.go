@@ -31,6 +31,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -291,19 +292,38 @@ func warmup(agents int, duration time.Duration, url, token, apiKey string) error
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 
+	// If the client failed silently, we need to detect it to avoid hanging on WaitUntilServerInactive.
+	var sentRequests atomic.Bool
+	var firstErr atomic.Pointer[error]
+
 	var wg sync.WaitGroup
 	wg.Add(agents)
+insertLoop:
 	for i := 0; i < agents; i++ {
 		go func() {
 			defer wg.Done()
 			sendErr := h.SendBatchesInLoop(ctx)
 			if sendErr != nil && !errors.Is(sendErr, context.DeadlineExceeded) {
 				log.Printf("failed to send batches: %v", sendErr)
+				// Store first error for diagnostics
+				firstErr.CompareAndSwap(nil, &sendErr)
+			} else {
+				// At least one agent sent successfully
+				sentRequests.Store(true)
 			}
 		}()
 	}
 
 	wg.Wait()
+
+	// If no agent successfully sent requests, log the error
+	// and go back to the loop sending them.
+	if !sentRequests.Load() {
+		if errPtr := firstErr.Load(); errPtr != nil {
+			log.Printf("all agents failed to send batches, first error: %s", *errPtr)
+		}
+		goto insertLoop
+	}
 
 	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
 	defer cancel()
