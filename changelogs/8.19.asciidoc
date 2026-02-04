@@ -1,5 +1,6 @@
 [[apm-release-notes-8.19]]
 == APM version 8.19
+* <<apm-release-notes-8.19.12>>
 * <<apm-release-notes-8.19.11>>
 * <<apm-release-notes-8.19.10>>
 * <<apm-release-notes-8.19.9>>
@@ -12,6 +13,17 @@
 * <<apm-release-notes-8.19.2>>
 * <<apm-release-notes-8.19.1>>
 * <<apm-release-notes-8.19.0>>
+
+[float]
+[[apm-release-notes-8.19.12]]
+=== APM version 8.19.12
+
+https://github.com/elastic/apm-server/compare/v8.19.11\...v8.19.12[View commits]
+
+[float]
+==== Added
+
+- Use ubi10 for Ironbank images {pull}20258[20258]
 
 [float]
 [[apm-release-notes-8.19.11]]
