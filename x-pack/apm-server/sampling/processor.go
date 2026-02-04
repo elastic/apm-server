@@ -18,8 +18,11 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/beats/v7/libbeat/management/status"
+	"github.com/elastic/beats/v7/x-pack/libbeat/statusreporterhelper"
 	"github.com/elastic/elastic-agent-libs/logp"
+
+	"github.com/elastic/apm-data/model/modelpb"
 
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
@@ -43,13 +46,20 @@ type Processor struct {
 	rateLimitedLogger *logp.Logger
 	groups            *traceGroups
 
-	eventStore   eventstorage.RW
-	eventMetrics eventMetrics
-	shardLock    *shardLock
+	eventStore     eventstorage.RW
+	eventMetrics   eventMetrics
+	shardLock      *shardLock
+	statusReporter status.StatusReporter
 
 	stopMu   sync.Mutex
 	stopping chan struct{}
 	stopped  chan struct{}
+}
+
+type ProcessorParams struct {
+	Config         Config
+	Logger         *logp.Logger
+	StatusReporter status.StatusReporter
 }
 
 type eventMetrics struct {
@@ -62,7 +72,9 @@ type eventMetrics struct {
 }
 
 // NewProcessor returns a new Processor, for tail-sampling trace events.
-func NewProcessor(config Config, logger *logp.Logger) (*Processor, error) {
+func NewProcessor(params ProcessorParams) (*Processor, error) {
+	config := params.Config
+	logger := params.Logger
 	if err := config.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid tail-sampling config: %w", err)
 	}
@@ -77,6 +89,7 @@ func NewProcessor(config Config, logger *logp.Logger) (*Processor, error) {
 		groups:            newTraceGroups(meter, config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
 		eventStore:        config.Storage,
 		shardLock:         newShardLock(runtime.GOMAXPROCS(0)),
+		statusReporter:    statusreporterhelper.New(params.StatusReporter, params.Logger, "apm sampling processor"),
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
 	}
@@ -124,13 +137,16 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 		if err != nil {
 			failed = true
 			stored = false
+			var msg string
 			if p.config.DiscardOnWriteFailure {
 				report = false
-				p.rateLimitedLogger.With(logp.Error(err)).Warn("processing trace failed, discarding by default")
+				msg = "processing trace failed, discarding by default"
 			} else {
 				report = true
-				p.rateLimitedLogger.With(logp.Error(err)).Warn("processing trace failed, indexing by default")
+				msg = "processing trace failed, indexing by default"
 			}
+			p.rateLimitedLogger.With(logp.Error(err)).Warn(msg)
+			p.statusReporter.UpdateStatus(status.Degraded, "sampling: "+msg+": "+err.Error())
 		}
 
 		if !report {
@@ -139,6 +155,10 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 			events[i], events[n-1] = events[n-1], events[i]
 			events = events[:n-1]
 			i--
+		}
+
+		if stored {
+			p.statusReporter.UpdateStatus(status.Running, "")
 		}
 
 		p.updateProcessorMetrics(report, stored, failed)
@@ -370,7 +390,6 @@ func (p *Processor) Run() error {
 			case <-p.stopping:
 			case <-p.stopped:
 			}
-
 		}()
 		return pubsub.SubscribeSampledTraceIDs(
 			ctx, initialSubscriberPosition, remoteSampledTraceIDs, subscriberPositions,
