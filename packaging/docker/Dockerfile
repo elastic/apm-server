@@ -94,12 +94,14 @@ RUN echo 'apm-server:*:1000:1000::/usr/share/apm-server:/bin/false' >> /etc/pass
 RUN chown -R 1000:1000 /usr/share/apm-server
 
 # remove unnecessary packages in ubuntu-based images
-# use rpm to ignore ubi images
-RUN rpm -v || (dpkg -P --force-depends libgssapi-krb5-2 libtirpc3 libnsl2 libkrb5-3 libk5crypto3 libkrb5support0 && \
-    rm /var/log/dpkg.log)
+# only if rpm is not available and dpkg exists
+RUN if ! rpm -v && dpkg --version; then \
+      dpkg -P --force-depends libgssapi-krb5-2 libtirpc3 libnsl2 libkrb5-3 libk5crypto3 libkrb5support0 && \
+      rm /var/log/dpkg.log; \
+    fi
 # remove unnecessary packages in ubi-based images
-# use dpkg to ignore ubuntu images
-RUN dpkg --version || (rpm -v -e --nodeps libxml2)
+# only if dpkg is not available and rpm exists
+RUN if ! dpkg --version && rpm -v; then rpm -v -e --nodeps libxml2; fi
 
 USER apm-server
 EXPOSE 8200
