@@ -22,11 +22,7 @@ FROM cgr.dev/chainguard/static:latest@sha256:9cef3c6a78264cb7e25923bf1bf7f39476d
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-<<<<<<< HEAD
 FROM ${BASE_IMAGE}
-=======
-FROM registry.access.redhat.com/ubi10-micro:latest@sha256:551f8ee81be3dbabd45a9c197f3724b9724c1edb05d68d10bfe85a5c9e46a458
->>>>>>> 8c168ce7 (package: use ubi10 (#20258))
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION
