@@ -16,6 +16,11 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     make apm-server
 
+# ubi10-micro does not have sed, let's modify the files in the builder stage,
+# so we can copy them to the final image without needing to install sed there.
+RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
+RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
+
 FROM cgr.dev/chainguard/static:latest@sha256:9cef3c6a78264cb7e25923bf1bf7f39476dccbcc993af9f4ffeb191b77a7951e AS builder-certs
 
 ################################################################################
@@ -82,10 +87,8 @@ COPY --from=builder-certs /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/
 # Copy files world-readable, and create the data directory world-writeable,
 # to permit running the container with arbitrary UIDs and GIDs.
 WORKDIR /usr/share/apm-server
-COPY --chmod=0644 apm-server.yml ./apm-server.yml
+COPY --chmod=0644 --from=builder /src/apm-server.yml ./apm-server.yml
 COPY --chmod=0755 --from=builder /src/apm-server ./apm-server
-RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
-RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 RUN mkdir --mode=0777 data
 RUN echo 'apm-server:*:1000:1000::/usr/share/apm-server:/bin/false' >> /etc/passwd
 RUN chown -R 1000:1000 /usr/share/apm-server
