@@ -176,6 +176,21 @@ func TestIngestPipelineEventSuccessCount(t *testing.T) {
 "processor": {"event": "transaction"}, "event": {"outcome": "unknown"}}`,
 			eventSuccessCountNull: true,
 		},
+		{
+			source: `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, 
+"processor": {"event": "transaction"}, "transaction": {"representative_count": 2}, "event": {"outcome": "success"}}`,
+			eventSuccessCountVal: 2,
+		},
+		{
+			source: `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, 
+"processor": {"event": "span"}, "span": {"representative_count": 3}, "event": {"outcome": "success"}}`,
+			eventSuccessCountVal: 3,
+		},
+		{
+			source: `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, 
+"processor": {"event": "span"}, "span": {"representative_count": null}, "event": {"outcome": "success"}}`,
+			eventSuccessCountVal: 1,
+		},
 	}
 
 	for _, test := range tests {
