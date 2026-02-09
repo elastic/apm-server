@@ -2,7 +2,11 @@
 # https://www.updatecli.io/docs/core/compose/
 policies:
   - name: Handle ironbank bumps
+<<<<<<< HEAD
     policy: ghcr.io/elastic/oblt-updatecli-policies/ironbank/templates:0.5.2@sha256:6a237aea2c621a675d644dd51580bd3c0cb4d48591f54f5ba1c2ba88240fa08b
+=======
+    policy: ghcr.io/elastic/oblt-updatecli-policies/ironbank/templates:1.0.0@sha256:fc1c5aacf3025fa34f72c24d5473cbac77be6cc030ff082428cfd1fae49ea08b
+>>>>>>> 2899fe2a (updatecli(ironbank): use ubi10 support (#20316))
     values:
       - .ci/updatecli/values.d/scm.yml
       - .ci/updatecli/values.d/ironbank.yml
