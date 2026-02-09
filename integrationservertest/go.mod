@@ -1,6 +1,10 @@
 module github.com/elastic/apm-server/integrationservertest
 
+<<<<<<< HEAD
 go 1.25.5
+=======
+go 1.25.7
+>>>>>>> e2bf81c5 ([updatecli] Bump Golang version to 1.25.7 (#20311))
 
 require (
 	github.com/dnaeon/go-vcr v1.2.0

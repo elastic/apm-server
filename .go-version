@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 1.25.5
+=======
+1.25.7
+>>>>>>> e2bf81c5 ([updatecli] Bump Golang version to 1.25.7 (#20311))
