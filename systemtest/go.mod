@@ -7,7 +7,7 @@ require (
 	github.com/docker/go-connections v0.6.0
 	github.com/elastic/apm-perf v1.0.0
 	github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959
-	github.com/elastic/go-elasticsearch/v8 v8.19.1
+	github.com/elastic/go-elasticsearch/v8 v8.19.2
 	github.com/elastic/go-lumber v0.1.1
 	github.com/elastic/go-sysinfo v1.15.4
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
@@ -15,7 +15,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.40.0
 	github.com/tidwall/gjson v1.18.0
-	go.elastic.co/apm/v2 v2.7.2
+	go.elastic.co/apm/v2 v2.7.3
 	go.elastic.co/fastjson v1.5.1
 	go.opentelemetry.io/collector/pdata v1.51.0
 	go.opentelemetry.io/otel v1.40.0
@@ -29,7 +29,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.40.0
 	go.uber.org/zap v1.27.1
 	golang.org/x/sync v0.19.0
-	golang.org/x/sys v0.40.0
+	golang.org/x/sys v0.41.0
 	golang.org/x/time v0.14.0
 	google.golang.org/grpc v1.78.0
 	gopkg.in/yaml.v3 v3.0.1
