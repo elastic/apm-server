@@ -30,13 +30,12 @@ import (
 	"runtime"
 	"sort"
 	"strings"
-	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
 	"go.elastic.co/apm/v2/stacktrace"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-perf/loadgen"
@@ -292,37 +291,23 @@ func warmup(agents int, duration time.Duration, url, token, apiKey string) error
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 
-	// If the client failed silently, we need to detect it to avoid hanging on WaitUntilServerInactive.
-	var sentRequests atomic.Bool
-	var firstErr atomic.Pointer[error]
+	g, ctx := errgroup.WithContext(ctx)
 
-	var wg sync.WaitGroup
-	wg.Add(agents)
-insertLoop:
 	for i := 0; i < agents; i++ {
-		go func() {
-			defer wg.Done()
-			sendErr := h.SendBatchesInLoop(ctx)
-			if sendErr != nil && !errors.Is(sendErr, context.DeadlineExceeded) {
-				log.Printf("failed to send batches: %v", sendErr)
-				// Store first error for diagnostics
-				firstErr.CompareAndSwap(nil, &sendErr)
-			} else {
-				// At least one agent sent successfully
-				sentRequests.Store(true)
+		g.Go(func() error {
+			if sendErr := h.SendBatchesInLoop(ctx); sendErr != nil {
+				if !errors.Is(sendErr, context.DeadlineExceeded) {
+					return fmt.Errorf("error sending batches: %w", sendErr)
+				}
 			}
-		}()
+			return nil
+		})
 	}
 
-	wg.Wait()
-
-	// If no agent successfully sent requests, log the error
-	// and go back to the loop sending them.
-	if !sentRequests.Load() {
-		if errPtr := firstErr.Load(); errPtr != nil {
-			log.Printf("all agents failed to send batches, first error: %s", *errPtr)
-		}
-		goto insertLoop
+	// If no agent successfully sent requests, return error immediately.
+	// This prevents hanging in WaitUntilServerInactive when the server never receives requests.
+	if err = g.Wait(); err != nil {
+		return fmt.Errorf("some agents failed to send batches: %v", err)
 	}
 
 	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
