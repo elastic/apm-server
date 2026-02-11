@@ -288,7 +288,12 @@ func TestSubscribeSampledTraceIDsError(t *testing.T) {
 				return zapcore.NewTee(in, core)
 			}))
 
-			req := make(chan struct{})
+			// Buffered channel to prevent handlers from blocking during cleanup.
+			// Subscriber polls every 1ms, so multiple requests may
+			// be in-flight when the test finishes. A buffered channel prevents handlers from
+			// blocking on send, not allowing httptest.Server to close.
+			N := 10
+			req := make(chan struct{}, N)
 			first := true
 			m := newMockElasticsearchServer(t)
 			m.statsGlobalCheckpoint = 99
@@ -338,7 +343,6 @@ func TestSubscribeSampledTraceIDsError(t *testing.T) {
 			// Show that failed requests to Elasticsearch are not fatal, and
 			// that the subscriber will retry.
 			timeout := time.After(10 * time.Second)
-			N := 10
 			for i := 0; i < N; i++ {
 				select {
 				case <-req:
