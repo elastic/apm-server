@@ -17,5 +17,5 @@ apm_server_size = "2g"
 
 # Standalone
 
-standalone_apm_server_instance_size = "c6gd.large"
+standalone_apm_server_instance_size = "c8gd.large"
 standalone_moxy_instance_size       = "c6g.xlarge"
