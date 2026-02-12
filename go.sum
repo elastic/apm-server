@@ -648,16 +648,6 @@ go.elastic.co/go-licence-detector v0.7.0 h1:qC31sfyfNcNx/zMYcLABU0ac3MbGHZgksCAb
 go.elastic.co/go-licence-detector v0.7.0/go.mod h1:f5ty8pjynzQD8BcS+s0qtlOGKc35/HKQxCVi8SHhV5k=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
-<<<<<<< HEAD
-go.opentelemetry.io/collector/consumer v1.43.0 h1:51pfN5h6PLlaBwGPtyHn6BdK0DgtVGRV0UYRPbbscbs=
-go.opentelemetry.io/collector/consumer v1.43.0/go.mod h1:v3J2g+6IwOPbLsnzL9cQfvgpmmsZt1YS7aXSNDFmJfk=
-go.opentelemetry.io/collector/featuregate v1.48.0 h1:jiGRcl93yzUFgZVDuskMAftFraE21jANdxXTQfSQScc=
-go.opentelemetry.io/collector/featuregate v1.48.0/go.mod h1:/1bclXgP91pISaEeNulRxzzmzMTm4I5Xih2SnI4HRSo=
-go.opentelemetry.io/collector/internal/testutil v0.142.0 h1:MHnAVRimQdsfYqYHC3YuJRkIUap4VmSpJkkIT2N7jJA=
-go.opentelemetry.io/collector/internal/testutil v0.142.0/go.mod h1:YAD9EAkwh/l5asZNbEBEUCqEjoL1OKMjAMoPjPqH76c=
-go.opentelemetry.io/collector/pdata v1.48.0 h1:CKZ+9v/lGTX/cTGx2XVp8kp0E8R//60kHFCBdZudrTg=
-go.opentelemetry.io/collector/pdata v1.48.0/go.mod h1:jaf2JQGpfUreD1TOtGBPsq00ecOqM66NG15wALmdxKA=
-=======
 go.opentelemetry.io/collector/consumer v1.48.0 h1:g1uroz2AA0cqnEsjqFTSZG+y8uH1gQBqqyzk8kd3QiM=
 go.opentelemetry.io/collector/consumer v1.48.0/go.mod h1:lC6PnVXBwI456SV5WtvJqE7vjCNN6DAUc8xjFQ9wUV4=
 go.opentelemetry.io/collector/featuregate v1.51.0 h1:dxJuv/3T84dhNKp7fz5+8srHz1dhquGzDpLW4OZTFBw=
@@ -666,7 +656,6 @@ go.opentelemetry.io/collector/internal/testutil v0.145.0 h1:H/KL0GH3kGqSMKxZvnQ0
 go.opentelemetry.io/collector/internal/testutil v0.145.0/go.mod h1:YAD9EAkwh/l5asZNbEBEUCqEjoL1OKMjAMoPjPqH76c=
 go.opentelemetry.io/collector/pdata v1.51.0 h1:DnDhSEuDXNdzGRB7f6oOfXpbDApwBX3tY+3K69oUrDA=
 go.opentelemetry.io/collector/pdata v1.51.0/go.mod h1:GoX1bjKDR++mgFKdT7Hynv9+mdgQ1DDXbjs7/Ww209Q=
->>>>>>> 313b9fe8 (build(deps): bump the otel group across 1 directory with 6 updates (#20250))
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0 h1:RbKq8BG0FI8OiXhBfcRtqqHcZcka+gU3cskNuf05R18=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0/go.mod h1:h06DGIukJOevXaj/xrNjhi/2098RZzcLTbc0jDAUbsg=
 go.opentelemetry.io/otel v1.40.0 h1:oA5YeOcpRTXq6NN7frwmwFR0Cn3RhTVZvXsP4duvCms=
@@ -792,8 +781,8 @@ golang.org/x/sys v0.14.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
 golang.org/x/sys v0.17.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
 golang.org/x/sys v0.18.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
 golang.org/x/sys v0.19.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
-golang.org/x/sys v0.39.0 h1:CvCKL8MeisomCi6qNZ+wbb0DN9E5AATixKsvNtMoMFk=
-golang.org/x/sys v0.39.0/go.mod h1:OgkHotnGiDImocRcuBABYBEXf8A9a87e/uXjp9XT3ks=
+golang.org/x/sys v0.40.0 h1:DBZZqJ2Rkml6QMQsZywtnjnnGvHza6BTfYFWY9kjEWQ=
+golang.org/x/sys v0.40.0/go.mod h1:OgkHotnGiDImocRcuBABYBEXf8A9a87e/uXjp9XT3ks=
 golang.org/x/telemetry v0.0.0-20240228155512-f48c80bd79b2/go.mod h1:TeRTkGYfJXctD9OcfyVLyj2J3IxLnKwHJR8f4D8a3YE=
 golang.org/x/telemetry v0.0.0-20251111182119-bc8e575c7b54 h1:E2/AqCUMZGgd73TQkxUMcMla25GB9i/5HOdLr+uH7Vo=
 golang.org/x/telemetry v0.0.0-20251111182119-bc8e575c7b54/go.mod h1:hKdjCMrbv9skySur+Nek8Hd0uJ0GuxJIoIX2payrIdQ=
