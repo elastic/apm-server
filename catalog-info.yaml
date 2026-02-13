@@ -55,3 +55,40 @@ spec:
           access_level: READ_ONLY
       env:
         ELASTIC_PR_COMMENTS_ENABLED: 'true'
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: buildkite-pipeline-apm-version-bump
+  description: Buildkite Pipeline for APM Server Version Bump
+  links:
+    - title: Pipeline
+      url: https://buildkite.com/elastic/apm-server-version-bump
+
+spec:
+  type: buildkite-pipeline
+  owner: group:obs-ds-intake-services
+  system: buildkite
+  implementation:
+    apiVersion: buildkite.elastic.dev/v1
+    kind: Pipeline
+    metadata:
+      name: apm-version-bump
+    spec:
+      branch_configuration: "main 8.* 9.*"
+      repository: elastic/apm-server
+      pipeline_file: ".buildkite/version-bump-pipeline.yml"
+      provider_settings:
+        build_branches: false
+        build_pull_requests: false
+        build_tags: false
+      cancel_intermediate_builds: true
+      cancel_intermediate_builds_branch_filter: "!main !8.* !9.*"
+      skip_intermediate_builds: true
+      skip_intermediate_builds_branch_filter: "!main !8.* !9.*"
+      teams:
+        obs-ds-intake-services: {}
+        observablt-robots: {}
+        everyone:
+          access_level: READ_ONLY
