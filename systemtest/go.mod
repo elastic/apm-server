@@ -7,7 +7,7 @@ require (
 	github.com/docker/go-connections v0.6.0
 	github.com/elastic/apm-perf v1.0.0
 	github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959
-	github.com/elastic/go-elasticsearch/v8 v8.19.2
+	github.com/elastic/go-elasticsearch/v8 v8.19.3
 	github.com/elastic/go-lumber v0.1.1
 	github.com/elastic/go-sysinfo v1.15.4
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
@@ -31,7 +31,7 @@ require (
 	golang.org/x/sync v0.19.0
 	golang.org/x/sys v0.41.0
 	golang.org/x/time v0.14.0
-	google.golang.org/grpc v1.78.0
+	google.golang.org/grpc v1.79.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 

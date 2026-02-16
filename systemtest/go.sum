@@ -49,8 +49,8 @@ github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959 h1:N76IIqinReb57
 github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959/go.mod h1:kHvCTEbLhFbP0g2k4R8BMLIANRWzqHA7e84AQ84TQLc=
 github.com/elastic/elastic-transport-go/v8 v8.8.0 h1:7k1Ua+qluFr6p1jfJjGDl97ssJS/P7cHNInzfxgBQAo=
 github.com/elastic/elastic-transport-go/v8 v8.8.0/go.mod h1:YLHer5cj0csTzNFXoNQ8qhtGY1GTvSqPnKWKaqQE3Hk=
-github.com/elastic/go-elasticsearch/v8 v8.19.2 h1:13Q0b7lW39H85Kb5SOpIzSyPbuZdAEPLd6kzsUHkpKQ=
-github.com/elastic/go-elasticsearch/v8 v8.19.2/go.mod h1:tHJQdInFa6abmDbDCEH2LJja07l/SIpaGpJcm13nt7s=
+github.com/elastic/go-elasticsearch/v8 v8.19.3 h1:5LDg0hfGJXBa9Y+2QlUgRTsNJ/7rm7oNidydtFAq0LI=
+github.com/elastic/go-elasticsearch/v8 v8.19.3/go.mod h1:tHJQdInFa6abmDbDCEH2LJja07l/SIpaGpJcm13nt7s=
 github.com/elastic/go-lumber v0.1.1 h1:aae5rSBnwBvdB0aShJ7AbOYPyvP1/wS/JIOC1A4D1DM=
 github.com/elastic/go-lumber v0.1.1/go.mod h1:DMVoFv7YM71enE9X5vWJWWv7wvQNtzXh7bPeKukDccY=
 github.com/elastic/go-sysinfo v1.15.4 h1:A3zQcunCxik14MgXu39cXFXcIw2sFXZ0zL886eyiv1Q=
@@ -241,8 +241,8 @@ google.golang.org/genproto/googleapis/api v0.0.0-20260128011058-8636f8732409 h1:
 google.golang.org/genproto/googleapis/api v0.0.0-20260128011058-8636f8732409/go.mod h1:fl8J1IvUjCilwZzQowmw2b7HQB2eAuYBabMXzWurF+I=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20260128011058-8636f8732409 h1:H86B94AW+VfJWDqFeEbBPhEtHzJwJfTbgE2lZa54ZAQ=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20260128011058-8636f8732409/go.mod h1:j9x/tPzZkyxcgEFkiKEEGxfvyumM01BEtsW8xzOahRQ=
-google.golang.org/grpc v1.78.0 h1:K1XZG/yGDJnzMdd/uZHAkVqJE+xIDOcmdSFZkBUicNc=
-google.golang.org/grpc v1.78.0/go.mod h1:I47qjTo4OKbMkjA/aOOwxDIiPSBofUtQUI5EfpWvW7U=
+google.golang.org/grpc v1.79.1 h1:zGhSi45ODB9/p3VAawt9a+O/MULLl9dpizzNNpq7flY=
+google.golang.org/grpc v1.79.1/go.mod h1:KmT0Kjez+0dde/v2j9vzwoAScgEPx/Bw1CYChhHLrHQ=
 google.golang.org/protobuf v1.36.11 h1:fV6ZwhNocDyBLK0dj+fg8ektcVegBBuEolpbTQyBNVE=
 google.golang.org/protobuf v1.36.11/go.mod h1:HTf+CrKn2C3g5S8VImy6tdcUvCska2kB7j23XfzDpco=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
