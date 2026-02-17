@@ -72,6 +72,16 @@ func StartStackContainers() error {
 		"docker", "compose", "-f", "../docker-compose.yml",
 		"up", "-d", "elasticsearch", "kibana",
 	)
+	// Workaround docker compose error due to MD5 hash usage
+	// under FIPS mode (GODEBUG=fips140=only) by filtering out GODEBUG from environment
+	// https://github.com/elastic/apm-server/issues/20369
+	var env []string
+	for _, e := range os.Environ() {
+		if !strings.HasPrefix(e, "GODEBUG=") {
+			env = append(env, e)
+		}
+	}
+	cmd.Env = env
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
