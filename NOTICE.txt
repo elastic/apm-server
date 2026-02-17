@@ -711,19 +711,11 @@ SOFTWARE
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-libs
-<<<<<<< HEAD
-Version: v0.30.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.30.0/LICENSE:
-=======
 Version: v0.32.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.32.1/LICENSE:
->>>>>>> f8df8fb9 (build(deps): bump github.com/elastic/elastic-agent-libs from 0.31.0 to 0.32.1 (#20287))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -930,11 +922,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-l
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-system-metrics
-Version: v0.13.5
+Version: v0.13.6
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-system-metrics@v0.13.5/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-system-metrics@v0.13.6/LICENSE.txt:
 
                                  Apache License
                            Version 2.0, January 2004
