@@ -335,6 +335,7 @@ cat > "${OUTPUT_FILE}" <<EOF
 ## ES apm-data plugin
 
 <!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/elasticsearch/tree/main/x-pack/plugin/apm-data-->
+TODO: Manually check whether any coordinated ES apm-data plugin changes were done for this release. This is not handled by automation.
 
 ## apm-aggregation
 
