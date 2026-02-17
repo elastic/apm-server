@@ -78,19 +78,37 @@ module_version() {
       exit
     }
     END {
-      if (!found) {
-        print "unknown"
-      }
+      if (!found) exit 1
     }
   ' "${file}"
 }
 
-OLD_APM_AGG="$(module_version build/test-plan-go.mod.old github.com/elastic/apm-aggregation)"
-NEW_APM_AGG="$(module_version build/test-plan-go.mod.new github.com/elastic/apm-aggregation)"
-OLD_DOCAPPENDER="$(module_version build/test-plan-go.mod.old github.com/elastic/go-docappender/v2)"
-NEW_DOCAPPENDER="$(module_version build/test-plan-go.mod.new github.com/elastic/go-docappender/v2)"
-OLD_APM_DATA="$(module_version build/test-plan-go.mod.old github.com/elastic/apm-data)"
-NEW_APM_DATA="$(module_version build/test-plan-go.mod.new github.com/elastic/apm-data)"
+required_module_version() {
+  local file="$1"
+  local module="$2"
+  local ref_name="$3"
+  local value
+
+  if ! value="$(module_version "${file}" "${module}")"; then
+    echo "Error: required module ${module} is missing in go.mod at ${ref_name}"
+    echo "Please ensure ${module} is present before generating a test plan."
+    exit 1
+  fi
+
+  if [[ -z "${value}" ]]; then
+    echo "Error: could not resolve version for required module ${module} at ${ref_name}"
+    exit 1
+  fi
+
+  printf '%s\n' "${value}"
+}
+
+OLD_APM_AGG="$(required_module_version build/test-plan-go.mod.old github.com/elastic/apm-aggregation "${PREVIOUS_TAG}")"
+NEW_APM_AGG="$(required_module_version build/test-plan-go.mod.new github.com/elastic/apm-aggregation "origin/${BRANCH}")"
+OLD_DOCAPPENDER="$(required_module_version build/test-plan-go.mod.old github.com/elastic/go-docappender/v2 "${PREVIOUS_TAG}")"
+NEW_DOCAPPENDER="$(required_module_version build/test-plan-go.mod.new github.com/elastic/go-docappender/v2 "origin/${BRANCH}")"
+OLD_APM_DATA="$(required_module_version build/test-plan-go.mod.old github.com/elastic/apm-data "${PREVIOUS_TAG}")"
+NEW_APM_DATA="$(required_module_version build/test-plan-go.mod.new github.com/elastic/apm-data "origin/${BRANCH}")"
 APM_AGG_DIFF_COMMITS_FILE="build/test-plan-apm-aggregation-diff-commits.txt"
 DOCAPPENDER_DIFF_COMMITS_FILE="build/test-plan-go-docappender-diff-commits.txt"
 APM_DATA_DIFF_COMMITS_FILE="build/test-plan-apm-data-diff-commits.txt"
@@ -234,7 +252,7 @@ write_compare_or_no_change() {
   local old="$1"
   local new="$2"
   local prefix="$3"
-  if [[ "${old}" != "${new}" && "${old}" != "unknown" && "${new}" != "unknown" ]]; then
+  if [[ "${old}" != "${new}" ]]; then
     echo "List of changes: ${prefix}${old}...${new}" >> "${OUTPUT_FILE}"
   else
     echo "No version change detected." >> "${OUTPUT_FILE}"
@@ -252,7 +270,7 @@ collect_external_repo_commits() {
 
   : > "${out_file}"
 
-  if [[ "${old_version}" == "unknown" || "${new_version}" == "unknown" || "${old_version}" == "${new_version}" ]]; then
+  if [[ "${old_version}" == "${new_version}" ]]; then
     return 0
   fi
 
