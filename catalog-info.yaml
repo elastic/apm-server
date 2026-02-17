@@ -55,3 +55,4 @@ spec:
           access_level: READ_ONLY
       env:
         ELASTIC_PR_COMMENTS_ENABLED: 'true'
+        SLACK_NOTIFICATIONS_SKIP_FOR_RETRIES: 'true'
