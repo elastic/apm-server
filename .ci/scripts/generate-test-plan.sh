@@ -25,6 +25,7 @@ fi
 BRANCH="${MAJOR}.${MINOR}"
 PREVIOUS_TAG="v${MAJOR}.${MINOR}.$((PATCH - 1))"
 OUTPUT_FILE="build/test-plan-${VERSION}.md"
+REPO_CACHE_DIR="build/test-plan-repos"
 
 mkdir -p build
 
@@ -90,6 +91,9 @@ OLD_DOCAPPENDER="$(module_version build/test-plan-go.mod.old github.com/elastic/
 NEW_DOCAPPENDER="$(module_version build/test-plan-go.mod.new github.com/elastic/go-docappender/v2)"
 OLD_APM_DATA="$(module_version build/test-plan-go.mod.old github.com/elastic/apm-data)"
 NEW_APM_DATA="$(module_version build/test-plan-go.mod.new github.com/elastic/apm-data)"
+APM_AGG_DIFF_COMMITS_FILE="build/test-plan-apm-aggregation-diff-commits.txt"
+DOCAPPENDER_DIFF_COMMITS_FILE="build/test-plan-go-docappender-diff-commits.txt"
+APM_DATA_DIFF_COMMITS_FILE="build/test-plan-apm-data-diff-commits.txt"
 
 awk -F'|' '
   BEGIN { IGNORECASE = 1 }
@@ -204,11 +208,26 @@ append_from_file() {
 append_dep_subgroup() {
   local heading="$1"
   local source="$2"
+  local collapsed="${3:-false}"
   [[ -s "${source}" ]] || return 0
-  echo "#### ${heading}" >> "${OUTPUT_FILE}"
-  echo >> "${OUTPUT_FILE}"
-  append_from_file "${source}"
-  echo >> "${OUTPUT_FILE}"
+  if [[ "${collapsed}" == "true" ]]; then
+    cat >> "${OUTPUT_FILE}" <<EOF
+<details>
+<summary>${heading}</summary>
+
+EOF
+    append_from_file "${source}"
+    cat >> "${OUTPUT_FILE}" <<EOF
+
+</details>
+
+EOF
+  else
+    echo "#### ${heading}" >> "${OUTPUT_FILE}"
+    echo >> "${OUTPUT_FILE}"
+    append_from_file "${source}"
+    echo >> "${OUTPUT_FILE}"
+  fi
 }
 
 write_compare_or_no_change() {
@@ -222,6 +241,71 @@ write_compare_or_no_change() {
   fi
   echo >> "${OUTPUT_FILE}"
 }
+
+collect_external_repo_commits() {
+  local repo_name="$1"
+  local old_version="$2"
+  local new_version="$3"
+  local out_file="$4"
+  local repo_dir="${REPO_CACHE_DIR}/${repo_name}"
+  local repo_url="https://github.com/elastic/${repo_name}.git"
+
+  : > "${out_file}"
+
+  if [[ "${old_version}" == "unknown" || "${new_version}" == "unknown" || "${old_version}" == "${new_version}" ]]; then
+    return 0
+  fi
+
+  mkdir -p "${REPO_CACHE_DIR}"
+  if [[ ! -d "${repo_dir}/.git" ]]; then
+    if ! git clone --filter=blob:none --quiet "${repo_url}" "${repo_dir}" >/dev/null 2>&1; then
+      return 0
+    fi
+  fi
+
+  git -C "${repo_dir}" fetch --tags --force --quiet >/dev/null 2>&1 || true
+
+  if ! git -C "${repo_dir}" rev-parse "${old_version}^{commit}" >/dev/null 2>&1; then
+    return 0
+  fi
+  if ! git -C "${repo_dir}" rev-parse "${new_version}^{commit}" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  git -C "${repo_dir}" log --pretty=format:'%H|%an|%ad|%s' --date=short "${old_version}..${new_version}" > "${out_file}" || true
+}
+
+append_external_repo_details_block() {
+  local repo_name="$1"
+  local source="$2"
+  [[ -s "${source}" ]] || return 0
+
+  cat >> "${OUTPUT_FILE}" <<EOF
+<details>
+<summary>Commits in ${repo_name} diff</summary>
+
+EOF
+  awk -F'|' -v repo="${repo_name}" '
+    {
+      hash = $1
+      author = $2
+      date = $3
+      subject = $4
+      gsub(/`/, "\\`", subject)
+      short = substr(hash, 1, 8)
+      printf "- [`%s`](https://github.com/elastic/%s/commit/%s): `%s` (%s on %s)\n", short, repo, hash, subject, author, date
+    }
+  ' "${source}" >> "${OUTPUT_FILE}"
+  cat >> "${OUTPUT_FILE}" <<EOF
+
+</details>
+
+EOF
+}
+
+collect_external_repo_commits "apm-aggregation" "${OLD_APM_AGG}" "${NEW_APM_AGG}" "${APM_AGG_DIFF_COMMITS_FILE}"
+collect_external_repo_commits "go-docappender" "${OLD_DOCAPPENDER}" "${NEW_DOCAPPENDER}" "${DOCAPPENDER_DIFF_COMMITS_FILE}"
+collect_external_repo_commits "apm-data" "${OLD_APM_DATA}" "${NEW_APM_DATA}" "${APM_DATA_DIFF_COMMITS_FILE}"
 
 cat > "${OUTPUT_FILE}" <<EOF
 # Manual Test Plan
@@ -241,6 +325,7 @@ cat > "${OUTPUT_FILE}" <<EOF
 EOF
 
 write_compare_or_no_change "${OLD_APM_AGG}" "${NEW_APM_AGG}" "https://github.com/elastic/apm-aggregation/compare/"
+append_external_repo_details_block "apm-aggregation" "${APM_AGG_DIFF_COMMITS_FILE}"
 append_by_category "apm-aggregation"
 echo >> "${OUTPUT_FILE}"
 
@@ -252,6 +337,7 @@ cat >> "${OUTPUT_FILE}" <<EOF
 EOF
 
 write_compare_or_no_change "${OLD_DOCAPPENDER}" "${NEW_DOCAPPENDER}" "https://github.com/elastic/go-docappender/compare/"
+append_external_repo_details_block "go-docappender" "${DOCAPPENDER_DIFF_COMMITS_FILE}"
 append_by_category "go-docappender"
 echo >> "${OUTPUT_FILE}"
 
@@ -263,6 +349,7 @@ cat >> "${OUTPUT_FILE}" <<EOF
 EOF
 
 write_compare_or_no_change "${OLD_APM_DATA}" "${NEW_APM_DATA}" "https://github.com/elastic/apm-data/compare/"
+append_external_repo_details_block "apm-data" "${APM_DATA_DIFF_COMMITS_FILE}"
 append_by_category "apm-data"
 echo >> "${OUTPUT_FILE}"
 
@@ -291,13 +378,13 @@ if [[ -s "${DEP_OTHER_FILE}" ]]; then
 ### dependency updates
 
 EOF
-  append_dep_subgroup "Elastic stack" "${DEP_ELASTIC_STACK_FILE}"
-  append_dep_subgroup "Elastic Beats" "${DEP_BEATS_FILE}"
-  append_dep_subgroup "Golang" "${DEP_GOLANG_FILE}"
-  append_dep_subgroup "OpenTelemetry" "${DEP_OTEL_FILE}"
-  append_dep_subgroup "Docker" "${DEP_DOCKER_FILE}"
+  append_dep_subgroup "Elastic stack" "${DEP_ELASTIC_STACK_FILE}" "true"
+  append_dep_subgroup "Elastic Beats" "${DEP_BEATS_FILE}" "true"
+  append_dep_subgroup "Golang" "${DEP_GOLANG_FILE}" "true"
+  append_dep_subgroup "OpenTelemetry" "${DEP_OTEL_FILE}" "true"
+  append_dep_subgroup "Docker" "${DEP_DOCKER_FILE}" "true"
   append_dep_subgroup "GitHub Actions" "${DEP_ACTIONS_FILE}"
-  append_dep_subgroup "Wolfi/Chainguard" "${DEP_WOLFI_FILE}"
+  append_dep_subgroup "Wolfi/Chainguard" "${DEP_WOLFI_FILE}" "true"
   append_dep_subgroup "Other dependencies" "${DEP_MISC_FILE}"
 fi
 
