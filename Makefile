@@ -384,3 +384,4 @@ api-docs: ## Generate bundled OpenAPI documents
 .PHONY: api-docs-lint
 api-docs-lint: ## Run spectral API docs linter
 	@npx @stoplight/spectral-cli lint "docs/spec/openapi/bundled.yaml" --ruleset "docs/spec/openapi/.spectral.yaml"
+
