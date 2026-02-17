@@ -22,16 +22,11 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history for all branches and tags
 
-      - name: Generate test plan using Makefile
+      - name: Generate test plan
         id: generate-test-plan
         run: |
-          # Extract version without 'v' prefix
           VERSION="${{ inputs.upcoming_release }}"
-          
-          # Generate test plan using Makefile
-          make test-plan VERSION="$VERSION"
-          
-          # Set outputs for later steps
+          bash .ci/scripts/generate-test-plan.sh "$VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "test_plan_file=build/test-plan-$VERSION.md" >> $GITHUB_OUTPUT
 
