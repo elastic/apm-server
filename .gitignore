@@ -55,4 +55,3 @@ testing/smoke/**/secret_token_value.json
 testing/rally-cloud/build
 .bck
 gvm
-test.binary

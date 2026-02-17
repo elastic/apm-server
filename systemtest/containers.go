@@ -68,12 +68,12 @@ func initContainers() {
 // We leave Elasticsearch and Kibana running, to avoid slowing down iterative
 // development and testing. Use docker-compose to stop services as necessary.
 func StartStackContainers() error {
-	composeFile := filepath.Join(systemtestDir, "..", "docker-compose.yml")
 	cmd := exec.Command(
-		"docker", "compose", "-f", composeFile,
+		"docker", "compose", "-f", "../docker-compose.yml",
 		"up", "-d", "elasticsearch", "kibana",
 	)
-	// Filter out GODEBUG from environment as it can interfere with docker command execution
+	// Filter out GODEBUG from environment as docker compose uses MD5 hashing,
+	// which causes FIPS mode (GODEBUG=fips140=only) to fail
 	var env []string
 	for _, e := range os.Environ() {
 		if !strings.HasPrefix(e, "GODEBUG=") {
