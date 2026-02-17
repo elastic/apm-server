@@ -47,12 +47,18 @@ CATEGORIZED_FILE="build/test-plan-categorized.txt"
 OTHER_FILE="build/test-plan-other.txt"
 DEP_OTHER_FILE="build/test-plan-other-deps.txt"
 FUNC_OTHER_FILE="build/test-plan-other-functions.txt"
-RECENT_TITLES_FILE="build/test-plan-recent-pr-titles.txt"
-DEP_PREFIXES_FILE="build/test-plan-dep-prefixes.txt"
+DEP_ACTIONS_FILE="build/test-plan-other-deps-github-actions.txt"
+DEP_GOLANG_FILE="build/test-plan-other-deps-golang.txt"
+DEP_ELASTIC_STACK_FILE="build/test-plan-other-deps-elastic-stack.txt"
+DEP_BEATS_FILE="build/test-plan-other-deps-beats.txt"
+DEP_OTEL_FILE="build/test-plan-other-deps-otel.txt"
+DEP_DOCKER_FILE="build/test-plan-other-deps-docker.txt"
+DEP_WOLFI_FILE="build/test-plan-other-deps-wolfi.txt"
+DEP_MISC_FILE="build/test-plan-other-deps-misc.txt"
 
 git log --pretty=format:'%H|%an|%ad|%s' --date=short "${PREVIOUS_TAG}..origin/${BRANCH}" > "${COMMITS_FILE}"
 
-echo "Commits analyzed: $(wc -l < "${COMMITS_FILE}")"
+echo "Commits analyzed: $(awk 'END{print NR}' "${COMMITS_FILE}")"
 
 git show "${PREVIOUS_TAG}:go.mod" > build/test-plan-go.mod.old 2>/dev/null || : > build/test-plan-go.mod.old
 git show "origin/${BRANCH}:go.mod" > build/test-plan-go.mod.new 2>/dev/null || : > build/test-plan-go.mod.new
@@ -101,50 +107,84 @@ awk -F'|' '
   }
 ' "${COMMITS_FILE}" > "${CATEGORIZED_FILE}"
 
-# Learn dependency-like PR prefixes from the last 100 first-parent commits on the release branch.
-git log --first-parent --pretty=format:'%s' -n 100 "origin/${BRANCH}" > "${RECENT_TITLES_FILE}"
-awk '
-  BEGIN { IGNORECASE = 1 }
-  {
-    title = $0
-    dep_like = (title ~ /build\(deps\)|\[updatecli\]|updatecli\(|deps|dependency|dependencies|bump|upgrade|update to|github-actions|golang|go version|elastic stack|beats|otel|wolfi/)
-    if (dep_like && index(title, ":") > 0) {
-      p = substr(title, 1, index(title, ":") - 1)
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", p)
-      if (length(p) > 0 && length(p) < 80) {
-        print p
-      }
-    }
-  }
-' "${RECENT_TITLES_FILE}" | sort -fu > "${DEP_PREFIXES_FILE}"
-
 is_dep_message() {
   local msg="$1"
   local msg_lc
   msg_lc="$(printf '%s' "${msg}" | tr '[:upper:]' '[:lower:]')"
 
-  if [[ "${msg_lc}" =~ build\(deps\)|\[updatecli\]|updatecli\(|deps|dependency|dependencies|bump|upgrade|update\ to|github-actions|golang|go\ version|elastic\ stack|beats|otel|wolfi ]]; then
+  # Keep dependency updates strict to known PR styles.
+  # Backports may prepend text before these markers, so match anywhere.
+  if [[ "${msg_lc}" =~ build\(deps\):|\[updatecli\]|chore:\ update-beats ]]; then
     return 0
   fi
-
-  while IFS= read -r p; do
-    [[ -z "${p}" ]] && continue
-    p="$(printf '%s' "${p}" | tr '[:upper:]' '[:lower:]')"
-    if [[ "${msg_lc}" == "${p}:"* ]]; then
-      return 0
-    fi
-  done < "${DEP_PREFIXES_FILE}"
   return 1
 }
 
 grep '^other|' "${CATEGORIZED_FILE}" > "${OTHER_FILE}" || : > "${OTHER_FILE}"
 : > "${DEP_OTHER_FILE}"
 : > "${FUNC_OTHER_FILE}"
+: > "${DEP_ACTIONS_FILE}"
+: > "${DEP_GOLANG_FILE}"
+: > "${DEP_ELASTIC_STACK_FILE}"
+: > "${DEP_BEATS_FILE}"
+: > "${DEP_OTEL_FILE}"
+: > "${DEP_DOCKER_FILE}"
+: > "${DEP_WOLFI_FILE}"
+: > "${DEP_MISC_FILE}"
+
+dep_group_for_message() {
+  local msg_lc
+  msg_lc="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+
+  if [[ "${msg_lc}" =~ github-actions|github\.com/actions ]]; then
+    echo "github actions"
+  elif [[ "${msg_lc}" =~ \[updatecli\].*bump\ golang\ version|\[updatecli\].*go\ version ]]; then
+    echo "golang"
+  elif [[ "${msg_lc}" =~ update\ to\ elastic/beats|\[updatecli\].*beats|chore:\ update-beats|update-beats ]]; then
+    echo "elastic beats"
+  elif [[ "${msg_lc}" =~ elastic\ stack ]]; then
+    echo "elastic stack"
+  elif [[ "${msg_lc}" =~ otel|opentelemetry ]]; then
+    echo "opentelemetry"
+  elif [[ "${msg_lc}" =~ docker ]]; then
+    echo "docker"
+  elif [[ "${msg_lc}" =~ wolfi|chainguard ]]; then
+    echo "wolfi"
+  else
+    echo "other dependencies"
+  fi
+}
 
 while IFS='|' read -r category short_hash author date message; do
   [[ -z "${category}" ]] && continue
   if is_dep_message "${message}"; then
     printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_OTHER_FILE}"
+    case "$(dep_group_for_message "${message}")" in
+      "github actions")
+        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_ACTIONS_FILE}"
+        ;;
+      "golang")
+        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_GOLANG_FILE}"
+        ;;
+      "elastic stack")
+        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_ELASTIC_STACK_FILE}"
+        ;;
+      "elastic beats")
+        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_BEATS_FILE}"
+        ;;
+      "opentelemetry")
+        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_OTEL_FILE}"
+        ;;
+      "docker")
+        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_DOCKER_FILE}"
+        ;;
+      "wolfi")
+        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_WOLFI_FILE}"
+        ;;
+      *)
+        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_MISC_FILE}"
+        ;;
+    esac
   else
     printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${FUNC_OTHER_FILE}"
   fi
@@ -159,6 +199,16 @@ append_from_file() {
   local source="$1"
   [[ -s "${source}" ]] || return 0
   awk -F'|' '{ printf "- %s: %s (by %s on %s)\n", $2, $5, $3, $4 }' "${source}" >> "${OUTPUT_FILE}"
+}
+
+append_dep_subgroup() {
+  local heading="$1"
+  local source="$2"
+  [[ -s "${source}" ]] || return 0
+  echo "#### ${heading}" >> "${OUTPUT_FILE}"
+  echo >> "${OUTPUT_FILE}"
+  append_from_file "${source}"
+  echo >> "${OUTPUT_FILE}"
 }
 
 write_compare_or_no_change() {
@@ -227,15 +277,6 @@ List of changes: https://github.com/elastic/apm-server/compare/${PREVIOUS_TAG}..
 
 EOF
 
-if [[ -s "${DEP_OTHER_FILE}" ]]; then
-  cat >> "${OUTPUT_FILE}" <<EOF
-### dependency updates
-
-EOF
-  append_from_file "${DEP_OTHER_FILE}"
-  echo >> "${OUTPUT_FILE}"
-fi
-
 if [[ -s "${FUNC_OTHER_FILE}" ]]; then
   cat >> "${OUTPUT_FILE}" <<EOF
 ### function changes
@@ -243,6 +284,21 @@ if [[ -s "${FUNC_OTHER_FILE}" ]]; then
 EOF
   append_from_file "${FUNC_OTHER_FILE}"
   echo >> "${OUTPUT_FILE}"
+fi
+
+if [[ -s "${DEP_OTHER_FILE}" ]]; then
+  cat >> "${OUTPUT_FILE}" <<EOF
+### dependency updates
+
+EOF
+  append_dep_subgroup "Elastic stack" "${DEP_ELASTIC_STACK_FILE}"
+  append_dep_subgroup "Elastic Beats" "${DEP_BEATS_FILE}"
+  append_dep_subgroup "Golang" "${DEP_GOLANG_FILE}"
+  append_dep_subgroup "OpenTelemetry" "${DEP_OTEL_FILE}"
+  append_dep_subgroup "Docker" "${DEP_DOCKER_FILE}"
+  append_dep_subgroup "GitHub Actions" "${DEP_ACTIONS_FILE}"
+  append_dep_subgroup "Wolfi/Chainguard" "${DEP_WOLFI_FILE}"
+  append_dep_subgroup "Other dependencies" "${DEP_MISC_FILE}"
 fi
 
 cat >> "${OUTPUT_FILE}" <<EOF
