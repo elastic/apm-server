@@ -68,10 +68,20 @@ func initContainers() {
 // We leave Elasticsearch and Kibana running, to avoid slowing down iterative
 // development and testing. Use docker-compose to stop services as necessary.
 func StartStackContainers() error {
+	composeFile := filepath.Join(systemtestDir, "..", "docker-compose.yml")
 	cmd := exec.Command(
-		"docker", "compose", "-f", "../docker-compose.yml",
+		"docker", "compose", "-f", composeFile,
 		"up", "-d", "elasticsearch", "kibana",
 	)
+	// Filter out GODEBUG from environment as it can interfere with docker command execution
+	// See: https://github.com/elastic/apm-server/issues/XXXXX
+	var env []string
+	for _, e := range os.Environ() {
+		if !strings.HasPrefix(e, "GODEBUG=") {
+			env = append(env, e)
+		}
+	}
+	cmd.Env = env
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
