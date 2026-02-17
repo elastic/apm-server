@@ -30,13 +30,6 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "test_plan_file=build/test-plan-$VERSION.md" >> $GITHUB_OUTPUT
 
-      - name: Upload test plan artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-plan-${{ steps.generate-test-plan.outputs.version }}
-          path: ${{ steps.generate-test-plan.outputs.test_plan_file }}
-          retention-days: 90
-
       - name: Create GitHub issue
         id: create-issue
         run: |
