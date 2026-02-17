@@ -74,7 +74,6 @@ func StartStackContainers() error {
 		"up", "-d", "elasticsearch", "kibana",
 	)
 	// Filter out GODEBUG from environment as it can interfere with docker command execution
-	// See: https://github.com/elastic/apm-server/issues/XXXXX
 	var env []string
 	for _, e := range os.Environ() {
 		if !strings.HasPrefix(e, "GODEBUG=") {
