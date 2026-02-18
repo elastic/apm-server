@@ -30,12 +30,12 @@ import (
 	"runtime"
 	"sort"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
 	"go.elastic.co/apm/v2/stacktrace"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-perf/loadgen"
@@ -43,7 +43,7 @@ import (
 	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
 )
 
-const waitInactiveTimeout = 90 * time.Second
+const waitInactiveTimeout = 30 * time.Second
 
 // BenchmarkFunc is the benchmark function type accepted by Run.
 type BenchmarkFunc func(*testing.B, *rate.Limiter)
@@ -289,19 +289,24 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 
-	var wg sync.WaitGroup
-	wg.Add(agents)
+	g, ctx := errgroup.WithContext(ctx)
+
 	for i := 0; i < agents; i++ {
-		go func() {
-			defer wg.Done()
-			sendErr := h.SendBatchesInLoop(ctx)
-			if sendErr != nil && !errors.Is(sendErr, context.DeadlineExceeded) {
-				log.Printf("failed to send batches: %v", sendErr)
+		g.Go(func() error {
+			if sendErr := h.SendBatchesInLoop(ctx); sendErr != nil {
+				if !errors.Is(sendErr, context.DeadlineExceeded) {
+					return fmt.Errorf("error sending batches: %w", sendErr)
+				}
 			}
-		}()
+			return nil
+		})
 	}
 
-	wg.Wait()
+	// If no agent successfully sent requests, return error immediately.
+	// This prevents hanging in WaitUntilServerInactive when the server never receives requests.
+	if err = g.Wait(); err != nil {
+		return fmt.Errorf("some agents failed to send batches: %v", err)
+	}
 
 	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
 	defer cancel()
