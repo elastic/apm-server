@@ -352,7 +352,14 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	if b.Config.MetricLogging != nil && b.Config.MetricLogging.Enabled() {
-		reporter, err := log.MakeReporter(b.Info, b.Config.MetricLogging)
+		reporter, err := log.MakeReporter(
+			b.Info,
+			b.Config.MetricLogging,
+			b.Monitoring.InfoRegistry(),
+			b.Monitoring.StateRegistry(),
+			b.Monitoring.StatsRegistry(),
+			b.Monitoring.InputsRegistry(),
+		)
 		if err != nil {
 			return err
 		}
