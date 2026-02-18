@@ -48,14 +48,16 @@ jobs:
 
       - name: Create summary
         run: |
-          echo "# Test Plan Issue Created! 🎉" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Issue URL:** ${{ steps.create-issue.outputs.issue_url }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Version:** ${{ steps.generate-test-plan.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Test Plan Preview" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          head -n 50 "${{ steps.generate-test-plan.outputs.test_plan_file }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "_Full test plan available in the issue above_" >> $GITHUB_STEP_SUMMARY
+          cat >> $GITHUB_STEP_SUMMARY <<-EOF
+          # Test Plan Issue Created! 🎉
+
+          **Issue URL:** ${{ steps.create-issue.outputs.issue_url }}
+
+          **Version:** ${{ steps.generate-test-plan.outputs.version }}
+    
+          ## Test Plan Preview
+    
+          $(head -n 50 "${{ steps.generate-test-plan.outputs.test_plan_file }}")
+    
+          _Full test plan available in the issue above_
+          EOF
