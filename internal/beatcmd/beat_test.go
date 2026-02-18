@@ -628,9 +628,6 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 	err = manager.Start()
 	require.NoError(t, err)
 
-<<<<<<< HEAD
-	assert.Equal(t, "failed to load input config: newRunner error", <-inputFailedMsg)
-=======
 	select {
 	case msg := <-inputFailedMsg:
 		assert.Equal(t, "failed to load input config: newRunner error", msg)
@@ -647,7 +644,6 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 	// Give goroutines time to fully exit after Stop().
 	// Stop() cancels contexts but goroutines may still be logging.
 	time.Sleep(100 * time.Millisecond)
->>>>>>> 41b13d97 (Fix flaky systemtests (#20290))
 }
 
 func runBeat(t testing.TB, beat *Beat) (stop func() error) {
