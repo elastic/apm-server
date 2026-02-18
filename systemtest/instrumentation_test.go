@@ -90,11 +90,13 @@ func TestAPMServerInstrumentation(t *testing.T) {
 		if !ok {
 			continue
 		}
-		assert.Equalf(t, transactionDoc.Trace.ID, traceID,
-			"expecting log with trace id %s; got trace id %s and message \"%s\" instead", transactionDoc.Trace.ID, traceID, entry.Message)
-		assert.Equalf(t, transactionDoc.Transaction.ID, entry.Fields["transaction.id"],
-			"expecting log with transaction id %s; got transaction id %s and message \"%s\" instead", transactionDoc.Transaction.ID, entry.Fields["transaction.id"], entry.Message)
-		return
+		// Check if this log entry matches the transaction we're looking for.
+		// Don't assert on the first trace ID found; continue searching for the right one.
+		if traceID == transactionDoc.Trace.ID {
+			assert.Equal(t, transactionDoc.Transaction.ID, entry.Fields["transaction.id"],
+				"found matching trace ID but transaction ID doesn't match")
+			return
+		}
 	}
 	t.Fatal("failed to identify log message with matching trace IDs")
 }
