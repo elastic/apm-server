@@ -36,6 +36,17 @@ _No new features or enhancements_
 
 _No new fixes_ 
 
+## 9.2.5 [apm-9.2.5-release-notes]
+
+```{applies_to}
+stack: ga 9.2
+```
+
+### Fixes [apm-9.2.5-fixes]
+
+* Fix potential data race in Tail Based Sampling ([#20139](https://github.com/elastic/apm-server/pull/20139))
+* Fix self-instrumentation missing span kind in some traces ([#20199](https://github.com/elastic/apm-server/pull/20199)) ([#20212](https://github.com/elastic/apm-server/pull/20212))
+
 ## 9.2.4 [apm-9.2.4-release-notes]
 
 _No new features, enhancements, or fixes._

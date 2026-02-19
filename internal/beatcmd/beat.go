@@ -60,7 +60,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/service"
 	"github.com/elastic/elastic-agent-system-metrics/metric/system/host"
 	metricreport "github.com/elastic/elastic-agent-system-metrics/report"
-	sysinfo "github.com/elastic/go-sysinfo"
+	"github.com/elastic/go-sysinfo"
 	"github.com/elastic/go-sysinfo/types"
 
 	"github.com/elastic/apm-server/internal/version"
@@ -248,7 +248,7 @@ func (b *Beat) loadMeta(metaPath string) error {
 	// meta.json does not exist, or the contents are invalid: write a new file.
 	//
 	// Write a temporary file, and then atomically move it into place in case
-	// of errors occurring half way through.
+	// of errors occurring halfway through.
 
 	encodedMeta, err := json.Marshal(meta{
 		UUID:       b.Info.ID,
@@ -352,7 +352,14 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	if b.Config.MetricLogging != nil && b.Config.MetricLogging.Enabled() {
-		reporter, err := log.MakeReporter(b.Info, b.Config.MetricLogging)
+		reporter, err := log.MakeReporter(
+			b.Info,
+			b.Config.MetricLogging,
+			b.Monitoring.InfoRegistry(),
+			b.Monitoring.StateRegistry(),
+			b.Monitoring.StatsRegistry(),
+			b.Monitoring.InputsRegistry(),
+		)
 		if err != nil {
 			return err
 		}
@@ -395,7 +402,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	if b.Manager.Enabled() {
-		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer, b.tracerProvider, b.Monitoring)
+		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer, b.tracerProvider, b.Monitoring, b.Manager)
 		if err != nil {
 			return err
 		}
@@ -418,6 +425,7 @@ func (b *Beat) Run(ctx context.Context) error {
 			MeterProvider:   b.meterProvider,
 			MetricsGatherer: b.metricGatherer,
 			BeatMonitoring:  b.Monitoring,
+			StatusReporter:  b.Manager,
 		})
 		if err != nil {
 			return err

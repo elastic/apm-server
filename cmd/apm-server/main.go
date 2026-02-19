@@ -35,6 +35,7 @@ func main() {
 				MeterProvider:   args.MeterProvider,
 				MetricsGatherer: args.MetricsGatherer,
 				BeatMonitoring:  args.BeatMonitoring,
+				StatusReporter:  args.StatusReporter,
 			})
 		},
 	})

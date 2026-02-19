@@ -21,7 +21,10 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	var config sampling.Config
 	assertInvalidConfigError := func(expectedError string) {
 		t.Helper()
-		agg, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
+		agg, err := sampling.NewProcessor(sampling.ProcessorParams{
+			Config: config,
+			Logger: logptest.NewTestingLogger(t, ""),
+		})
 		require.Error(t, err)
 		require.Nil(t, agg)
 		assert.EqualError(t, err, "invalid tail-sampling config: "+expectedError)

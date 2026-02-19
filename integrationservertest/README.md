@@ -13,7 +13,6 @@ The following is a simplified directory structure of integration server test.
    |- internal/
    |- scripts/
    |- main_test.go
-   |- standalone_test.go
    |- upgrade_test.go
 ```
 
@@ -66,15 +65,6 @@ Which will yield the following upgrade paths:
 - `8.17 -> 8.19 -> 9.1`
 - `8.18 -> 8.19`
 - `8.18 -> 9.0 -> 9.1`
-
-### Standalone-to-Managed Tests
-
-The standalone-to-managed tests reside in `standalone_test.go`
-
-These tests test the migration from standalone APM Server to Fleet-managed. Currently, the tests include:
-- 7.x standalone -> 8.x standalone -> 8.x managed -> 9.x managed
-- 7.x standalone -> 8.x standalone -> 9.x standalone -> 9.x managed
-- 7.x standalone -> 7.x managed -> 8.x managed -> 9.x managed
 
 ## Running the Tests
 

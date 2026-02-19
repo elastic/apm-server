@@ -26,6 +26,8 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/model/modelpb"
+
+	"github.com/elastic/beats/v7/libbeat/management/status"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 
@@ -36,7 +38,11 @@ import (
 )
 
 func TestProcessUnsampled(t *testing.T) {
-	processor, err := sampling.NewProcessor(newTempdirConfig(t).Config, logptest.NewTestingLogger(t, ""))
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         newTempdirConfig(t).Config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: noopStatusReport{},
+	})
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -79,7 +85,11 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 
 	require.NoError(t, config.DB.Flush())
 
-	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: noopStatusReport{},
+	})
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -165,7 +175,11 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			published := make(chan string)
 			config.Elasticsearch = pubsubtest.Client(pubsubtest.PublisherChan(published), nil)
 
-			processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
+			processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+				Config:         config,
+				Logger:         logptest.NewTestingLogger(t, ""),
+				StatusReporter: noopStatusReport{},
+			})
 			require.NoError(t, err)
 
 			trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
@@ -273,14 +287,17 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			assert.Empty(t, cmp.Diff(unsampledTraceEvents, batch, protocmp.Transform()))
 		})
 	}
-
 }
 
 func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	tempdirConfig := newTempdirConfig(t)
 	config := tempdirConfig.Config
 	config.FlushInterval = time.Minute
-	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: noopStatusReport{},
+	})
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -347,7 +364,11 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 	published := make(chan string)
 	config.Elasticsearch = pubsubtest.Client(pubsubtest.PublisherChan(published), nil)
 
-	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: noopStatusReport{},
+	})
 	require.NoError(t, err)
 
 	// Send transactions which would match either policy defined above.
@@ -423,7 +444,11 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 		}
 	})
 
-	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: noopStatusReport{},
+	})
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -531,7 +556,11 @@ func TestProcessDiscardOnWriteFailure(t *testing.T) {
 			config := newTempdirConfig(t).Config
 			config.DiscardOnWriteFailure = discard
 			config.Storage = errorRW{err: errors.New("boom")}
-			processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
+			processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+				Config:         config,
+				Logger:         logptest.NewTestingLogger(t, ""),
+				StatusReporter: noopStatusReport{},
+			})
 			require.NoError(t, err)
 			go processor.Run()
 			defer processor.Stop(context.Background())
@@ -567,7 +596,11 @@ func TestGroupsMonitoring(t *testing.T) {
 	config.FlushInterval = time.Minute
 	config.Policies[0].SampleRate = 0.99
 
-	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: noopStatusReport{},
+	})
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -628,7 +661,11 @@ func TestStorageMonitoring(t *testing.T) {
 	tempdirConfig := newTempdirConfig(t)
 	config := tempdirConfig.Config
 
-	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: noopStatusReport{},
+	})
 	require.NoError(t, err)
 	go processor.Run()
 	for i := 0; i < 100; i++ {
@@ -678,7 +715,11 @@ func TestStorageLimit(t *testing.T) {
 	// minute, we store some span events, close and re-open the database, so
 	// the size is updated.
 	writeBatch := func(n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
-		processor, err := sampling.NewProcessor(c, logptest.NewTestingLogger(t, ""))
+		processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+			Config:         c,
+			Logger:         logptest.NewTestingLogger(t, ""),
+			StatusReporter: noopStatusReport{},
+		})
 		require.NoError(t, err)
 		go processor.Run()
 		defer processor.Stop(context.Background())
@@ -742,7 +783,11 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	subscriber := pubsubtest.SubscriberChan(subscriberChan)
 	config.Elasticsearch = pubsubtest.Client(nil, subscriber)
 
-	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: noopStatusReport{},
+	})
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -793,7 +838,11 @@ func TestReadSubscriberPositionFile(t *testing.T) {
 			err := tc.setupFile(filepath.Join(tempdirConfig.tempDir, "subscriber_position.json"))
 			require.NoError(t, err)
 
-			processor, err := sampling.NewProcessor(tempdirConfig.Config, logptest.NewTestingLogger(t, ""))
+			processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+				Config:         tempdirConfig.Config,
+				Logger:         logptest.NewTestingLogger(t, ""),
+				StatusReporter: noopStatusReport{},
+			})
 			require.NoError(t, err)
 
 			ret := make(chan error)
@@ -812,7 +861,11 @@ func TestGracefulShutdown(t *testing.T) {
 	config.Policies = []sampling.Policy{{SampleRate: sampleRate}}
 	config.FlushInterval = time.Minute // disable finalize
 
-	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: noopStatusReport{},
+	})
 	require.NoError(t, err)
 	go processor.Run()
 
@@ -865,7 +918,11 @@ func TestPotentialRaceConditionConcurrent(t *testing.T) {
 		return nil
 	})
 
-	processor, err := sampling.NewProcessor(tempdirConfig.Config, logptest.NewTestingLogger(t, ""))
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         tempdirConfig.Config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: noopStatusReport{},
+	})
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -923,6 +980,63 @@ func TestPotentialRaceConditionConcurrent(t *testing.T) {
 	defer reportedMu.Unlock()
 	reportedPlusLateArrivals := int64(len(reported)) + lateArrivals.Load()
 	assert.Equal(t, processed.Load(), reportedPlusLateArrivals)
+}
+
+type statusUpdate struct {
+	state status.Status
+	msg   string
+}
+
+type mockStatusReporter struct {
+	mutex   sync.RWMutex
+	updates []statusUpdate
+}
+
+func (m *mockStatusReporter) UpdateStatus(status status.Status, msg string) {
+	m.mutex.Lock()
+	m.updates = append(m.updates, statusUpdate{status, msg})
+	m.mutex.Unlock()
+}
+
+func (m *mockStatusReporter) GetUpdates() []statusUpdate {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return append([]statusUpdate{}, m.updates...)
+}
+
+func TestProcessStatusReporter(t *testing.T) {
+	expectedErrMsg := "forced error"
+
+	var statusReporter mockStatusReporter
+	tempdirConfig := newTempdirConfig(t)
+	tempdirConfig.Config.Storage = errorRW{err: errors.New(expectedErrMsg)}
+
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         tempdirConfig.Config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: &statusReporter,
+	})
+	require.NoError(t, err)
+	go processor.Run()
+	defer processor.Stop(context.Background())
+
+	in := modelpb.Batch{{
+		Trace: &modelpb.Trace{
+			Id: "0102030405060708090a0b0c0d0e0f10",
+		},
+		Transaction: &modelpb.Transaction{
+			Type:    "type",
+			Id:      "0102030405060708",
+			Sampled: true,
+		},
+	}}
+	err = processor.ProcessBatch(context.Background(), &in)
+	require.NoError(t, err)
+
+	statusUpdates := statusReporter.GetUpdates()
+	require.Equal(t, len(statusUpdates), 1)
+	assert.Equal(t, status.Degraded, statusUpdates[0].state)
+	assert.Contains(t, statusUpdates[0].msg, expectedErrMsg)
 }
 
 type testConfig struct {
@@ -1010,7 +1124,6 @@ func waitFileModified(tb testing.TB, filename string, after time.Time) ([]byte, 
 	ticker := time.NewTicker(50 * time.Millisecond)
 	defer ticker.Stop()
 	for {
-
 		select {
 		case <-ticker.C:
 			info, err := os.Stat(filename)
@@ -1034,4 +1147,9 @@ func waitFileModified(tb testing.TB, filename string, after time.Time) ([]byte, 
 
 func newUnlimitedReadWriter(sm *eventstorage.StorageManager) eventstorage.RW {
 	return sm.NewReadWriter(0, 0)
+}
+
+type noopStatusReport struct{}
+
+func (noopStatusReport) UpdateStatus(status.Status, string) {
 }

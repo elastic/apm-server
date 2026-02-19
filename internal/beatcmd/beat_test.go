@@ -423,7 +423,7 @@ func TestRunManager_Reloader(t *testing.T) {
 			}
 			return nil
 		}), nil
-	}, nil, nil, nil, beat.NewMonitoring())
+	}, nil, nil, nil, beat.NewMonitoring(), nil)
 	require.NoError(t, err)
 
 	agentInfo := &proto.AgentInfo{
@@ -553,7 +553,7 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 		Logger: logptest.NewTestingLogger(t, "beat"),
 	}, registry, func(_ RunnerParams) (Runner, error) {
 		return nil, errors.New("newRunner error")
-	}, nil, nil, nil, beat.NewMonitoring())
+	}, nil, nil, nil, beat.NewMonitoring(), nil)
 	require.NoError(t, err)
 
 	onObserved := func(observed *proto.CheckinObserved, currentIdx int) {
@@ -627,7 +627,6 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 
 	err = manager.Start()
 	require.NoError(t, err)
-	defer manager.Stop()
 
 	select {
 	case msg := <-inputFailedMsg:
@@ -635,6 +634,16 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Fatal("timed out waiting for input failed msg")
 	}
+
+	// Stop manager before test ends to prevent data race.
+	// The manager starts background goroutines that log via t.Log().
+	// If we use defer, the test may finish before Stop() completes,
+	// causing the logger to access test state after the test ends.
+	manager.Stop()
+
+	// Give goroutines time to fully exit after Stop().
+	// Stop() cancels contexts but goroutines may still be logging.
+	time.Sleep(100 * time.Millisecond)
 }
 
 func runBeat(t testing.TB, beat *Beat) (stop func() error) {
