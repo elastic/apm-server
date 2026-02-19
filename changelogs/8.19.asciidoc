@@ -23,7 +23,7 @@ https://github.com/elastic/apm-server/compare/v8.19.11\...v8.19.12[View commits]
 [float]
 ==== Added
 
-- packaging: Update Ironbank base Docker image from ubi9-minimal to ubi10-micro {pull}20258[20258]
+- packaging: Update Ironbank base Docker image from ubi9-minimal to ubi10-micro {pull}20295[20295]
 
 [float]
 [[apm-release-notes-8.19.11]]
