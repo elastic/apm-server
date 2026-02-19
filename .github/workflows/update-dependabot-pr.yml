@@ -20,15 +20,42 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
+      - name: Get token
+        id: get_token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
+          private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
+          permission-contents: write
+
       - uses: actions/checkout@v6
+        with:
+          token: ${{ steps.get_token.outputs.token }}
+
+      - name: Configure git user
+        uses: elastic/oblt-actions/git/setup@v1
+        with:
+          github-token: ${{ steps.get_token.outputs.token }}
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec  # v6.3.0
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
           cache: false
+
       - name: Update NOTICE.txt
         run: make notice
+
       - name: Debug diff
         run: git status --porcelain
+
       - name: Check if NOTICE.txt has changed
         id: check-notice-diff
         run: |
@@ -37,29 +64,14 @@ jobs:
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
+
       - name: Debug output
         run: |-
           echo 'changed: ${{ steps.check-notice-diff.outputs.changed }}'
-      # inspired by https://gist.github.com/swinton/03e84635b45c78353b1f71e41007fc7c
+
       - name: Commit changes (signed)
         if: ${{ steps.check-notice-diff.outputs.changed == 'true' }}
         run: |
-          export BRANCH=${GITHUB_REF#refs/heads/}
-          export SHA=$(git rev-parse "$BRANCH:$FILE_TO_COMMIT")
-          gh api --method PUT "/repos/${REPO}/contents/$FILE_TO_COMMIT" \
-            --field message="Update $FILE_TO_COMMIT" \
-            --field content=@<(base64 -i $FILE_TO_COMMIT) \
-            --field sha="${SHA}" \
-            --field branch="${BRANCH}"
-
-          export SHA=$(git rev-parse "$BRANCH:$FILE_TO_COMMIT_FIPS")
-          gh api --method PUT "/repos/${REPO}/contents/$FILE_TO_COMMIT_FIPS" \
-            --field message="Update $FILE_TO_COMMIT_FIPS" \
-            --field content=@<(base64 -i $FILE_TO_COMMIT_FIPS) \
-            --field sha="${SHA}" \
-            --field branch="${BRANCH}"
-        env:
-          FILE_TO_COMMIT: NOTICE.txt
-          FILE_TO_COMMIT_FIPS: NOTICE-fips.txt
-          REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ github.token }}
+          git add NOTICE.txt NOTICE-fips.txt
+          git commit -m "Update NOTICE.txt and NOTICE-fips.txt"
+          git push
