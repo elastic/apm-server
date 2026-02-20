@@ -4,7 +4,7 @@ metadata:
   name: apm-server
 spec:
   # TODO: replace with a pinned version such as 9.0.0-aaaaaaaa-SNAPSHOT
-  version: 9.3.1-6b06df95-SNAPSHOT
+  version: 9.3.1-b87c9a5d-SNAPSHOT
   count: 1
   http:
     tls:
