@@ -17,7 +17,8 @@ permissions:
 jobs:
   update-dependabot-pr:
     permissions:
-      contents: write
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       # TokenPolicy defined at https://github.com/elastic/catalog-info/tree/main/resources/github-token-policies/token-policy-apm-server-update-dependabot.yaml
