@@ -633,18 +633,23 @@ func TestGroupsMonitoring(t *testing.T) {
 //
 // It is helpful to provide multiple names for synchronous metrics to avoid losing data when collecting.
 // Observable metrics report everytime Collect is called, so there will be no data loss.
-func getGaugeValues(t testing.TB, reader sdkmetric.Reader, names ...string) []int64 {
+func getGaugeValues(t testing.TB, reader sdkmetric.Reader, names ...string) []float64 {
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
 	assert.NotEqual(t, 0, len(rm.ScopeMetrics))
 
-	values := make([]int64, len(names))
+	values := make([]float64, len(names))
 	for i, name := range names {
 		for _, sm := range rm.ScopeMetrics {
 			for _, m := range sm.Metrics {
 				if m.Name == name {
-					values[i] = m.Data.(metricdata.Gauge[int64]).DataPoints[0].Value
+					switch g := m.Data.(type) {
+					case metricdata.Gauge[int64]:
+						values[i] = float64(g.DataPoints[0].Value)
+					case metricdata.Gauge[float64]:
+						values[i] = g.DataPoints[0].Value
+					}
 				}
 			}
 		}
@@ -685,9 +690,16 @@ func TestStorageMonitoring(t *testing.T) {
 
 	require.NoError(t, config.DB.Flush())
 
-	metricsNames := []string{"apm-server.sampling.tail.storage.lsm_size", "apm-server.sampling.tail.storage.value_log_size"}
+	metricsNames := []string{
+		"apm-server.sampling.tail.storage.lsm_size",
+		"apm-server.sampling.tail.storage.value_log_size",
+		"apm-server.sampling.tail.storage.storage_limit",
+		"apm-server.sampling.tail.storage.disk_used",
+		"apm-server.sampling.tail.storage.disk_total",
+		"apm-server.sampling.tail.storage.disk_usage_threshold_pct",
+	}
 	gaugeValues := getGaugeValues(t, tempdirConfig.metricReader, metricsNames...)
-	assert.Len(t, gaugeValues, 2)
+	assert.Len(t, gaugeValues, 6)
 
 	lsmSize := gaugeValues[0]
 	assert.NotZero(t, lsmSize)
