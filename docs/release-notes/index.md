@@ -24,6 +24,17 @@ To check for security updates, go to [Security announcements for the Elastic sta
 % ### Fixes [apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
+## 9.3.1 [apm-9.3.1-release-notes]
+
+```{applies_to}
+stack: ga 9.3
+```
+
+### Fixes [apm-9.3.1-fixes]
+
+* Fix potential data race in Tail Based Sampling ([#20140](https://github.com/elastic/apm-server/pull/20140))
+* Fix self-instrumentation missing span kind in some traces ([#20210](https://github.com/elastic/apm-server/pull/20210)) ([#20213](https://github.com/elastic/apm-server/pull/20213))
+
 ## 9.3.0 [apm-9.3.0-release-notes]
 
 % ### Features and enhancements [apm-9.3.0-features-enhancements]
@@ -36,11 +47,15 @@ _No new features or enhancements_
 
 _No new fixes_ 
 
-## 9.2.5 [apm-9.2.5-release-notes]
+## 9.2.6 [apm-9.2.6-release-notes]
 
 ```{applies_to}
 stack: ga 9.2
 ```
+
+_No new features, enhancements, or fixes._
+
+## 9.2.5 [apm-9.2.5-release-notes]
 
 ### Fixes [apm-9.2.5-fixes]
 
