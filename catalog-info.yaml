@@ -54,8 +54,8 @@ spec:
         everyone:
           access_level: READ_ONLY
       env:
-        ELASTIC_PR_COMMENTS_ENABLED: 'true'
-        SLACK_NOTIFICATIONS_SKIP_FOR_RETRIES: 'true'
+        ELASTIC_PR_COMMENTS_ENABLED: "true"
+        SLACK_NOTIFICATIONS_SKIP_FOR_RETRIES: "true"
 
 ---
 apiVersion: backstage.io/v1alpha1
@@ -77,7 +77,7 @@ spec:
     metadata:
       name: apm-version-bump
     spec:
-      branch_configuration: "main 8.* 9.*"
+      branch_configuration: "main"
       repository: elastic/apm-server
       pipeline_file: ".buildkite/version-bump-pipeline.yml"
       provider_settings:
@@ -85,9 +85,9 @@ spec:
         build_pull_requests: false
         trigger_mode: none
       cancel_intermediate_builds: true
-      cancel_intermediate_builds_branch_filter: "!main !8.* !9.*"
+      cancel_intermediate_builds_branch_filter: "!main"
       skip_intermediate_builds: true
-      skip_intermediate_builds_branch_filter: "!main !8.* !9.*"
+      skip_intermediate_builds_branch_filter: "!main"
       teams:
         obs-ds-intake-services: {}
         observablt-robots: {}
