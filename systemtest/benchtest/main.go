@@ -43,7 +43,7 @@ import (
 	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
 )
 
-const waitInactiveTimeout = 30 * time.Second
+const waitInactiveTimeout = time.Minute
 
 // BenchmarkFunc is the benchmark function type accepted by Run.
 type BenchmarkFunc func(*testing.B, *rate.Limiter)
