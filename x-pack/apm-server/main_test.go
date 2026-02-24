@@ -57,6 +57,24 @@ func TestMonitoring(t *testing.T) {
 
 	// Wrap & run the server twice, to ensure metric registration does not panic.
 	runServerError := errors.New("runServer")
+<<<<<<< HEAD
+=======
+	runServerFunc := func(ctx context.Context, args beater.ServerParams) error {
+		// run server for some time until storage metrics are reported by the storage manager
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			monitoringtest.ExpectContainOtelMetricsKeys(c, reader, []string{
+				"apm-server.sampling.tail.storage.lsm_size",
+				"apm-server.sampling.tail.storage.value_log_size",
+				"apm-server.sampling.tail.storage.storage_limit",
+				"apm-server.sampling.tail.storage.disk_used",
+				"apm-server.sampling.tail.storage.disk_total",
+				"apm-server.sampling.tail.storage.disk_usage_threshold_pct",
+			})
+		}, time.Second, 10*time.Millisecond)
+
+		return runServerError
+	}
+>>>>>>> 60e89a99 (add tbs storage limit and disk-related metrics (#20464))
 	for i := 0; i < 2; i++ {
 		serverParams, runServer, err := wrapServer(beater.ServerParams{
 			Config:                 cfg,

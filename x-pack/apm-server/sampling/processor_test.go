@@ -603,15 +603,27 @@ func TestGroupsMonitoring(t *testing.T) {
 	})
 }
 
+<<<<<<< HEAD
 func TestStorageGC(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping slow test")
 	}
+=======
+// getGaugeValues collects metrics and searches for gauge values that match the provided names.
+// Values will be returned in the same order as the names.
+//
+// It is helpful to provide multiple names for synchronous metrics to avoid losing data when collecting.
+// Observable metrics report everytime Collect is called, so there will be no data loss.
+func getGaugeValues(t testing.TB, reader sdkmetric.Reader, names ...string) []float64 {
+	var rm metricdata.ResourceMetrics
+	assert.NoError(t, reader.Collect(context.Background(), &rm))
+>>>>>>> 60e89a99 (add tbs storage limit and disk-related metrics (#20464))
 
 	config, _ := newTempdirConfig(t)
 	config.TTL = 10 * time.Millisecond
 	config.FlushInterval = 10 * time.Millisecond
 
+<<<<<<< HEAD
 	writeBatch := func(n int) {
 		config.StorageGCInterval = time.Hour // effectively disable
 		processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
@@ -634,6 +646,21 @@ func TestStorageGC(t *testing.T) {
 			err := processor.ProcessBatch(context.Background(), &batch)
 			require.NoError(t, err)
 			assert.Empty(t, batch)
+=======
+	values := make([]float64, len(names))
+	for i, name := range names {
+		for _, sm := range rm.ScopeMetrics {
+			for _, m := range sm.Metrics {
+				if m.Name == name {
+					switch g := m.Data.(type) {
+					case metricdata.Gauge[int64]:
+						values[i] = float64(g.DataPoints[0].Value)
+					case metricdata.Gauge[float64]:
+						values[i] = g.DataPoints[0].Value
+					}
+				}
+			}
+>>>>>>> 60e89a99 (add tbs storage limit and disk-related metrics (#20464))
 		}
 	}
 
@@ -657,12 +684,25 @@ func TestStorageGC(t *testing.T) {
 	}, 10*time.Second, 100*time.Millisecond, vlogs)
 }
 
+<<<<<<< HEAD
 func TestStorageGCConcurrency(t *testing.T) {
 	// This test ensures that TBS processor does not return an error
 	// even when run concurrently e.g. in hot reload
 	if testing.Short() {
 		t.Skip("skipping slow test")
 	}
+=======
+	metricsNames := []string{
+		"apm-server.sampling.tail.storage.lsm_size",
+		"apm-server.sampling.tail.storage.value_log_size",
+		"apm-server.sampling.tail.storage.storage_limit",
+		"apm-server.sampling.tail.storage.disk_used",
+		"apm-server.sampling.tail.storage.disk_total",
+		"apm-server.sampling.tail.storage.disk_usage_threshold_pct",
+	}
+	gaugeValues := getGaugeValues(t, tempdirConfig.metricReader, metricsNames...)
+	assert.Len(t, gaugeValues, 6)
+>>>>>>> 60e89a99 (add tbs storage limit and disk-related metrics (#20464))
 
 	config, _ := newTempdirConfig(t)
 	config.TTL = 10 * time.Millisecond

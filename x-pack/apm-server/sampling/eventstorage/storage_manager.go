@@ -17,15 +17,55 @@ import (
 	"github.com/dgraph-io/badger/v2"
 	"golang.org/x/sync/errgroup"
 
+<<<<<<< HEAD
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/logs"
+=======
+>>>>>>> 60e89a99 (add tbs storage limit and disk-related metrics (#20464))
 	"github.com/elastic/elastic-agent-libs/logp"
+
+	"github.com/elastic/apm-server/internal/logs"
 )
 
 const (
 	// subscriberPositionFile holds the file name used for persisting
 	// the subscriber position across server restarts.
 	subscriberPositionFile = "subscriber_position.json"
+<<<<<<< HEAD
+=======
+
+	// partitionsPerTTL holds the number of partitions that events in 1 TTL should be stored over.
+	// Increasing partitionsPerTTL increases read amplification, but decreases storage overhead,
+	// as TTL GC can be performed sooner.
+	//
+	// For example, partitionPerTTL=1 means we need to keep 2 partitions active,
+	// such that the last entry in the previous partition is also kept for a full TTL.
+	// This means storage requirement is 2 * TTL, and it needs to read 2 keys per trace ID read.
+	// If partitionPerTTL=2, storage requirement is 1.5 * TTL at the expense of 3 reads per trace ID read.
+	partitionsPerTTL = 1
+
+	// reservedKeyPrefix is the prefix of internal keys used by StorageManager
+	reservedKeyPrefix byte = '~'
+
+	// partitionerMetaKey is the key used to store partitioner metadata, e.g. last partition ID, in decision DB.
+	partitionerMetaKey = string(reservedKeyPrefix) + "partitioner"
+
+	// diskUsageFetchInterval is how often disk usage is fetched which is equivalent to how long disk usage is cached.
+	diskUsageFetchInterval = 1 * time.Second
+
+	// dbStorageLimitFallback is the default fallback storage limit in bytes
+	// that applies when disk usage threshold cannot be enforced due to an error.
+	dbStorageLimitFallback = 3 << 30
+
+	// defaultValueLogSize default is 0 because pebble does not have a vlog.
+	defaultValueLogSize = 0
+
+	gb = float64(1 << 30)
+
+	// configuredDiskUsageThresholdMultiplier is the multiplier for the stored configured disk usage threshold.
+	// It is used to convert float64 disk usage to uint64 to be stored in atomic.Uint64.
+	configuredDiskUsageThresholdMultiplier = 1000
+>>>>>>> 60e89a99 (add tbs storage limit and disk-related metrics (#20464))
 )
 
 var (
@@ -51,10 +91,36 @@ type StorageManager struct {
 	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
 	runCh chan struct{}
+<<<<<<< HEAD
 }
 
 // NewStorageManager returns a new StorageManager with badger DB at storageDir.
 func NewStorageManager(storageDir string) (*StorageManager, error) {
+=======
+
+	// meterProvider is the OTel meter provider
+	meterProvider  metric.MeterProvider
+	storageMetrics storageMetrics
+
+	// configuredStorageLimit stores the configured storage limit (0 means unlimited)
+	configuredStorageLimit atomic.Uint64
+	// configuredDiskUsageThreshold stores the configured disk usage threshold as percentage (0-1),
+	// multiplied by configuredDiskUsageThresholdMultiplier
+	configuredDiskUsageThreshold atomic.Uint64
+}
+
+type storageMetrics struct {
+	lsmSizeGauge            metric.Int64Gauge
+	valueLogSizeGauge       metric.Int64Gauge
+	storageLimitGauge       metric.Int64Gauge
+	diskUsedGauge           metric.Int64Gauge
+	diskTotalGauge          metric.Int64Gauge
+	diskUsageThresholdGauge metric.Float64Gauge
+}
+
+// NewStorageManager returns a new StorageManager with pebble DB at storageDir.
+func NewStorageManager(storageDir string, logger *logp.Logger, opts ...StorageManagerOptions) (*StorageManager, error) {
+>>>>>>> 60e89a99 (add tbs storage limit and disk-related metrics (#20464))
 	sm := &StorageManager{
 		storageDir: storageDir,
 		runCh:      make(chan struct{}, 1),
@@ -64,6 +130,28 @@ func NewStorageManager(storageDir string) (*StorageManager, error) {
 	if err != nil {
 		return nil, err
 	}
+<<<<<<< HEAD
+=======
+	for _, opt := range opts {
+		opt(sm)
+	}
+
+	if sm.meterProvider != nil {
+		meter := sm.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
+
+		sm.storageMetrics.lsmSizeGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
+		sm.storageMetrics.valueLogSizeGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.value_log_size")
+		sm.storageMetrics.storageLimitGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.storage_limit")
+		sm.storageMetrics.diskUsedGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.disk_used")
+		sm.storageMetrics.diskTotalGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.disk_total")
+		sm.storageMetrics.diskUsageThresholdGauge, _ = meter.Float64Gauge("apm-server.sampling.tail.storage.disk_usage_threshold_pct")
+	}
+
+	if err := sm.reset(); err != nil {
+		return nil, fmt.Errorf("storage manager reset error: %w", err)
+	}
+
+>>>>>>> 60e89a99 (add tbs storage limit and disk-related metrics (#20464))
 	return sm, nil
 }
 
@@ -94,10 +182,156 @@ func (s *StorageManager) Size() (lsm, vlog int64) {
 	return s.db.Size()
 }
 
+<<<<<<< HEAD
 func (s *StorageManager) NewTransaction(update bool) *badger.Txn {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.db.NewTransaction(update)
+=======
+// savePartitionID saves the partition ID to database to be loaded by loadPartitionID later.
+func (sm *StorageManager) savePartitionID(pid int) error {
+	b, err := json.Marshal(partitionerMeta{ID: pid})
+	if err != nil {
+		return fmt.Errorf("error marshaling partition ID: %w", err)
+	}
+	return sm.decisionDB.Set([]byte(partitionerMetaKey), b, pebble.NoSync)
+}
+
+func (sm *StorageManager) Size() (lsm, vlog int64) {
+	// This is reporting lsm and vlog for legacy reasons.
+	// vlog is always 0 because pebble does not have a vlog.
+	// Keeping this legacy structure such that the metrics are comparable across versions,
+	// and we don't need to update the tooling, e.g. kibana dashboards.
+	//
+	// TODO(carsonip): Update this to report a more helpful size to monitoring,
+	// maybe broken down into event DB vs decision DB, and LSM tree vs WAL vs misc.
+	// Also remember to update
+	// - x-pack/apm-server/sampling/processor.go:CollectMonitoring
+	// - systemtest/benchtest/expvar/metrics.go
+	return int64(sm.dbSize()), defaultValueLogSize
+}
+
+// dbSize returns the disk usage of databases in bytes.
+func (sm *StorageManager) dbSize() uint64 {
+	// pebble DiskSpaceUsage overhead is not high, but it adds up when performed per-event.
+	return sm.cachedDBSize.Load()
+}
+
+func (sm *StorageManager) updateDiskUsage() {
+	lsmSize := sm.getDBSize()
+	sm.cachedDBSize.Store(lsmSize)
+
+	if sm.storageMetrics.lsmSizeGauge != nil {
+		sm.storageMetrics.lsmSizeGauge.Record(context.Background(), int64(lsmSize))
+	}
+	if sm.storageMetrics.valueLogSizeGauge != nil {
+		sm.storageMetrics.valueLogSizeGauge.Record(context.Background(), int64(defaultValueLogSize))
+	}
+
+	// Record storage limit metric
+	if sm.storageMetrics.storageLimitGauge != nil {
+		sm.storageMetrics.storageLimitGauge.Record(context.Background(), int64(sm.configuredStorageLimit.Load()))
+	}
+
+	if sm.getDiskUsageFailed.Load() {
+		// Skip GetDiskUsage under the assumption that
+		// it will always get the same error if GetDiskUsage ever returns one,
+		// such that it does not keep logging GetDiskUsage errors.
+		// Record zero values for disk metrics when disk usage check failed
+		if sm.storageMetrics.diskUsedGauge != nil {
+			sm.storageMetrics.diskUsedGauge.Record(context.Background(), 0)
+		}
+		if sm.storageMetrics.diskTotalGauge != nil {
+			sm.storageMetrics.diskTotalGauge.Record(context.Background(), 0)
+		}
+		return
+	}
+	usage, err := sm.getDiskUsage()
+	if err != nil {
+		sm.logger.With(logp.Error(err)).Warn("failed to get disk usage")
+		sm.getDiskUsageFailed.Store(true)
+		sm.cachedDiskStat.used.Store(0)
+		sm.cachedDiskStat.total.Store(0) // setting total to 0 to disable any running disk usage threshold checks
+		// Record zero values for disk metrics when disk usage check failed
+		if sm.storageMetrics.diskUsedGauge != nil {
+			sm.storageMetrics.diskUsedGauge.Record(context.Background(), 0)
+		}
+		if sm.storageMetrics.diskTotalGauge != nil {
+			sm.storageMetrics.diskTotalGauge.Record(context.Background(), 0)
+		}
+		return
+	}
+	sm.cachedDiskStat.used.Store(usage.UsedBytes)
+	sm.cachedDiskStat.total.Store(usage.TotalBytes)
+
+	// Record disk utilization metrics
+	if sm.storageMetrics.diskUsedGauge != nil {
+		sm.storageMetrics.diskUsedGauge.Record(context.Background(), int64(usage.UsedBytes))
+	}
+	if sm.storageMetrics.diskTotalGauge != nil {
+		sm.storageMetrics.diskTotalGauge.Record(context.Background(), int64(usage.TotalBytes))
+	}
+	// Record disk usage threshold as a percentage (0-1)
+	if sm.storageMetrics.diskUsageThresholdGauge != nil {
+		sm.storageMetrics.diskUsageThresholdGauge.Record(
+			context.Background(),
+			float64(sm.configuredDiskUsageThreshold.Load())/configuredDiskUsageThresholdMultiplier,
+		)
+	}
+}
+
+// diskUsed returns the actual used disk space in bytes.
+// Not to be confused with dbSize which is specific to database.
+func (sm *StorageManager) diskUsed() uint64 {
+	return sm.cachedDiskStat.used.Load()
+}
+
+// runDiskUsageLoop runs a loop that updates cached disk usage regularly and reports usage.
+func (sm *StorageManager) runDiskUsageLoop(stopping <-chan struct{}) error {
+	// initial disk usage update so data is available immediately
+	sm.updateDiskUsage()
+
+	ticker := time.NewTicker(diskUsageFetchInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-stopping:
+			return nil
+		case <-ticker.C:
+			sm.updateDiskUsage()
+		}
+	}
+}
+
+func (sm *StorageManager) Flush() error {
+	return errors.Join(
+		wrapNonNilErr("event db flush error: %w", sm.eventDB.Flush()),
+		wrapNonNilErr("decision db flush error: %w", sm.decisionDB.Flush()),
+	)
+}
+
+func (sm *StorageManager) Close() error {
+	return sm.close()
+}
+
+func (sm *StorageManager) close() error {
+	return errors.Join(
+		wrapNonNilErr("event db flush error: %w", sm.eventDB.Flush()),
+		wrapNonNilErr("decision db flush error: %w", sm.decisionDB.Flush()),
+		wrapNonNilErr("event db close error: %w", sm.eventDB.Close()),
+		wrapNonNilErr("decision db close error: %w", sm.decisionDB.Close()),
+	)
+}
+
+// Reload flushes out pending disk writes to disk by reloading the database.
+// For testing only.
+// Read writers created prior to Reload cannot be used and will need to be recreated via NewUnlimitedReadWriter.
+func (sm *StorageManager) Reload() error {
+	if err := sm.close(); err != nil {
+		return err
+	}
+	return sm.reset()
+>>>>>>> 60e89a99 (add tbs storage limit and disk-related metrics (#20464))
 }
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
@@ -153,11 +387,83 @@ func (s *StorageManager) runValueLogGC(discardRatio float64) error {
 	return s.db.RunValueLogGC(discardRatio)
 }
 
+<<<<<<< HEAD
 // runDropLoop runs a loop that detects if storage limit has been exceeded for at least ttl.
 // If so, it drops and recreates the underlying badger DB.
 // This is a mitigation for issue https://github.com/elastic/apm-server/issues/14923
 func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration, storageLimitInBytes uint64, storageLimitThreshold float64) error {
 	if storageLimitInBytes == 0 {
+=======
+func (sm *StorageManager) ReadSubscriberPosition() ([]byte, error) {
+	sm.subscriberPosMu.Lock()
+	defer sm.subscriberPosMu.Unlock()
+	return os.ReadFile(filepath.Join(sm.storageDir, subscriberPositionFile))
+}
+
+func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
+	sm.subscriberPosMu.Lock()
+	defer sm.subscriberPosMu.Unlock()
+	return os.WriteFile(filepath.Join(sm.storageDir, subscriberPositionFile), data, 0644)
+}
+
+// NewReadWriter returns a read writer configured with storage limit and disk usage threshold.
+func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskUsageThreshold float64) RW {
+	// Store configured values for monitoring metrics
+	sm.configuredStorageLimit.Store(storageLimit)
+	// Store disk usage threshold as percentage (0-1), multiplied by configuredDiskUsageThresholdMultiplier
+	sm.configuredDiskUsageThreshold.Store(uint64(diskUsageThreshold * configuredDiskUsageThresholdMultiplier))
+
+	var rw RW = SplitReadWriter{
+		eventRW:    sm.eventStorage.NewReadWriter(),
+		decisionRW: sm.decisionStorage.NewReadWriter(),
+	}
+
+	// If db storage limit is set, only enforce db storage limit.
+	if storageLimit > 0 {
+		// dbStorageLimit returns max size of db in bytes.
+		// If size of db exceeds dbStorageLimit, writes should be rejected.
+		dbStorageLimit := func() uint64 {
+			return storageLimit
+		}
+		sm.logger.Infof("setting database storage limit to %0.1fgb", float64(storageLimit)/gb)
+		dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
+		rw = NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, rw)
+		return rw
+	}
+
+	// DB storage limit is unlimited, enforce disk usage threshold if possible.
+	// Load whether getDiskUsage failed, as it was called during StorageManager initialization.
+	if sm.getDiskUsageFailed.Load() {
+		// Limit db size to fallback storage limit as getDiskUsage returned an error
+		dbStorageLimit := func() uint64 {
+			return dbStorageLimitFallback
+		}
+		sm.logger.Warnf("overriding database storage limit to fallback default of %0.1fgb as get disk usage failed", float64(dbStorageLimitFallback)/gb)
+		dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
+		rw = NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, rw)
+		return rw
+	}
+
+	// diskThreshold returns max used disk space in bytes, not in percentage.
+	// If size of used disk space exceeds diskThreshold, writes should be rejected.
+	diskThreshold := func() uint64 {
+		return uint64(float64(sm.cachedDiskStat.total.Load()) * diskUsageThreshold)
+	}
+	// the total disk space could change in runtime, but it is still useful to print it out in logs.
+	sm.logger.Infof("setting disk usage threshold to %.0f%% of total disk space of %0.1fgb", diskUsageThreshold*100, float64(sm.cachedDiskStat.total.Load())/gb)
+	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, diskThreshold)
+	rw = NewStorageLimitReadWriter(
+		fmt.Sprintf("disk usage threshold %.2f", diskUsageThreshold),
+		diskThresholdChecker,
+		rw,
+	)
+	return rw
+}
+
+// wrapNonNilErr only wraps an error with format if the error is not nil.
+func wrapNonNilErr(format string, err error) error {
+	if err == nil {
+>>>>>>> 60e89a99 (add tbs storage limit and disk-related metrics (#20464))
 		return nil
 	}
 
