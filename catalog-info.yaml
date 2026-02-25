@@ -81,8 +81,6 @@ spec:
       repository: elastic/apm-server
       pipeline_file: ".buildkite/version-bump-pipeline.yml"
       provider_settings:
-        build_branches: false
-        build_pull_requests: false
         trigger_mode: none
       cancel_intermediate_builds: true
       cancel_intermediate_builds_branch_filter: "!main"
