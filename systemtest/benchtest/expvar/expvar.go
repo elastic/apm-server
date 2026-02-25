@@ -87,7 +87,7 @@ func queryExpvar(ctx context.Context, out *expvar, srv string) error {
 	if err != nil {
 		return err
 	}
-	req.WithContext(ctx)
+	req = req.WithContext(ctx)
 	req.Header.Set("Accept", "application/json")
 
 	agg := make(map[string]expvar)

@@ -43,7 +43,7 @@ import (
 	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
 )
 
-const waitInactiveTimeout = 30 * time.Second
+const waitInactiveTimeout = time.Minute
 
 // BenchmarkFunc is the benchmark function type accepted by Run.
 type BenchmarkFunc func(*testing.B, *rate.Limiter)
@@ -236,7 +236,12 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		agents := agentsList[0]
 		serverURL := loadgencfg.Config.ServerURL.String()
 		secretToken := loadgencfg.Config.SecretToken
+<<<<<<< HEAD
 		if err := warmup(agents, benchConfig.WarmupTime, serverURL, secretToken); err != nil {
+=======
+		apiKey := loadgencfg.Config.APIKey
+		if err := warmup(zap.NewNop(), agents, benchConfig.WarmupTime, serverURL, secretToken, apiKey); err != nil {
+>>>>>>> 38cc1071 (Fix request context and increase duration for 4 agents test (#20484))
 			return fmt.Errorf("warm-up failed with %d agents: %v", agents, err)
 		}
 	}
@@ -272,10 +277,14 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 
 // warmup sends events to the remote APM Server using the specified number of
 // agents for the specified duration.
+<<<<<<< HEAD
 func warmup(agents int, duration time.Duration, url, token string) error {
+=======
+func warmup(logger *zap.Logger, agents int, duration time.Duration, url, token, apiKey string) error {
+>>>>>>> 38cc1071 (Fix request context and increase duration for 4 agents test (#20484))
 	rl := loadgen.GetNewLimiter(loadgencfg.Config.EventRate.Burst, loadgencfg.Config.EventRate.Interval)
 	h, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
-		Logger:   zap.NewNop(),
+		Logger:   logger,
 		Protocol: "apm/http",
 		Path:     `apm-*.ndjson`,
 		URL:      url,
