@@ -20,7 +20,6 @@ package expvar
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 	"runtime"
 	"time"
