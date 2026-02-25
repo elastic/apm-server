@@ -155,7 +155,6 @@ func WaitUntilServerInactive(ctx context.Context, server string) error {
 	defer ticker.Stop()
 
 	for result.ActiveEvents > 0 {
-		log.Println("ActiveEvents", result.ActiveEvents)
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
