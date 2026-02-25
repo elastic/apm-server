@@ -43,7 +43,7 @@ import (
 	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
 )
 
-const waitInactiveTimeout = 30 * time.Second
+const waitInactiveTimeout = time.Minute
 
 // BenchmarkFunc is the benchmark function type accepted by Run.
 type BenchmarkFunc func(*testing.B, *rate.Limiter)
@@ -237,7 +237,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 		serverURL := loadgencfg.Config.ServerURL.String()
 		secretToken := loadgencfg.Config.SecretToken
 		apiKey := loadgencfg.Config.APIKey
-		if err := warmup(agents, benchConfig.WarmupTime, serverURL, secretToken, apiKey); err != nil {
+		if err := warmup(zap.NewNop(), agents, benchConfig.WarmupTime, serverURL, secretToken, apiKey); err != nil {
 			return fmt.Errorf("warm-up failed with %d agents: %v", agents, err)
 		}
 	}
@@ -273,10 +273,10 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 
 // warmup sends events to the remote APM Server using the specified number of
 // agents for the specified duration.
-func warmup(agents int, duration time.Duration, url, token, apiKey string) error {
+func warmup(logger *zap.Logger, agents int, duration time.Duration, url, token, apiKey string) error {
 	rl := loadgen.GetNewLimiter(loadgencfg.Config.EventRate.Burst, loadgencfg.Config.EventRate.Interval)
 	h, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
-		Logger:   zap.NewNop(),
+		Logger:   logger,
 		Protocol: "apm/http",
 		Path:     `apm-*.ndjson`,
 		URL:      url,
