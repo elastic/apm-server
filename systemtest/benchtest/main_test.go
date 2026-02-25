@@ -113,11 +113,7 @@ func Test_warmup(t *testing.T) {
 			}))
 
 			t.Cleanup(srv.Close)
-<<<<<<< HEAD
-			err := warmup(c.agents, c.duration, srv.URL, "")
-=======
-			err := warmup(zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel)), c.agents, c.duration, srv.URL, "", "")
->>>>>>> 38cc1071 (Fix request context and increase duration for 4 agents test (#20484))
+			err := warmup(zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel)), c.agents, c.duration, srv.URL, "")
 			assert.NoError(t, err)
 			assert.Greater(t, received.Load(), uint64(c.agents))
 		})
