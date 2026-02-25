@@ -32,6 +32,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
@@ -69,6 +70,7 @@ func Test_warmup(t *testing.T) {
 				}
 
 				if !strings.HasPrefix(r.URL.Path, "/intake") {
+					t.Logf("unhandled URL path received: %s", r.URL.Path)
 					return
 				}
 
@@ -111,7 +113,7 @@ func Test_warmup(t *testing.T) {
 			}))
 
 			t.Cleanup(srv.Close)
-			err := warmup(c.agents, c.duration, srv.URL, "", "")
+			err := warmup(zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel)), c.agents, c.duration, srv.URL, "", "")
 			assert.NoError(t, err)
 			assert.Greater(t, received.Load(), uint64(c.agents))
 		})
