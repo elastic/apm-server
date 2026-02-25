@@ -45,7 +45,7 @@ func Test_warmup(t *testing.T) {
 	}
 	cases := []testCase{
 		{1, 2 * time.Second},
-		{4, 2 * time.Second},
+		{4, 4 * time.Second},
 	}
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("%d_agent_%s", c.agents, c.duration.String()), func(t *testing.T) {
