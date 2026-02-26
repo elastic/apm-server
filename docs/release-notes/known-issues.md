@@ -117,7 +117,7 @@ To work around this issue, we can temporarily introduce an explicit mapping for 
     }
     ```
 
-Please adapt the rollover requests depending on the namespaces you might be using. In case you had already customizations to
+Adapt the rollover requests depending on the namespaces you might be using. In case you had already customizations to
 the `traces-apm@custom` component templates, add an explicit mapping of the field `timestamp.us` to `long`.
 
 This bug will be fixed in 8.19.x, 9.2.x, 9.3.x, 9.4.0
