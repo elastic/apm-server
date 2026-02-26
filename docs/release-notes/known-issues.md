@@ -22,7 +22,7 @@ Known issues are significant defects or limitations that may impact your impleme
 
 :::{dropdown} The spans in the trace waterfall aren't correctly rendered
 
-*Elastic Stack versions: >=8.15.0, >=9.0.0 when using APM Server shipping data through non-Elasticsearch output (Logstash, Redis, Kafka, etc...)
+*Elastic Stack versions: >=8.15.0, >=9.0.0 when using APM Server shipping data through non-Elasticsearch output (Logstash, Redis, Kafka, Console)
 *Environments: ECH, ECE, ECK, and self-managed
 
 When using APM Server with non-Elasticsearch outputs shipping to an Elasticsearch version 8.15.0 or more recent, the trace waterfall will render spans incorrectly.
