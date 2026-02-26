@@ -122,6 +122,8 @@ the `traces-apm@custom` component templates, add an explicit mapping of the fiel
 
 This bug will be fixed in 8.19.x, 9.2.x, 9.3.x, 9.4.0
 
+Once Elasticsearch is upgraded to a version containing the fix, it would be ideal to remove the `traces-apm@custom` component template using `DELETE _component_template/traces-apm@custom` and trigger a manual rollover (or wait for it to happen automatically).
+
 :::
 
 
