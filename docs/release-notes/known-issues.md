@@ -20,6 +20,113 @@ Known issues are significant defects or limitations that may impact your impleme
 % Workaround description.
 % :::
 
+:::{dropdown} The spans in the trace waterfall aren't correctly rendered
+
+*Elastic Stack versions: >=8.15.0, >=9.0.0 when using APM Server shipping data through non-Elasticsearch output (Logstash, Redis, Kafka, Console)
+*Environments: ECH, ECE, ECK, and self-managed
+
+When using APM Server with non-Elasticsearch outputs shipping to an Elasticsearch version 8.15.0 or more recent, the trace waterfall will render spans incorrectly.
+The spans will be rendered aligned on the left instead of representing the time the span started.
+
+The cause is `timestamp.us` is not explicitly mapped as `long` in APM index templates on 8.15 onwards.
+APM Server, when using non-Elasticsearch outputs, can serialize numbers as floats if they exceed the `MAX_SAFE_INTEGER` of JSON.
+Elasticsearch will detect the `timestamp.us` as `float` type, breaking the trace waterfall visualization in APM application.
+
+The problem can be detected running the following request:
+
+```txt
+GET traces-apm-default/_mapping/field/timestamp.us
+```
+
+If the results contains backing indices with `float` type in `timestamp.us`, you're affected by this known issue.
+
+```txt
+{
+  ".ds-traces-apm-default-2026.02.26-000001": {
+    "mappings": {
+      "timestamp.us": {
+        "full_name": "timestamp.us",
+        "mapping": {
+          "us": {
+            "type": "float" # Wrongly mapped as float
+          }
+        }
+      }
+    }
+  },
+  ".ds-traces-apm-default-2026.02.26-000002": {
+    "mappings": {
+      "timestamp.us": {
+        "full_name": "timestamp.us",
+        "mapping": {
+          "us": {
+            "type": "long"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+For more information, check [issue #20496](https://github.com/elastic/apm-server/issues/20496)
+
+**Workaround**
+
+To work around this issue, we can temporarily introduce an explicit mapping for the problematic field `timestamp.us`.
+
+1. Go to **Kibana** > **Dev Tools**
+2. Create a custom component template for the APM Traces called `traces-apm@custom` as follows
+
+    ```txt
+    POST _component_template/traces-apm@custom
+    {
+      "template": {
+        "mappings": {
+          "properties": {
+            "timestamp": {
+              "properties": {
+                "us": {
+                  "type": "long"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    ```
+
+3. Trigger a rollover of the APM Traces data streams.
+
+    ```txt
+    POST /traces-apm-default/_rollover
+    POST /traces-apm.rum-default/_rollover
+    ```
+    
+4. Optionally, previous data streams where the field is wrongly mapped as `float` can be fixed without reindexing using a `runtime` field.
+
+    ```txt
+    PUT .ds-traces-apm-default-<... backing indices where timestamp.us field is mapped as float...>/_mapping
+    {
+      "runtime": {
+        "timestamp.us": {
+          "type": "long"
+        }
+      }
+    }
+    ```
+
+Adapt the rollover requests depending on the namespaces you might be using. In case you had already customizations to
+the `traces-apm@custom` component templates, add an explicit mapping of the field `timestamp.us` to `long`.
+
+This bug will be fixed in 8.19.x, 9.2.x, 9.3.x, 9.4.0
+
+Once Elasticsearch is upgraded to a version containing the fix, it would be ideal to remove the `traces-apm@custom` component template using `DELETE _component_template/traces-apm@custom` and trigger a manual rollover (or wait for it to happen automatically).
+
+:::
+
+
 :::{dropdown} APM occasionally returning HTTP 502 "backend connection closed" or "use of closed network connection"
 
 *Elastic Stack versions: >=8.0.0 and <8.18.8 or <8.19.5, >=9.0.0 and <9.0.8 or <9.1.5*
