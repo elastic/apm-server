@@ -19,7 +19,11 @@ COPY --chmod=0644 apm-server.yml ./apm-server.yml
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 
+<<<<<<< HEAD
 FROM cgr.dev/chainguard/static:latest@sha256:9cef3c6a78264cb7e25923bf1bf7f39476dccbcc993af9f4ffeb191b77a7951e AS builder-certs
+=======
+FROM cgr.dev/chainguard/static:latest@sha256:b24ac9892a647b64bc8341e6b9280885c44004b32ffc8d57d3218960280e1d89 AS builder-certs
+>>>>>>> bef60013 (build(deps): bump the docker group in /packaging/docker with 2 updates (#20535))
 
 ################################################################################
 # Build stage 1
