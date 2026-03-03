@@ -27,10 +27,11 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
+
+	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
 
 const (
@@ -386,9 +387,9 @@ func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval
 	u, err := url.Parse(srv.URL)
 	require.NoError(t, err)
 
-	client, err := elastictransport.New(elastictransport.Config{
-		URLs: []*url.URL{u},
-	})
+	client, err := elastictransport.NewClient(
+		elastictransport.WithURLs(u),
+	)
 	require.NoError(t, err)
 
 	if logger == nil {
