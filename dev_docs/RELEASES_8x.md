@@ -92,7 +92,11 @@ Run the `run-patch-release` with any `8.19.x` version.
 
 * Test plan
 
-  Create a github issue for testing the release branch ([use the GitHub issue `test plan` template](https://github.com/elastic/apm-server/issues/new?assignees=&labels=test-plan&projects=&template=test-plan.md)), It should contain:
+  Create a GitHub issue for testing the release branch.
+  Choose one way to create the initial issue:
+  * **Option 1 (recommended):** Run the [`create-test-plan-patch`](https://github.com/elastic/apm-server/actions/workflows/create-test-plan-patch.yml) workflow with the upcoming version, then review and adjust the generated issue content.
+  * **Option 2:** Create it manually using the [test plan issue template](https://github.com/elastic/apm-server/issues/new?assignees=&labels=test-plan&projects=&template=test-plan.md).
+  The issue should contain:
   * A link to all PRs in the APM Server repository that need to be tested manually to create an overview over the PRs that need testing.
     Use the `test-plan` label and the version label (create it if it does not exist). For example, [this was 8.13.0 test plan](https://github.com/elastic/apm-server/issues/12822)
     and here you can find [all previous test plans](https://github.com/elastic/apm-server/issues?q=label%3Atest-plan+is%3Aclosed).
