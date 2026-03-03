@@ -15,9 +15,9 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.40.0
 	github.com/tidwall/gjson v1.18.0
-	go.elastic.co/apm/v2 v2.7.3
+	go.elastic.co/apm/v2 v2.7.4
 	go.elastic.co/fastjson v1.5.1
-	go.opentelemetry.io/collector/pdata v1.52.0
+	go.opentelemetry.io/collector/pdata v1.53.0
 	go.opentelemetry.io/otel v1.40.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.40.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.40.0
@@ -92,13 +92,13 @@ require (
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/collector/featuregate v1.52.0 // indirect
+	go.opentelemetry.io/collector/featuregate v1.53.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.9.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.47.0 // indirect
-	golang.org/x/net v0.49.0 // indirect
-	golang.org/x/text v0.33.0 // indirect
+	golang.org/x/crypto v0.48.0 // indirect
+	golang.org/x/net v0.51.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260128011058-8636f8732409 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260128011058-8636f8732409 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
