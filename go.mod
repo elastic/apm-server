@@ -229,13 +229,8 @@ require (
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.7.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-<<<<<<< HEAD
-	go.opentelemetry.io/collector/consumer v1.50.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.51.0 // indirect
-=======
 	go.opentelemetry.io/collector/consumer v1.51.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.53.0 // indirect
->>>>>>> 7e2a5f94 (build(deps): bump the otel group across 1 directory with 6 updates (#20541))
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
