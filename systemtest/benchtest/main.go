@@ -40,6 +40,7 @@ import (
 
 	"github.com/elastic/apm-perf/loadgen"
 	loadgencfg "github.com/elastic/apm-perf/loadgen/config"
+
 	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
 )
 
@@ -276,13 +277,14 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 func warmup(logger *zap.Logger, agents int, duration time.Duration, url, token, apiKey string) error {
 	rl := loadgen.GetNewLimiter(loadgencfg.Config.EventRate.Burst, loadgencfg.Config.EventRate.Interval)
 	h, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
-		Logger:   logger,
-		Protocol: "apm/http",
-		Path:     `apm-*.ndjson`,
-		URL:      url,
-		Token:    token,
-		APIKey:   apiKey,
-		Limiter:  rl,
+		Logger:     logger,
+		Protocol:   "apm/http",
+		Path:       `apm-*.ndjson`,
+		URL:        url,
+		Token:      token,
+		APIKey:     apiKey,
+		Limiter:    rl,
+		RunForever: true,
 	})
 	if err != nil {
 		return fmt.Errorf("unable to create warm-up handler: %w", err)
