@@ -3,7 +3,7 @@ kind: Kibana
 metadata:
   name: kibana
 spec:
-  version: 8.19.13-18516df7-SNAPSHOT
+  version: 8.19.13-437ef6f8-SNAPSHOT
   count: 1
   elasticsearchRef:
     name: elasticsearch
