@@ -173,8 +173,8 @@ github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 h1:br+XeQOcxNFSv+
 github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22/go.mod h1:gE+FV7xXv0/nBenviCvpvnvTpUkjJXtuOWs2UT+ZRtw=
 github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe h1:LDtn/A8Tsfz8DQlbXtmDud9ha9oOGriwJGB7V0Ozik8=
 github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe/go.mod h1:SIlGcpTnnosxZ3OvoRC7ADxhHdlsu/nwUdVMF9OkgYc=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260305101239-77ff8b8266ec h1:h2+n103bSQ58Sedq8uhrtbYTg5BHwfmX9PqmNXfZVK0=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260305101239-77ff8b8266ec/go.mod h1:CRMl1+7jWx2RuLT6OWGyMfy3WIKiCz5NJ9yMj8LYbQY=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260306111908-2f21fb71efde h1:oBvP3fKwgWsXWKRC64PzeruFyEuiQevy22AbUzI4jO4=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260306111908-2f21fb71efde/go.mod h1:Vi9k9H1dOpoX8/6+aMniMMPrNeUK+jQOiWrwrkye5cU=
 github.com/elastic/elastic-agent-autodiscover v0.10.2 h1:fzi+CIcK7FKUQlQHfKP+3Ixg1wbuEYacaChunmMAP38=
 github.com/elastic/elastic-agent-autodiscover v0.10.2/go.mod h1:qBoYxp3lX3qFRYjEgsOaROC+xL4ItG63GSvOg1SjjsQ=
 github.com/elastic/elastic-agent-client/v7 v7.18.0 h1:zXdoErqECfvRjj1c+1Ko4VGuUnFtJfTiC9JJz4aQCHc=
@@ -641,8 +641,8 @@ go.elastic.co/go-licence-detector v0.7.0 h1:qC31sfyfNcNx/zMYcLABU0ac3MbGHZgksCAb
 go.elastic.co/go-licence-detector v0.7.0/go.mod h1:f5ty8pjynzQD8BcS+s0qtlOGKc35/HKQxCVi8SHhV5k=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
-go.opentelemetry.io/collector/consumer v1.50.0 h1:Sxbue3zNH3IJla+vUyMXEiomfRJaS6wemZd4qv5na48=
-go.opentelemetry.io/collector/consumer v1.50.0/go.mod h1:GB6gfWsZyeTBWn+Cb3ITkJaH4aA5NW0r2Dm+VLFnD/M=
+go.opentelemetry.io/collector/consumer v1.51.0 h1:Ex1x/k9VEEA2DOgt/eSc2Z9KTp0I6xBSruLmrYFfIFY=
+go.opentelemetry.io/collector/consumer v1.51.0/go.mod h1:Erk6qdfVj+24QTrGCpurcrF+qdUlHkb4dgMy5wJxLvY=
 go.opentelemetry.io/collector/featuregate v1.51.0 h1:dxJuv/3T84dhNKp7fz5+8srHz1dhquGzDpLW4OZTFBw=
 go.opentelemetry.io/collector/featuregate v1.51.0/go.mod h1:/1bclXgP91pISaEeNulRxzzmzMTm4I5Xih2SnI4HRSo=
 go.opentelemetry.io/collector/internal/testutil v0.145.0 h1:H/KL0GH3kGqSMKxZvnQ0B0CulfO9xdTg4DZf28uV7fY=
