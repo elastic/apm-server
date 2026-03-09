@@ -263,9 +263,11 @@ func run(ctx context.Context, serverURL string, period time.Duration) (<-chan ex
 				return
 			case <-ticker.C:
 				var e expvar
-				ctxWithTimeout, cancel := context.WithTimeout(ctx, period+5*time.Second)
-				err := queryExpvar(ctxWithTimeout, &e, serverURL)
-				cancel()
+				err := retryOnContextDeadline(func() error {
+					ctxWithTimeout, cancel := context.WithTimeout(ctx, period+5*time.Second)
+					defer cancel()
+					return queryExpvar(ctxWithTimeout, &e, serverURL)
+				}, 2)
 				if err != nil {
 					select {
 					case errChan <- err:
@@ -282,4 +284,15 @@ func run(ctx context.Context, serverURL string, period time.Duration) (<-chan ex
 		}
 	}()
 	return outChan, errChan
+}
+
+func retryOnContextDeadline(fn func() error, times int) error {
+	var err error
+	for range times + 1 {
+		err = fn()
+		if !errors.Is(err, context.DeadlineExceeded) {
+			return err
+		}
+	}
+	return err
 }
