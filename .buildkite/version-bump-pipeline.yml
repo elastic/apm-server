@@ -18,6 +18,13 @@ notify:
     if: build.state == "blocked"
 
 steps:
+  - label: "Bump version"
+    command: ".buildkite/scripts/bump.sh ${BRANCH} ${NEW_VERSION}"
+    plugins:
+      - elastic/vault-github-token#v0.1.0:
+    agents:
+      image: "docker.elastic.co/ci-agent-images/observability-robots/ubuntu-build-essential:latest"
+
   # TODO: replace this block step by real version bump logic
   - block: "Ready to fetch for DRA artifacts?"
     prompt: |
