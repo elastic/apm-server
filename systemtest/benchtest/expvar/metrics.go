@@ -284,7 +284,7 @@ func run(ctx context.Context, serverURL string, period time.Duration) (<-chan ex
 }
 
 func retryQueryExpvar(ctx context.Context, serverURL string, period time.Duration, times int) (*expvar, error) {
-	var e *expvar
+	var e expvar
 	var err error
 
 	for range times + 1 {
@@ -295,12 +295,12 @@ func retryQueryExpvar(ctx context.Context, serverURL string, period time.Duratio
 		default:
 		}
 		ctxWithTimeout, cancel := context.WithTimeout(ctx, period+5*time.Second)
-		err = queryExpvar(ctxWithTimeout, e, serverURL)
+		err = queryExpvar(ctxWithTimeout, &e, serverURL)
 		cancel()
 		if !errors.Is(err, context.DeadlineExceeded) {
 			return nil, err
 		}
 	}
 
-	return e, err
+	return &e, err
 }
