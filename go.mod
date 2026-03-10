@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.25.7
+go 1.26.1
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.5
@@ -55,8 +55,13 @@ require (
 	golang.org/x/term v0.40.0
 	golang.org/x/time v0.14.0
 	google.golang.org/grpc v1.79.1
+<<<<<<< HEAD
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
+=======
+	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
+	gopkg.in/yaml.v2 v2.4.0
+>>>>>>> 227af484 (feat: bump go to 1.26.1 (#20585))
 )
 
 require (
