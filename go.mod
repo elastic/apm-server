@@ -11,11 +11,7 @@ require (
 	github.com/elastic/apm-data v1.19.6
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260302150443-9e9a4cc41a64
 	github.com/elastic/elastic-agent-client/v7 v7.18.0
-<<<<<<< HEAD
-	github.com/elastic/elastic-agent-libs v0.32.2
-=======
 	github.com/elastic/elastic-agent-libs v0.33.3
->>>>>>> 9cf694ff (build(deps): bump github.com/elastic/elastic-agent-libs from 0.33.0 to 0.33.3 (#20559))
 	github.com/elastic/elastic-agent-system-metrics v0.14.1
 	github.com/elastic/elastic-transport-go/v8 v8.8.0
 	github.com/elastic/gmux v0.3.2
