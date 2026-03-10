@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server/integrationservertest
 
-go 1.25.7
+go 1.26.1
 
 require (
 	github.com/dnaeon/go-vcr v1.2.0
