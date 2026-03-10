@@ -262,12 +262,7 @@ func run(ctx context.Context, serverURL string, period time.Duration) (<-chan ex
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				var e expvar
-				err := retryOnContextDeadline(func() error {
-					ctxWithTimeout, cancel := context.WithTimeout(ctx, period+5*time.Second)
-					defer cancel()
-					return queryExpvar(ctxWithTimeout, &e, serverURL)
-				}, 2)
+				e, err := retryQueryExpvar(ctx, serverURL, period, 3)
 				if err != nil {
 					select {
 					case errChan <- err:
@@ -275,10 +270,12 @@ func run(ctx context.Context, serverURL string, period time.Duration) (<-chan ex
 					}
 					return
 				}
-				select {
-				case outChan <- e:
-				case <-ctx.Done():
-					return
+				if e != nil {
+					select {
+					case outChan <- *e:
+					case <-ctx.Done():
+						return
+					}
 				}
 			}
 		}
@@ -286,13 +283,24 @@ func run(ctx context.Context, serverURL string, period time.Duration) (<-chan ex
 	return outChan, errChan
 }
 
-func retryOnContextDeadline(fn func() error, times int) error {
+func retryQueryExpvar(ctx context.Context, serverURL string, period time.Duration, times int) (*expvar, error) {
+	var e *expvar
 	var err error
+
 	for range times + 1 {
-		err = fn()
+		select {
+		case <-ctx.Done():
+			// Original context got canceled, do nothing
+			return nil, nil
+		default:
+		}
+		ctxWithTimeout, cancel := context.WithTimeout(ctx, period+5*time.Second)
+		err = queryExpvar(ctxWithTimeout, e, serverURL)
+		cancel()
 		if !errors.Is(err, context.DeadlineExceeded) {
-			return err
+			return nil, err
 		}
 	}
-	return err
+
+	return e, err
 }
