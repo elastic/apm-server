@@ -62,6 +62,7 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
+
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -887,7 +888,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 			return "", outputs.Group{}, nil
 		}
 		outputName := s.outputConfig.Name()
-		output, err := outputs.Load(nil, beatInfo, stats, outputName, s.outputConfig.Config())
+		output, err := outputs.Load(nil, beatInfo, stats, outputName, s.outputConfig.Config(), paths.New())
 		return outputName, output, err
 	}
 	var pipelineConfig pipeline.Config
