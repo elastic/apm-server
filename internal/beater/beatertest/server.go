@@ -36,10 +36,11 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-server/internal/beater"
-	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/beatmonitoring"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
+
+	"github.com/elastic/apm-server/internal/beater"
 )
 
 // Server runs the core APM Server that, by default, listens on a system-chosen port
@@ -119,7 +120,7 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 		WrapServer:     options.wrapServer,
 		TracerProvider: options.tracerProvider,
 		MeterProvider:  options.meterProvider,
-		BeatMonitoring: beat.NewMonitoring(),
+		BeatMonitoring: beatmonitoring.NewMonitoring(),
 	})
 	require.NoError(t, err)
 

@@ -29,6 +29,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/beatmonitoring"
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/elastic-agent-libs/config"
@@ -70,7 +71,7 @@ type RunnerParams struct {
 
 	MetricsGatherer *apmotel.Gatherer
 
-	BeatMonitoring beat.Monitoring
+	BeatMonitoring beatmonitoring.Monitoring
 }
 
 // Runner is an interface returned by NewRunnerFunc.
@@ -81,7 +82,7 @@ type Runner interface {
 
 // NewReloader returns a new Reloader which creates Runners using the provided
 // beat.Info and NewRunnerFunc.
-func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricGatherer *apmotel.Gatherer, tracerProvider trace.TracerProvider, beatMonitoring beat.Monitoring) (*Reloader, error) {
+func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricGatherer *apmotel.Gatherer, tracerProvider trace.TracerProvider, beatMonitoring beatmonitoring.Monitoring) (*Reloader, error) {
 	r := &Reloader{
 		info:      info,
 		logger:    info.Logger,
@@ -115,7 +116,7 @@ type Reloader struct {
 	tracerProvider trace.TracerProvider
 	meterProvider  metric.MeterProvider
 	metricGatherer *apmotel.Gatherer
-	beatMonitoring beat.Monitoring
+	beatMonitoring beatmonitoring.Monitoring
 
 	runner     Runner
 	stopRunner func() error

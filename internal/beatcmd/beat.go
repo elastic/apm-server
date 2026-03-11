@@ -45,6 +45,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/api"
 	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/beatmonitoring"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/management"
 	"github.com/elastic/beats/v7/libbeat/monitoring/report"
@@ -60,7 +61,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/service"
 	"github.com/elastic/elastic-agent-system-metrics/metric/system/host"
 	metricreport "github.com/elastic/elastic-agent-system-metrics/report"
-	sysinfo "github.com/elastic/go-sysinfo"
+	"github.com/elastic/go-sysinfo"
 	"github.com/elastic/go-sysinfo/types"
 
 	"github.com/elastic/apm-server/internal/version"
@@ -153,7 +154,7 @@ func NewBeat(args BeatParams) (*Beat, error) {
 			Config:     &beat.BeatConfig{Output: cfg.Output},
 			BeatConfig: cfg.APMServer,
 			Registry:   reload.NewRegistry(),
-			Monitoring: beat.NewMonitoring(),
+			Monitoring: beatmonitoring.NewMonitoring(),
 		},
 		Config:         cfg,
 		newRunner:      args.NewRunner,
@@ -324,12 +325,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	var apiServer *api.Server
 	if b.Config.HTTP.Enabled() {
 		var err error
-		apiServer, err = api.NewWithDefaultRoutes(b.Info.Logger, b.Config.HTTP,
-			b.Monitoring.InfoRegistry(),
-			b.Monitoring.StateRegistry(),
-			b.Monitoring.StatsRegistry(),
-			b.Monitoring.InputsRegistry(),
-		)
+		apiServer, err = api.NewWithDefaultRoutes(b.Info.Logger, b.Config.HTTP, b.Monitoring)
 		if err != nil {
 			return fmt.Errorf("could not start the HTTP server for the API: %w", err)
 		}
@@ -352,14 +348,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	if b.Config.MetricLogging != nil && b.Config.MetricLogging.Enabled() {
-		reporter, err := log.MakeReporter(
-			b.Info,
-			b.Config.MetricLogging,
-			b.Monitoring.InfoRegistry(),
-			b.Monitoring.StateRegistry(),
-			b.Monitoring.StatsRegistry(),
-			b.Monitoring.InputsRegistry(),
-		)
+		reporter, err := log.MakeReporter(b.Info, b.Config.MetricLogging, b.Monitoring)
 		if err != nil {
 			return err
 		}
