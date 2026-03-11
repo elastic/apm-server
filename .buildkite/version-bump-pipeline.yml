@@ -24,7 +24,7 @@ steps:
     if: build.env("NEW_VERSION") !~ /0$/
     plugins:
       - elastic/vault-github-token#v0.1.0:
-      - elastic/gh-cli#main:
+      - elastic/gh-cli#v0.1.0:
           version: "2.62.0"
           wait: true
           workflow-file: "run-minor-release.yml"
@@ -38,7 +38,7 @@ steps:
     if: build.env("NEW_VERSION") =~ /0$/
     plugins:
       - elastic/vault-github-token#v0.1.0:
-      - elastic/gh-cli#main:
+      - elastic/gh-cli#v0.1.0:
           version: "2.62.0"
           wait: true
           workflow-file: "run-patch-release.yml"
