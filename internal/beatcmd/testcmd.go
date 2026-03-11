@@ -22,6 +22,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/elastic/elastic-agent-libs/paths"
+
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -73,7 +75,7 @@ func newTestOutputCommand(beatParams BeatParams) *cobra.Command {
 				return err
 			}
 			output, err := outputs.Load(
-				nil, beat.Info, nil, beat.Config.Output.Name(), beat.Config.Output.Config(),
+				nil, beat.Info, nil, beat.Config.Output.Name(), beat.Config.Output.Config(), paths.New(),
 			)
 			if err != nil {
 				return fmt.Errorf("error initializing output: %w", err)

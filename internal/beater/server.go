@@ -28,13 +28,14 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/beatmonitoring"
 	"github.com/elastic/beats/v7/libbeat/version"
 	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
+
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/auth"
@@ -139,7 +140,7 @@ type ServerParams struct {
 	Semaphore input.Semaphore
 
 	// BeatMonitoring holds the beat monitoring registries
-	BeatMonitoring beat.Monitoring
+	BeatMonitoring beatmonitoring.Monitoring
 }
 
 // newBaseRunServer returns the base RunServerFunc.
