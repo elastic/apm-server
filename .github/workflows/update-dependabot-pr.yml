@@ -20,10 +20,6 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-<<<<<<< HEAD
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-=======
       # TokenPolicy defined at https://github.com/elastic/catalog-info/tree/main/resources/github-token-policies/token-policy-apm-server-update-dependabot.yaml
       - name: Get token
         id: get_token
@@ -47,7 +43,6 @@ jobs:
           git_commit_gpgsign: true
 
       - uses: actions/setup-go@v6
->>>>>>> 0022941b (build(deps): bump the github-actions group across 3 directories with 5 updates (#20589))
         with:
           go-version-file: go.mod
           cache: false
