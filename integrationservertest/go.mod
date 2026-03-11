@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server/integrationservertest
 
-go 1.25.7
+go 1.26.1
 
 require (
 	github.com/dnaeon/go-vcr v1.2.0
@@ -10,6 +10,7 @@ require (
 	github.com/hashicorp/terraform-exec v0.21.0
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
+	go.yaml.in/yaml/v2 v2.4.3
 )
 
 require (
