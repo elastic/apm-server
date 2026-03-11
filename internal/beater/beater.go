@@ -28,6 +28,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/cespare/xxhash/v2"
@@ -199,7 +200,10 @@ func (s *Runner) Run(ctx context.Context) error {
 	// timeout.
 	backgroundContext, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	var shutdownGoroutineWg sync.WaitGroup
+	shutdownGoroutineWg.Add(1)
 	go func() {
+		defer shutdownGoroutineWg.Done()
 		<-ctx.Done()
 		s.logger.Infof(
 			"stopping apm-server... waiting maximum of %s for queues to drain",
@@ -549,6 +553,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 
 	result := g.Wait()
+	shutdownGoroutineWg.Wait()
 	closeErr := closeFinalBatchProcessor(backgroundContext)
 	closeTracerErr := closeTracerProcessor(backgroundContext)
 	return errors.Join(result, closeErr, closeTracerErr)
