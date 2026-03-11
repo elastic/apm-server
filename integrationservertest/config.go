@@ -26,7 +26,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 
 	"github.com/elastic/apm-server/integrationservertest/internal/ech"
 )
