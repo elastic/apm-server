@@ -40,6 +40,7 @@ import (
 
 	"github.com/elastic/apm-perf/loadgen"
 	loadgencfg "github.com/elastic/apm-perf/loadgen/config"
+
 	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
 )
 
@@ -296,7 +297,7 @@ func warmup(logger *zap.Logger, agents int, duration time.Duration, url, token, 
 	for i := 0; i < agents; i++ {
 		g.Go(func() error {
 			if sendErr := h.SendBatchesInLoop(ctx); sendErr != nil {
-				if !errors.Is(sendErr, context.DeadlineExceeded) {
+				if !ignoreWarmupErrors(sendErr) {
 					return fmt.Errorf("error sending batches: %w", sendErr)
 				}
 			}
@@ -316,4 +317,13 @@ func warmup(logger *zap.Logger, agents int, duration time.Duration, url, token, 
 		return fmt.Errorf("received error waiting for server inactive: %w", err)
 	}
 	return nil
+}
+
+func ignoreWarmupErrors(err error) bool {
+	// Gateway timeout.
+	if strings.Contains(err.Error(), "unexpected server error: 504") {
+		return true
+	}
+	// General go context errors.
+	return errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled)
 }
