@@ -18,12 +18,33 @@ notify:
     if: build.state == "blocked"
 
 steps:
-  - label: "Bump version"
-    command: ".buildkite/scripts/bump.sh ${BRANCH} ${NEW_VERSION}"
+  - label: "Bump version minor"
+    # NOTE: a new minor is X.Y.0, so we check if the version ends with 0
+    #       to decide if it's a minor or patch release
+    if: build.env("NEW_VERSION") !~ /0$/
     plugins:
       - elastic/vault-github-token#v0.1.0:
-    agents:
-      image: "docker.elastic.co/ci-agent-images/observability-robots/ubuntu-build-essential:latest"
+      - elastic/gh-cli#main:
+          version: "2.62.0"
+          wait: true
+          workflow-file: "run-minor-release.yml"
+          workflow-ref: "main"
+          workflow-inputs:
+            version: "${NEW_VERSION}"
+
+  - label: "Bump version patch"
+    # NOTE: a new patch is X.Y.Z, so we check if the version ends with 0
+    #       to decide if it's a minor or patch release
+    if: build.env("NEW_VERSION") =~ /0$/
+    plugins:
+      - elastic/vault-github-token#v0.1.0:
+      - elastic/gh-cli#main:
+          version: "2.62.0"
+          wait: true
+          workflow-file: "run-patch-release.yml"
+          workflow-ref: "main"
+          workflow-inputs:
+            version: "${NEW_VERSION}"
 
   # TODO: replace this block step by real version bump logic
   - block: "Ready to fetch for DRA artifacts?"
