@@ -10,6 +10,10 @@ require (
 	github.com/hashicorp/terraform-exec v0.21.0
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
+<<<<<<< HEAD
+=======
+	go.yaml.in/yaml/v3 v3.0.4
+>>>>>>> 164a94ad (feat: replace archived yaml dependency (#20586))
 )
 
 require (
