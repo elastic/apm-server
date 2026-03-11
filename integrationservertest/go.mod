@@ -10,8 +10,8 @@ require (
 	github.com/hashicorp/terraform-exec v0.21.0
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
+	go.yaml.in/yaml/v2 v2.4.3
 	go.yaml.in/yaml/v3 v3.0.4
-	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -62,5 +62,6 @@ require (
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
