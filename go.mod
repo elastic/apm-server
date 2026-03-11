@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.25.8
+go 1.26.1
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.5
@@ -47,7 +47,7 @@ require (
 	golang.org/x/term v0.40.0
 	golang.org/x/time v0.14.0
 	google.golang.org/grpc v1.79.1
-	google.golang.org/protobuf v1.36.11
+	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -77,7 +77,7 @@ require (
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/caarlos0/go-version v0.2.0 // indirect
 	github.com/cavaliergopher/cpio v1.0.1 // indirect
-	github.com/cloudflare/circl v1.6.1 // indirect
+	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/cockroachdb/crlib v0.0.0-20241112164430-1264a2edc35b // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
