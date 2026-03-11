@@ -38,8 +38,7 @@ func TestServerTracingEnabled(t *testing.T) {
 			escfg, docs := beatertest.ElasticsearchOutputConfig(t)
 			srv := beatertest.NewServer(t, beatertest.WithConfig(escfg,
 				agentconfig.MustNewConfigFrom(map[string]interface{}{
-					"instrumentation.enabled":     enabled,
-					"apm-server.shutdown_timeout": "1ns",
+					"instrumentation.enabled": enabled,
 				}),
 			))
 
