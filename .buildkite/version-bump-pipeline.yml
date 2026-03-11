@@ -46,7 +46,6 @@ steps:
           workflow-inputs:
             version: "${NEW_VERSION}"
 
-  # TODO: replace this block step by real version bump logic
   - block: "Ready to fetch for DRA artifacts?"
     prompt: |
       Unblock when your team is ready to proceed.
