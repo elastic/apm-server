@@ -327,13 +327,25 @@ collect_elasticsearch_apm_data_plugin_commits() {
 append_external_repo_details_block() {
   local repo_name="$1"
   local source="$2"
+  local collapsed="${3:-true}"
   [[ -s "${source}" ]] || return 0
 
-  cat >> "${OUTPUT_FILE}" <<EOF
+  if [[ "${collapsed}" != "true" && "${collapsed}" != "false" ]]; then
+    echo "Error: collapsed flag for ${repo_name} commit section must be 'true' or 'false', got '${collapsed}'" >&2
+    return 1
+  fi
+
+  if [[ "${collapsed}" == "true" ]]; then
+    cat >> "${OUTPUT_FILE}" <<EOF
 <details>
 <summary>Commits in ${repo_name} diff</summary>
 
 EOF
+  else
+    echo "Commits in ${repo_name} diff:" >> "${OUTPUT_FILE}"
+    echo >> "${OUTPUT_FILE}"
+  fi
+
   awk -F'|' -v repo="${repo_name}" '
     {
       hash = $1
@@ -345,11 +357,14 @@ EOF
       printf "- [`%s`](https://github.com/elastic/%s/commit/%s): `%s` (%s on %s)\n", short, repo, hash, subject, author, date
     }
   ' "${source}" >> "${OUTPUT_FILE}"
-  cat >> "${OUTPUT_FILE}" <<EOF
 
+  if [[ "${collapsed}" == "true" ]]; then
+    cat >> "${OUTPUT_FILE}" <<EOF
 </details>
-
 EOF
+  fi
+
+  echo >> "${OUTPUT_FILE}"
 }
 
 collect_external_repo_commits "apm-aggregation" "${OLD_APM_AGG}" "${NEW_APM_AGG}" "${APM_AGG_DIFF_COMMITS_FILE}"
@@ -371,7 +386,7 @@ List of changes: https://github.com/elastic/elasticsearch/compare/${PREVIOUS_TAG
 EOF
 
 if [[ -s "${ES_APM_DATA_PLUGIN_DIFF_COMMITS_FILE}" ]]; then
-  append_external_repo_details_block "elasticsearch" "${ES_APM_DATA_PLUGIN_DIFF_COMMITS_FILE}"
+  append_external_repo_details_block "elasticsearch" "${ES_APM_DATA_PLUGIN_DIFF_COMMITS_FILE}" "false"
 else
   echo "No changes detected in \`x-pack/plugin/apm-data\` for this release window." >> "${OUTPUT_FILE}"
   echo >> "${OUTPUT_FILE}"
