@@ -72,12 +72,13 @@ resource "aws_security_group" "main" {
 }
 
 resource "aws_instance" "moxy" {
-  ami                    = data.aws_ami.worker_ami.id
-  instance_type          = var.instance_type
-  subnet_id              = data.aws_subnets.public_subnets.ids[0]
-  vpc_security_group_ids = [aws_security_group.main.id]
-  key_name               = aws_key_pair.provisioner_key.key_name
-  monitoring             = false
+  ami                         = data.aws_ami.worker_ami.id
+  instance_type               = var.instance_type
+  subnet_id                   = data.aws_subnets.public_subnets.ids[0]
+  vpc_security_group_ids      = [aws_security_group.main.id]
+  key_name                    = aws_key_pair.provisioner_key.key_name
+  monitoring                  = false
+  associate_public_ip_address = true
 
   connection {
     type        = "ssh"
