@@ -31,6 +31,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/elastic-agent-libs/paths"
+
 	"go.elastic.co/fastjson"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -158,6 +160,7 @@ func BenchmarkPublisher(b *testing.B) {
 		config.MustNewConfigFrom(map[string]interface{}{
 			"hosts": []interface{}{srv.URL},
 		}),
+		paths.New(),
 	)
 	require.NoError(b, err)
 
