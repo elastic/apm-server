@@ -38,18 +38,7 @@ func TestServerTracingEnabled(t *testing.T) {
 			escfg, docs := beatertest.ElasticsearchOutputConfig(t)
 			srv := beatertest.NewServer(t, beatertest.WithConfig(escfg,
 				agentconfig.MustNewConfigFrom(map[string]interface{}{
-					"instrumentation.enabled": enabled,
-
-					// The output instrumentation may send transactions for
-					// bulk operations, e.g. there will be "flush" transactions
-					// sent for _bulk requests. When the server sends traces to
-					// itself, it will enter a state where it continues to
-					// regularly send traces to itself from the traced output.
-					//
-					// TODO(axw) we should consider having a separate processor
-					// pipeline (including output) with no tracing. For now, we
-					// set a short shutdown timeout so that if an trace events
-					// are not consumed, they will not block shutdown.
+					"instrumentation.enabled":     enabled,
 					"apm-server.shutdown_timeout": "1ns",
 				}),
 			))
