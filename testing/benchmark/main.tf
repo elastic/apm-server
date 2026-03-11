@@ -7,7 +7,7 @@ terraform {
     }
     aws = {
       source  = "hashicorp/aws"
-      version = "~>4.17"
+      version = "~>6"
     }
     time = {
       source  = "hashicorp/time"
@@ -52,7 +52,7 @@ locals {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "3.14.0"
+  version = "6.5.1"
 
   name = "${var.user_name}-worker"
   cidr = var.vpc_cidr
