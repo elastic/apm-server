@@ -30,7 +30,11 @@ jobs:
               "pull_requests": "write"
             }
 
+<<<<<<< HEAD
       - uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+=======
+      - uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+>>>>>>> 0022941b (build(deps): bump the github-actions group across 3 directories with 5 updates (#20589))
         with:
           registry: ghcr.io
           username: ${{ github.actor }}

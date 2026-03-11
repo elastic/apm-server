@@ -137,7 +137,11 @@ jobs:
           echo "BENCHMARK_RUN=Benchmark[^T]" >> "$GITHUB_ENV"
 
       - name: Log in to the Elastic Container registry
+<<<<<<< HEAD
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+=======
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+>>>>>>> 0022941b (build(deps): bump the github-actions group across 3 directories with 5 updates (#20589))
         with:
           registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
           username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
@@ -158,7 +162,7 @@ jobs:
           secrets: |-
             EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-pro-api-key
 
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+      - uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
         with:
           terraform_version: ~1.10.0
           terraform_wrapper: false
@@ -239,7 +243,11 @@ jobs:
           echo "png_report_url=https://elastic-apm-server-benchmark-reports.s3.amazonaws.com/${DEST_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Upload benchmark result
+<<<<<<< HEAD
         uses: actions/upload-artifact@v4
+=======
+        uses: actions/upload-artifact@v7
+>>>>>>> 0022941b (build(deps): bump the github-actions group across 3 directories with 5 updates (#20589))
         with:
           name: benchmark-result
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_RESULT }}
@@ -253,7 +261,11 @@ jobs:
         run: make cp-cpuprof
 
       - name: Upload CPU profile
+<<<<<<< HEAD
         uses: actions/upload-artifact@v4
+=======
+        uses: actions/upload-artifact@v7
+>>>>>>> 0022941b (build(deps): bump the github-actions group across 3 directories with 5 updates (#20589))
         with:
           name: cpu-profile
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
@@ -277,7 +289,11 @@ jobs:
           github-token: ${{ steps.get_token.outputs.token }}
 
       - name: Import GPG key
+<<<<<<< HEAD
         uses: crazy-max/ghaction-import-gpg@cb9bde2e2525e640591a934b1fd28eef1dcaf5e5  # v6.2.0
+=======
+        uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd  # v7.0.0
+>>>>>>> 0022941b (build(deps): bump the github-actions group across 3 directories with 5 updates (#20589))
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
