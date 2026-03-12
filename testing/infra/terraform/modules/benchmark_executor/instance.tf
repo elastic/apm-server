@@ -51,18 +51,6 @@ module "ec2_instance" {
   associate_public_ip_address = true
   key_name                    = aws_key_pair.worker.id
   tags                        = merge(var.tags, local.ec2_tags)
-
-  user_data = <<-EOT
-#!/bin/bash
-# Set DNS to 1.1.1.1 (Cloudflare) for benchmark worker
-mkdir -p /etc/NetworkManager/conf.d
-cat > /etc/NetworkManager/conf.d/99-custom-dns.conf << 'EOF'
-[connection]
-ipv4.dns=1.1.1.1
-ipv4.ignore-auto-dns=true
-EOF
-systemctl restart NetworkManager 2>/dev/null || true
-EOT
 }
 
 resource "aws_key_pair" "worker" {
