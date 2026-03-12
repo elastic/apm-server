@@ -27,7 +27,7 @@ import (
 	"github.com/elastic/apm-server/internal/elasticsearch"
 )
 
-func TestMonitoring(t *testing.T) {
+func TestMainMonitoring(t *testing.T) {
 	home := t.TempDir()
 	err := paths.InitPaths(&paths.Path{Home: home})
 	require.NoError(t, err)
@@ -63,7 +63,7 @@ func TestMonitoring(t *testing.T) {
 				"apm-server.sampling.tail.storage.disk_total",
 				"apm-server.sampling.tail.storage.disk_usage_threshold_pct",
 			})
-		}, time.Second, 10*time.Millisecond)
+		}, 2*time.Second, 20*time.Millisecond) // waitFor has to be greater than diskUsageFetchInterval
 
 		return runServerError
 	}
