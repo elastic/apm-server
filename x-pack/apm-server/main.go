@@ -26,6 +26,7 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
+
 	"github.com/elastic/apm-server/internal/beatcmd"
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
@@ -169,22 +170,11 @@ func getBadgerDB(storageDir string, mp metric.MeterProvider) (*eventstorage.Stor
 	badgerMu.Lock()
 	defer badgerMu.Unlock()
 	if badgerDB == nil {
-		sm, err := eventstorage.NewStorageManager(storageDir)
+		sm, err := eventstorage.NewStorageManager(storageDir, eventstorage.WithMeterProvider(mp))
 		if err != nil {
 			return nil, err
 		}
 		badgerDB = sm
-
-		meter := mp.Meter("github.com/elastic/apm-server/x-pack/apm-server")
-		lsmSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.lsm_size")
-		valueLogSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.value_log_size")
-
-		badgerDBMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
-			lsmSize, valueLogSize := sm.Size()
-			o.ObserveInt64(lsmSizeGauge, lsmSize)
-			o.ObserveInt64(valueLogSizeGauge, valueLogSize)
-			return nil
-		}, lsmSizeGauge, valueLogSizeGauge)
 	}
 	return badgerDB, nil
 }
@@ -264,10 +254,6 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 // called concurrently with opening badger.DB/accessing the badgerDB global,
 // so it does not need to hold badgerMu.
 func closeBadger() error {
-	if badgerDBMetricRegistration != nil {
-		badgerDBMetricRegistration.Unregister()
-		badgerDBMetricRegistration = nil
-	}
 	if badgerDB != nil {
 		db := badgerDB
 		badgerDB = nil

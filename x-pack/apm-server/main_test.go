@@ -73,7 +73,7 @@ func TestMonitoring(t *testing.T) {
 
 		err = runServer(context.Background(), serverParams)
 		assert.Equal(t, runServerError, err)
-		monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+		monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
 			"apm-server.sampling.tail.storage.lsm_size":       0,
 			"apm-server.sampling.tail.storage.value_log_size": 0,
 		})
@@ -117,6 +117,9 @@ func TestStorageMonitoring(t *testing.T) {
 	assert.NotZero(t, lsmSize)
 	vlogSize := getGauge(t, reader, "apm-server.sampling.tail.storage.value_log_size")
 	assert.NotZero(t, vlogSize)
+	// Storage limit is zero because the test config sets it to 0.
+	storageLimit := getGauge(t, reader, "apm-server.sampling.tail.storage.storage_limit")
+	assert.Zero(t, storageLimit)
 }
 
 func newTempdirConfig(tb testing.TB) (sampling.Config, sdkmetric.Reader) {
