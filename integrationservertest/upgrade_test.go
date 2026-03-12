@@ -22,6 +22,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/elastic/apm-server/integrationservertest/internal/asserts"
 	"github.com/elastic/apm-server/integrationservertest/internal/ech"
 )
@@ -187,4 +189,92 @@ func dataStreamsExpectations(expect asserts.DataStreamExpectation) map[string]as
 		"metrics-apm.service_summary.1m-%s":     expect,
 		"metrics-apm.transaction.1m-%s":         expect,
 	}
+}
+
+// TestTimestampUSMappingUpgrade is a regression test for
+// https://github.com/elastic/apm-server/issues/20496.
+// It verifies that upgrading from a pre-fix to a post-fix version
+// produces backing indices with timestamp.us mapped as long.
+func TestTimestampUSMappingUpgrade(t *testing.T) {
+	preFix, err := ech.NewVersionFromString("9.3.1")
+	require.NoError(t, err)
+	postFix, err := ech.NewVersionFromString("9.3.2-SNAPSHOT")
+	require.NoError(t, err)
+
+	config, err := parseConfigFile(upgradeConfigFilename)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dockerImgOverride, err := parseDockerImageOverride(dockerImageOverrideFilename)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	preFixLifecycle := config.ExpectedLifecycle(preFix)
+	postFixLifecycle := config.ExpectedLifecycle(postFix)
+
+	var indicesManagedBy []string
+	indicesManagedBy = append(indicesManagedBy, preFixLifecycle)
+
+	steps := []testStep{
+		createStep{
+			DeployVersion:       preFix,
+			CleanupOnFailure:    *cleanupOnFailure,
+			DockerImageOverride: dockerImgOverride[preFix],
+		},
+		indexRawDocStep{
+			Index: "traces-apm-default",
+			Body:  `{"@timestamp":"2024-01-01T00:00:00Z","data_stream":{"type":"traces","dataset":"apm","namespace":"default"},"processor":{"event":"transaction"},"timestamp":{"us":1772469840000000.0}}`,
+		},
+		checkFieldMappingStep{
+			DataStream:   "traces-apm-default",
+			Field:        "timestamp.us",
+			ExpectedType: "float",
+		},
+		upgradeStep{
+			NewVersion: postFix,
+			CheckDataStreams: dataStreamsExpectations(asserts.DataStreamExpectation{
+				PreferIlm:        postFixLifecycle == managedByILM,
+				DSManagedBy:      postFixLifecycle,
+				IndicesManagedBy: indicesManagedBy,
+			}),
+			DockerImageOverride: dockerImgOverride[postFix],
+		},
+		ingestStep{
+			CheckDataStreams: dataStreamsExpectations(asserts.DataStreamExpectation{
+				PreferIlm:        postFixLifecycle == managedByILM,
+				DSManagedBy:      postFixLifecycle,
+				IndicesManagedBy: append(indicesManagedBy, postFixLifecycle),
+			}),
+		},
+		checkFieldMappingStep{
+			DataStream:   "traces-apm-default",
+			Field:        "timestamp.us",
+			ExpectedType: "long",
+		},
+		checkErrorLogsStep{
+			APMErrorLogsIgnored: apmErrorLogs{
+				bulkIndexingFailed,
+				tlsHandshakeError,
+				esReturnedUnknown503,
+				refreshCache403,
+				refreshCache503,
+				refreshCacheCtxCanceled,
+				refreshCacheCtxDeadline,
+				refreshCacheESConfigInvalid,
+				preconditionFailed,
+				populateSourcemapServerShuttingDown,
+				populateSourcemapFetcher403,
+				syncSourcemapFetcher403,
+				initialSearchQueryContextCanceled,
+				scrollSearchQueryContextCanceled,
+			},
+		},
+	}
+
+	runner := testStepsRunner{
+		Target: *target,
+		Steps:  steps,
+	}
+	runner.Run(t)
 }

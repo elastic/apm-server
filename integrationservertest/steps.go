@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -470,6 +471,43 @@ func (r resolveDeprecationsStep) Step(t *testing.T, ctx context.Context, e *test
 	t.Logf("------ resolve migration deprecations in %s ------", e.currentVersion())
 	err := e.kbc.ResolveMigrationDeprecations(ctx)
 	require.NoError(t, err)
+}
+
+// indexRawDocStep indexes a raw JSON document into a target index/data stream.
+type indexRawDocStep struct {
+	Index string
+	Body  string
+}
+
+func (i indexRawDocStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
+	t.Logf("------ index raw document into %s ------", i.Index)
+	err := e.esc.IndexDocument(ctx, i.Index, strings.NewReader(i.Body))
+	require.NoError(t, err)
+}
+
+// checkFieldMappingStep verifies field mapping type on the latest backing
+// index of a data stream via _field_caps.
+type checkFieldMappingStep struct {
+	DataStream   string
+	Field        string
+	ExpectedType string
+}
+
+func (c checkFieldMappingStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
+	t.Logf("------ check field mapping %s on %s (expect %s) ------", c.Field, c.DataStream, c.ExpectedType)
+	dataStreams, err := e.esc.GetDataStream(ctx, c.DataStream)
+	require.NoError(t, err)
+	require.Len(t, dataStreams, 1, "expected exactly one data stream matching %s", c.DataStream)
+
+	indices := dataStreams[0].Indices
+	require.NotEmpty(t, indices, "data stream %s has no backing indices", c.DataStream)
+	latestIndex := indices[len(indices)-1].IndexName
+
+	t.Logf("checking field_caps on latest backing index %s", latestIndex)
+	fields, err := e.esc.GetFieldCaps(ctx, latestIndex, c.Field)
+	require.NoError(t, err)
+
+	asserts.FieldHasType(t, fields, c.Field, c.ExpectedType)
 }
 
 func expectedDataStreams(namespace string) []string {
