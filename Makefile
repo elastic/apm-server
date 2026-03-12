@@ -294,6 +294,7 @@ NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod
 		-noticeOut NOTICE.txt \
 		-depsTemplate tools/notice/dependencies.csv.tmpl \
 		-depsOut build/dependencies-$(APM_SERVER_VERSION).csv
+	tr -d '\r' < NOTICE.txt > NOTICE.txt.tmp && mv NOTICE.txt.tmp NOTICE.txt
 
 NOTICE-fips.txt build/dependencies-$(APM_SERVER_VERSION)-fips.csv: go.mod
 	mkdir -p build/
@@ -305,6 +306,7 @@ NOTICE-fips.txt build/dependencies-$(APM_SERVER_VERSION)-fips.csv: go.mod
 		-noticeOut NOTICE-fips.txt \
 		-depsTemplate tools/notice/dependencies.csv.tmpl \
 		-depsOut build/dependencies-$(APM_SERVER_VERSION)-fips.csv
+	tr -d '\r' < NOTICE-fips.txt > NOTICE-fips.txt.tmp && mv NOTICE-fips.txt.tmp NOTICE-fips.txt
 
 ##############################################################################
 # Rules for creating and installing build tools.
