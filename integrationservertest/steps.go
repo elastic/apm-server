@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"os"
 	"slices"
 	"strings"
 	"testing"
@@ -508,6 +509,34 @@ func (c checkFieldMappingStep) Step(t *testing.T, ctx context.Context, e *testSt
 	require.NoError(t, err)
 
 	asserts.FieldHasType(t, fields, c.Field, c.ExpectedType)
+}
+
+// pauseStep creates a temporary file, prints its path, and blocks until
+// the file contains the word "proceed". Useful for manual inspection of
+// a running deployment mid-test.
+type pauseStep struct{}
+
+func (p pauseStep) Step(t *testing.T, _ context.Context, _ *testStepEnv) {
+	t.Log("------ pause ------")
+
+	f, err := os.CreateTemp("", "integrationservertest-pause-*.txt")
+	require.NoError(t, err)
+	require.NoError(t, f.Close())
+
+	t.Logf("pause file created: %s", f.Name())
+	t.Logf("write 'proceed' to the file to continue: echo proceed > %s", f.Name())
+
+	for {
+		data, err := os.ReadFile(f.Name())
+		require.NoError(t, err)
+		if strings.Contains(string(data), "proceed") {
+			t.Log("proceed signal received, continuing")
+			break
+		}
+		time.Sleep(2 * time.Second)
+	}
+
+	os.Remove(f.Name())
 }
 
 func expectedDataStreams(namespace string) []string {
