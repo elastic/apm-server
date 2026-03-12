@@ -28,6 +28,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -159,6 +160,7 @@ func BenchmarkPublisher(b *testing.B) {
 		config.MustNewConfigFrom(map[string]interface{}{
 			"hosts": []interface{}{srv.URL},
 		}),
+		paths.New(),
 	)
 	require.NoError(b, err)
 	conf, err := config.NewConfigFrom(map[string]interface{}{

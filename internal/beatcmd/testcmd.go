@@ -20,6 +20,7 @@ package beatcmd
 import (
 	"fmt"
 
+	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/spf13/cobra"
 
 	"github.com/elastic/beats/v7/libbeat/outputs"
@@ -75,7 +76,7 @@ func newTestOutputCommand(beatParams BeatParams) *cobra.Command {
 			}
 			indexSupporter := idxmgmt.NewSupporter(beat.Info.Logger, beat.rawConfig)
 			output, err := outputs.Load(
-				indexSupporter, beat.Info, nil, beat.Config.Output.Name(), beat.Config.Output.Config(),
+				indexSupporter, beat.Info, nil, beat.Config.Output.Name(), beat.Config.Output.Config(), paths.New(),
 			)
 			if err != nil {
 				return fmt.Errorf("error initializing output: %w", err)
