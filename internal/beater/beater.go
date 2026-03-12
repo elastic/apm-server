@@ -199,7 +199,9 @@ func (s *Runner) Run(ctx context.Context) error {
 	// timeout.
 	backgroundContext, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	shutdownTimeoutScheduled := make(chan struct{})
 	go func() {
+		defer close(shutdownTimeoutScheduled)
 		<-ctx.Done()
 		s.logger.Infof(
 			"stopping apm-server... waiting maximum of %s for queues to drain",
@@ -549,6 +551,9 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 
 	result := g.Wait()
+	// Ensure the ctx.Done shutdown path ran and scheduled timeout enforcement
+	// before Run returns. As a side effect, shutdown logging stays within Run's lifetime.
+	<-shutdownTimeoutScheduled
 	closeErr := closeFinalBatchProcessor(backgroundContext)
 	closeTracerErr := closeTracerProcessor(backgroundContext)
 	return errors.Join(result, closeErr, closeTracerErr)
