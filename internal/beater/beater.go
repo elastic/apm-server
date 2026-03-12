@@ -45,6 +45,8 @@ import (
 	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/encoding/gzip"
 
+	"github.com/elastic/beats/v7/libbeat/beatmonitoring"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/licenser"
@@ -61,6 +63,7 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
+
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -89,7 +92,7 @@ type Runner struct {
 	tracerProvider trace.TracerProvider
 	meterProvider  metric.MeterProvider
 	metricGatherer *apmotel.Gatherer
-	beatMonitoring beat.Monitoring
+	beatMonitoring beatmonitoring.Monitoring
 	listener       net.Listener
 	statusReporter status.StatusReporter
 }
@@ -115,7 +118,7 @@ type RunnerParams struct {
 	MetricsGatherer *apmotel.Gatherer
 
 	// BeatMonitoring holds beat monitoring
-	BeatMonitoring beat.Monitoring
+	BeatMonitoring beatmonitoring.Monitoring
 
 	// WrapServer holds an optional WrapServerFunc, for wrapping the
 	// ServerParams and RunServerFunc used to run the APM Server.
@@ -889,7 +892,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 			return "", outputs.Group{}, nil
 		}
 		outputName := s.outputConfig.Name()
-		output, err := outputs.Load(nil, beatInfo, stats, outputName, s.outputConfig.Config())
+		output, err := outputs.Load(nil, beatInfo, stats, outputName, s.outputConfig.Config(), paths.New())
 		return outputName, output, err
 	}
 	var pipelineConfig pipeline.Config
