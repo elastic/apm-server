@@ -27,6 +27,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/elastic/beats/v7/libbeat/beatmonitoring"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/elastic-agent-libs/config"
@@ -75,7 +77,7 @@ func TestReloader(t *testing.T) {
 			<-ctx.Done()
 			return nil
 		}), nil
-	}, nil, nil, nil, beat.NewMonitoring(), nil)
+	}, nil, nil, nil, beatmonitoring.NewMonitoring(), nil)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -163,7 +165,7 @@ func TestReloaderNewRunnerParams(t *testing.T) {
 			<-ctx.Done()
 			return nil
 		}), nil
-	}, nil, nil, nil, beat.NewMonitoring(), nil)
+	}, nil, nil, nil, beatmonitoring.NewMonitoring(), nil)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())

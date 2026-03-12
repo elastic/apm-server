@@ -112,6 +112,7 @@ NEW_APM_DATA="$(required_module_version build/test-plan-go.mod.new github.com/el
 APM_AGG_DIFF_COMMITS_FILE="build/test-plan-apm-aggregation-diff-commits.txt"
 DOCAPPENDER_DIFF_COMMITS_FILE="build/test-plan-go-docappender-diff-commits.txt"
 APM_DATA_DIFF_COMMITS_FILE="build/test-plan-apm-data-diff-commits.txt"
+ES_APM_DATA_PLUGIN_DIFF_COMMITS_FILE="build/test-plan-es-apm-data-plugin-diff-commits.txt"
 
 awk -F'|' '
   BEGIN { IGNORECASE = 1 }
@@ -293,16 +294,58 @@ collect_external_repo_commits() {
   git -C "${repo_dir}" log --pretty=format:'%H|%an|%ad|%s' --date=short "${old_version}..${new_version}" > "${out_file}" || true
 }
 
+collect_elasticsearch_apm_data_plugin_commits() {
+  local old_tag="$1"
+  local branch="$2"
+  local out_file="$3"
+  local repo_name="elasticsearch"
+  local repo_dir="${REPO_CACHE_DIR}/${repo_name}"
+  local repo_url="https://github.com/elastic/${repo_name}.git"
+  local plugin_path="x-pack/plugin/apm-data"
+
+  : > "${out_file}"
+
+  mkdir -p "${REPO_CACHE_DIR}"
+  if [[ ! -d "${repo_dir}/.git" ]]; then
+    if ! git clone --filter=blob:none --quiet "${repo_url}" "${repo_dir}" >/dev/null 2>&1; then
+      return 0
+    fi
+  fi
+
+  git -C "${repo_dir}" fetch origin --tags --force --quiet >/dev/null 2>&1 || true
+
+  if ! git -C "${repo_dir}" rev-parse "${old_tag}^{commit}" >/dev/null 2>&1; then
+    return 0
+  fi
+  if ! git -C "${repo_dir}" rev-parse "origin/${branch}^{commit}" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  git -C "${repo_dir}" log --pretty=format:'%H|%an|%ad|%s' --date=short "${old_tag}..origin/${branch}" -- "${plugin_path}" > "${out_file}" || true
+}
+
 append_external_repo_details_block() {
   local repo_name="$1"
   local source="$2"
+  local collapsed="${3:-true}"
   [[ -s "${source}" ]] || return 0
 
-  cat >> "${OUTPUT_FILE}" <<EOF
+  if [[ "${collapsed}" != "true" && "${collapsed}" != "false" ]]; then
+    echo "Error: collapsed flag for ${repo_name} commit section must be 'true' or 'false', got '${collapsed}'" >&2
+    return 1
+  fi
+
+  if [[ "${collapsed}" == "true" ]]; then
+    cat >> "${OUTPUT_FILE}" <<EOF
 <details>
 <summary>Commits in ${repo_name} diff</summary>
 
 EOF
+  else
+    echo "Commits in ${repo_name} diff:" >> "${OUTPUT_FILE}"
+    echo >> "${OUTPUT_FILE}"
+  fi
+
   awk -F'|' -v repo="${repo_name}" '
     {
       hash = $1
@@ -314,16 +357,20 @@ EOF
       printf "- [`%s`](https://github.com/elastic/%s/commit/%s): `%s` (%s on %s)\n", short, repo, hash, subject, author, date
     }
   ' "${source}" >> "${OUTPUT_FILE}"
-  cat >> "${OUTPUT_FILE}" <<EOF
 
+  if [[ "${collapsed}" == "true" ]]; then
+    cat >> "${OUTPUT_FILE}" <<EOF
 </details>
-
 EOF
+  fi
+
+  echo >> "${OUTPUT_FILE}"
 }
 
 collect_external_repo_commits "apm-aggregation" "${OLD_APM_AGG}" "${NEW_APM_AGG}" "${APM_AGG_DIFF_COMMITS_FILE}"
 collect_external_repo_commits "go-docappender" "${OLD_DOCAPPENDER}" "${NEW_DOCAPPENDER}" "${DOCAPPENDER_DIFF_COMMITS_FILE}"
 collect_external_repo_commits "apm-data" "${OLD_APM_DATA}" "${NEW_APM_DATA}" "${APM_DATA_DIFF_COMMITS_FILE}"
+collect_elasticsearch_apm_data_plugin_commits "${PREVIOUS_TAG}" "${BRANCH}" "${ES_APM_DATA_PLUGIN_DIFF_COMMITS_FILE}"
 
 cat > "${OUTPUT_FILE}" <<EOF
 # Manual Test Plan
@@ -335,8 +382,17 @@ cat > "${OUTPUT_FILE}" <<EOF
 ## ES apm-data plugin
 
 <!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/elasticsearch/tree/main/x-pack/plugin/apm-data-->
-TODO: Manually check whether any coordinated ES apm-data plugin changes were done for this release. This is not handled by automation.
+List of changes: https://github.com/elastic/elasticsearch/compare/${PREVIOUS_TAG}...${BRANCH}
+EOF
 
+if [[ -s "${ES_APM_DATA_PLUGIN_DIFF_COMMITS_FILE}" ]]; then
+  append_external_repo_details_block "elasticsearch" "${ES_APM_DATA_PLUGIN_DIFF_COMMITS_FILE}" "false"
+else
+  echo "No changes detected in \`x-pack/plugin/apm-data\` for this release window." >> "${OUTPUT_FILE}"
+  echo >> "${OUTPUT_FILE}"
+fi
+
+cat >> "${OUTPUT_FILE}" <<EOF
 ## apm-aggregation
 
 <!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/apm-aggregation/pulls-->

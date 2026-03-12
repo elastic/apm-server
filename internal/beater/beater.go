@@ -45,6 +45,8 @@ import (
 	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/encoding/gzip"
 
+	"github.com/elastic/beats/v7/libbeat/beatmonitoring"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/licenser"
@@ -61,6 +63,7 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
+
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -89,7 +92,7 @@ type Runner struct {
 	tracerProvider trace.TracerProvider
 	meterProvider  metric.MeterProvider
 	metricGatherer *apmotel.Gatherer
-	beatMonitoring beat.Monitoring
+	beatMonitoring beatmonitoring.Monitoring
 	listener       net.Listener
 	statusReporter status.StatusReporter
 }
@@ -115,7 +118,7 @@ type RunnerParams struct {
 	MetricsGatherer *apmotel.Gatherer
 
 	// BeatMonitoring holds beat monitoring
-	BeatMonitoring beat.Monitoring
+	BeatMonitoring beatmonitoring.Monitoring
 
 	// WrapServer holds an optional WrapServerFunc, for wrapping the
 	// ServerParams and RunServerFunc used to run the APM Server.
@@ -196,7 +199,9 @@ func (s *Runner) Run(ctx context.Context) error {
 	// timeout.
 	backgroundContext, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	shutdownTimeoutScheduled := make(chan struct{})
 	go func() {
+		defer close(shutdownTimeoutScheduled)
 		<-ctx.Done()
 		s.logger.Infof(
 			"stopping apm-server... waiting maximum of %s for queues to drain",
@@ -546,6 +551,9 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 
 	result := g.Wait()
+	// Ensure the ctx.Done shutdown path ran and scheduled timeout enforcement
+	// before Run returns. As a side effect, shutdown logging stays within Run's lifetime.
+	<-shutdownTimeoutScheduled
 	closeErr := closeFinalBatchProcessor(backgroundContext)
 	closeTracerErr := closeTracerProcessor(backgroundContext)
 	return errors.Join(result, closeErr, closeTracerErr)
@@ -889,7 +897,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 			return "", outputs.Group{}, nil
 		}
 		outputName := s.outputConfig.Name()
-		output, err := outputs.Load(nil, beatInfo, stats, outputName, s.outputConfig.Config())
+		output, err := outputs.Load(nil, beatInfo, stats, outputName, s.outputConfig.Config(), paths.New())
 		return outputName, output, err
 	}
 	var pipelineConfig pipeline.Config

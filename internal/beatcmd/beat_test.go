@@ -36,8 +36,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/elastic/apm-server/internal/version"
 	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/beatmonitoring"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/management"
 	"github.com/elastic/beats/v7/libbeat/tests/integration"
@@ -51,6 +51,8 @@ import (
 	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-docappender/v2/docappendertest"
+
+	"github.com/elastic/apm-server/internal/version"
 )
 
 func TestRunnerParams(t *testing.T) {
@@ -423,7 +425,7 @@ func TestRunManager_Reloader(t *testing.T) {
 			}
 			return nil
 		}), nil
-	}, nil, nil, nil, beat.NewMonitoring(), nil)
+	}, nil, nil, nil, beatmonitoring.NewMonitoring(), nil)
 	require.NoError(t, err)
 
 	agentInfo := &proto.AgentInfo{
@@ -553,7 +555,7 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 		Logger: logptest.NewTestingLogger(t, "beat"),
 	}, registry, func(_ RunnerParams) (Runner, error) {
 		return nil, errors.New("newRunner error")
-	}, nil, nil, nil, beat.NewMonitoring(), nil)
+	}, nil, nil, nil, beatmonitoring.NewMonitoring(), nil)
 	require.NoError(t, err)
 
 	onObserved := func(observed *proto.CheckinObserved, currentIdx int) {
