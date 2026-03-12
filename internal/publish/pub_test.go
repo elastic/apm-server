@@ -28,9 +28,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/elastic-agent-libs/paths"
 
 	"go.elastic.co/apm/v2/apmtest"
 	"go.elastic.co/fastjson"

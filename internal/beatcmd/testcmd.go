@@ -20,8 +20,9 @@ package beatcmd
 import (
 	"fmt"
 
-	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/spf13/cobra"
+
+	"github.com/elastic/elastic-agent-libs/paths"
 
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	"github.com/elastic/elastic-agent-libs/config"
