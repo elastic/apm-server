@@ -20,6 +20,7 @@ package expvar
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"runtime"
 	"time"
@@ -139,6 +140,7 @@ func doExpvar(req *http.Request, out *expvar) (string, error) {
 	defer resp.Body.Close()
 	id := resp.Header.Get(cloudProxyHeader)
 	err = json.NewDecoder(resp.Body).Decode(out)
+	_, _ = io.Copy(io.Discard, resp.Body)
 	return id, err
 }
 
