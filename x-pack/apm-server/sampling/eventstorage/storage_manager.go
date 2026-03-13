@@ -5,6 +5,7 @@
 package eventstorage
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -15,11 +16,13 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v2"
+	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
+
+	"github.com/elastic/apm-server/internal/logs"
 )
 
 const (
@@ -31,6 +34,14 @@ const (
 var (
 	errDropAndRecreateInProgress = errors.New("db drop and recreate in progress")
 )
+
+type StorageManagerOptions func(*StorageManager)
+
+func WithMeterProvider(mp metric.MeterProvider) StorageManagerOptions {
+	return func(sm *StorageManager) {
+		sm.meterProvider = mp
+	}
+}
 
 // StorageManager encapsulates badger.DB.
 // It is to provide file system access, simplify synchronization and enable underlying db swaps.
@@ -51,10 +62,21 @@ type StorageManager struct {
 	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
 	runCh chan struct{}
+
+	meterProvider  metric.MeterProvider
+	storageMetrics storageMetrics
+}
+
+type storageMetrics struct {
+	obsMetricRegistration metric.Registration
+	lsmSizeGauge          metric.Int64ObservableGauge
+	valueLogSizeGauge     metric.Int64ObservableGauge
+
+	storageLimitGauge metric.Int64Gauge
 }
 
 // NewStorageManager returns a new StorageManager with badger DB at storageDir.
-func NewStorageManager(storageDir string) (*StorageManager, error) {
+func NewStorageManager(storageDir string, options ...StorageManagerOptions) (*StorageManager, error) {
 	sm := &StorageManager{
 		storageDir: storageDir,
 		runCh:      make(chan struct{}, 1),
@@ -64,6 +86,25 @@ func NewStorageManager(storageDir string) (*StorageManager, error) {
 	if err != nil {
 		return nil, err
 	}
+	for _, opt := range options {
+		opt(sm)
+	}
+
+	if sm.meterProvider != nil {
+		meter := sm.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
+
+		sm.storageMetrics.lsmSizeGauge, _ = meter.Int64ObservableGauge("apm-server.sampling.tail.storage.lsm_size")
+		sm.storageMetrics.valueLogSizeGauge, _ = meter.Int64ObservableGauge("apm-server.sampling.tail.storage.value_log_size")
+		sm.storageMetrics.storageLimitGauge, _ = meter.Int64Gauge("apm-server.sampling.tail.storage.storage_limit")
+
+		sm.storageMetrics.obsMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
+			lsmSize, valueLogSize := sm.Size()
+			o.ObserveInt64(sm.storageMetrics.lsmSizeGauge, lsmSize)
+			o.ObserveInt64(sm.storageMetrics.valueLogSizeGauge, valueLogSize)
+			return nil
+		}, sm.storageMetrics.lsmSizeGauge, sm.storageMetrics.valueLogSizeGauge)
+	}
+
 	return sm, nil
 }
 
@@ -83,6 +124,9 @@ func (s *StorageManager) reset() error {
 func (s *StorageManager) Close() error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	if s.storageMetrics.obsMetricRegistration != nil {
+		_ = s.storageMetrics.obsMetricRegistration.Unregister()
+	}
 	s.rw.Close()
 	return s.db.Close()
 }
@@ -110,6 +154,11 @@ func (s *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration,
 	defer func() {
 		<-s.runCh
 	}()
+
+	if s.storageMetrics.storageLimitGauge != nil {
+		// Store the effective storage limit as metric (instead of the configured one).
+		s.storageMetrics.storageLimitGauge.Record(context.Background(), int64(float64(storageLimit)*storageLimitThreshold))
+	}
 
 	g := errgroup.Group{}
 	g.Go(func() error {
