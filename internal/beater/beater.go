@@ -885,7 +885,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		}
 		indexSupporter := idxmgmt.NewSupporter(logger, s.rawConfig)
 		outputName := s.outputConfig.Name()
-		output, err := outputs.Load(indexSupporter, beatInfo, stats, outputName, s.outputConfig.Config())
+		output, err := outputs.Load(indexSupporter, beatInfo, stats, outputName, s.outputConfig.Config(), paths.New())
 		return outputName, output, err
 	}
 	var pipelineConfig pipeline.Config
