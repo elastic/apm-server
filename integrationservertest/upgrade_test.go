@@ -196,6 +196,8 @@ func dataStreamsExpectations(expect asserts.DataStreamExpectation) map[string]as
 // https://github.com/elastic/apm-server/issues/20496.
 // It verifies that upgrading from a pre-fix to a post-fix version
 // produces backing indices with timestamp.us mapped as long.
+// NOTE: This test is not run as part of usual integration tests upgrade
+// runs.
 func TestTimestampUSMappingUpgrade(t *testing.T) {
 	config, err := parseConfigFile(upgradeConfigFilename)
 	if err != nil {
@@ -218,8 +220,6 @@ func TestTimestampUSMappingUpgrade(t *testing.T) {
 	}
 
 	paths := []upgradePath{
-		// Once released, we should only keep an upgrade test between 9.3.0 and 9.Y
-		// and 8.19.12 and 8.19.Z.
 		{preFix: mustVersion("8.19.12"), postFix: mustVersion("8.19.13")},
 		{preFix: mustVersion("9.2.6"), postFix: mustVersion("9.2.7")},
 		{preFix: mustVersion("9.3.1"), postFix: mustVersion("9.3.2")},
