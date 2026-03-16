@@ -18,6 +18,7 @@
 package integrationservertest
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
@@ -196,11 +197,6 @@ func dataStreamsExpectations(expect asserts.DataStreamExpectation) map[string]as
 // It verifies that upgrading from a pre-fix to a post-fix version
 // produces backing indices with timestamp.us mapped as long.
 func TestTimestampUSMappingUpgrade(t *testing.T) {
-	preFix, err := ech.NewVersionFromString("9.3.1")
-	require.NoError(t, err)
-	postFix, err := ech.NewVersionFromString("9.3.2-SNAPSHOT")
-	require.NoError(t, err)
-
 	config, err := parseConfigFile(upgradeConfigFilename)
 	if err != nil {
 		t.Fatal(err)
@@ -210,13 +206,55 @@ func TestTimestampUSMappingUpgrade(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	type upgradePath struct {
+		preFix  ech.Version
+		postFix ech.Version
+	}
+
+	mustVersion := func(s string) ech.Version {
+		v, err := ech.NewVersionFromString(s)
+		require.NoError(t, err)
+		return v
+	}
+
+	paths := []upgradePath{
+		// Once released, we should only keep an upgrade test between 9.3.0 and 9.Y
+		// and 8.19.12 and 8.19.Z.
+		{preFix: mustVersion("8.19.12"), postFix: mustVersion("8.19.13")},
+		{preFix: mustVersion("9.2.6"), postFix: mustVersion("9.2.7")},
+		{preFix: mustVersion("9.3.1"), postFix: mustVersion("9.3.2")},
+		{preFix: mustVersion("9.3.0-SNAPSHOT"), postFix: getLatestSnapshot(t, "9.4")},
+	}
+
+	for _, p := range paths {
+		p := p
+		name := fmt.Sprintf("%s_to_%s", p.preFix, p.postFix)
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			steps := buildTimestampUSSteps(t, p.preFix, p.postFix, config, dockerImgOverride)
+			runner := testStepsRunner{
+				Target: *target,
+				Steps:  steps,
+			}
+			runner.Run(t)
+		})
+	}
+}
+
+func buildTimestampUSSteps(
+	t *testing.T,
+	preFix, postFix ech.Version,
+	config upgradeTestConfig,
+	dockerImgOverride map[ech.Version]*dockerImageOverrideConfig,
+) []testStep {
+	t.Helper()
+
 	preFixLifecycle := config.ExpectedLifecycle(preFix)
 	postFixLifecycle := config.ExpectedLifecycle(postFix)
 
-	var indicesManagedBy []string
-	indicesManagedBy = append(indicesManagedBy, preFixLifecycle)
+	indicesManagedBy := []string{preFixLifecycle}
 
-	steps := []testStep{
+	return []testStep{
 		createStep{
 			DeployVersion:       preFix,
 			CleanupOnFailure:    *cleanupOnFailure,
@@ -233,19 +271,38 @@ func TestTimestampUSMappingUpgrade(t *testing.T) {
 		},
 		upgradeStep{
 			NewVersion: postFix,
-			CheckDataStreams: dataStreamsExpectations(asserts.DataStreamExpectation{
-				PreferIlm:        postFixLifecycle == managedByILM,
-				DSManagedBy:      postFixLifecycle,
-				IndicesManagedBy: indicesManagedBy,
-			}),
+			CheckDataStreams: map[string]asserts.DataStreamExpectation{
+				"traces-apm-%s": {
+					PreferIlm:        postFixLifecycle == managedByILM,
+					DSManagedBy:      postFixLifecycle,
+					IndicesManagedBy: indicesManagedBy,
+				},
+			},
 			DockerImageOverride: dockerImgOverride[postFix],
 		},
 		ingestStep{
-			CheckDataStreams: dataStreamsExpectations(asserts.DataStreamExpectation{
-				PreferIlm:        postFixLifecycle == managedByILM,
-				DSManagedBy:      postFixLifecycle,
-				IndicesManagedBy: append(indicesManagedBy, postFixLifecycle),
-			}),
+			CheckDataStreams: func() map[string]asserts.DataStreamExpectation {
+				twoIndices := asserts.DataStreamExpectation{
+					PreferIlm:        postFixLifecycle == managedByILM,
+					DSManagedBy:      postFixLifecycle,
+					IndicesManagedBy: append(indicesManagedBy, postFixLifecycle),
+				}
+				oneIndex := asserts.DataStreamExpectation{
+					PreferIlm:        postFixLifecycle == managedByILM,
+					DSManagedBy:      postFixLifecycle,
+					IndicesManagedBy: []string{postFixLifecycle},
+				}
+				return map[string]asserts.DataStreamExpectation{
+					"traces-apm-%s":                         twoIndices,
+					"metrics-apm.app.opbeans_python-%s":     oneIndex,
+					"metrics-apm.internal-%s":               oneIndex,
+					"logs-apm.error-%s":                     oneIndex,
+					"metrics-apm.service_destination.1m-%s": oneIndex,
+					"metrics-apm.service_transaction.1m-%s": oneIndex,
+					"metrics-apm.service_summary.1m-%s":     oneIndex,
+					"metrics-apm.transaction.1m-%s":         oneIndex,
+				}
+			}(),
 		},
 		checkFieldMappingStep{
 			DataStream:   "traces-apm-default",
@@ -271,10 +328,4 @@ func TestTimestampUSMappingUpgrade(t *testing.T) {
 			},
 		},
 	}
-
-	runner := testStepsRunner{
-		Target: *target,
-		Steps:  steps,
-	}
-	runner.Run(t)
 }
