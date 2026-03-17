@@ -285,6 +285,24 @@ func (c *Client) GetPanicLogs(ctx context.Context) (*search.Response, error) {
 	return res, nil
 }
 
+// GetFieldCaps returns field capabilities for given fields on a given index pattern.
+func (c *Client) GetFieldCaps(ctx context.Context, index string, fields ...string) (map[string]map[string]types.FieldCapability, error) {
+	resp, err := c.es.FieldCaps().Index(index).Fields(fields...).Do(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error getting field caps for %s: %w", index, err)
+	}
+	return resp.Fields, nil
+}
+
+// IndexDocument indexes a raw JSON document into a target index/data stream.
+func (c *Client) IndexDocument(ctx context.Context, index string, body io.Reader) error {
+	_, err := c.es.Index(index).Raw(body).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("error indexing document into %s: %w", index, err)
+	}
+	return nil
+}
+
 /* V7 */
 
 type docCountV7 struct {

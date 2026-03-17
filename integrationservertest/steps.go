@@ -21,7 +21,9 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"os"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -470,6 +472,71 @@ func (r resolveDeprecationsStep) Step(t *testing.T, ctx context.Context, e *test
 	t.Logf("------ resolve migration deprecations in %s ------", e.currentVersion())
 	err := e.kbc.ResolveMigrationDeprecations(ctx)
 	require.NoError(t, err)
+}
+
+// indexRawDocStep indexes a raw JSON document into a target index/data stream.
+type indexRawDocStep struct {
+	Index string
+	Body  string
+}
+
+func (i indexRawDocStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
+	t.Logf("------ index raw document into %s ------", i.Index)
+	err := e.esc.IndexDocument(ctx, i.Index, strings.NewReader(i.Body))
+	require.NoError(t, err)
+}
+
+// checkFieldMappingStep verifies field mapping type on the latest backing
+// index of a data stream via _field_caps.
+type checkFieldMappingStep struct {
+	DataStream   string
+	Field        string
+	ExpectedType string
+}
+
+func (c checkFieldMappingStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
+	t.Logf("------ check field mapping %s on %s (expect %s) ------", c.Field, c.DataStream, c.ExpectedType)
+	dataStreams, err := e.esc.GetDataStream(ctx, c.DataStream)
+	require.NoError(t, err)
+	require.Len(t, dataStreams, 1, "expected exactly one data stream matching %s", c.DataStream)
+
+	indices := dataStreams[0].Indices
+	require.NotEmpty(t, indices, "data stream %s has no backing indices", c.DataStream)
+	latestIndex := indices[len(indices)-1].IndexName
+
+	t.Logf("checking field_caps on latest backing index %s", latestIndex)
+	fields, err := e.esc.GetFieldCaps(ctx, latestIndex, c.Field)
+	require.NoError(t, err)
+
+	asserts.FieldHasType(t, fields, c.Field, c.ExpectedType)
+}
+
+// pauseStep creates a temporary file, prints its path, and blocks until
+// the file contains the word "proceed". Useful for manual inspection of
+// a running deployment mid-test.
+type pauseStep struct{}
+
+func (p pauseStep) Step(t *testing.T, _ context.Context, _ *testStepEnv) {
+	t.Log("------ pause ------")
+
+	f, err := os.CreateTemp("", "integrationservertest-pause-*.txt")
+	require.NoError(t, err)
+	require.NoError(t, f.Close())
+
+	t.Logf("pause file created: %s", f.Name())
+	t.Logf("write 'proceed' to the file to continue: echo proceed > %s", f.Name())
+
+	for {
+		data, err := os.ReadFile(f.Name())
+		require.NoError(t, err)
+		if strings.Contains(string(data), "proceed") {
+			t.Log("proceed signal received, continuing")
+			break
+		}
+		time.Sleep(2 * time.Second)
+	}
+
+	os.Remove(f.Name())
 }
 
 func expectedDataStreams(namespace string) []string {
