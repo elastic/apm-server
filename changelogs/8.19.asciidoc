@@ -1,5 +1,6 @@
 [[apm-release-notes-8.19]]
 == APM version 8.19
+* <<apm-release-notes-8.19.13>>
 * <<apm-release-notes-8.19.12>>
 * <<apm-release-notes-8.19.11>>
 * <<apm-release-notes-8.19.10>>
@@ -13,6 +14,17 @@
 * <<apm-release-notes-8.19.2>>
 * <<apm-release-notes-8.19.1>>
 * <<apm-release-notes-8.19.0>>
+
+[float]
+[[apm-release-notes-8.19.13]]
+=== APM version 8.19.13
+
+https://github.com/elastic/apm-server/compare/v8.19.12\...v8.19.13[View commits]
+
+[float]
+==== Bug fixes
+
+- Fix `timestamp.us` explicit mapping ([#elasticsearch/143593](https://github.com/elastic/elasticsearch/pull/143593))
 
 [float]
 [[apm-release-notes-8.19.12]]
