@@ -61,7 +61,7 @@ spec:
 apiVersion: backstage.io/v1alpha1
 kind: Resource
 metadata:
-  name: buildkite-pipeline-apm-version-bump
+  name: buildkite-pipeline-apm-server-version-bump
   description: Buildkite Pipeline for APM Server Version Bump
   links:
     - title: Pipeline
@@ -75,7 +75,7 @@ spec:
     apiVersion: buildkite.elastic.dev/v1
     kind: Pipeline
     metadata:
-      name: apm-version-bump
+      name: apm-server-version-bump
     spec:
       branch_configuration: "main"
       repository: elastic/apm-server
