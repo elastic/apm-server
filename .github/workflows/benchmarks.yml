@@ -58,7 +58,7 @@ on:
         type: boolean
         default: false
   schedule:
-    - cron: '0 17 * * *' # Scheduled regular benchmarks.
+    - cron: '0 17 * * 3' # Scheduled regular benchmarks.
     - cron: '0 0 1 * *' # Scheduled PGO benchmarks.
 
 env:
