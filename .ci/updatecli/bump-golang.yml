@@ -33,14 +33,14 @@ scms:
 
 sources:
   minor:
-    name: Get minor version in .go-version
+    name: Get minor version in go.mod
     kind: shell
     transformers:
       - findsubmatch:
-          pattern: '^\d+.(\d+).\d+$'
+          pattern: '^go \d+\.(\d+)\.\d+$'
           captureindex: 1
     spec:
-      command: cat .go-version
+      command: grep '^go ' go.mod
 
   latestGoVersion:
     name: Get Latest Go Release
@@ -72,18 +72,9 @@ conditions:
     kind: shell
     sourceid: latestGoVersion
     spec:
-      command: 'grep -v -q {{ source "latestGoVersion" }} .go-version #'
+      command: 'grep -v -q {{ source "latestGoVersion" }} go.mod #'
 
 targets:
-  update-go-version:
-    name: 'Update .go-version with Golang version {{ source "latestGoVersion" }}'
-    sourceid: latestGoVersion
-    scmid: default
-    kind: file
-    spec:
-      content: '{{ source "latestGoVersion" }}'
-      file: .go-version
-      matchpattern: '\d+.\d+.\d+'
 
   update-gomod:
     name: 'Update go.mod files'
