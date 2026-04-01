@@ -17,7 +17,8 @@ permissions:
 jobs:
   update-dependabot-pr:
     permissions:
-      contents: write
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       # TokenPolicy defined at https://github.com/elastic/catalog-info/tree/main/resources/github-token-policies/token-policy-apm-server-update-dependabot.yaml
@@ -46,10 +47,13 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
+
       - name: Update NOTICE.txt
         run: make notice
+
       - name: Debug diff
         run: git status --porcelain
+
       - name: Check if NOTICE.txt has changed
         id: check-notice-diff
         run: |
@@ -58,29 +62,14 @@ jobs:
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
+
       - name: Debug output
         run: |-
           echo 'changed: ${{ steps.check-notice-diff.outputs.changed }}'
-      # inspired by https://gist.github.com/swinton/03e84635b45c78353b1f71e41007fc7c
+
       - name: Commit changes (signed)
         if: ${{ steps.check-notice-diff.outputs.changed == 'true' }}
         run: |
-          export BRANCH=${GITHUB_REF#refs/heads/}
-          export SHA=$(git rev-parse "$BRANCH:$FILE_TO_COMMIT")
-          gh api --method PUT "/repos/${REPO}/contents/$FILE_TO_COMMIT" \
-            --field message="Update $FILE_TO_COMMIT" \
-            --field content=@<(base64 -i $FILE_TO_COMMIT) \
-            --field sha="${SHA}" \
-            --field branch="${BRANCH}"
-
-          export SHA=$(git rev-parse "$BRANCH:$FILE_TO_COMMIT_FIPS")
-          gh api --method PUT "/repos/${REPO}/contents/$FILE_TO_COMMIT_FIPS" \
-            --field message="Update $FILE_TO_COMMIT_FIPS" \
-            --field content=@<(base64 -i $FILE_TO_COMMIT_FIPS) \
-            --field sha="${SHA}" \
-            --field branch="${BRANCH}"
-        env:
-          FILE_TO_COMMIT: NOTICE.txt
-          FILE_TO_COMMIT_FIPS: NOTICE-fips.txt
-          REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ github.token }}
+          git add NOTICE.txt NOTICE-fips.txt
+          git commit -m "Update NOTICE.txt and NOTICE-fips.txt"
+          git push
