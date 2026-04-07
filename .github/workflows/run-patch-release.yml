@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'The upcoming feature freeze / release version (semver format: major.minor.patch)'
+        description: 'The current to-be-released version (semver format: major.minor.patch). E.g. If the feature freeze / release for 9.3.1 is coming, use 9.3.1.'
         required: true
         type: string
 
