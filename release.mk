@@ -78,6 +78,7 @@ minor-release:
 	@echo "INFO: Create release branch and update new version $(RELEASE_VERSION)"
 	$(MAKE) create-branch NAME=$(RELEASE_BRANCH) BASE=$(BASE_BRANCH)
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
+	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)"
 
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
@@ -156,6 +157,13 @@ update-version:
 	if [ -f "internal/version/version.go" ]; then \
 		$(SED) -E -e 's#(Version[[:blank:]]*)=[[:blank:]]*"[0-9]+\.[0-9]+\.[0-9]+#\1= "$(VERSION)#g' internal/version/version.go; \
 	fi
+
+## Update project version in the Makefile.
+.PHONY: update-version-makefile
+update-version-makefile: VERSION=$${VERSION}
+update-version-makefile:
+	@echo ">> update-version-makefile"
+	$(SED) -E -e 's#BEATS_VERSION\s*\?=\s*(([0-9]+\.[0-9]+)|main)#BEATS_VERSION\?=$(VERSION)#g' Makefile
 
 ############################################
 ## Internal make goals to interact with Git
