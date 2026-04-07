@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'The version to be bumped to (semver format: major.minor.patch). e.g. when told "bump the project and documentation versions on the 9.2 branch to 9.2.6", fill in `9.2.6`.'
+        description: 'The upcoming feature freeze / release version (semver format: major.minor.patch)'
         required: true
         type: string
 
@@ -38,13 +38,27 @@ jobs:
           version: ${{ inputs.version }}
           type: 'patch'
 
-  run-patch:
+  bump-patch:
     runs-on: ubuntu-latest
     needs: [ prepare ]
+    steps:
+      - id: bump
+        shell: bash
+        run: |
+          VERSION="${{ needs.prepare.outputs.release-version }}"
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+          NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          echo "bump-version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+
+  run-patch:
+    runs-on: ubuntu-latest
+    needs: [ prepare, bump-patch ]
     env:
       RELEASE_BRANCH: ${{ needs.prepare.outputs.release-branch }}
       RELEASE_TYPE: ${{ needs.prepare.outputs.release-type }}
-      RELEASE_VERSION: ${{ needs.prepare.outputs.release-version }}
+      BUMP_VERSION: ${{ needs.bump-patch.outputs.bump-version }}
     steps:
       - name: Get token
         id: get_token
@@ -89,7 +103,7 @@ jobs:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
           message: |-
-            PRs to bump versions in `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` branch to `${{ env.RELEASE_VERSION }}` have been created.
+            PRs to bump versions in `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` branch to `${{ env.BUMP_VERSION }}` have been created.
           thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
 
       - if: failure()
