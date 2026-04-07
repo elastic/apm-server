@@ -106,6 +106,7 @@ jobs:
           channel-id: ${{ env.SLACK_CHANNEL }}
           message: |-
             PRs to bump versions in `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` branch to `${{ env.BUMP_VERSION }}` have been created.
+            Remember to create PRs for the changelogs separately!
           thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
 
       - if: failure()

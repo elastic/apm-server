@@ -44,8 +44,6 @@ ifneq ($(shell command -v gh 2>/dev/null),)
 CURRENT_RELEASE ?= $(shell gh release list --exclude-drafts --exclude-pre-releases --repo elastic/apm-server --limit 10 --json tagName --jq '.[].tagName|select(. | startswith("v$(PROJECT_MAJOR_VERSION)"))' | sed 's|v||g' | sort -r | head -n 1)
 RELEASE_BRANCH ?= $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)
 NEXT_PROJECT_MINOR_VERSION ?= $(PROJECT_MAJOR_VERSION).$(shell expr $(PROJECT_MINOR_VERSION) + 1).0
-NEXT_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) + 1)
-BRANCH_PATCH = update-$(NEXT_RELEASE)
 endif
 
 # BASE_BRANCH select by release type (default patch)
@@ -80,7 +78,6 @@ minor-release:
 	@echo "INFO: Create release branch and update new version $(RELEASE_VERSION)"
 	$(MAKE) create-branch NAME=$(RELEASE_BRANCH) BASE=$(BASE_BRANCH)
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
-	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)"
 
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
@@ -111,12 +108,11 @@ major-release:
 .PHONY: patch-release
 patch-release:
 	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
-	$(MAKE) create-branch NAME=$(BRANCH_PATCH) BASE=$(RELEASE_BRANCH)
+	$(MAKE) create-branch NAME="update-$(BUMP_VERSION)" BASE=$(RELEASE_BRANCH)
 	$(MAKE) update-version VERSION=$(BUMP_VERSION)
-	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="$(RELEASE_BRANCH): update versions to $(BUMP_VERSION)"
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
-	$(MAKE) create-pull-request BRANCH=$(BRANCH_PATCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(BUMP_VERSION): update versions" BODY="Merge on request by the Release Manager." BACKPORT_LABEL=backport-skip
+	$(MAKE) create-pull-request BRANCH="update-$(BUMP_VERSION)" TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(BUMP_VERSION): update versions" BODY="Merge on request by the Release Manager." BACKPORT_LABEL=backport-skip
 
 ############################################
 ## Internal make goals to bump versions
@@ -160,13 +156,6 @@ update-version:
 	if [ -f "internal/version/version.go" ]; then \
 		$(SED) -E -e 's#(Version[[:blank:]]*)=[[:blank:]]*"[0-9]+\.[0-9]+\.[0-9]+#\1= "$(VERSION)#g' internal/version/version.go; \
 	fi
-
-## Update project version in the Makefile.
-.PHONY: update-version-makefile
-update-version-makefile: VERSION=$${VERSION}
-update-version-makefile:
-	@echo ">> update-version-makefile"
-	$(SED) -E -e 's#BEATS_VERSION\s*\?=\s*(([0-9]+\.[0-9]+)|main)#BEATS_VERSION\?=$(VERSION)#g' Makefile
 
 ############################################
 ## Internal make goals to interact with Git
