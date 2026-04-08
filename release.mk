@@ -44,8 +44,6 @@ ifneq ($(shell command -v gh 2>/dev/null),)
 CURRENT_RELEASE ?= $(shell gh release list --exclude-drafts --exclude-pre-releases --repo elastic/apm-server --limit 10 --json tagName --jq '.[].tagName|select(. | startswith("v$(PROJECT_MAJOR_VERSION)"))' | sed 's|v||g' | sort -r | head -n 1)
 RELEASE_BRANCH ?= $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)
 NEXT_PROJECT_MINOR_VERSION ?= $(PROJECT_MAJOR_VERSION).$(shell expr $(PROJECT_MINOR_VERSION) + 1).0
-NEXT_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) + 1)
-BRANCH_PATCH = update-$(NEXT_RELEASE)
 endif
 
 # BASE_BRANCH select by release type (default patch)
@@ -106,26 +104,24 @@ major-release:
 
 # This is the contract with the GitHub action .github/workflows/run-patch-release.yml
 # The GitHub action will provide the below environment variables:
-#  - RELEASE_VERSION
+#  - BUMP_VERSION
 #
 .PHONY: patch-release
 patch-release:
 	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
+<<<<<<< HEAD
 	$(MAKE) create-branch NAME=$(BRANCH_PATCH) BASE=$(RELEASE_BRANCH)
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
 	$(MAKE) update-version-legacy VERSION=$(NEXT_RELEASE) PREVIOUS_VERSION=$(CURRENT_RELEASE)
 	$(MAKE) create-commit COMMIT_MESSAGE="$(RELEASE_BRANCH): update versions to $(RELEASE_VERSION)"
+=======
+	$(MAKE) create-branch NAME="update-$(BUMP_VERSION)" BASE=$(RELEASE_BRANCH)
+	$(MAKE) update-version VERSION=$(BUMP_VERSION)
+	$(MAKE) create-commit COMMIT_MESSAGE="$(RELEASE_BRANCH): update versions to $(BUMP_VERSION)"
+>>>>>>> 2b87820c (Fix patch release workflow version (#20843))
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
-	$(MAKE) create-pull-request BRANCH=$(BRANCH_PATCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_VERSION): update versions" BODY="Merge on request by the Release Manager." BACKPORT_LABEL=backport-skip
-
-	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
-	$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH)
-	$(MAKE) update-changelog VERSION=$(RELEASE_VERSION)
-	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update changelogs for $(RELEASE_BRANCH) release"
-	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
-	git push origin update-$(RELEASE_VERSION)
-	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update release notes" BODY="Merge as soon as the GitHub checks are green."
+	$(MAKE) create-pull-request BRANCH="update-$(BUMP_VERSION)" TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(BUMP_VERSION): update versions" BODY="Merge on request by the Release Manager." BACKPORT_LABEL=backport-skip
 
 ############################################
 ## Internal make goals to bump versions
