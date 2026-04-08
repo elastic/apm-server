@@ -109,17 +109,9 @@ major-release:
 .PHONY: patch-release
 patch-release:
 	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
-<<<<<<< HEAD
-	$(MAKE) create-branch NAME=$(BRANCH_PATCH) BASE=$(RELEASE_BRANCH)
-	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
-	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
-	$(MAKE) update-version-legacy VERSION=$(NEXT_RELEASE) PREVIOUS_VERSION=$(CURRENT_RELEASE)
-	$(MAKE) create-commit COMMIT_MESSAGE="$(RELEASE_BRANCH): update versions to $(RELEASE_VERSION)"
-=======
 	$(MAKE) create-branch NAME="update-$(BUMP_VERSION)" BASE=$(RELEASE_BRANCH)
 	$(MAKE) update-version VERSION=$(BUMP_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="$(RELEASE_BRANCH): update versions to $(BUMP_VERSION)"
->>>>>>> 2b87820c (Fix patch release workflow version (#20843))
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
 	$(MAKE) create-pull-request BRANCH="update-$(BUMP_VERSION)" TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(BUMP_VERSION): update versions" BODY="Merge on request by the Release Manager." BACKPORT_LABEL=backport-skip
 
