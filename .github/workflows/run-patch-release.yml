@@ -5,7 +5,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
+<<<<<<< HEAD
         description: 'The current version to be released, normally the `FF version` (semver format: major.minor.patch)'
+=======
+        description: 'The current to-be-released version (semver format: major.minor.patch). E.g. If the feature freeze / release for 9.3.1 is coming, use 9.3.1.'
+>>>>>>> 2b87820c (Fix patch release workflow version (#20843))
         required: true
         type: string
 
@@ -44,14 +48,18 @@ jobs:
     env:
       RELEASE_BRANCH: ${{ needs.prepare.outputs.release-branch }}
       RELEASE_TYPE: ${{ needs.prepare.outputs.release-type }}
+<<<<<<< HEAD
       RELEASE_VERSION: ${{ needs.prepare.outputs.release-version }}
     permissions:
       contents: write
+=======
+>>>>>>> 2b87820c (Fix patch release workflow version (#20843))
     steps:
       - uses: actions/checkout@v4
         with:
           # 0 indicates all history for all branches and tags.
           fetch-depth: 0
+<<<<<<< HEAD
           # Use the makefile in the given release branch.
           ref: ${{ env.RELEASE_BRANCH }}
 
@@ -63,6 +71,19 @@ jobs:
           private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
           permission-contents: write
           permission-pull-requests: write
+=======
+          token: ${{ steps.get_token.outputs.token }}
+>>>>>>> 2b87820c (Fix patch release workflow version (#20843))
+
+      - id: bump_version
+        shell: bash
+        run: |
+          VERSION="${{ needs.prepare.outputs.release-version }}"
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+          NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
 
       # Required to use a service account, otherwise PRs created by
       # GitHub bot won't trigger any CI builds.
@@ -83,6 +104,7 @@ jobs:
       - run: make patch-release
         env:
           GH_TOKEN: ${{ steps.get_token.outputs.token }}
+          BUMP_VERSION: ${{ steps.bump_version.outputs.version }}
 
       - if: success()
         uses: elastic/oblt-actions/slack/send@v1
@@ -90,8 +112,13 @@ jobs:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
           message: |-
+<<<<<<< HEAD
             Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` is Today.
             All the relevant PRs and issues have been created.
+=======
+            PRs to bump versions in `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` branch to `${{ steps.bump_version.outputs.version }}` have been created.
+            Remember to create PRs for the changelogs separately!
+>>>>>>> 2b87820c (Fix patch release workflow version (#20843))
           thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
 
       - if: failure()
