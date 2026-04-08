@@ -5,11 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-<<<<<<< HEAD
-        description: 'The current version to be released, normally the `FF version` (semver format: major.minor.patch)'
-=======
         description: 'The current to-be-released version (semver format: major.minor.patch). E.g. If the feature freeze / release for 9.3.1 is coming, use 9.3.1.'
->>>>>>> 2b87820c (Fix patch release workflow version (#20843))
         required: true
         type: string
 
@@ -101,13 +97,8 @@ jobs:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
           message: |-
-<<<<<<< HEAD
-            Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` is Today.
-            All the relevant PRs and issues have been created.
-=======
             PRs to bump versions in `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` branch to `${{ steps.bump_version.outputs.version }}` have been created.
             Remember to create PRs for the changelogs separately!
->>>>>>> 2b87820c (Fix patch release workflow version (#20843))
           thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
 
       - if: failure()
