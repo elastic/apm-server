@@ -104,7 +104,7 @@ major-release:
 
 # This is the contract with the GitHub action .github/workflows/run-patch-release.yml
 # The GitHub action will provide the below environment variables:
-#  - RELEASE_VERSION
+#  - BUMP_VERSION
 #
 .PHONY: patch-release
 patch-release:
