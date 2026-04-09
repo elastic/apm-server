@@ -24,17 +24,18 @@ To check for security updates, go to [Security announcements for the Elastic sta
 % ### Fixes [apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
-## 9.4.0 [apm-9.4.0-release-notes]
+% Commenting 9.4.0 release notes until it is released
+% ## 9.4.0 [apm-9.4.0-release-notes]
 
 % ### Features and enhancements [apm-9.4.0-features-enhancements]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
-_No new features or enhancements_ 
+% _No new features or enhancements_ 
 
 % ### Fixes [apm-9.4.0-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
-_No new fixes_ 
+% _No new fixes_ 
 
 ## 9.3.3 [apm-9.3.3-release-notes]
 
