@@ -19,6 +19,23 @@ This change should not impact most users as this field is not used by the APM UI
 For more details, see https://github.com/elastic/apm-server/pull/11632[PR #11632]
 // end::811-bc[]
 
+// tag::814-bc[]
+[float]
+[[breaking-changes-8.14]]
+=== 8.14
+
+The following breaking changes are introduced in APM version 8.14.0:
+
+[float]
+==== TLS 1.2 RSA key exchange cipher negotiation may fail at runtime
+When using TLS 1.2 and relying on default TLS cipher behavior, APM Server can start successfully but fail TLS handshake at runtime for peers that require RSA key exchange ciphers, such as `AES128-GCM-SHA256`.
+This change comes from Go 1.22 TLS defaults, introduced in APM version 8.14.0.
+
+For more details, see https://github.com/elastic/apm-server/issues/20879[Issue #20879].
+
+Workaround: set `GODEBUG=tlsrsakex=1` on the APM Server process.
+// end::814-bc[]
+
 // tag::810-bc[]
 [float]
 [[breaking-changes-8.10]]
