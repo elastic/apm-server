@@ -530,6 +530,10 @@ func (m errorRW) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	return m.err
 }
 
+func (m errorRW) ReadTraceEventsCallback(traceID string, batchSize int, fn func(modelpb.Batch) error) error {
+	return m.err
+}
+
 func (m errorRW) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
 	return m.err
 }

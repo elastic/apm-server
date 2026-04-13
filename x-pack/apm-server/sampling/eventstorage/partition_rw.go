@@ -78,3 +78,15 @@ func (rw *PartitionReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batc
 	}
 	return errors.Join(errs...)
 }
+
+// ReadTraceEventsCallback reads trace events in pages across all active partitions.
+func (rw *PartitionReadWriter) ReadTraceEventsCallback(traceID string, batchSize int, fn func(modelpb.Batch) error) error {
+	var errs []error
+	for pid := range rw.s.partitioner.ActiveIDs() {
+		err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).ReadTraceEventsCallback(traceID, batchSize, fn)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
+}

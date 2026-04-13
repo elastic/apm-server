@@ -81,6 +81,52 @@ func (rw PrefixReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) e
 	return nil
 }
 
+// ReadTraceEventsCallback reads events for the given traceID in pages
+// of batchSize, calling fn for each page. The Pebble iterator remains
+// open for the full iteration, so no cursor management is needed.
+func (rw PrefixReadWriter) ReadTraceEventsCallback(traceID string, batchSize int, fn func(modelpb.Batch) error) error {
+	var b bytes.Buffer
+	b.Grow(1 + len(traceID) + 1)
+	b.WriteByte(rw.prefix)
+	b.WriteString(traceID)
+	b.WriteByte(traceIDSeparator)
+
+	iter, err := rw.db.NewIter(&pebble.IterOptions{})
+	if err != nil {
+		return err
+	}
+	defer iter.Close()
+
+	if valid := iter.SeekPrefixGE(b.Bytes()); !valid {
+		return nil
+	}
+	var batch modelpb.Batch
+	for ; iter.Valid(); iter.Next() {
+		event := &modelpb.APMEvent{}
+		data, err := iter.ValueAndErr()
+		if err != nil {
+			return err
+		}
+		if err := rw.codec.DecodeEvent(data, event); err != nil {
+			return fmt.Errorf("codec failed to decode event: %w", err)
+		}
+		batch = append(batch, event)
+		if len(batch) >= batchSize {
+			if err := fn(batch); err != nil {
+				return err
+			}
+			for i := range batch {
+				batch[i] = nil
+			}
+			batch = batch[:0]
+		}
+	}
+	if len(batch) > 0 {
+		return fn(batch)
+	}
+	return nil
+}
+
 // WriteTraceEvent writes encoded event as value to rw.db with key consisting of rw.prefix, traceID and id.
 func (rw PrefixReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
 	data, err := rw.codec.EncodeEvent(event)

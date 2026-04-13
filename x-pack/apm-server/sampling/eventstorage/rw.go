@@ -20,6 +20,10 @@ var (
 // RW is a read writer interface that has methods to read and write trace event and sampling decisions.
 type RW interface {
 	ReadTraceEvents(traceID string, out *modelpb.Batch) error
+	// ReadTraceEventsCallback reads trace events in pages of batchSize,
+	// calling fn for each page. This avoids loading all events for a
+	// trace into memory at once, preventing OOM for huge traces.
+	ReadTraceEventsCallback(traceID string, batchSize int, fn func(modelpb.Batch) error) error
 	WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error
 	WriteTraceSampled(traceID string, sampled bool) error
 	IsTraceSampled(traceID string) (bool, error)
@@ -35,6 +39,10 @@ type SplitReadWriter struct {
 
 func (s SplitReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	return s.eventRW.ReadTraceEvents(traceID, out)
+}
+
+func (s SplitReadWriter) ReadTraceEventsCallback(traceID string, batchSize int, fn func(modelpb.Batch) error) error {
+	return s.eventRW.ReadTraceEventsCallback(traceID, batchSize, fn)
 }
 
 func (s SplitReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
@@ -111,6 +119,11 @@ func (s StorageLimitReadWriter) checkStorageLimit() error {
 // ReadTraceEvents passes through to s.nextRW.ReadTraceEvents.
 func (s StorageLimitReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	return s.nextRW.ReadTraceEvents(traceID, out)
+}
+
+// ReadTraceEventsCallback passes through to s.nextRW.ReadTraceEventsCallback.
+func (s StorageLimitReadWriter) ReadTraceEventsCallback(traceID string, batchSize int, fn func(modelpb.Batch) error) error {
+	return s.nextRW.ReadTraceEventsCallback(traceID, batchSize, fn)
 }
 
 // WriteTraceEvent passes through to s.nextRW.WriteTraceEvent only if storage limit is not reached.

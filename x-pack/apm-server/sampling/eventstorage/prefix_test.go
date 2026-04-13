@@ -92,6 +92,85 @@ func TestPrefixReadWriter_ReadTraceEvents(t *testing.T) {
 	}, out)
 }
 
+func TestPrefixReadWriter_ReadTraceEventsCallback(t *testing.T) {
+	codec := eventstorage.ProtobufCodec{}
+	db := newEventPebble(t)
+	rw := eventstorage.NewPrefixReadWriter(db, 1, codec)
+
+	traceID := "trace1"
+	txnIDs := []string{"a", "b", "c", "d", "e"}
+	for _, txnID := range txnIDs {
+		txn := makeTransaction(txnID, traceID)
+		err := rw.WriteTraceEvent(traceID, txnID, txn)
+		require.NoError(t, err)
+	}
+
+	// Write events for a different trace to ensure isolation
+	otherTxn := makeTransaction("x", "trace2")
+	err := rw.WriteTraceEvent("trace2", "x", otherTxn)
+	require.NoError(t, err)
+
+	t.Run("batch_size_larger_than_total", func(t *testing.T) {
+		var callCount int
+		var allEvents modelpb.Batch
+		err := rw.ReadTraceEventsCallback(traceID, 100, func(batch modelpb.Batch) error {
+			callCount++
+			allEvents = append(allEvents, batch...)
+			return nil
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, 1, callCount)
+		assert.Len(t, allEvents, 5)
+	})
+
+	t.Run("batch_size_splits_evenly", func(t *testing.T) {
+		var callCount int
+		var pageSizes []int
+		err := rw.ReadTraceEventsCallback(traceID, 1, func(batch modelpb.Batch) error {
+			callCount++
+			pageSizes = append(pageSizes, len(batch))
+			return nil
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, 5, callCount)
+		assert.Equal(t, []int{1, 1, 1, 1, 1}, pageSizes)
+	})
+
+	t.Run("batch_size_with_remainder", func(t *testing.T) {
+		var callCount int
+		var pageSizes []int
+		err := rw.ReadTraceEventsCallback(traceID, 2, func(batch modelpb.Batch) error {
+			callCount++
+			pageSizes = append(pageSizes, len(batch))
+			return nil
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, 3, callCount)
+		assert.Equal(t, []int{2, 2, 1}, pageSizes)
+	})
+
+	t.Run("callback_error_stops_iteration", func(t *testing.T) {
+		expectedErr := fmt.Errorf("stop")
+		var callCount int
+		err := rw.ReadTraceEventsCallback(traceID, 2, func(batch modelpb.Batch) error {
+			callCount++
+			return expectedErr
+		})
+		assert.ErrorIs(t, err, expectedErr)
+		assert.Equal(t, 1, callCount)
+	})
+
+	t.Run("no_events", func(t *testing.T) {
+		var callCount int
+		err := rw.ReadTraceEventsCallback("nonexistent", 10, func(batch modelpb.Batch) error {
+			callCount++
+			return nil
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, 0, callCount)
+	})
+}
+
 func TestPrefixReadWriter_DeleteTraceEvent(t *testing.T) {
 	codec := eventstorage.ProtobufCodec{}
 	db := newEventPebble(t)
