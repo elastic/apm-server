@@ -7,6 +7,18 @@
 This section describes the breaking changes and deprecations introduced in this release
 and previous minor versions.
 
+// tag::814-bc[]
+[float]
+[[breaking-changes-8.14]]
+=== 8.14
+
+The following breaking changes are introduced in APM version 8.14.0:
+
+- TLS 1.2 handshakes with RSA key exchange ciphers can fail at runtime (for example, `AES128-GCM-SHA256`) even when startup succeeds, due to Go 1.22 default TLS behavior. Workaround: set `GODEBUG=tlsrsakex=1` on the APM Server process.
+
+For more details, see https://github.com/elastic/apm-server/issues/20879[Issue #20879].
+// end::814-bc[]
+
 // tag::811-bc[]
 [float]
 [[breaking-changes-8.11]]
