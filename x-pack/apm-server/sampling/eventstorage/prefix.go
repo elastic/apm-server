@@ -81,10 +81,12 @@ func (rw PrefixReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) e
 	return nil
 }
 
-// ReadTraceEventsCallback reads events for the given traceID in pages
-// of batchSize, calling fn for each page. The Pebble iterator remains
-// open for the full iteration, so no cursor management is needed.
-func (rw PrefixReadWriter) ReadTraceEventsCallback(traceID string, batchSize int, fn func(modelpb.Batch) error) error {
+// ReadTraceEventsCallback reads events for the given traceID in batches,
+// calling fn for each batch. A batch is considered mature when the
+// accumulated encoded byte size of its events reaches softMemoryLimit.
+// The encoded size is used as a proxy for in-memory size. The Pebble
+// iterator remains open for the full iteration, avoiding cursor management.
+func (rw PrefixReadWriter) ReadTraceEventsCallback(traceID string, softMemoryLimit int, fn func(modelpb.Batch) error) error {
 	var b bytes.Buffer
 	b.Grow(1 + len(traceID) + 1)
 	b.WriteByte(rw.prefix)
@@ -101,6 +103,7 @@ func (rw PrefixReadWriter) ReadTraceEventsCallback(traceID string, batchSize int
 		return nil
 	}
 	var batch modelpb.Batch
+	var batchBytes int
 	for ; iter.Valid(); iter.Next() {
 		event := &modelpb.APMEvent{}
 		data, err := iter.ValueAndErr()
@@ -111,7 +114,8 @@ func (rw PrefixReadWriter) ReadTraceEventsCallback(traceID string, batchSize int
 			return fmt.Errorf("codec failed to decode event: %w", err)
 		}
 		batch = append(batch, event)
-		if len(batch) >= batchSize {
+		batchBytes += len(data)
+		if batchBytes >= softMemoryLimit {
 			if err := fn(batch); err != nil {
 				return err
 			}
@@ -119,6 +123,7 @@ func (rw PrefixReadWriter) ReadTraceEventsCallback(traceID string, batchSize int
 				batch[i] = nil
 			}
 			batch = batch[:0]
+			batchBytes = 0
 		}
 	}
 	if len(batch) > 0 {

@@ -37,11 +37,6 @@ const (
 	// shutdownGracePeriod is the time that the processor has to gracefully
 	// terminate after the stop method is called.
 	shutdownGracePeriod = 5 * time.Second
-
-	// readTraceEventsPageSize is the number of events loaded per page
-	// when reading trace events from storage. This bounds memory usage
-	// for huge traces that would otherwise cause OOM.
-	readTraceEventsPageSize = 1000
 )
 
 // Processor is a tail-sampling event processor.
@@ -489,7 +484,7 @@ func (p *Processor) Run() error {
 			// Read and publish trace events in pages to bound memory
 			// usage for huge traces that could otherwise cause OOM.
 			var totalEvents int64
-			err = p.eventStore.ReadTraceEventsCallback(traceID, readTraceEventsPageSize, func(events modelpb.Batch) error {
+			err = p.eventStore.ReadTraceEventsCallback(traceID, p.config.ReadBatchMemoryLimit, func(events modelpb.Batch) error {
 				if remoteDecision {
 					// Remote decisions may be received multiple times,
 					// e.g. if this server restarts and resubscribes to

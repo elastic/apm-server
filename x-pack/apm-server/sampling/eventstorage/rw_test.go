@@ -35,7 +35,7 @@ func (m mockRW) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	return nil
 }
 
-func (m mockRW) ReadTraceEventsCallback(traceID string, batchSize int, fn func(modelpb.Batch) error) error {
+func (m mockRW) ReadTraceEventsCallback(traceID string, softMemoryLimit int, fn func(modelpb.Batch) error) error {
 	m.callback()
 	return nil
 }

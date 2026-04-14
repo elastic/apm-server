@@ -105,15 +105,22 @@ func TestPrefixReadWriter_ReadTraceEventsCallback(t *testing.T) {
 		require.NoError(t, err)
 	}
 
+	// Compute the encoded size of a single event for test thresholds.
+	singleEvent := makeTransaction("a", traceID)
+	encoded, err := codec.EncodeEvent(singleEvent)
+	require.NoError(t, err)
+	eventSize := len(encoded)
+
 	// Write events for a different trace to ensure isolation
 	otherTxn := makeTransaction("x", "trace2")
-	err := rw.WriteTraceEvent("trace2", "x", otherTxn)
+	err = rw.WriteTraceEvent("trace2", "x", otherTxn)
 	require.NoError(t, err)
 
-	t.Run("batch_size_larger_than_total", func(t *testing.T) {
+	t.Run("limit_larger_than_total", func(t *testing.T) {
 		var callCount int
 		var allEvents modelpb.Batch
-		err := rw.ReadTraceEventsCallback(traceID, 100, func(batch modelpb.Batch) error {
+		// Set limit high enough that all 5 events fit in one batch.
+		err := rw.ReadTraceEventsCallback(traceID, eventSize*10, func(batch modelpb.Batch) error {
 			callCount++
 			allEvents = append(allEvents, batch...)
 			return nil
@@ -123,7 +130,8 @@ func TestPrefixReadWriter_ReadTraceEventsCallback(t *testing.T) {
 		assert.Len(t, allEvents, 5)
 	})
 
-	t.Run("batch_size_splits_evenly", func(t *testing.T) {
+	t.Run("limit_one_byte_flushes_per_event", func(t *testing.T) {
+		// With a 1-byte limit, every event exceeds the limit immediately.
 		var callCount int
 		var pageSizes []int
 		err := rw.ReadTraceEventsCallback(traceID, 1, func(batch modelpb.Batch) error {
@@ -136,10 +144,11 @@ func TestPrefixReadWriter_ReadTraceEventsCallback(t *testing.T) {
 		assert.Equal(t, []int{1, 1, 1, 1, 1}, pageSizes)
 	})
 
-	t.Run("batch_size_with_remainder", func(t *testing.T) {
+	t.Run("limit_splits_into_batches", func(t *testing.T) {
+		// Set limit to fit exactly 2 events, so 5 events -> 3 batches (2+2+1).
 		var callCount int
 		var pageSizes []int
-		err := rw.ReadTraceEventsCallback(traceID, 2, func(batch modelpb.Batch) error {
+		err := rw.ReadTraceEventsCallback(traceID, eventSize*2, func(batch modelpb.Batch) error {
 			callCount++
 			pageSizes = append(pageSizes, len(batch))
 			return nil
@@ -152,7 +161,7 @@ func TestPrefixReadWriter_ReadTraceEventsCallback(t *testing.T) {
 	t.Run("callback_error_stops_iteration", func(t *testing.T) {
 		expectedErr := fmt.Errorf("stop")
 		var callCount int
-		err := rw.ReadTraceEventsCallback(traceID, 2, func(batch modelpb.Batch) error {
+		err := rw.ReadTraceEventsCallback(traceID, eventSize*2, func(batch modelpb.Batch) error {
 			callCount++
 			return expectedErr
 		})
@@ -162,7 +171,7 @@ func TestPrefixReadWriter_ReadTraceEventsCallback(t *testing.T) {
 
 	t.Run("no_events", func(t *testing.T) {
 		var callCount int
-		err := rw.ReadTraceEventsCallback("nonexistent", 10, func(batch modelpb.Batch) error {
+		err := rw.ReadTraceEventsCallback("nonexistent", eventSize*10, func(batch modelpb.Batch) error {
 			callCount++
 			return nil
 		})
