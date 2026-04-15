@@ -9,7 +9,9 @@ queue_rules:
     merge_method: squash
     conditions:
       - check-success=test (macos-latest)
-      - check-success=test (windows-2025)
+      - or:
+        - check-success=test (windows-2025)
+        - check-success=test (windows-latest)
       - check-success=system-test
       - check-success=lint
       - check-success=CLA
