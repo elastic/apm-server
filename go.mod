@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.1
 	github.com/elastic/apm-data v1.19.6
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260414144416-3fb6501cb966
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260415115804-c073ffbc1afc
 	github.com/elastic/elastic-agent-client/v7 v7.18.1
 	github.com/elastic/elastic-agent-libs v0.33.3
 	github.com/elastic/elastic-agent-system-metrics v0.14.3
@@ -75,6 +75,7 @@ require (
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/caarlos0/go-version v0.2.0 // indirect
 	github.com/cavaliergopher/cpio v1.0.1 // indirect
+	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/cockroachdb/crlib v0.0.0-20241112164430-1264a2edc35b // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
@@ -113,6 +114,7 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gohugoio/hashstructure v0.5.0 // indirect
@@ -132,6 +134,7 @@ require (
 	github.com/hashicorp/go-plugin v1.6.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/go-version v1.8.0 // indirect
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.22.0 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
@@ -151,6 +154,9 @@ require (
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/compress v1.18.5 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
+	github.com/knadh/koanf/maps v0.1.2 // indirect
+	github.com/knadh/koanf/providers/confmap v1.0.0 // indirect
+	github.com/knadh/koanf/v2 v2.3.4 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20251013123823-9fd1530e3ec3 // indirect
@@ -223,8 +229,29 @@ require (
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.7.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
+	go.opentelemetry.io/collector/client v1.55.0 // indirect
+	go.opentelemetry.io/collector/component v1.55.0 // indirect
+	go.opentelemetry.io/collector/component/componenttest v0.149.0 // indirect
+	go.opentelemetry.io/collector/config/configoptional v1.55.0 // indirect
+	go.opentelemetry.io/collector/config/configretry v1.55.0 // indirect
+	go.opentelemetry.io/collector/confmap v1.55.0 // indirect
+	go.opentelemetry.io/collector/confmap/xconfmap v0.149.0 // indirect
 	go.opentelemetry.io/collector/consumer v1.55.0 // indirect
+	go.opentelemetry.io/collector/consumer/consumererror v0.149.0 // indirect
+	go.opentelemetry.io/collector/consumer/xconsumer v0.149.0 // indirect
+	go.opentelemetry.io/collector/exporter v1.55.0 // indirect
+	go.opentelemetry.io/collector/exporter/exporterhelper v0.149.0 // indirect
+	go.opentelemetry.io/collector/extension v1.55.0 // indirect
+	go.opentelemetry.io/collector/extension/xextension v0.149.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.55.0 // indirect
+	go.opentelemetry.io/collector/internal/componentalias v0.149.0 // indirect
+	go.opentelemetry.io/collector/pdata/pprofile v0.149.0 // indirect
+	go.opentelemetry.io/collector/pdata/xpdata v0.149.0 // indirect
+	go.opentelemetry.io/collector/pipeline v1.55.0 // indirect
+	go.opentelemetry.io/collector/pipeline/xpipeline v0.149.0 // indirect
+	go.opentelemetry.io/collector/receiver v1.55.0 // indirect
+	go.opentelemetry.io/collector/receiver/receivertest v0.149.0 // indirect
+	go.opentelemetry.io/collector/receiver/xreceiver v0.149.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.49.0 // indirect
