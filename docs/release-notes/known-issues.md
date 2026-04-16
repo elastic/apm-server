@@ -135,6 +135,7 @@ APM Server may fail HTTP/2 requests from strict clients (for example, curl/nghtt
 In affected versions, APM Server can send inconsistent SETTINGS values at connection start (an initial empty/default SETTINGS frame followed by a different SETTINGS set), and strict clients treat that sequence as an HTTP/2 protocol error and close the connection.
 When this occurs, clients may report framing/connection errors such as `Error in the HTTP2 framing layer` or `Failure when receiving data from the peer`.
 Browser-based HTTP requests from the RUM agent may also fail with `net::ERR_HTTP2_PROTOCOL_ERROR`.
+When clients close the HTTP/2 connection due to this issue, APM Server logs an error: `http2: received GOAWAY [FrameHeader GOAWAY len=66], starting graceful shutdown`.
 
 For more information, check [issue #20887](https://github.com/elastic/apm-server/issues/20887)
 
