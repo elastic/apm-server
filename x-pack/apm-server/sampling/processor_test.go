@@ -146,11 +146,11 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	reader := newUnlimitedReadWriter(config.DB)
 
 	batch = nil
-	err = readAllTraceEvents(reader,trace1.Id, &batch)
+	err = readAllTraceEvents(reader, trace1.Id, &batch)
 	assert.NoError(t, err)
 	assert.Zero(t, batch)
 
-	err = readAllTraceEvents(reader,trace2.Id, &batch)
+	err = readAllTraceEvents(reader, trace2.Id, &batch)
 	assert.NoError(t, err)
 	assert.Empty(t, cmp.Diff(modelpb.Batch{&transaction2, &span2}, batch, protocmp.Transform()))
 }
@@ -274,7 +274,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			assert.False(t, sampled)
 
 			var batch modelpb.Batch
-			err = readAllTraceEvents(reader,sampledTraceID, &batch)
+			err = readAllTraceEvents(reader, sampledTraceID, &batch)
 			assert.NoError(t, err)
 			assert.Empty(t, cmp.Diff(sampledTraceEvents, batch, protocmp.Transform()))
 
@@ -282,7 +282,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			// available in storage until the TTL expires, as they're
 			// written there first.
 			batch = batch[:0]
-			err = readAllTraceEvents(reader,unsampledTraceID, &batch)
+			err = readAllTraceEvents(reader, unsampledTraceID, &batch)
 			assert.NoError(t, err)
 			assert.Empty(t, cmp.Diff(unsampledTraceEvents, batch, protocmp.Transform()))
 		})
@@ -512,12 +512,12 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	assert.True(t, sampled)
 
 	var batch modelpb.Batch
-	err = readAllTraceEvents(reader,traceID1, &batch)
+	err = readAllTraceEvents(reader, traceID1, &batch)
 	assert.NoError(t, err)
 	assert.Zero(t, batch) // events are deleted from local storage
 
 	batch = modelpb.Batch{}
-	err = readAllTraceEvents(reader,traceID2, &batch)
+	err = readAllTraceEvents(reader, traceID2, &batch)
 	assert.NoError(t, err)
 	assert.Empty(t, batch)
 }
