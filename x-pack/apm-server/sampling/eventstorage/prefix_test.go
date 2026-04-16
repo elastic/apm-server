@@ -65,8 +65,8 @@ func TestPrefixReadWriter_WriteTraceEvent(t *testing.T) {
 // readAllTraceEvents is a test helper that reads all events for a trace
 // into a single batch using ReadTraceEventsCallback.
 func readAllTraceEvents(rw eventstorage.RW, traceID string) (modelpb.Batch, error) {
-	var out modelpb.Batch
-	err := rw.ReadTraceEventsCallback(traceID, 1<<30, func(batch modelpb.Batch) error {
+	var scratch, out modelpb.Batch
+	err := rw.ReadTraceEventsCallback(traceID, 1<<30, &scratch, func(batch modelpb.Batch) error {
 		out = append(out, batch...)
 		return nil
 	})
@@ -75,7 +75,8 @@ func readAllTraceEvents(rw eventstorage.RW, traceID string) (modelpb.Batch, erro
 
 // readAllTraceEventsInto appends all events for a trace into the given batch.
 func readAllTraceEventsInto(rw eventstorage.RW, traceID string, out *modelpb.Batch) error {
-	return rw.ReadTraceEventsCallback(traceID, 1<<30, func(batch modelpb.Batch) error {
+	var scratch modelpb.Batch
+	return rw.ReadTraceEventsCallback(traceID, 1<<30, &scratch, func(batch modelpb.Batch) error {
 		*out = append(*out, batch...)
 		return nil
 	})
@@ -105,11 +106,13 @@ func TestPrefixReadWriter_ReadTraceEventsCallback(t *testing.T) {
 	err = rw.WriteTraceEvent("trace2", "x", otherTxn)
 	require.NoError(t, err)
 
+	var scratch modelpb.Batch
+
 	t.Run("limit_larger_than_total", func(t *testing.T) {
 		var callCount int
 		var allEvents modelpb.Batch
 		// Set limit high enough that all 5 events fit in one batch.
-		err := rw.ReadTraceEventsCallback(traceID, eventSize*10, func(batch modelpb.Batch) error {
+		err := rw.ReadTraceEventsCallback(traceID, eventSize*10, &scratch, func(batch modelpb.Batch) error {
 			callCount++
 			allEvents = append(allEvents, batch...)
 			return nil
@@ -123,7 +126,7 @@ func TestPrefixReadWriter_ReadTraceEventsCallback(t *testing.T) {
 		// With a 1-byte limit, every event exceeds the limit immediately.
 		var callCount int
 		var pageSizes []int
-		err := rw.ReadTraceEventsCallback(traceID, 1, func(batch modelpb.Batch) error {
+		err := rw.ReadTraceEventsCallback(traceID, 1, &scratch, func(batch modelpb.Batch) error {
 			callCount++
 			pageSizes = append(pageSizes, len(batch))
 			return nil
@@ -137,7 +140,7 @@ func TestPrefixReadWriter_ReadTraceEventsCallback(t *testing.T) {
 		// Set limit to fit exactly 2 events, so 5 events -> 3 batches (2+2+1).
 		var callCount int
 		var pageSizes []int
-		err := rw.ReadTraceEventsCallback(traceID, eventSize*2, func(batch modelpb.Batch) error {
+		err := rw.ReadTraceEventsCallback(traceID, eventSize*2, &scratch, func(batch modelpb.Batch) error {
 			callCount++
 			pageSizes = append(pageSizes, len(batch))
 			return nil
@@ -150,7 +153,7 @@ func TestPrefixReadWriter_ReadTraceEventsCallback(t *testing.T) {
 	t.Run("callback_error_stops_iteration", func(t *testing.T) {
 		expectedErr := fmt.Errorf("stop")
 		var callCount int
-		err := rw.ReadTraceEventsCallback(traceID, eventSize*2, func(batch modelpb.Batch) error {
+		err := rw.ReadTraceEventsCallback(traceID, eventSize*2, &scratch, func(batch modelpb.Batch) error {
 			callCount++
 			return expectedErr
 		})
@@ -160,7 +163,7 @@ func TestPrefixReadWriter_ReadTraceEventsCallback(t *testing.T) {
 
 	t.Run("no_events", func(t *testing.T) {
 		var callCount int
-		err := rw.ReadTraceEventsCallback("nonexistent", eventSize*10, func(batch modelpb.Batch) error {
+		err := rw.ReadTraceEventsCallback("nonexistent", eventSize*10, &scratch, func(batch modelpb.Batch) error {
 			callCount++
 			return nil
 		})

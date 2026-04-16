@@ -50,7 +50,12 @@ type PrefixReadWriter struct {
 // accumulated encoded byte size of its events reaches softMemoryLimit.
 // The encoded size is used as a proxy for in-memory size. The Pebble
 // iterator remains open for the full iteration, avoiding cursor management.
-func (rw PrefixReadWriter) ReadTraceEventsCallback(traceID string, softMemoryLimit int, fn func(modelpb.Batch) error) error {
+//
+// The caller-provided batch is used as scratch space to avoid per-call
+// allocations. Its backing array is reused across calls, matching the
+// reuse pattern of the old ReadTraceEvents path. The batch is reset to
+// length zero before use and should not be read after this method returns.
+func (rw PrefixReadWriter) ReadTraceEventsCallback(traceID string, softMemoryLimit int, batch *modelpb.Batch, fn func(modelpb.Batch) error) error {
 	var b bytes.Buffer
 	b.Grow(1 + len(traceID) + 1)
 	b.WriteByte(rw.prefix)
@@ -66,7 +71,7 @@ func (rw PrefixReadWriter) ReadTraceEventsCallback(traceID string, softMemoryLim
 	if valid := iter.SeekPrefixGE(b.Bytes()); !valid {
 		return nil
 	}
-	var batch modelpb.Batch
+	*batch = (*batch)[:0]
 	var batchBytes int
 	for ; iter.Valid(); iter.Next() {
 		event := &modelpb.APMEvent{}
@@ -77,21 +82,21 @@ func (rw PrefixReadWriter) ReadTraceEventsCallback(traceID string, softMemoryLim
 		if err := rw.codec.DecodeEvent(data, event); err != nil {
 			return fmt.Errorf("codec failed to decode event: %w", err)
 		}
-		batch = append(batch, event)
+		*batch = append(*batch, event)
 		batchBytes += len(data)
 		if batchBytes >= softMemoryLimit {
-			if err := fn(batch); err != nil {
+			if err := fn(*batch); err != nil {
 				return err
 			}
-			for i := range batch {
-				batch[i] = nil
+			for i := range *batch {
+				(*batch)[i] = nil
 			}
-			batch = batch[:0]
+			*batch = (*batch)[:0]
 			batchBytes = 0
 		}
 	}
-	if len(batch) > 0 {
-		return fn(batch)
+	if len(*batch) > 0 {
+		return fn(*batch)
 	}
 	return nil
 }

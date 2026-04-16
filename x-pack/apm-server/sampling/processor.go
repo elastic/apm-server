@@ -444,6 +444,7 @@ func (p *Processor) Run() error {
 		// Alternatively we can rely on backpressure from the reporter,
 		// removing the artificial one second timeout from publisher code
 		// and just waiting as long as it takes here.
+		var events modelpb.Batch
 		remoteSampledTraceIDs := remoteSampledTraceIDs
 		localSampledTraceIDs := localSampledTraceIDs
 		for {
@@ -484,7 +485,7 @@ func (p *Processor) Run() error {
 			// Read and publish trace events in pages to bound memory
 			// usage for huge traces that could otherwise cause OOM.
 			var totalEvents int64
-			err = p.eventStore.ReadTraceEventsCallback(traceID, p.config.ReadBatchMemoryLimit, func(events modelpb.Batch) error {
+			err = p.eventStore.ReadTraceEventsCallback(traceID, p.config.ReadBatchMemoryLimit, &events, func(events modelpb.Batch) error {
 				if remoteDecision {
 					// Remote decisions may be received multiple times,
 					// e.g. if this server restarts and resubscribes to

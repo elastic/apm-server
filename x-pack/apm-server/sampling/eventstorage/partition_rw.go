@@ -68,10 +68,10 @@ func (rw *PartitionReadWriter) DeleteTraceEvent(traceID, id string) error {
 }
 
 // ReadTraceEventsCallback reads trace events in batches across all active partitions.
-func (rw *PartitionReadWriter) ReadTraceEventsCallback(traceID string, softMemoryLimit int, fn func(modelpb.Batch) error) error {
+func (rw *PartitionReadWriter) ReadTraceEventsCallback(traceID string, softMemoryLimit int, batch *modelpb.Batch, fn func(modelpb.Batch) error) error {
 	var errs []error
 	for pid := range rw.s.partitioner.ActiveIDs() {
-		err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).ReadTraceEventsCallback(traceID, softMemoryLimit, fn)
+		err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).ReadTraceEventsCallback(traceID, softMemoryLimit, batch, fn)
 		if err != nil {
 			errs = append(errs, err)
 		}

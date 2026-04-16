@@ -524,7 +524,8 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 // readAllTraceEvents is a test helper that reads all events for a trace.
 func readAllTraceEvents(rw eventstorage.RW, traceID string, out *modelpb.Batch) error {
-	return rw.ReadTraceEventsCallback(traceID, 1<<30, func(batch modelpb.Batch) error {
+	var scratch modelpb.Batch
+	return rw.ReadTraceEventsCallback(traceID, 1<<30, &scratch, func(batch modelpb.Batch) error {
 		*out = append(*out, batch...)
 		return nil
 	})
@@ -534,7 +535,7 @@ type errorRW struct {
 	err error
 }
 
-func (m errorRW) ReadTraceEventsCallback(traceID string, softMemoryLimit int, fn func(modelpb.Batch) error) error {
+func (m errorRW) ReadTraceEventsCallback(traceID string, softMemoryLimit int, batch *modelpb.Batch, fn func(modelpb.Batch) error) error {
 	return m.err
 }
 
