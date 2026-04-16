@@ -1344,11 +1344,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-transpo
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/gmux
-Version: v0.3.2
+Version: v0.3.3
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.3.2/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.3.3/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5273,11 +5273,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/grpc
-Version: v1.79.3
+Version: v1.80.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.79.3/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.80.0/LICENSE:
 
 
                                  Apache License
