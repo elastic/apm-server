@@ -45,42 +45,6 @@ type PrefixReadWriter struct {
 	codec  Codec
 }
 
-// ReadTraceEvents reads rw.db using a key consisting of rw.prefix and traceID, and appends results to out.
-func (rw PrefixReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	var b bytes.Buffer
-	b.Grow(1 + len(traceID) + 1)
-	b.WriteByte(rw.prefix)
-	b.WriteString(traceID)
-	b.WriteByte(traceIDSeparator)
-
-	iter, err := rw.db.NewIter(&pebble.IterOptions{})
-	if err != nil {
-		return err
-	}
-	defer iter.Close()
-
-	// SeekPrefixGE uses prefix bloom filter for on disk tables.
-	// These bloom filters are cached in memory, and a "miss" on bloom filter avoids disk IO to check the actual table.
-	// Memtables still need to be scanned as pebble has no bloom filter on memtables.
-	//
-	// SeekPrefixGE ensures the prefix is present and does not require lower bound and upper bound to be set on iterator.
-	if valid := iter.SeekPrefixGE(b.Bytes()); !valid {
-		return nil
-	}
-	for ; iter.Valid(); iter.Next() {
-		event := &modelpb.APMEvent{}
-		data, err := iter.ValueAndErr()
-		if err != nil {
-			return err
-		}
-		if err := rw.codec.DecodeEvent(data, event); err != nil {
-			return fmt.Errorf("codec failed to decode event: %w", err)
-		}
-		*out = append(*out, event)
-	}
-	return nil
-}
-
 // ReadTraceEventsCallback reads events for the given traceID in batches,
 // calling fn for each batch. A batch is considered mature when the
 // accumulated encoded byte size of its events reaches softMemoryLimit.

@@ -62,34 +62,23 @@ func TestPrefixReadWriter_WriteTraceEvent(t *testing.T) {
 	check()
 }
 
-func TestPrefixReadWriter_ReadTraceEvents(t *testing.T) {
-	codec := eventstorage.ProtobufCodec{}
-	db := newEventPebble(t)
-	rw := eventstorage.NewPrefixReadWriter(db, 1, codec)
-
-	traceID := "foo1"
-	for _, txnID := range []string{"bar", "baz"} {
-		txn := makeTransaction(txnID, traceID)
-		err := rw.WriteTraceEvent(traceID, txnID, txn)
-		require.NoError(t, err)
-	}
-
-	// Create transactions with similar trace IDs to ensure that iterator upper bound is enforced
-	txn := makeTransaction("bar", "foo2")
-	err := rw.WriteTraceEvent("foo2", "bar", txn)
-	require.NoError(t, err)
-
-	txn = makeTransaction("bar", "foo12")
-	err = rw.WriteTraceEvent("foo12", "bar", txn)
-	require.NoError(t, err)
-
+// readAllTraceEvents is a test helper that reads all events for a trace
+// into a single batch using ReadTraceEventsCallback.
+func readAllTraceEvents(rw eventstorage.RW, traceID string) (modelpb.Batch, error) {
 	var out modelpb.Batch
-	err = rw.ReadTraceEvents(traceID, &out)
-	assert.NoError(t, err)
-	assert.Equal(t, modelpb.Batch{
-		makeTransaction("bar", traceID),
-		makeTransaction("baz", traceID),
-	}, out)
+	err := rw.ReadTraceEventsCallback(traceID, 1<<30, func(batch modelpb.Batch) error {
+		out = append(out, batch...)
+		return nil
+	})
+	return out, err
+}
+
+// readAllTraceEventsInto appends all events for a trace into the given batch.
+func readAllTraceEventsInto(rw eventstorage.RW, traceID string, out *modelpb.Batch) error {
+	return rw.ReadTraceEventsCallback(traceID, 1<<30, func(batch modelpb.Batch) error {
+		*out = append(*out, batch...)
+		return nil
+	})
 }
 
 func TestPrefixReadWriter_ReadTraceEventsCallback(t *testing.T) {
@@ -177,6 +166,14 @@ func TestPrefixReadWriter_ReadTraceEventsCallback(t *testing.T) {
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, 0, callCount)
+	})
+
+	t.Run("trace_isolation", func(t *testing.T) {
+		// Verify that events from similar trace IDs (trace1, trace12, trace2)
+		// are not returned when reading trace1.
+		out, err := readAllTraceEvents(rw, traceID)
+		assert.NoError(t, err)
+		assert.Len(t, out, 5) // only trace1 events, not trace2
 	})
 }
 

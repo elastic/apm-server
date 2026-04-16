@@ -19,7 +19,6 @@ var (
 
 // RW is a read writer interface that has methods to read and write trace event and sampling decisions.
 type RW interface {
-	ReadTraceEvents(traceID string, out *modelpb.Batch) error
 	// ReadTraceEventsCallback reads trace events in batches, calling fn
 	// for each batch. A batch is flushed when the accumulated encoded
 	// byte size of events in the batch reaches softMemoryLimit. This
@@ -37,10 +36,6 @@ type RW interface {
 // - *TraceSampled method calls are passed through to decisionRW.
 type SplitReadWriter struct {
 	eventRW, decisionRW RW
-}
-
-func (s SplitReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	return s.eventRW.ReadTraceEvents(traceID, out)
 }
 
 func (s SplitReadWriter) ReadTraceEventsCallback(traceID string, softMemoryLimit int, fn func(modelpb.Batch) error) error {
@@ -116,11 +111,6 @@ func (s StorageLimitReadWriter) checkStorageLimit() error {
 		}
 	}
 	return nil
-}
-
-// ReadTraceEvents passes through to s.nextRW.ReadTraceEvents.
-func (s StorageLimitReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	return s.nextRW.ReadTraceEvents(traceID, out)
 }
 
 // ReadTraceEventsCallback passes through to s.nextRW.ReadTraceEventsCallback.

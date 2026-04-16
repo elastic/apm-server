@@ -100,16 +100,18 @@ func BenchmarkReadEvents(b *testing.B) {
 				}
 
 				b.ResetTimer()
-				var batch modelpb.Batch
 				for i := 0; i < b.N; i++ {
-					batch = batch[:0]
-					if err := readWriter.ReadTraceEvents(traceID, &batch); err != nil {
+					var total int
+					if err := readWriter.ReadTraceEventsCallback(traceID, 1<<30, func(batch modelpb.Batch) error {
+						total += len(batch)
+						return nil
+					}); err != nil {
 						b.Fatal(err)
 					}
-					if len(batch) != count {
+					if total != count {
 						panic(fmt.Errorf(
 							"event count mismatch: expected %d, got %d",
-							count, len(batch),
+							count, total,
 						))
 					}
 				}
@@ -241,7 +243,10 @@ func BenchmarkReadEventsHit(b *testing.B) {
 						traceID = traceID[:len(traceID)-1] + "-"
 					}
 
-					if err := readWriter.ReadTraceEvents(traceID, &batch); err != nil {
+					if err := readWriter.ReadTraceEventsCallback(traceID, 1<<30, func(events modelpb.Batch) error {
+						batch = append(batch, events...)
+						return nil
+					}); err != nil {
 						b.Fatal(err)
 					}
 				}
