@@ -510,7 +510,9 @@ func (p *Processor) Run() error {
 						}
 					}
 				}
-				totalEvents += int64(len(events))
+				n := int64(len(events))
+				totalEvents += n
+				p.eventMetrics.sampled.Add(gracefulContext, n)
 				return p.config.BatchProcessor.ProcessBatch(gracefulContext, &events)
 			})
 			if err != nil {
@@ -520,7 +522,6 @@ func (p *Processor) Run() error {
 			}
 			if totalEvents > 0 {
 				p.logger.Debugf("reporting %d events", totalEvents)
-				p.eventMetrics.sampled.Add(gracefulContext, totalEvents)
 			}
 		}
 	})
