@@ -19,16 +19,6 @@ var (
 
 // RW is a read writer interface that has methods to read and write trace event and sampling decisions.
 type RW interface {
-	// ReadTraceEventsCallback reads trace events in batches, calling fn
-	// for each batch. A batch is flushed when the accumulated encoded
-	// byte size of events in the batch reaches softMemoryLimit. This
-	// avoids loading all events for a trace into memory at once,
-	// preventing OOM for huge traces.
-	//
-	// The caller-provided batch is used as scratch space so the backing
-	// array can be reused across calls. The batch must only be accessed
-	// from a single goroutine. It is reset to length zero at the start
-	// of iteration and must not be read after this method returns.
 	ReadTraceEventsCallback(traceID string, softMemoryLimit int, batch *modelpb.Batch, fn func(modelpb.Batch) error) error
 	WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error
 	WriteTraceSampled(traceID string, sampled bool) error

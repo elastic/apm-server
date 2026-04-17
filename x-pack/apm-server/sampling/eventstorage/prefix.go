@@ -68,6 +68,13 @@ func (rw PrefixReadWriter) ReadTraceEventsCallback(traceID string, softMemoryLim
 	}
 	defer iter.Close()
 
+	// SeekPrefixGE uses prefix bloom filter for on disk tables. These bloom
+	// filters are cached in memory, and a "miss" on bloom filter avoids disk
+	// IO to check the actual table. Memtables still need to be scanned as
+	// pebble has no bloom filter on memtables.
+	//
+	// SeekPrefixGE ensures the prefix is present and does not require lower
+	// bound and upper bound to be set on iterator.
 	if valid := iter.SeekPrefixGE(b.Bytes()); !valid {
 		return nil
 	}
