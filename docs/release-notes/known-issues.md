@@ -127,6 +127,27 @@ Once Elasticsearch is upgraded to a version containing the fix, it would be idea
 :::
 
 
+:::{dropdown} HTTP/2 connections can fail with strict clients due to framing errors
+
+*Elastic Stack versions: >=8.19.12 and <8.19.15, >=9.2.6 and <9.3.0, >=9.3.1 and <9.3.4*
+
+APM Server can fail HTTP/2 requests from strict clients (for example, curl/nghttp2) after ALPN negotiates `h2`.
+In affected versions, APM Server can send inconsistent SETTINGS values at connection start (an initial empty/default SETTINGS frame followed by a different SETTINGS set), and strict clients treat that sequence as an HTTP/2 protocol error and close the connection.
+When this occurs, clients can report framing/connection errors such as `Error in the HTTP2 framing layer` or `Failure when receiving data from the peer`.
+Browser-based HTTP requests from the RUM agent can also fail with `net::ERR_HTTP2_PROTOCOL_ERROR`.
+When clients close the HTTP/2 connection due to this issue, APM Server logs an error: `http2: received GOAWAY [FrameHeader GOAWAY len=66], starting graceful shutdown`.
+
+For more information, check [issue #20887](https://github.com/elastic/apm-server/issues/20887)
+
+**Workaround**
+
+Use HTTP/1.1 to communicate with APM Server on affected versions.
+
+If clients require HTTP/2, place a non-strict load balancer in front of APM Server and terminate HTTP/2 at the load balancer (for example, on some load balancers this can be done by switching from TCP mode to HTTP mode).
+
+This bug will be fixed in 8.19.15, 9.3.4, 9.4.0.
+::::
+
 :::{dropdown} APM occasionally returning HTTP 502 "backend connection closed" or "use of closed network connection"
 
 *Elastic Stack versions: >=8.0.0 and <8.18.8 or <8.19.5, >=9.0.0 and <9.0.8 or <9.1.5*
