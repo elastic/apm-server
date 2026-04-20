@@ -62,122 +62,34 @@ func TestPrefixReadWriter_WriteTraceEvent(t *testing.T) {
 	check()
 }
 
-// readAllTraceEvents is a test helper that reads all events for a trace
-// into a single batch using ReadTraceEventsCallback.
-func readAllTraceEvents(rw eventstorage.RW, traceID string) (modelpb.Batch, error) {
-	var scratch, out modelpb.Batch
-	err := rw.ReadTraceEventsCallback(traceID, 1<<30, &scratch, func(batch modelpb.Batch) error {
-		out = append(out, batch...)
-		return nil
-	})
-	return out, err
-}
-
-// readAllTraceEventsInto appends all events for a trace into the given batch.
-func readAllTraceEventsInto(rw eventstorage.RW, traceID string, out *modelpb.Batch) error {
-	var scratch modelpb.Batch
-	return rw.ReadTraceEventsCallback(traceID, 1<<30, &scratch, func(batch modelpb.Batch) error {
-		*out = append(*out, batch...)
-		return nil
-	})
-}
-
-func TestPrefixReadWriter_ReadTraceEventsCallback(t *testing.T) {
+func TestPrefixReadWriter_ReadTraceEvents(t *testing.T) {
 	codec := eventstorage.ProtobufCodec{}
 	db := newEventPebble(t)
 	rw := eventstorage.NewPrefixReadWriter(db, 1, codec)
 
-	traceID := "trace1"
-	txnIDs := []string{"a", "b", "c", "d", "e"}
-	for _, txnID := range txnIDs {
+	traceID := "foo1"
+	for _, txnID := range []string{"bar", "baz"} {
 		txn := makeTransaction(txnID, traceID)
 		err := rw.WriteTraceEvent(traceID, txnID, txn)
 		require.NoError(t, err)
 	}
 
-	// Compute the encoded size of a single event for test thresholds.
-	singleEvent := makeTransaction("a", traceID)
-	encoded, err := codec.EncodeEvent(singleEvent)
-	require.NoError(t, err)
-	eventSize := len(encoded)
-
-	// Write events for a different trace to ensure isolation
-	otherTxn := makeTransaction("x", "trace2")
-	err = rw.WriteTraceEvent("trace2", "x", otherTxn)
+	// Create transactions with similar trace IDs to ensure that iterator upper bound is enforced
+	txn := makeTransaction("bar", "foo2")
+	err := rw.WriteTraceEvent("foo2", "bar", txn)
 	require.NoError(t, err)
 
-	var scratch modelpb.Batch
+	txn = makeTransaction("bar", "foo12")
+	err = rw.WriteTraceEvent("foo12", "bar", txn)
+	require.NoError(t, err)
 
-	t.Run("limit_larger_than_total", func(t *testing.T) {
-		var callCount int
-		var allEvents modelpb.Batch
-		// Set limit high enough that all 5 events fit in one batch.
-		err := rw.ReadTraceEventsCallback(traceID, eventSize*10, &scratch, func(batch modelpb.Batch) error {
-			callCount++
-			allEvents = append(allEvents, batch...)
-			return nil
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, 1, callCount)
-		assert.Len(t, allEvents, 5)
-	})
-
-	t.Run("limit_one_byte_flushes_per_event", func(t *testing.T) {
-		// With a 1-byte limit, every event exceeds the limit immediately.
-		var callCount int
-		var pageSizes []int
-		err := rw.ReadTraceEventsCallback(traceID, 1, &scratch, func(batch modelpb.Batch) error {
-			callCount++
-			pageSizes = append(pageSizes, len(batch))
-			return nil
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, 5, callCount)
-		assert.Equal(t, []int{1, 1, 1, 1, 1}, pageSizes)
-	})
-
-	t.Run("limit_splits_into_batches", func(t *testing.T) {
-		// Set limit to fit exactly 2 events, so 5 events -> 3 batches (2+2+1).
-		var callCount int
-		var pageSizes []int
-		err := rw.ReadTraceEventsCallback(traceID, eventSize*2, &scratch, func(batch modelpb.Batch) error {
-			callCount++
-			pageSizes = append(pageSizes, len(batch))
-			return nil
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, 3, callCount)
-		assert.Equal(t, []int{2, 2, 1}, pageSizes)
-	})
-
-	t.Run("callback_error_stops_iteration", func(t *testing.T) {
-		expectedErr := fmt.Errorf("stop")
-		var callCount int
-		err := rw.ReadTraceEventsCallback(traceID, eventSize*2, &scratch, func(batch modelpb.Batch) error {
-			callCount++
-			return expectedErr
-		})
-		assert.ErrorIs(t, err, expectedErr)
-		assert.Equal(t, 1, callCount)
-	})
-
-	t.Run("no_events", func(t *testing.T) {
-		var callCount int
-		err := rw.ReadTraceEventsCallback("nonexistent", eventSize*10, &scratch, func(batch modelpb.Batch) error {
-			callCount++
-			return nil
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, 0, callCount)
-	})
-
-	t.Run("trace_isolation", func(t *testing.T) {
-		// Verify that events from similar trace IDs (trace1, trace12, trace2)
-		// are not returned when reading trace1.
-		out, err := readAllTraceEvents(rw, traceID)
-		assert.NoError(t, err)
-		assert.Len(t, out, 5) // only trace1 events, not trace2
-	})
+	var out modelpb.Batch
+	err = rw.ReadTraceEvents(traceID, &out)
+	assert.NoError(t, err)
+	assert.Equal(t, modelpb.Batch{
+		makeTransaction("bar", traceID),
+		makeTransaction("baz", traceID),
+	}, out)
 }
 
 func TestPrefixReadWriter_DeleteTraceEvent(t *testing.T) {
