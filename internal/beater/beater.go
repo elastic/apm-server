@@ -267,13 +267,6 @@ func (s *Runner) Run(ctx context.Context) error {
 			s.config.Sampling.Tail.DatabaseCacheSize, memLimitGB,
 		)
 	}
-	if s.config.Sampling.Tail.Enabled && s.config.Sampling.Tail.ReadBatchMemoryLimit == 0 {
-		// 1GB=10MB, 2GB=15MB, 4GB=25MB, ..., 32GB=165MB, 64GB=325MB
-		s.config.Sampling.Tail.ReadBatchMemoryLimit = linearScaledValue(5<<20, memLimitGB, 5<<20)
-		s.logger.Infof("Sampling.Tail.ReadBatchMemoryLimit set to %d based on %0.1fgb of memory",
-			s.config.Sampling.Tail.ReadBatchMemoryLimit, memLimitGB,
-		)
-	}
 
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config, s.beatMonitoring.StateRegistry())

@@ -118,13 +118,6 @@ type StorageConfig struct {
 	// When set to false, TBS indexes all traces, and may significantly increase indexing load.
 	// When set to true, there will be data loss, resulting in broken traces.
 	DiscardOnWriteFailure bool
-
-	// ReadBatchMemoryLimit is a soft limit in bytes on the encoded size of
-	// events loaded per batch when reading trace events from storage.
-	// This bounds peak memory usage for huge traces that could otherwise
-	// cause OOM. The limit is based on encoded (protobuf) byte size as a
-	// proxy for in-memory size. Scaled based on instance memory.
-	ReadBatchMemoryLimit int
 }
 
 // Policy holds a tail-sampling policy: criteria for matching root transactions,
@@ -249,9 +242,6 @@ func (config StorageConfig) validate() error {
 	}
 	if config.TTL <= 0 {
 		return errors.New("TTL unspecified or negative")
-	}
-	if config.ReadBatchMemoryLimit <= 0 {
-		return errors.New("ReadBatchMemoryLimit unspecified or negative")
 	}
 	return nil
 }

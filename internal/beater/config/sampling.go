@@ -66,13 +66,6 @@ type TailSamplingConfig struct {
 	// DatabaseCacheSize is cache size in bytes for tail-sampling database.
 	DatabaseCacheSize uint64 `config:"database_cache_size"`
 
-	// ReadBatchMemoryLimit is the soft memory limit in bytes for batches
-	// of trace events read from storage during publishing. When the
-	// accumulated encoded size of events in a batch reaches this limit,
-	// the batch is flushed before reading more. 0 means auto-scaled
-	// based on instance memory.
-	ReadBatchMemoryLimit int `config:"read_batch_memory_limit"`
-
 	esConfigured bool
 }
 
