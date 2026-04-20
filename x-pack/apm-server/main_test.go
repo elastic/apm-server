@@ -36,13 +36,12 @@ func TestMainMonitoring(t *testing.T) {
 	cfg := config.DefaultConfig()
 	cfg.Sampling.Tail.Enabled = true
 	cfg.Sampling.Tail.Policies = []config.TailSamplingPolicy{{SampleRate: 0.1}}
-	// MaxServices, MaxGroups, and ReadBatchMemoryLimit are configured
-	// based on memory limit. Overriding here to avoid validation errors.
+	// MaxServices and MaxGroups are configured based on memory limit.
+	// Overriding here to avoid validation errors.
 	cfg.Aggregation.MaxServices = 10000
 	cfg.Aggregation.Transactions.MaxGroups = 10000
 	cfg.Aggregation.ServiceTransactions.MaxGroups = 10000
 	cfg.Aggregation.ServiceDestinations.MaxGroups = 10000
-	cfg.Sampling.Tail.ReadBatchMemoryLimit = 10 << 20
 
 	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
 		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {

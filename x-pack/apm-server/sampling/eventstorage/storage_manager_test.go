@@ -85,7 +85,7 @@ func TestStorageManager_eventTTL(t *testing.T) {
 	assert.NoError(t, err)
 
 	var out modelpb.Batch
-	err = readAllTraceEventsInto(rw, traceID, &out)
+	err = rw.ReadTraceEvents(traceID, &out)
 	assert.NoError(t, err)
 	assert.Len(t, out, 1)
 
@@ -99,7 +99,7 @@ func TestStorageManager_eventTTL(t *testing.T) {
 	assert.NoError(t, err)
 
 	out = nil
-	err = readAllTraceEventsInto(rw, traceID, &out)
+	err = rw.ReadTraceEvents(traceID, &out)
 	assert.NoError(t, err)
 	assert.Equal(t, modelpb.Batch{txn2, txn1}, out)
 
@@ -108,7 +108,7 @@ func TestStorageManager_eventTTL(t *testing.T) {
 	assert.NoError(t, err)
 
 	out = nil
-	err = readAllTraceEventsInto(rw, traceID, &out)
+	err = rw.ReadTraceEvents(traceID, &out)
 	assert.NoError(t, err)
 	assert.Equal(t, modelpb.Batch{txn2}, out)
 
@@ -117,7 +117,7 @@ func TestStorageManager_eventTTL(t *testing.T) {
 	assert.NoError(t, err)
 
 	out = nil
-	err = readAllTraceEventsInto(rw, traceID, &out)
+	err = rw.ReadTraceEvents(traceID, &out)
 	assert.NoError(t, err)
 	assert.Len(t, out, 0)
 }
