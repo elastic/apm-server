@@ -132,7 +132,6 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 		}
 	}
 
-<<<<<<< HEAD
 	return sampling.NewProcessor(sampling.Config{
 		BatchProcessor: args.BatchProcessor,
 		MeterProvider:  args.MeterProvider,
@@ -141,35 +140,6 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			MaxDynamicServices:    1000,
 			Policies:              policies,
 			IngestRateDecayFactor: tailSamplingConfig.IngestRateDecayFactor,
-=======
-	return sampling.NewProcessor(sampling.ProcessorParams{
-		Config: sampling.Config{
-			BatchProcessor: args.BatchProcessor,
-			MeterProvider:  args.MeterProvider,
-			LocalSamplingConfig: sampling.LocalSamplingConfig{
-				FlushInterval:         tailSamplingConfig.Interval,
-				MaxDynamicServices:    1000,
-				Policies:              policies,
-				IngestRateDecayFactor: tailSamplingConfig.IngestRateDecayFactor,
-			},
-			RemoteSamplingConfig: sampling.RemoteSamplingConfig{
-				CompressionLevel: tailSamplingConfig.ESConfig.CompressionLevel,
-				Elasticsearch:    es,
-				SampledTracesDataStream: sampling.DataStreamConfig{
-					Type:      "traces",
-					Dataset:   "apm.sampled",
-					Namespace: args.Namespace,
-				},
-				UUID: samplerUUID.String(),
-			},
-			StorageConfig: sampling.StorageConfig{
-				DB:                    db,
-				Storage:               db.NewReadWriter(tailSamplingConfig.StorageLimitParsed, tailSamplingConfig.DiskUsageThreshold),
-				TTL:                   tailSamplingConfig.TTL,
-				DiscardOnWriteFailure: tailSamplingConfig.DiscardOnWriteFailure,
-				ReadBatchMemoryLimit:  tailSamplingConfig.ReadBatchMemoryLimit,
-			},
->>>>>>> 862167ba (Implement paging for TBS (#20881))
 		},
 		RemoteSamplingConfig: sampling.RemoteSamplingConfig{
 			CompressionLevel: tailSamplingConfig.ESConfig.CompressionLevel,
@@ -186,6 +156,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			Storage:               db.NewReadWriter(tailSamplingConfig.StorageLimitParsed, tailSamplingConfig.DiskUsageThreshold),
 			TTL:                   tailSamplingConfig.TTL,
 			DiscardOnWriteFailure: tailSamplingConfig.DiscardOnWriteFailure,
+			ReadBatchMemoryLimit:  tailSamplingConfig.ReadBatchMemoryLimit,
 		},
 	}, args.Logger)
 }
