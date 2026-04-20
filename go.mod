@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.26.1
+go 1.26.2
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.5
@@ -14,7 +14,7 @@ require (
 	github.com/elastic/elastic-agent-libs v0.33.3
 	github.com/elastic/elastic-agent-system-metrics v0.14.3
 	github.com/elastic/elastic-transport-go/v8 v8.8.0
-	github.com/elastic/gmux v0.3.2
+	github.com/elastic/gmux v0.3.3
 	github.com/elastic/go-docappender/v2 v2.12.1
 	github.com/elastic/go-freelru v0.16.0
 	github.com/elastic/go-sysinfo v1.15.4
@@ -55,7 +55,7 @@ require (
 	golang.org/x/sync v0.20.0
 	golang.org/x/term v0.40.0
 	golang.org/x/time v0.14.0
-	google.golang.org/grpc v1.79.3
+	google.golang.org/grpc v1.80.0
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
 )
 
@@ -261,7 +261,7 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gotest.tools/gotestsum v1.12.0 // indirect
+	gotest.tools/gotestsum v1.13.0 // indirect
 	honnef.co/go/tools v0.6.1 // indirect
 	howett.net/plist v1.0.1 // indirect
 	mvdan.cc/xurls/v2 v2.5.0 // indirect
