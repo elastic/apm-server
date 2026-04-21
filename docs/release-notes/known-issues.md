@@ -130,7 +130,7 @@ Once Elasticsearch is upgraded to a version containing the fix, it would be idea
 :::{dropdown} HTTP/2 connections can fail with strict clients due to framing errors
 
 *Elastic Stack versions: >=8.19.12 and <8.19.15, >=9.2.6 and <9.3.0, >=9.3.1 and <9.3.4*<br>
-*Environments: self-managed*
+*Environments: ECK, self-managed*
 
 APM Server can fail HTTP/2 requests from strict clients (for example, curl/nghttp2) after ALPN negotiates `h2`.
 In affected versions, APM Server can send inconsistent SETTINGS values at connection start (an initial empty/default SETTINGS frame followed by a different SETTINGS set), and strict clients treat that sequence as an HTTP/2 protocol error and close the connection.
