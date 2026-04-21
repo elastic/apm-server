@@ -38,7 +38,7 @@ The problem can be detected running the following request:
 GET traces-apm-default/_mapping/field/timestamp.us
 ```
 
-If the results contains backing indices with `float` type in `timestamp.us`, you're affected by this known issue.
+If the results contain backing indices with `float` type in `timestamp.us`, you're affected by this known issue.
 
 ```txt
 {
@@ -120,7 +120,7 @@ To work around this issue, we can temporarily introduce an explicit mapping for 
 Adapt the rollover requests depending on the namespaces you might be using. In case you had already customizations to
 the `traces-apm@custom` component templates, add an explicit mapping of the field `timestamp.us` to `long`.
 
-This bug will be fixed in 8.19.x, 9.2.x, 9.3.x, 9.4.0
+This bug will be fixed in 8.19.13, 9.2.7, 9.3.2, 9.4.0
 
 Once Elasticsearch is upgraded to a version containing the fix, it would be ideal to remove the `traces-apm@custom` component template using `DELETE _component_template/traces-apm@custom` and trigger a manual rollover (or wait for it to happen automatically).
 
@@ -129,7 +129,8 @@ Once Elasticsearch is upgraded to a version containing the fix, it would be idea
 
 :::{dropdown} HTTP/2 connections can fail with strict clients due to framing errors
 
-*Elastic Stack versions: >=8.19.12 and <8.19.15, >=9.2.6 and <9.3.0, >=9.3.1 and <9.3.4*
+*Elastic Stack versions: >=8.19.12 and <8.19.15, >=9.2.6 and <9.3.0, >=9.3.1 and <9.3.4*<br>
+*Environments: self-managed*
 
 APM Server can fail HTTP/2 requests from strict clients (for example, curl/nghttp2) after ALPN negotiates `h2`.
 In affected versions, APM Server can send inconsistent SETTINGS values at connection start (an initial empty/default SETTINGS frame followed by a different SETTINGS set), and strict clients treat that sequence as an HTTP/2 protocol error and close the connection.
