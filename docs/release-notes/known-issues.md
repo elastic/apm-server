@@ -22,8 +22,8 @@ Known issues are significant defects or limitations that may impact your impleme
 
 :::{dropdown} The spans in the trace waterfall aren't correctly rendered
 
-*Elastic Stack versions: >=8.15.0, >=9.0.0 when using APM Server shipping data through non-Elasticsearch output (Logstash, Redis, Kafka, Console)
-*Environments: ECH, ECE, ECK, and self-managed
+*Elastic Stack versions: >=8.15.0, >=9.0.0 when using APM Server shipping data through non-Elasticsearch output (Logstash, Redis, Kafka, Console)*<br>
+*Environments: ECH, ECE, ECK, and self-managed*
 
 When using APM Server with non-Elasticsearch outputs shipping to an Elasticsearch version 8.15.0 or more recent, the trace waterfall will render spans incorrectly.
 The spans will be rendered aligned on the left instead of representing the time the span started.
@@ -69,7 +69,7 @@ If the results contains backing indices with `float` type in `timestamp.us`, you
 }
 ```
 
-For more information, check [issue #20496](https://github.com/elastic/apm-server/issues/20496)
+For more information, check [issue #20496](https://github.com/elastic/apm-server/issues/20496).
 
 **Workaround**
 
@@ -137,7 +137,7 @@ When this occurs, clients can report framing/connection errors such as `Error in
 Browser-based HTTP requests from the RUM agent can also fail with `net::ERR_HTTP2_PROTOCOL_ERROR`.
 When clients close the HTTP/2 connection due to this issue, APM Server logs an error: `http2: received GOAWAY [FrameHeader GOAWAY len=66], starting graceful shutdown`.
 
-For more information, check [issue #20887](https://github.com/elastic/apm-server/issues/20887)
+For more information, check [issue #20887](https://github.com/elastic/apm-server/issues/20887).
 
 **Workaround**
 
@@ -151,7 +151,7 @@ This bug will be fixed in 8.19.15, 9.3.4, 9.4.0.
 :::{dropdown} APM occasionally returning HTTP 502 "backend connection closed" or "use of closed network connection"
 
 *Elastic Stack versions: >=8.0.0 and <8.18.8 or <8.19.5, >=9.0.0 and <9.0.8 or <9.1.5*
-*Environments: ECH, ECE
+*Environments: ECH, ECE*
 
 APM Server on ECH and ECE might sometimes return HTTP 502 with error message "backend connection closed" or "use of closed network connection" for any requests due to a rare race condition.
 When this happens to an intake request, Elastic APM agents will log an error but will not retry, leading to data loss.
@@ -172,7 +172,7 @@ This bug will be fixed in 8.18.7, 8.19.4, 9.0.7, 9.1.4 for new deployments, and 
 
 :::{dropdown} APM Integration might be unreachable after upgrading to 8.19.0 and 9.1.0
 
-*Elastic Stack versions: 8.19.0 and 9.1.0*
+*Elastic Stack versions: 8.19.0 and 9.1.0*<br>
 *Environments: ECH, ECE, ECK, and self-managed when running Fleet*
 
 APM Integration, which is APM Server managed by Fleet, might sometimes be unreachable after reloading due to an integration policy change. Standalone APM Server is not affected by this issue.
