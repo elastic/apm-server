@@ -23,7 +23,7 @@ RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM cgr.dev/chainguard/static:latest@sha256:b24ac9892a647b64bc8341e6b9280885c44004b32ffc8d57d3218960280e1d89
+FROM cgr.dev/chainguard/static:latest@sha256:d6a97eb401cbc7c6d48be76ad81d7899b94303580859d396b52b67bc84ea7345
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION
@@ -31,33 +31,23 @@ ARG VCS_REF
 
 # Statically defined labels.
 LABEL \
-  org.label-schema.schema-version="1.0" \
-  org.label-schema.vendor="Elastic" \
-  org.label-schema.license="Elastic License" \
-  org.label-schema.name="apm-server" \
-  org.label-schema.url="https://www.elastic.co/apm" \
-  org.label-schema.vcs-url="github.com/elastic/apm-server" \
-  io.k8s.description="Elastic APM Server" \
-  io.k8s.display-name="Apm-Server image" \
-  org.opencontainers.image.licenses="Elastic License" \
+  org.opencontainers.image.authors="obs-ds-intake-services" \
+  org.opencontainers.image.base.name="cgr.dev/chainguard/static:latest" \
+  org.opencontainers.image.description="Elastic APM Server" \
+  org.opencontainers.image.documentation="https://www.elastic.co/docs/solutions/observability/apm/apm-server" \
+  org.opencontainers.image.licenses="Elastic-2.0" \
+  org.opencontainers.image.source="https://github.com/elastic/apm-server" \
   org.opencontainers.image.title="Apm-Server" \
+  org.opencontainers.image.url="https://github.com/elastic/apm-server" \
   org.opencontainers.image.vendor="Elastic" \
-  name="apm-server" \
-  maintainer="infra@elastic.co" \
-  vendor="Elastic" \
-  release="1" \
-  url="https://www.elastic.co/apm" \
-  summary="apm-server" \
-  license="Elastic License" \
-  description="Elastic APM Server"
+  io.k8s.description="Elastic APM Server" \
+  io.k8s.display-name="Apm-Server image"
 
 # Dynamic labels, only set in published images.
 LABEL \
-  org.label-schema.build-date=${BUILD_DATE} \
-  org.label-schema.version=${VERSION} \
-  org.label-schema.vcs-ref=${VCS_REF} \
   org.opencontainers.image.created=${BUILD_DATE} \
-  version=${VERSION}
+  org.opencontainers.image.revision=${VCS_REF} \
+  org.opencontainers.image.version=${VERSION}
 
 ENV ELASTIC_CONTAINER "true"
 

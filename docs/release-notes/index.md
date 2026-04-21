@@ -24,6 +24,33 @@ To check for security updates, go to [Security announcements for the Elastic sta
 % ### Fixes [apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
+% Commenting 9.4.0 release notes until it is released
+% ## 9.4.0 [apm-9.4.0-release-notes]
+
+% ### Features and enhancements [apm-9.4.0-features-enhancements]
+% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+
+% _No new features or enhancements_ 
+
+% ### Fixes [apm-9.4.0-fixes]
+% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+
+% _No new fixes_ 
+
+## 9.3.3 [apm-9.3.3-release-notes]
+
+_No new features, enhancements, or fixes._
+
+## 9.3.2 [apm-9.3.2-release-notes]
+
+### Features and enhancements [apm-9.3.2-features-enhancements]
+
+* Add new storage and disk metrics for Tail Based Sampling ([#20478](https://github.com/elastic/apm-server/pull/20478))
+
+### Fixes [apm-9.3.2-fixes]
+
+* Fix `timestamp.us` explicit mapping ([#elasticsearch/143593](https://github.com/elastic/elasticsearch/pull/143593))
+
 ## 9.3.1 [apm-9.3.1-release-notes]
 
 ### Fixes [apm-9.3.1-fixes]
@@ -42,6 +69,20 @@ _No new features or enhancements_
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
 _No new fixes_ 
+
+## 9.2.8 [apm-9.2.8-release-notes]
+
+_No new features, enhancements, or fixes._
+
+## 9.2.7 [apm-9.2.7-release-notes]
+
+### Features and enhancements [apm-9.2.7-features-enhancements]
+
+* Add new storage and disk metrics for Tail Based Sampling ([#20477](https://github.com/elastic/apm-server/pull/20477))
+
+### Fixes [apm-9.2.7-fixes]
+
+* Fix `timestamp.us` explicit mapping ([#elasticsearch/143594](https://github.com/elastic/elasticsearch/pull/143594))
 
 ## 9.2.6 [apm-9.2.6-release-notes]
 

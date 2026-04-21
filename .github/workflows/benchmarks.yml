@@ -58,7 +58,7 @@ on:
         type: boolean
         default: false
   schedule:
-    - cron: '0 17 * * *' # Scheduled regular benchmarks.
+    - cron: '0 17 * * 3' # Scheduled regular benchmarks.
     - cron: '0 0 1 * *' # Scheduled PGO benchmarks.
 
 env:
@@ -105,7 +105,7 @@ jobs:
           go-version-file: 'go.mod'
           cache: false
 
-      - uses: rlespinasse/github-slug-action@9e7def61550737ba68c62d34a32dd31792e3f429 # v5.5.0
+      - uses: rlespinasse/github-slug-action@e6f261660910b273384c5c42b17a0217881b217a # v5.6.0
 
       - name: Set up env
         run: |
@@ -141,7 +141,7 @@ jobs:
           echo "BENCHMARK_RUN=Benchmark[^T]" >> "$GITHUB_ENV"
 
       - name: Log in to the Elastic Container registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
           registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
           username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
@@ -162,7 +162,7 @@ jobs:
           secrets: |-
             EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-pro-api-key
 
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+      - uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
         with:
           terraform_version: ~1.10.0
           terraform_wrapper: false
@@ -243,7 +243,7 @@ jobs:
           echo "png_report_url=https://elastic-apm-server-benchmark-reports.s3.amazonaws.com/${DEST_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Upload benchmark result
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: benchmark-result
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_RESULT }}
@@ -257,7 +257,7 @@ jobs:
         run: make cp-cpuprof
 
       - name: Upload CPU profile
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: cpu-profile
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
@@ -265,7 +265,7 @@ jobs:
 
       - name: Get token
         id: get_token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
           private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
@@ -281,7 +281,7 @@ jobs:
           github-token: ${{ steps.get_token.outputs.token }}
 
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec  # v6.3.0
+        uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd  # v7.0.0
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}

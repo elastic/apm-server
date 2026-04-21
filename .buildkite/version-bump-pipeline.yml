@@ -18,7 +18,51 @@ notify:
     if: build.state == "blocked"
 
 steps:
-  # TODO: replace this block step by real version bump logic
+  - label: "Validate WORKFLOW and NEW_VERSION consistency"
+    command: |
+      if [ "$${WORKFLOW}" = "minor" ]; then
+        if ! echo "$${NEW_VERSION}" | grep -q '0$$'; then
+          echo "❌ Error: WORKFLOW is 'minor' but NEW_VERSION ($${NEW_VERSION}) does not end with 0"
+          exit 1
+        fi
+        echo "✅ Valid: WORKFLOW is 'minor' and NEW_VERSION ($${NEW_VERSION}) ends with 0"
+      elif [ "$${WORKFLOW}" = "patch" ]; then
+        if echo "$${NEW_VERSION}" | grep -q '0$$'; then
+          echo "❌ Error: WORKFLOW is 'patch' but NEW_VERSION ($${NEW_VERSION}) ends with 0"
+          exit 1
+        fi
+        echo "✅ Valid: WORKFLOW is 'patch' and NEW_VERSION ($${NEW_VERSION}) does not end with 0"
+      else
+        echo "❌ Error: WORKFLOW must be either 'minor' or 'patch', got '$${WORKFLOW}'"
+        exit 1
+      fi
+
+  - wait:
+
+  - label: "Bump version minor"
+    if: build.env("WORKFLOW") == "minor"
+    plugins:
+      - elastic/vault-github-token#v0.1.0:
+      - elastic/gh-cli#v0.1.1:
+          version: "2.88.1"
+          wait: true
+          workflow-file: "run-minor-release.yml"
+          workflow-ref: "main"
+          workflow-inputs:
+            version: "${NEW_VERSION}"
+
+  - label: "Bump version patch"
+    if: build.env("WORKFLOW") == "patch"
+    plugins:
+      - elastic/vault-github-token#v0.1.0:
+      - elastic/gh-cli#v0.1.1:
+          version: "2.88.1"
+          wait: true
+          workflow-file: "run-patch-release.yml"
+          workflow-ref: "main"
+          workflow-inputs:
+            version: "${NEW_VERSION}"
+
   - block: "Ready to fetch for DRA artifacts?"
     prompt: |
       Unblock when your team is ready to proceed.

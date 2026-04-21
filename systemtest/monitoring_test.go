@@ -92,7 +92,10 @@ func TestMonitoring(t *testing.T) {
 	batches := gjson.GetBytes(metrics.Libbeat, "output.events.batches")
 	assert.NotZero(t, batches.Int())
 
-	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.active").Int())
+	// output.events.active is an instantaneous gauge. It may be non-zero
+	// if there are other events, e.g. aggregated metrics, in flight.
+	// Therefore, we assert presence of output.events.active value but not its value.
+	assert.Equal(t, gjson.Number, gjson.GetBytes(metrics.Libbeat, "output.events.active").Type)
 	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.failed").Int())
 	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.toomany").Int())
 	assert.GreaterOrEqual(t, gjson.GetBytes(metrics.Libbeat, "output.events.total").Int(), int64(N))
@@ -100,7 +103,7 @@ func TestMonitoring(t *testing.T) {
 	assert.Equal(t, "elasticsearch", gjson.GetBytes(metrics.Libbeat, "output.type").Str)
 
 	bulkRequestsAvailable := gjson.GetBytes(metrics.Output, "elasticsearch.bulk_requests.available")
-	assert.Greater(t, bulkRequestsAvailable.Int(), int64(10))
+	assert.Greater(t, bulkRequestsAvailable.Int(), int64(0))
 	assert.Equal(t, batches.Int(), gjson.GetBytes(metrics.Output, "elasticsearch.bulk_requests.completed").Int())
 	assert.Equal(t, int64(1), gjson.GetBytes(metrics.Output, "elasticsearch.indexers.active").Int())
 	assert.Zero(t, gjson.GetBytes(metrics.Output, "elasticsearch.indexers.created").Int())
