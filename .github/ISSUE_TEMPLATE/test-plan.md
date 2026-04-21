@@ -13,28 +13,34 @@ labels: "test-plan"
 ## ES apm-data plugin
 
 <!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/elasticsearch/tree/main/x-pack/plugin/apm-data-->
+- [ ] I have merged all dependency updates available (dependabots, renovate...)
+
 
 ## apm-aggregation
 
 <!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/apm-aggregation/pulls-->
+- [ ] I have merged all dependency updates available (dependabots, renovate...)
 
 List of changes: https://github.com/elastic/apm-aggregation/compare/v1.2.0...v1.3.0
 
 ## go-docappender
 
 <!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/go-docappender/pulls-->
+- [ ] I have merged all dependency updates available (dependabots, renovate...)
 
 List of changes: https://github.com/elastic/go-docappender/compare/v2.4.0...v2.10.0
 
 ## apm-data
 
 <!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/apm-data/pulls-->
+- [ ] I have merged all dependency updates available (dependabots, renovate...)
 
 List of changes: https://github.com/elastic/apm-data/compare/v1.16.0...v1.19.2
 
 ## apm-server
 
 <!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/apm-server/pulls-->
+- [ ] I have merged all dependency updates available (dependabots, renovate...)
 
 List of changes: https://github.com/elastic/apm-server/compare/v9.0.0...main
 
