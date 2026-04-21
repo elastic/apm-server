@@ -24,18 +24,21 @@ To check for security updates, go to [Security announcements for the Elastic sta
 % ### Fixes [apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
-% Commenting 9.4.0 release notes until it is released
-% ## 9.4.0 [apm-9.4.0-release-notes]
+## 9.4.0 [apm-9.4.0-release-notes]
 
-% ### Features and enhancements [apm-9.4.0-features-enhancements]
-% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+### Features and enhancements [apm-9.4.0-features-enhancements]
 
-% _No new features or enhancements_ 
+* Report APM Server status on major health issues ([#20166](https://github.com/elastic/apm-server/pull/20166))
 
-% ### Fixes [apm-9.4.0-fixes]
-% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+### Fixes [apm-9.4.0-fixes]
 
-% _No new fixes_ 
+* Fix HTTP/2 SETTINGS mismatch connection failure in gmux ([#20908](https://github.com/elastic/apm-server/pull/20908))
+
+## 9.3.4 [apm-9.3.4-release-notes]
+
+### Fixes [apm-9.3.4-fixes]
+
+* Fix HTTP/2 SETTINGS mismatch connection failure in gmux ([#20913](https://github.com/elastic/apm-server/pull/20913))
 
 ## 9.3.3 [apm-9.3.3-release-notes]
 
