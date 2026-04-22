@@ -1,11 +1,11 @@
 ---
-name: create-test-plan-patch
+name: create-test-plan
 
 on:
   workflow_dispatch:
     inputs:
       upcoming_release:
-        description: 'Upcoming release version (e.g., 9.2.6)'
+        description: 'Upcoming release version (e.g., 9.2.6 for patch, 9.2.0 for minor)'
         required: true
         type: string
 

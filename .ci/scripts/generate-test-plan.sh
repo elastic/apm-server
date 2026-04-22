@@ -17,13 +17,22 @@ MAJOR="${BASH_REMATCH[1]}"
 MINOR="${BASH_REMATCH[2]}"
 PATCH="${BASH_REMATCH[3]}"
 
-if (( PATCH == 0 )); then
-  echo "Error: Cannot infer previous tag for x.y.0 releases. Patch version must be >= 1"
-  exit 1
-fi
-
 BRANCH="${MAJOR}.${MINOR}"
-PREVIOUS_TAG="v${MAJOR}.${MINOR}.$((PATCH - 1))"
+
+if (( PATCH == 0 )); then
+  if (( MINOR == 0 )); then
+    echo "Error: Cannot infer previous tag for x.0.0 releases"
+    exit 1
+  fi
+  PREVIOUS_MINOR=$((MINOR - 1))
+  PREVIOUS_TAG=$(git tag -l "v${MAJOR}.${PREVIOUS_MINOR}.*" | sort -V | tail -1)
+  if [[ -z "${PREVIOUS_TAG}" ]]; then
+    echo "Error: Could not find any tags for v${MAJOR}.${PREVIOUS_MINOR}.*"
+    exit 1
+  fi
+else
+  PREVIOUS_TAG="v${MAJOR}.${MINOR}.$((PATCH - 1))"
+fi
 OUTPUT_FILE="build/test-plan-${VERSION}.md"
 REPO_CACHE_DIR="build/test-plan-repos"
 
@@ -35,8 +44,13 @@ if ! git rev-parse "${PREVIOUS_TAG}" >/dev/null 2>&1; then
 fi
 
 if ! git rev-parse "origin/${BRANCH}" >/dev/null 2>&1; then
-  echo "Error: Release branch origin/${BRANCH} does not exist in this repository"
-  exit 1
+  if (( PATCH == 0 )) && git rev-parse "origin/main" >/dev/null 2>&1; then
+    echo "Release branch origin/${BRANCH} not found, falling back to origin/main"
+    BRANCH="main"
+  else
+    echo "Error: Release branch origin/${BRANCH} does not exist in this repository"
+    exit 1
+  fi
 fi
 
 echo "Upcoming release: v${VERSION}"
