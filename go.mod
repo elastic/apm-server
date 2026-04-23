@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.1
 	github.com/elastic/apm-data v1.19.6
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260422151439-6fcbb3850ed2
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260423000531-7aee904bd40f
 	github.com/elastic/elastic-agent-client/v7 v7.18.1
 	github.com/elastic/elastic-agent-libs v0.33.3
 	github.com/elastic/elastic-agent-system-metrics v0.14.3
@@ -41,7 +41,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.10.0
 	go.uber.org/zap v1.27.1
 	go.uber.org/zap/exp v0.3.0
-	go.yaml.in/yaml/v2 v2.4.3
+	go.yaml.in/yaml/v2 v2.4.4
 	golang.org/x/net v0.53.0
 	golang.org/x/sync v0.20.0
 	golang.org/x/term v0.42.0
@@ -192,7 +192,7 @@ require (
 	github.com/sagikazarmark/locafero v0.6.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
-	github.com/shirou/gopsutil/v4 v4.26.2 // indirect
+	github.com/shirou/gopsutil/v4 v4.26.3 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/skeema/knownhosts v1.3.1 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
@@ -223,7 +223,7 @@ require (
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.7.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/collector/consumer v1.55.0 // indirect
+	go.opentelemetry.io/collector/consumer v1.56.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.56.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
@@ -236,8 +236,8 @@ require (
 	golang.org/x/text v0.36.0 // indirect
 	golang.org/x/tools v0.43.0 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260226221140-a57be14db171 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260319201613-d00831a3d3e7 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260406210006-6f92a3bedf2d // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260406210006-6f92a3bedf2d // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
