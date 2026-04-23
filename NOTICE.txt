@@ -1555,11 +1555,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.3.3/LIC
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-docappender/v2
-Version: v2.12.1
+Version: v2.14.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender/v2@v2.12.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender/v2@v2.14.1/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -11750,11 +11750,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/klauspost/compress
-Version: v1.18.4
+Version: v1.18.5
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/klauspost/compress@v1.18.4/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/klauspost/compress@v1.18.5/LICENSE:
 
 Copyright (c) 2012 The Go Authors. All rights reserved.
 Copyright (c) 2019 Klaus Post. All rights reserved.
