@@ -22,7 +22,7 @@ Known issues are significant defects or limitations that may impact your impleme
 
 :::{dropdown} The spans in the trace waterfall aren't correctly rendered
 
-*Elastic Stack versions: >=8.15.0, >=9.0.0 when using APM Server shipping data through non-Elasticsearch output (Logstash, Redis, Kafka, Console)*<br>
+*Elastic Stack versions: >=8.15.0 and <8.19.13, >=9.0.0 and <9.2.7, >=9.3.0 and <9.3.2 when using APM Server shipping data through non-Elasticsearch output (Logstash, Redis, Kafka, Console)*<br>
 *Environments: ECH, ECE, ECK, and self-managed*
 
 When using APM Server with non-Elasticsearch outputs shipping to an Elasticsearch version 8.15.0 or more recent, the trace waterfall will render spans incorrectly.
@@ -120,7 +120,7 @@ To work around this issue, we can temporarily introduce an explicit mapping for 
 Adapt the rollover requests depending on the namespaces you might be using. In case you had already customizations to
 the `traces-apm@custom` component templates, add an explicit mapping of the field `timestamp.us` to `long`.
 
-This bug will be fixed in 8.19.13, 9.2.7, 9.3.2, 9.4.0
+This bug was fixed in 8.19.13, 9.2.7, 9.3.2, 9.4.0
 
 Once Elasticsearch is upgraded to a version containing the fix, it would be ideal to remove the `traces-apm@custom` component template using `DELETE _component_template/traces-apm@custom` and trigger a manual rollover (or wait for it to happen automatically).
 
