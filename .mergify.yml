@@ -2,14 +2,16 @@ commands_restrictions:
   backport:
     conditions:
       - or:
-        - sender-permission>=write
-        - sender=github-actions[bot]
+          - sender-permission>=write
+          - sender=github-actions[bot]
 queue_rules:
   - name: default
     merge_method: squash
     conditions:
       - check-success=test (macos-latest)
-      - check-success=test (windows-2025)
+      - or:
+        - check-success=test (windows-2025)
+        - check-success=test (windows-latest)
       - check-success=system-test
       - check-success=lint
       - check-success=CLA
@@ -26,16 +28,16 @@ pull_request_rules:
     conditions:
       - conflict
     actions:
-        comment:
-          message: |
-            This pull request is now in conflicts. Could you fix it @{{author}}? 🙏
-            To fixup this pull request, you can check out it locally. See documentation: https://help.github.com/articles/checking-out-pull-requests-locally/
-            ```
-            git fetch upstream
-            git checkout -b {{head}} upstream/{{head}}
-            git merge upstream/{{base}}
-            git push upstream {{head}}
-            ```
+      comment:
+        message: |
+          This pull request is now in conflicts. Could you fix it @{{author}}? 🙏
+          To fixup this pull request, you can check out it locally. See documentation: https://help.github.com/articles/checking-out-pull-requests-locally/
+          ```
+          git fetch upstream
+          git checkout -b {{head}} upstream/{{head}}
+          git merge upstream/{{base}}
+          git push upstream {{head}}
+          ```
   - name: backport patches to 8.4 branch
     conditions:
       - merged
@@ -134,16 +136,6 @@ pull_request_rules:
     actions:
       queue:
         name: default
-  - name: delete updatecli branch after merging/closing it
-    conditions:
-      - or:
-        - merged
-        - closed
-      - and:
-        - label=automation
-        - head~=^updatecli
-    actions:
-      delete_head_branch:
   - name: notify the backport policy
     conditions:
       - -label~=^backport
@@ -355,3 +347,12 @@ pull_request_rules:
       backport:
         branches:
           - "9.3"
+  - name: backport patches to 9.4 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-9.4
+    actions:
+      backport:
+        branches:
+          - "9.4"

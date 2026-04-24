@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.26.1
+go 1.26.2
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.5
@@ -14,11 +14,11 @@ require (
 	github.com/elastic/elastic-agent-libs v0.33.3
 	github.com/elastic/elastic-agent-system-metrics v0.14.3
 	github.com/elastic/elastic-transport-go/v8 v8.8.0
-	github.com/elastic/gmux v0.3.2
-	github.com/elastic/go-docappender/v2 v2.14.0
+	github.com/elastic/gmux v0.3.3
+	github.com/elastic/go-docappender/v2 v2.14.1
 	github.com/elastic/go-freelru v0.16.0
 	github.com/elastic/go-sysinfo v1.15.4
-	github.com/elastic/go-ucfg v0.9.0
+	github.com/elastic/go-ucfg v0.9.1
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
 	github.com/gofrs/flock v0.13.0
 	github.com/gofrs/uuid/v5 v5.4.0
@@ -42,10 +42,10 @@ require (
 	go.uber.org/zap v1.27.1
 	go.uber.org/zap/exp v0.3.0
 	go.yaml.in/yaml/v2 v2.4.4
-	golang.org/x/net v0.52.0
+	golang.org/x/net v0.53.0
 	golang.org/x/sync v0.20.0
-	golang.org/x/term v0.41.0
-	golang.org/x/time v0.14.0
+	golang.org/x/term v0.42.0
+	golang.org/x/time v0.15.0
 	google.golang.org/grpc v1.80.0
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
 )
@@ -72,7 +72,7 @@ require (
 	github.com/blakesmith/ar v0.0.0-20190502131153-809d4375e1fb // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible // indirect
-	github.com/buger/jsonparser v1.1.1 // indirect
+	github.com/buger/jsonparser v1.1.2 // indirect
 	github.com/caarlos0/go-version v0.2.0 // indirect
 	github.com/cavaliergopher/cpio v1.0.1 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
@@ -109,8 +109,8 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/getsentry/sentry-go v0.29.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
-	github.com/go-git/go-billy/v5 v5.6.2 // indirect
-	github.com/go-git/go-git/v5 v5.16.5 // indirect
+	github.com/go-git/go-billy/v5 v5.8.0 // indirect
+	github.com/go-git/go-git/v5 v5.17.1 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
@@ -254,13 +254,13 @@ require (
 	go.opentelemetry.io/collector/receiver/xreceiver v0.150.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.49.0 // indirect
+	golang.org/x/crypto v0.50.0 // indirect
 	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
 	golang.org/x/mod v0.34.0 // indirect
-	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/telemetry v0.0.0-20260311193753-579e4da9a98c // indirect
-	golang.org/x/text v0.35.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
 	golang.org/x/tools v0.43.0 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260406210006-6f92a3bedf2d // indirect

@@ -100,16 +100,19 @@ func BenchmarkReadEvents(b *testing.B) {
 				}
 
 				b.ResetTimer()
-				var batch modelpb.Batch
+				var scratch modelpb.Batch
 				for i := 0; i < b.N; i++ {
-					batch = batch[:0]
-					if err := readWriter.ReadTraceEvents(traceID, &batch); err != nil {
+					var total int
+					if err := readWriter.ReadTraceEventsCallback(traceID, 1<<30, &scratch, func(batch modelpb.Batch) error {
+						total += len(batch)
+						return nil
+					}); err != nil {
 						b.Fatal(err)
 					}
-					if len(batch) != count {
+					if total != count {
 						panic(fmt.Errorf(
 							"event count mismatch: expected %d, got %d",
-							count, len(batch),
+							count, total,
 						))
 					}
 				}
@@ -141,6 +144,49 @@ func BenchmarkReadEvents(b *testing.B) {
 		})
 		b.Run(tc.name+"_big_tx", func(b *testing.B) {
 			test(b, tc.codec, true)
+		})
+	}
+}
+
+func BenchmarkReadEventsCallback(b *testing.B) {
+	traceID := uuid.Must(uuid.NewV4()).String()
+
+	test := func(b *testing.B, softMemoryLimit int) {
+		counts := []int{0, 1, 10, 100, 199, 399, 1000}
+		for _, count := range counts {
+			b.Run(fmt.Sprintf("%d_events", count), func(b *testing.B) {
+				sm := newStorageManagerLogger(b, logp.NewNopLogger())
+				readWriter := newUnlimitedReadWriter(sm)
+
+				for i := 0; i < count; i++ {
+					transactionID := uuid.Must(uuid.NewV4()).String()
+					transaction := makeTransaction(transactionID, traceID)
+					if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
+						b.Fatal(err)
+					}
+				}
+
+				b.ResetTimer()
+				var scratch modelpb.Batch
+				for i := 0; i < b.N; i++ {
+					var total int
+					if err := readWriter.ReadTraceEventsCallback(traceID, softMemoryLimit, &scratch, func(batch modelpb.Batch) error {
+						total += len(batch)
+						return nil
+					}); err != nil {
+						b.Fatal(err)
+					}
+					if total != count {
+						panic(fmt.Errorf("event count mismatch: expected %d, got %d", count, total))
+					}
+				}
+			})
+		}
+	}
+
+	for _, limitMB := range []int{1, 10} {
+		b.Run(fmt.Sprintf("limit_%dMB", limitMB), func(b *testing.B) {
+			test(b, limitMB<<20)
 		})
 	}
 }
@@ -189,7 +235,7 @@ func BenchmarkReadEventsHit(b *testing.B) {
 				readWriter = newUnlimitedReadWriter(sm)
 
 				b.ResetTimer()
-				var batch modelpb.Batch
+				var scratch, batch modelpb.Batch
 				for i := 0; i < b.N; i++ {
 					batch = batch[:0]
 
@@ -199,7 +245,10 @@ func BenchmarkReadEventsHit(b *testing.B) {
 						traceID = traceID[:len(traceID)-1] + "-"
 					}
 
-					if err := readWriter.ReadTraceEvents(traceID, &batch); err != nil {
+					if err := readWriter.ReadTraceEventsCallback(traceID, 1<<30, &scratch, func(events modelpb.Batch) error {
+						batch = append(batch, events...)
+						return nil
+					}); err != nil {
 						b.Fatal(err)
 					}
 				}
