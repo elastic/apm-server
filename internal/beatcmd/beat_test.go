@@ -524,9 +524,10 @@ func TestRunManager_Reloader(t *testing.T) {
 	}, registry, client, logptest.NewTestingLogger(t, "manager"), xpacklbmanagement.WithChangeDebounce(0))
 	require.NoError(t, err)
 
-	err = manager.Start()
+	err = manager.PreInit()
 	require.NoError(t, err)
 	defer manager.Stop()
+	manager.PostInit()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
@@ -627,8 +628,9 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 	}, registry, client, logptest.NewTestingLogger(t, "manager"), xpacklbmanagement.WithChangeDebounce(0))
 	require.NoError(t, err)
 
-	err = manager.Start()
+	err = manager.PreInit()
 	require.NoError(t, err)
+	manager.PostInit()
 
 	select {
 	case msg := <-inputFailedMsg:
@@ -730,9 +732,16 @@ func (m *mockManager) Enabled() bool {
 	return m.enabled
 }
 
-func (m *mockManager) Start() error {
+func (m *mockManager) PreInit() error {
 	close(m.started)
 	return nil
+}
+
+func (m *mockManager) PostInit() {}
+
+func (m *mockManager) WaitForStop(_ time.Duration) bool {
+	m.Stop()
+	return true
 }
 
 func (m *mockManager) Stop() {
