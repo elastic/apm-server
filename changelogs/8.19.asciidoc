@@ -1,5 +1,7 @@
 [[apm-release-notes-8.19]]
 == APM version 8.19
+* <<apm-release-notes-8.19.15>>
+* <<apm-release-notes-8.19.14>>
 * <<apm-release-notes-8.19.13>>
 * <<apm-release-notes-8.19.12>>
 * <<apm-release-notes-8.19.11>>
@@ -14,6 +16,28 @@
 * <<apm-release-notes-8.19.2>>
 * <<apm-release-notes-8.19.1>>
 * <<apm-release-notes-8.19.0>>
+
+[float]
+[[apm-release-notes-8.19.15]]
+=== APM version 8.19.15
+
+https://github.com/elastic/apm-server/compare/v8.19.14\...v8.19.15[View commits]
+
+[float]
+==== Bug fixes
+
+- Fix HTTP/2 SETTINGS mismatch connection failure in gmux {pull}20912[20912]
+
+[float]
+[[apm-release-notes-8.19.14]]
+=== APM version 8.19.14
+
+https://github.com/elastic/apm-server/compare/v8.19.13\...v8.19.14[View commits]
+
+[float]
+==== Added
+
+- Add storage limit metrics for Tail Based Sampling {pull}20682[20682]
 
 [float]
 [[apm-release-notes-8.19.13]]
