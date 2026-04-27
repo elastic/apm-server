@@ -34,6 +34,7 @@ import (
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/internal/otelmetric"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
@@ -73,7 +74,7 @@ type ElasticsearchFetcher struct {
 
 	tracer trace.Tracer
 
-	esCacheEntriesCount     metric.Int64Gauge
+	esCacheEntriesCount     metric.Int64UpDownCounter
 	esFetchCount            metric.Int64Counter
 	esFetchFallbackCount    metric.Int64Counter
 	esFetchUnavailableCount metric.Int64Counter
@@ -92,13 +93,13 @@ func NewElasticsearchFetcher(
 ) *ElasticsearchFetcher {
 	meter := mp.Meter("github.com/elastic/apm-server/internal/agentcfg")
 
-	esCacheEntriesCount, _ := meter.Int64Gauge("apm-server.agentcfg.elasticsearch.cache.entries.count")
-	esFetchCount, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.es")
-	esFetchFallbackCount, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.fallback")
-	esFetchUnavailableCount, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.unavailable")
-	esFetchInvalidCount, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.invalid")
-	esCacheRefreshSuccesses, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.cache.refresh.successes")
-	esCacheRefreshFailures, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.cache.refresh.failures")
+	esCacheEntriesCount := otelmetric.NewInt64UpDownCounter(meter, "apm-server.agentcfg.elasticsearch.cache.entries.count")
+	esFetchCount := otelmetric.NewInt64Counter(meter, "apm-server.agentcfg.elasticsearch.fetch.es")
+	esFetchFallbackCount := otelmetric.NewInt64Counter(meter, "apm-server.agentcfg.elasticsearch.fetch.fallback")
+	esFetchUnavailableCount := otelmetric.NewInt64Counter(meter, "apm-server.agentcfg.elasticsearch.fetch.unavailable")
+	esFetchInvalidCount := otelmetric.NewInt64Counter(meter, "apm-server.agentcfg.elasticsearch.fetch.invalid")
+	esCacheRefreshSuccesses := otelmetric.NewInt64Counter(meter, "apm-server.agentcfg.elasticsearch.cache.refresh.successes")
+	esCacheRefreshFailures := otelmetric.NewInt64Counter(meter, "apm-server.agentcfg.elasticsearch.cache.refresh.failures")
 
 	logger = logger.Named("agentcfg")
 	tracer := tp.Tracer("github.com/elastic/apm-server/internal/agentcfg")
@@ -263,10 +264,15 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 	f.clearScroll(ctx, scrollID)
 
 	f.mu.Lock()
+	delta := int64(len(buffer) - len(f.cache))
 	f.cache = buffer
 	f.mu.Unlock()
 	f.cacheInitialized.Store(true)
-	f.esCacheEntriesCount.Record(context.Background(), int64(len(f.cache)))
+	// esCacheEntriesCount is an UpDownCounter tracking the current cache
+	// size as the running sum of size deltas. This keeps every apm-server
+	// monitoring instrument counter-shaped, which has well-defined
+	// eager-emit semantics (Add(0) is a no-op); see internal/otelmetric.
+	f.esCacheEntriesCount.Add(context.Background(), delta)
 	f.last = time.Now()
 	return nil
 }

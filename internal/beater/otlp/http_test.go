@@ -80,10 +80,15 @@ func TestConsumeTracesHTTP(t *testing.T) {
 	require.Len(t, batches, 1)
 	assert.Len(t, batches[0], 1)
 
-	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
-		"http.server.request.count":        1,
-		"http.server.response.count":       1,
-		"http.server.response.valid.count": 1,
+	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+		"http.server.request.count":                        1,
+		"http.server.response.count":                       1,
+		"http.server.response.valid.count":                 1,
+		"http.server.unset":                                1,
+		"apm-server.otlp.http.traces.request.count":        1,
+		"apm-server.otlp.http.traces.response.count":       1,
+		"apm-server.otlp.http.traces.response.valid.count": 1,
+		"apm-server.otlp.http.traces.unset":                1,
 	})
 
 }
@@ -117,10 +122,15 @@ func TestConsumeMetricsHTTP(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, rsp.Body.Close())
 
-	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
-		"http.server.request.count":        1,
-		"http.server.response.count":       1,
-		"http.server.response.valid.count": 1,
+	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+		"http.server.request.count":                         1,
+		"http.server.response.count":                        1,
+		"http.server.response.valid.count":                  1,
+		"http.server.unset":                                 1,
+		"apm-server.otlp.http.metrics.request.count":        1,
+		"apm-server.otlp.http.metrics.response.count":       1,
+		"apm-server.otlp.http.metrics.response.valid.count": 1,
+		"apm-server.otlp.http.metrics.unset":                1,
 	})
 }
 
@@ -153,10 +163,15 @@ func TestConsumeLogsHTTP(t *testing.T) {
 	assert.NoError(t, rsp.Body.Close())
 	require.Len(t, batches, 1)
 
-	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
-		"http.server.request.count":        1,
-		"http.server.response.count":       1,
-		"http.server.response.valid.count": 1,
+	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+		"http.server.request.count":                      1,
+		"http.server.response.count":                     1,
+		"http.server.response.valid.count":               1,
+		"http.server.unset":                              1,
+		"apm-server.otlp.http.logs.request.count":        1,
+		"apm-server.otlp.http.logs.response.count":       1,
+		"apm-server.otlp.http.logs.response.valid.count": 1,
+		"apm-server.otlp.http.logs.unset":                1,
 	})
 }
 

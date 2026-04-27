@@ -26,6 +26,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/internal/otelmetric"
 )
 
 const (
@@ -72,7 +73,7 @@ func (m *monitoringMiddleware) getCounter(prefix, name string) metric.Int64Count
 	if met, ok := m.counters.Load(name); ok {
 		return met.(metric.Int64Counter)
 	}
-	nm, _ := m.meter.Int64Counter(name)
+	nm := otelmetric.NewInt64Counter(m.meter, name)
 	met, _ := m.counters.LoadOrStore(name, nm)
 	return met.(metric.Int64Counter)
 }
@@ -82,7 +83,6 @@ func (m *monitoringMiddleware) getHistogram(n string, opts ...metric.Int64Histog
 	if met, ok := m.histograms.Load(name); ok {
 		return met.(metric.Int64Histogram)
 	}
-
 	nm, _ := m.meter.Int64Histogram(name, opts...)
 	met, _ := m.histograms.LoadOrStore(name, nm)
 	return met.(metric.Int64Histogram)
@@ -90,12 +90,22 @@ func (m *monitoringMiddleware) getHistogram(n string, opts ...metric.Int64Histog
 
 // MonitoringMiddleware returns a middleware that increases monitoring counters for collecting metrics
 // about request processing. As input parameter it takes a map capable of mapping a request.ResultID to a counter.
+//
+// All counters for the canonical request.AllResultIDs set are created
+// eagerly at construction so /stats enumerates every metric name from
+// process start. The zero-init happens inside getCounter; this loop just
+// triggers creation. See request.AllResultIDs for the rationale.
 func MonitoringMiddleware(legacyMetricsPrefix string, mp metric.MeterProvider) Middleware {
 	mid := &monitoringMiddleware{
 		meter:               mp.Meter("github.com/elastic/apm-server/internal/beater/middleware"),
 		legacyMetricsPrefix: legacyMetricsPrefix,
 		counters:            sync.Map{},
 		histograms:          sync.Map{},
+	}
+
+	for _, id := range request.AllResultIDs {
+		mid.getCounter("http.server.", string(id))
+		mid.getCounter(legacyMetricsPrefix, string(id))
 	}
 
 	return mid.Middleware()

@@ -28,6 +28,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/internal/otelmetric"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
@@ -103,8 +104,7 @@ func (m *metricsInterceptor) getCounter(prefix, n string) metric.Int64Counter {
 	if met, ok := m.counters.Load(name); ok {
 		return met.(metric.Int64Counter)
 	}
-
-	nm, _ := m.meter.Int64Counter(name)
+	nm := otelmetric.NewInt64Counter(m.meter, name)
 	met, _ := m.counters.LoadOrStore(name, nm)
 	return met.(metric.Int64Counter)
 }
@@ -117,6 +117,15 @@ func (m *metricsInterceptor) getHistogram(n string, opts ...metric.Int64Histogra
 	nm, _ := m.meter.Int64Histogram(name, opts...)
 	met, _ := m.histograms.LoadOrStore(name, nm)
 	return met.(metric.Int64Histogram)
+}
+
+// otlpLegacyMetricsPrefixes lists every legacy metric prefix the metrics
+// interceptor records under. Used to eagerly register counters at startup
+// so /stats enumerates each metric from process start.
+var otlpLegacyMetricsPrefixes = []string{
+	"apm-server.otlp.grpc.metrics.",
+	"apm-server.otlp.grpc.traces.",
+	"apm-server.otlp.grpc.logs.",
 }
 
 // Metrics returns a grpc.UnaryServerInterceptor that increments metrics
@@ -136,6 +145,13 @@ func Metrics(logger *logp.Logger, mp metric.MeterProvider) grpc.UnaryServerInter
 
 		counters:   sync.Map{},
 		histograms: sync.Map{},
+	}
+
+	for _, id := range request.AllResultIDs {
+		i.getCounter("grpc.server.", string(id))
+		for _, prefix := range otlpLegacyMetricsPrefixes {
+			i.getCounter(prefix, string(id))
+		}
 	}
 
 	return i.Interceptor()

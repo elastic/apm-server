@@ -73,10 +73,7 @@ func RegisterGRPCServices(
 		_ = unsupportedGRPCMetricRegistration.Unregister()
 	}
 	unsupportedGRPCMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
-		stats := consumer.Stats()
-		if stats.UnsupportedMetricsDropped > 0 {
-			o.ObserveInt64(grpcMetricsConsumerUnsupportedDropped, stats.UnsupportedMetricsDropped)
-		}
+		o.ObserveInt64(grpcMetricsConsumerUnsupportedDropped, consumer.Stats().UnsupportedMetricsDropped)
 		return nil
 	}, grpcMetricsConsumerUnsupportedDropped)
 

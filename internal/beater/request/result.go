@@ -99,6 +99,29 @@ var (
 		IDResponseErrorsServiceUnavailable: {Code: http.StatusServiceUnavailable, Keyword: "service unavailable"},
 		IDResponseErrorsInternal:           {Code: http.StatusInternalServerError, Keyword: "internal error"},
 	}
+
+	// AllResultIDs is the canonical list of every ResultID the monitoring
+	// middleware records. It is used to eagerly register the corresponding
+	// counters at startup so the /stats endpoint enumerates each metric
+	// from process start, even before any request has produced that
+	// particular result.
+	//
+	// The set is the IDs the middleware unconditionally increments per
+	// request, plus every key in MapResultIDToStatus (anything c.Result.ID
+	// can be set to). Treat as read-only.
+	AllResultIDs = func() []ResultID {
+		ids := []ResultID{
+			IDUnset,
+			IDRequestCount,
+			IDResponseCount,
+			IDResponseErrorsCount,
+			IDResponseValidCount,
+		}
+		for id := range MapResultIDToStatus {
+			ids = append(ids, id)
+		}
+		return ids
+	}()
 )
 
 // ResultID unique string identifying a requests Result

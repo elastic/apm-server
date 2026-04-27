@@ -285,17 +285,19 @@ func TestMonitoringApmServer(t *testing.T) {
 	b := newNopBeat(t, "")
 	b.registerStatsMetrics()
 
-	// add metrics similar to lsm_size in storage_manager.go and events.processed in processor.go
-	meter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
-	lsmSizeGauge, _ := meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
+	// Three independently-scoped meters whose metrics share the
+	// "apm-server.sampling" prefix; the assertion below verifies they
+	// merge into one snapshot subtree.
+	storageMeter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
+	lsmSizeGauge, _ := storageMeter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
 	lsmSizeGauge.Record(context.Background(), 123)
 
-	meter2 := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
-	processedCounter, _ := meter2.Int64Counter("apm-server.sampling.tail.events.processed")
+	samplingMeter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
+	processedCounter, _ := samplingMeter.Int64Counter("apm-server.sampling.tail.events.processed")
 	processedCounter.Add(context.Background(), 456)
 
-	meter3 := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/foo")
-	otherCounter, _ := meter3.Int64Counter("apm-server.sampling.foo.request")
+	otherSamplingMeter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/foo")
+	otherCounter, _ := otherSamplingMeter.Int64Counter("apm-server.sampling.foo.request")
 	otherCounter.Add(context.Background(), 1)
 
 	// collect metrics

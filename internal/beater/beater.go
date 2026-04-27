@@ -73,6 +73,7 @@ import (
 	"github.com/elastic/apm-server/internal/fips140"
 	"github.com/elastic/apm-server/internal/kibana"
 	srvmodelprocessor "github.com/elastic/apm-server/internal/model/modelprocessor"
+	"github.com/elastic/apm-server/internal/otelmetric"
 	"github.com/elastic/apm-server/internal/publish"
 	"github.com/elastic/apm-server/internal/sourcemap"
 	"github.com/elastic/apm-server/internal/version"
@@ -406,10 +407,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	transactionsDroppedCounter, err := meter.Int64Counter("apm-server.sampling.transactions_dropped")
-	if err != nil {
-		return err
-	}
+	transactionsDroppedCounter := otelmetric.NewInt64Counter(meter, "apm-server.sampling.transactions_dropped")
 	batchProcessor := modelprocessor.Chained{
 		// Ensure all events have observer.*, ecs.*, and data_stream.* fields added,
 		// and are counted in metrics. This is done in the final processors to ensure

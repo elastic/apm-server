@@ -15,6 +15,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/apm-server/internal/otelmetric"
 )
 
 const minReservoirSize = 1000
@@ -72,7 +73,7 @@ func newTraceGroups(
 	maxDynamicServiceGroups int,
 	ingestRateDecayFactor float64,
 ) *traceGroups {
-	numDynamicServiceGroupsCounter, _ := meter.Int64UpDownCounter("apm-server.sampling.tail.dynamic_service_groups")
+	numDynamicServiceGroupsCounter := otelmetric.NewInt64UpDownCounter(meter, "apm-server.sampling.tail.dynamic_service_groups")
 	groups := &traceGroups{
 		ingestRateDecayFactor:          ingestRateDecayFactor,
 		maxDynamicServiceGroups:        maxDynamicServiceGroups,
