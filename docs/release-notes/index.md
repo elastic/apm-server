@@ -41,7 +41,7 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ### Fixes [apm-9.3.4-fixes]
 
-* HTTP/2 connections can fail with strict clients due to framing errors ([#20913](https://github.com/elastic/apm-server/pull/20913))
+* Fixed HTTP/2 connection failures with strict clients caused by invalid SETTINGS frame sequencing at connection start ([#20913](https://github.com/elastic/apm-server/pull/20913))
 
 ## 9.3.3 [apm-9.3.3-release-notes]
 
