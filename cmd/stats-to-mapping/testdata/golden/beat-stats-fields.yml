@@ -742,22 +742,22 @@
     - name: output
       type: group
       fields:
-        - name: elasticsearch
+        - name: events
           type: group
           fields:
-            - name: bulk_requests
-              type: group
-              fields:
-                - name: available
-                  type: long
-                - name: completed
-                  type: long
-            - name: indexers
-              type: group
-              fields:
-                - name: active
-                  type: long
-                - name: created
-                  type: long
-                - name: destroyed
-                  type: long
+            - name: acked
+              type: long
+            - name: active
+              type: long
+            - name: batches
+              type: long
+            - name: failed
+              type: long
+            - name: toomany
+              type: long
+            - name: total
+              type: long
+        - name: type
+          type: keyword
+        - name: write.bytes
+          type: long

@@ -808,30 +808,33 @@
         - name: output
           type: group
           fields:
-            - name: elasticsearch
+            - name: events
               type: group
               fields:
-                - name: bulk_requests
-                  type: group
-                  fields:
-                    - name: available
-                      type: alias
-                      path: beat.stats.output.elasticsearch.bulk_requests.available
-                    - name: completed
-                      type: alias
-                      path: beat.stats.output.elasticsearch.bulk_requests.completed
-                - name: indexers
-                  type: group
-                  fields:
-                    - name: active
-                      type: alias
-                      path: beat.stats.output.elasticsearch.indexers.active
-                    - name: created
-                      type: alias
-                      path: beat.stats.output.elasticsearch.indexers.created
-                    - name: destroyed
-                      type: alias
-                      path: beat.stats.output.elasticsearch.indexers.destroyed
+                - name: acked
+                  type: alias
+                  path: beat.stats.output.events.acked
+                - name: active
+                  type: alias
+                  path: beat.stats.output.events.active
+                - name: batches
+                  type: alias
+                  path: beat.stats.output.events.batches
+                - name: failed
+                  type: alias
+                  path: beat.stats.output.events.failed
+                - name: toomany
+                  type: alias
+                  path: beat.stats.output.events.toomany
+                - name: total
+                  type: alias
+                  path: beat.stats.output.events.total
+            - name: type
+              type: alias
+              path: beat.stats.output.type
+            - name: write.bytes
+              type: alias
+              path: beat.stats.output.write.bytes
     - name: beats_state
       type: group
       fields:

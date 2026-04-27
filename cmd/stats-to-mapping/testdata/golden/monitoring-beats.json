@@ -1215,30 +1215,35 @@
                 },
                 "output": {
                   "properties": {
-                    "elasticsearch": {
+                    "events": {
                       "properties": {
-                        "bulk_requests": {
-                          "properties": {
-                            "available": {
-                              "type": "long"
-                            },
-                            "completed": {
-                              "type": "long"
-                            }
-                          }
+                        "acked": {
+                          "type": "long"
                         },
-                        "indexers": {
-                          "properties": {
-                            "active": {
-                              "type": "long"
-                            },
-                            "created": {
-                              "type": "long"
-                            },
-                            "destroyed": {
-                              "type": "long"
-                            }
-                          }
+                        "active": {
+                          "type": "long"
+                        },
+                        "batches": {
+                          "type": "long"
+                        },
+                        "failed": {
+                          "type": "long"
+                        },
+                        "toomany": {
+                          "type": "long"
+                        },
+                        "total": {
+                          "type": "long"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "keyword"
+                    },
+                    "write": {
+                      "properties": {
+                        "bytes": {
+                          "type": "long"
                         }
                       }
                     }

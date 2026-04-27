@@ -38,7 +38,7 @@ Path has to lead to any one of these files:
 - monitoring-beats-mb.json
 - metricbeat/module/beat/stats/_meta/fields.yml
 - metricbeat/module/beat/_meta/fields.yml
-- elastic_agent/data_stream/apm_server_metrics/fields/beat-fields.yml
+- elastic_agent/data_stream/apm_server_metrics/fields/beat-stats-fields.yml
 
 This program reads apm-server monitoring stats json (from
 apm-server:5066/stats) from stdin, and modifies the specified files in-place
@@ -89,7 +89,7 @@ func dispatch(path string, stats []byte) error {
 		return modifyBeatStats(path, stats)
 	case strings.HasSuffix(slash, "/metricbeat/module/beat/_meta/fields.yml"):
 		return modifyBeatRoot(path, stats)
-	case strings.HasSuffix(slash, "/elastic_agent/data_stream/apm_server_metrics/fields/beat-fields.yml"):
+	case strings.HasSuffix(slash, "/elastic_agent/data_stream/apm_server_metrics/fields/beat-stats-fields.yml"):
 		return modifyEAFields(path, stats)
 	}
 	return fmt.Errorf("path %s does not match any supported file", path)

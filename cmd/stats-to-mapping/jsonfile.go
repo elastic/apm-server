@@ -40,21 +40,27 @@ import (
 // mappings._doc.properties.beats_stats.properties.metrics.properties.
 // Aliases are not used in this template.
 func modifyMonitoringBeats(path string, stats []byte) error {
+	const placeholder = "${xpack.monitoring.template.release.version}"
 	parent := []string{"mappings", "_doc", "properties", "beats_stats", "properties", "metrics", "properties"}
-	return updateJSONTemplate(path, "${xpack.monitoring.template.release.version}",
-		func(src []byte) ([]byte, error) {
-			for _, m := range metrics {
-				props, err := templateProperties(stats, m, false)
-				if err != nil {
-					return nil, err
-				}
-				src, err = replaceJSONMember(src, parent, m, map[string]any{"properties": props})
-				if err != nil {
-					return nil, err
-				}
-			}
-			return src, nil
-		})
+	src, err := readJSONTemplate(path, placeholder)
+	if err != nil {
+		return err
+	}
+	for _, m := range metrics {
+		props, err := templateProperties(stats, m, false)
+		if err != nil {
+			return err
+		}
+		if props == nil {
+			warnMissing(m, path)
+			continue
+		}
+		src, err = replaceJSONMember(src, parent, m.name, map[string]any{"properties": props})
+		if err != nil {
+			return err
+		}
+	}
+	return writeJSONTemplate(path, src, placeholder)
 }
 
 // modifyMonitoringBeatsMB updates the metricbeat-flavored monitoring
@@ -62,46 +68,63 @@ func modifyMonitoringBeats(path string, stats []byte) error {
 // template.mappings.properties.beats_stats.properties.metrics and a
 // concrete-typed view under template.mappings.properties.beat.properties.stats.
 func modifyMonitoringBeatsMB(path string, stats []byte) error {
+	const placeholder = "${xpack.stack.monitoring.template.release.version}"
 	aliasParent := []string{"template", "mappings", "properties", "beats_stats", "properties", "metrics", "properties"}
 	statsParent := []string{"template", "mappings", "properties", "beat", "properties", "stats", "properties"}
-	return updateJSONTemplate(path, "${xpack.stack.monitoring.template.release.version}",
-		func(src []byte) ([]byte, error) {
-			for _, m := range metrics {
-				aliasProps, err := templateProperties(stats, m, true)
-				if err != nil {
-					return nil, err
-				}
-				src, err = replaceJSONMember(src, aliasParent, m, map[string]any{"properties": aliasProps})
-				if err != nil {
-					return nil, err
-				}
-				concreteProps, err := templateProperties(stats, m, false)
-				if err != nil {
-					return nil, err
-				}
-				underscore := strings.ReplaceAll(m, "-", "_")
-				src, err = replaceJSONMember(src, statsParent, underscore, map[string]any{"properties": concreteProps})
-				if err != nil {
-					return nil, err
-				}
-			}
-			return src, nil
-		})
+	src, err := readJSONTemplate(path, placeholder)
+	if err != nil {
+		return err
+	}
+	for _, m := range metrics {
+		aliasProps, err := templateProperties(stats, m, true)
+		if err != nil {
+			return err
+		}
+		if aliasProps == nil {
+			warnMissing(m, path)
+			continue
+		}
+		src, err = replaceJSONMember(src, aliasParent, m.name, map[string]any{"properties": aliasProps})
+		if err != nil {
+			return err
+		}
+		concreteProps, err := templateProperties(stats, m, false)
+		if err != nil {
+			return err
+		}
+		if concreteProps == nil {
+			continue
+		}
+		underscore := strings.ReplaceAll(m.name, "-", "_")
+		src, err = replaceJSONMember(src, statsParent, underscore, map[string]any{"properties": concreteProps})
+		if err != nil {
+			return err
+		}
+	}
+	return writeJSONTemplate(path, src, placeholder)
 }
 
-// updateJSONTemplate is the common wrapper for the two Elasticsearch
-// templates. It substitutes the version placeholder for `null` so the file
-// becomes valid JSON, runs modify, then restores the placeholder.
-func updateJSONTemplate(path, placeholder string, modify func([]byte) ([]byte, error)) error {
+// warnMissing prints a one-line note to stderr when a metric isn't present
+// in the stats input; corresponding upstream entries are left untouched.
+func warnMissing(m metric, path string) {
+	fmt.Fprintf(os.Stderr, "skipping %s: stats input has no %s entry (file %s left unchanged for this metric)\n",
+		m.name, strings.Join(m.path, "."), path)
+}
+
+// readJSONTemplate reads path and substitutes the version placeholder for
+// `null` so the contents become valid JSON for parsing.
+func readJSONTemplate(path, placeholder string) ([]byte, error) {
 	src, err := os.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("reading %s: %w", path, err)
+		return nil, fmt.Errorf("reading %s: %w", path, err)
 	}
-	body := bytes.ReplaceAll(src, []byte(placeholder), []byte("null"))
-	body, err = modify(body)
-	if err != nil {
-		return fmt.Errorf("modifying %s: %w", path, err)
-	}
+	return bytes.ReplaceAll(src, []byte(placeholder), []byte("null")), nil
+}
+
+// writeJSONTemplate restores the version placeholder and writes the file.
+// The "null" -> placeholder swap is global, which is safe because the
+// templates contain no other JSON null literals.
+func writeJSONTemplate(path string, body []byte, placeholder string) error {
 	out := bytes.ReplaceAll(body, []byte("null"), []byte(placeholder))
 	return os.WriteFile(path, out, 0o644)
 }

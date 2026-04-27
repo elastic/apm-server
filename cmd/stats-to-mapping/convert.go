@@ -25,9 +25,24 @@ import (
 	"strings"
 )
 
-// metrics is the set of top-level keys read from the apm-server stats
-// document. The order matters: it is preserved in generated output.
-var metrics = []string{"apm-server", "output"}
+// metric describes one top-level metric group emitted in the upstream
+// mapping files. name is the namespace under beat.stats (e.g. "apm-server"
+// for aliases or "apm_server" after the hyphen-to-underscore transform).
+// path is the lookup path into the apm-server /stats document where the
+// values for this metric live; it changed in 2025 when apm-server moved
+// output metrics to OpenTelemetry-translated libbeat monitoring (see
+// elastic/apm-server#15094).
+type metric struct {
+	name string
+	path []string
+}
+
+// metrics is the ordered list of metric groups; iteration order is
+// preserved in generated output.
+var metrics = []metric{
+	{name: "apm-server", path: []string{"apm-server"}},
+	{name: "output", path: []string{"libbeat", "output"}},
+}
 
 // item is one node in the field tree. Type is "group", "alias", or a scalar
 // type name such as "long". Path is set only when Type == "alias"; Fields
@@ -39,18 +54,21 @@ type item struct {
 	Fields []item
 }
 
-// goType returns the field type for a JSON scalar value. We only encounter
-// integer-valued numbers under the metric subtrees (verified by tests);
-// they all map to "long".
+// goType returns the field type for a JSON scalar value. Integer-valued
+// numbers map to "long"; strings (e.g. libbeat.output.type = "elasticsearch")
+// map to "keyword".
 func goType(v any) (string, error) {
-	f, ok := v.(float64)
-	if !ok {
+	switch v := v.(type) {
+	case float64:
+		if v != math.Trunc(v) {
+			return "", fmt.Errorf("non-integer number %g", v)
+		}
+		return "long", nil
+	case string:
+		return "keyword", nil
+	default:
 		return "", fmt.Errorf("unknown type %T", v)
 	}
-	if f != math.Trunc(f) {
-		return "", fmt.Errorf("non-integer number %g", f)
-	}
-	return "long", nil
 }
 
 // convert flattens an object subtree into a slice of items, recursing into
@@ -148,6 +166,15 @@ func insertNested(m map[string]any, path []string, v any) {
 	m[head] = v
 }
 
+// aliasEntry is the {type, path} shape used for alias fields in
+// Elasticsearch index templates. It's a struct rather than a map because
+// json.Marshal preserves struct field order, and we need "type" emitted
+// before "path" to match the upstream Python script's output.
+type aliasEntry struct {
+	Type string `json:"type"`
+	Path string `json:"path"`
+}
+
 // toTemplateJSON converts a slice of items to the {properties, type, path}
 // shape used by Elasticsearch index templates.
 func toTemplateJSON(items []item) map[string]any {
@@ -155,7 +182,7 @@ func toTemplateJSON(items []item) map[string]any {
 	for _, it := range items {
 		switch it.Type {
 		case "alias":
-			out[it.Name] = map[string]any{"type": "alias", "path": it.Path}
+			out[it.Name] = aliasEntry{Type: "alias", Path: it.Path}
 		case "group":
 			out[it.Name] = map[string]any{"properties": toTemplateJSON(it.Fields)}
 		default:
@@ -168,10 +195,12 @@ func toTemplateJSON(items []item) map[string]any {
 // fieldsYAML parses stats and produces the collapsed item slice for YAML
 // output. The YAML format permits dotted field names, so dotted stats keys
 // are kept as-is and single-child groups are collapsed into dotted names.
-func fieldsYAML(stats []byte, metric string, alias bool) ([]item, error) {
-	items, err := metricItems(stats, metric, alias, false)
-	if err != nil {
-		return nil, err
+//
+// Returns (nil, nil) if the metric isn't present in stats.
+func fieldsYAML(stats []byte, m metric, alias bool) ([]item, error) {
+	items, err := metricItems(stats, m, alias, false)
+	if err != nil || items == nil {
+		return items, err
 	}
 	collapse(items)
 	return items, nil
@@ -180,18 +209,26 @@ func fieldsYAML(stats []byte, metric string, alias bool) ([]item, error) {
 // templateProperties parses stats and produces the {properties: ...} shape
 // for an Elasticsearch index template. Dotted stats keys are expanded into
 // nested objects because index-template property names cannot contain dots.
-func templateProperties(stats []byte, metric string, alias bool) (map[string]any, error) {
-	items, err := metricItems(stats, metric, alias, true)
-	if err != nil {
+//
+// Returns (nil, nil) if the metric isn't present in stats.
+func templateProperties(stats []byte, m metric, alias bool) (map[string]any, error) {
+	items, err := metricItems(stats, m, alias, true)
+	if err != nil || items == nil {
 		return nil, err
 	}
 	return toTemplateJSON(items), nil
 }
 
-// metricItems parses stats, drills into the metric subtree, and runs convert.
-// If expandDots is true, dotted stats keys are expanded into nested maps
+// metricItems parses stats, drills into m.path, and runs convert. If
+// expandDots is true, dotted stats keys are expanded into nested maps
 // before conversion.
-func metricItems(stats []byte, metric string, alias, expandDots bool) ([]item, error) {
+//
+// Returns (nil, nil) if the metric isn't present in stats — for example,
+// when stats are captured from an apm-server with no output configured,
+// libbeat.output won't appear and the "output" metric is silently skipped.
+// Callers are expected to leave the corresponding upstream entries
+// unchanged in that case.
+func metricItems(stats []byte, m metric, alias, expandDots bool) ([]item, error) {
 	var root map[string]any
 	if err := json.Unmarshal(stats, &root); err != nil {
 		return nil, fmt.Errorf("parsing stats json: %w", err)
@@ -199,12 +236,16 @@ func metricItems(stats []byte, metric string, alias, expandDots bool) ([]item, e
 	if expandDots {
 		root = nest(root)
 	}
-	sub, ok := root[metric].(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("stats json missing or non-object key %q", metric)
+	cur := root
+	for _, key := range m.path {
+		next, ok := cur[key].(map[string]any)
+		if !ok {
+			return nil, nil
+		}
+		cur = next
 	}
-	prefix := "beat.stats." + strings.ReplaceAll(metric, "-", "_")
-	return convert(sub, prefix, alias)
+	prefix := "beat.stats." + strings.ReplaceAll(m.name, "-", "_")
+	return convert(cur, prefix, alias)
 }
 
 // sortedKeys returns m's keys in alphabetical order.

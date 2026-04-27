@@ -1286,30 +1286,35 @@
                 },
                 "output": {
                   "properties": {
-                    "elasticsearch": {
+                    "events": {
                       "properties": {
-                        "bulk_requests": {
-                          "properties": {
-                            "available": {
-                              "type": "long"
-                            },
-                            "completed": {
-                              "type": "long"
-                            }
-                          }
+                        "acked": {
+                          "type": "long"
                         },
-                        "indexers": {
-                          "properties": {
-                            "active": {
-                              "type": "long"
-                            },
-                            "created": {
-                              "type": "long"
-                            },
-                            "destroyed": {
-                              "type": "long"
-                            }
-                          }
+                        "active": {
+                          "type": "long"
+                        },
+                        "batches": {
+                          "type": "long"
+                        },
+                        "failed": {
+                          "type": "long"
+                        },
+                        "toomany": {
+                          "type": "long"
+                        },
+                        "total": {
+                          "type": "long"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "keyword"
+                    },
+                    "write": {
+                      "properties": {
+                        "bytes": {
+                          "type": "long"
                         }
                       }
                     }
@@ -1478,106 +1483,106 @@
                         "request": {
                           "properties": {
                             "count": {
-                              "path": "beat.stats.apm_server.acm.request.count",
-                              "type": "alias"
+                              "type": "alias",
+                              "path": "beat.stats.apm_server.acm.request.count"
                             }
                           }
                         },
                         "response": {
                           "properties": {
                             "count": {
-                              "path": "beat.stats.apm_server.acm.response.count",
-                              "type": "alias"
+                              "type": "alias",
+                              "path": "beat.stats.apm_server.acm.response.count"
                             },
                             "errors": {
                               "properties": {
                                 "closed": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.closed",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.closed"
                                 },
                                 "count": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.count",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.count"
                                 },
                                 "decode": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.decode",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.decode"
                                 },
                                 "forbidden": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.forbidden",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.forbidden"
                                 },
                                 "internal": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.internal",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.internal"
                                 },
                                 "invalidquery": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.invalidquery",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.invalidquery"
                                 },
                                 "method": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.method",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.method"
                                 },
                                 "notfound": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.notfound",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.notfound"
                                 },
                                 "queue": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.queue",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.queue"
                                 },
                                 "ratelimit": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.ratelimit",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.ratelimit"
                                 },
                                 "timeout": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.timeout",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.timeout"
                                 },
                                 "toolarge": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.toolarge",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.toolarge"
                                 },
                                 "unauthorized": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.unauthorized",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.unauthorized"
                                 },
                                 "unavailable": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.unavailable",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.unavailable"
                                 },
                                 "validate": {
-                                  "path": "beat.stats.apm_server.acm.response.errors.validate",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.errors.validate"
                                 }
                               }
                             },
                             "valid": {
                               "properties": {
                                 "accepted": {
-                                  "path": "beat.stats.apm_server.acm.response.valid.accepted",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.valid.accepted"
                                 },
                                 "count": {
-                                  "path": "beat.stats.apm_server.acm.response.valid.count",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.valid.count"
                                 },
                                 "notmodified": {
-                                  "path": "beat.stats.apm_server.acm.response.valid.notmodified",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.valid.notmodified"
                                 },
                                 "ok": {
-                                  "path": "beat.stats.apm_server.acm.response.valid.ok",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.acm.response.valid.ok"
                                 }
                               }
                             }
                           }
                         },
                         "unset": {
-                          "path": "beat.stats.apm_server.acm.unset",
-                          "type": "alias"
+                          "type": "alias",
+                          "path": "beat.stats.apm_server.acm.unset"
                         }
                       }
                     },
@@ -1590,20 +1595,20 @@
                                 "entries": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.agentcfg.elasticsearch.cache.entries.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.agentcfg.elasticsearch.cache.entries.count"
                                     }
                                   }
                                 },
                                 "refresh": {
                                   "properties": {
                                     "failures": {
-                                      "path": "beat.stats.apm_server.agentcfg.elasticsearch.cache.refresh.failures",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.agentcfg.elasticsearch.cache.refresh.failures"
                                     },
                                     "successes": {
-                                      "path": "beat.stats.apm_server.agentcfg.elasticsearch.cache.refresh.successes",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.agentcfg.elasticsearch.cache.refresh.successes"
                                     }
                                   }
                                 }
@@ -1612,20 +1617,20 @@
                             "fetch": {
                               "properties": {
                                 "es": {
-                                  "path": "beat.stats.apm_server.agentcfg.elasticsearch.fetch.es",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.agentcfg.elasticsearch.fetch.es"
                                 },
                                 "fallback": {
-                                  "path": "beat.stats.apm_server.agentcfg.elasticsearch.fetch.fallback",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.agentcfg.elasticsearch.fetch.fallback"
                                 },
                                 "invalid": {
-                                  "path": "beat.stats.apm_server.agentcfg.elasticsearch.fetch.invalid",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.agentcfg.elasticsearch.fetch.invalid"
                                 },
                                 "unavailable": {
-                                  "path": "beat.stats.apm_server.agentcfg.elasticsearch.fetch.unavailable",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.agentcfg.elasticsearch.fetch.unavailable"
                                 }
                               }
                             }
@@ -1642,42 +1647,42 @@
                                 "request": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.jaeger.grpc.collect.request.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.jaeger.grpc.collect.request.count"
                                     }
                                   }
                                 },
                                 "response": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.jaeger.grpc.collect.response.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.jaeger.grpc.collect.response.count"
                                     },
                                     "errors": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.errors.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.errors.count"
                                         },
                                         "ratelimit": {
-                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.errors.ratelimit",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.errors.ratelimit"
                                         },
                                         "timeout": {
-                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.errors.timeout",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.errors.timeout"
                                         },
                                         "unauthorized": {
-                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.errors.unauthorized",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.errors.unauthorized"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.valid.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.valid.count"
                                         }
                                       }
                                     }
@@ -1692,8 +1697,8 @@
                                     "received": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.jaeger.grpc.sampling.event.received.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.jaeger.grpc.sampling.event.received.count"
                                         }
                                       }
                                     }
@@ -1702,30 +1707,30 @@
                                 "request": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.jaeger.grpc.sampling.request.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.jaeger.grpc.sampling.request.count"
                                     }
                                   }
                                 },
                                 "response": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.jaeger.grpc.sampling.response.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.jaeger.grpc.sampling.response.count"
                                     },
                                     "errors": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.jaeger.grpc.sampling.response.errors.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.jaeger.grpc.sampling.response.errors.count"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.jaeger.grpc.sampling.response.valid.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.jaeger.grpc.sampling.response.valid.count"
                                         }
                                       }
                                     }
@@ -1746,42 +1751,42 @@
                                 "request": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.otlp.grpc.logs.request.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.otlp.grpc.logs.request.count"
                                     }
                                   }
                                 },
                                 "response": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.otlp.grpc.logs.response.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.otlp.grpc.logs.response.count"
                                     },
                                     "errors": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.count"
                                         },
                                         "ratelimit": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.ratelimit",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.ratelimit"
                                         },
                                         "timeout": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.timeout",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.timeout"
                                         },
                                         "unauthorized": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.unauthorized",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.unauthorized"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.valid.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.valid.count"
                                         }
                                       }
                                     }
@@ -1794,50 +1799,50 @@
                                 "consumer": {
                                   "properties": {
                                     "unsupported_dropped": {
-                                      "path": "beat.stats.apm_server.otlp.grpc.metrics.consumer.unsupported_dropped",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.otlp.grpc.metrics.consumer.unsupported_dropped"
                                     }
                                   }
                                 },
                                 "request": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.otlp.grpc.metrics.request.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.otlp.grpc.metrics.request.count"
                                     }
                                   }
                                 },
                                 "response": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.otlp.grpc.metrics.response.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.otlp.grpc.metrics.response.count"
                                     },
                                     "errors": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.count"
                                         },
                                         "ratelimit": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.ratelimit",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.ratelimit"
                                         },
                                         "timeout": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.timeout",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.timeout"
                                         },
                                         "unauthorized": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.unauthorized",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.unauthorized"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.valid.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.valid.count"
                                         }
                                       }
                                     }
@@ -1850,42 +1855,42 @@
                                 "request": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.otlp.grpc.traces.request.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.otlp.grpc.traces.request.count"
                                     }
                                   }
                                 },
                                 "response": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.otlp.grpc.traces.response.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.otlp.grpc.traces.response.count"
                                     },
                                     "errors": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.count"
                                         },
                                         "ratelimit": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.ratelimit",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.ratelimit"
                                         },
                                         "timeout": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.timeout",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.timeout"
                                         },
                                         "unauthorized": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.unauthorized",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.unauthorized"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.valid.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.valid.count"
                                         }
                                       }
                                     }
@@ -1902,42 +1907,42 @@
                                 "request": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.otlp.http.logs.request.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.otlp.http.logs.request.count"
                                     }
                                   }
                                 },
                                 "response": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.otlp.http.logs.response.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.otlp.http.logs.response.count"
                                     },
                                     "errors": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.count"
                                         },
                                         "ratelimit": {
-                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.ratelimit",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.ratelimit"
                                         },
                                         "timeout": {
-                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.timeout",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.timeout"
                                         },
                                         "unauthorized": {
-                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.unauthorized",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.unauthorized"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.otlp.http.logs.response.valid.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.valid.count"
                                         }
                                       }
                                     }
@@ -1950,50 +1955,50 @@
                                 "consumer": {
                                   "properties": {
                                     "unsupported_dropped": {
-                                      "path": "beat.stats.apm_server.otlp.http.metrics.consumer.unsupported_dropped",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.otlp.http.metrics.consumer.unsupported_dropped"
                                     }
                                   }
                                 },
                                 "request": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.otlp.http.metrics.request.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.otlp.http.metrics.request.count"
                                     }
                                   }
                                 },
                                 "response": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.otlp.http.metrics.response.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.otlp.http.metrics.response.count"
                                     },
                                     "errors": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.count"
                                         },
                                         "ratelimit": {
-                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.ratelimit",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.ratelimit"
                                         },
                                         "timeout": {
-                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.timeout",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.timeout"
                                         },
                                         "unauthorized": {
-                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.unauthorized",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.unauthorized"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.valid.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.valid.count"
                                         }
                                       }
                                     }
@@ -2006,42 +2011,42 @@
                                 "request": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.otlp.http.traces.request.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.otlp.http.traces.request.count"
                                     }
                                   }
                                 },
                                 "response": {
                                   "properties": {
                                     "count": {
-                                      "path": "beat.stats.apm_server.otlp.http.traces.response.count",
-                                      "type": "alias"
+                                      "type": "alias",
+                                      "path": "beat.stats.apm_server.otlp.http.traces.response.count"
                                     },
                                     "errors": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.count"
                                         },
                                         "ratelimit": {
-                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.ratelimit",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.ratelimit"
                                         },
                                         "timeout": {
-                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.timeout",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.timeout"
                                         },
                                         "unauthorized": {
-                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.unauthorized",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.unauthorized"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
                                         "count": {
-                                          "path": "beat.stats.apm_server.otlp.http.traces.response.valid.count",
-                                          "type": "alias"
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.valid.count"
                                         }
                                       }
                                     }
@@ -2058,42 +2063,42 @@
                         "error": {
                           "properties": {
                             "transformations": {
-                              "path": "beat.stats.apm_server.processor.error.transformations",
-                              "type": "alias"
+                              "type": "alias",
+                              "path": "beat.stats.apm_server.processor.error.transformations"
                             }
                           }
                         },
                         "metric": {
                           "properties": {
                             "transformations": {
-                              "path": "beat.stats.apm_server.processor.metric.transformations",
-                              "type": "alias"
+                              "type": "alias",
+                              "path": "beat.stats.apm_server.processor.metric.transformations"
                             }
                           }
                         },
                         "span": {
                           "properties": {
                             "transformations": {
-                              "path": "beat.stats.apm_server.processor.span.transformations",
-                              "type": "alias"
+                              "type": "alias",
+                              "path": "beat.stats.apm_server.processor.span.transformations"
                             }
                           }
                         },
                         "stream": {
                           "properties": {
                             "accepted": {
-                              "path": "beat.stats.apm_server.processor.stream.accepted",
-                              "type": "alias"
+                              "type": "alias",
+                              "path": "beat.stats.apm_server.processor.stream.accepted"
                             },
                             "errors": {
                               "properties": {
                                 "invalid": {
-                                  "path": "beat.stats.apm_server.processor.stream.errors.invalid",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.processor.stream.errors.invalid"
                                 },
                                 "toolarge": {
-                                  "path": "beat.stats.apm_server.processor.stream.errors.toolarge",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.processor.stream.errors.toolarge"
                                 }
                               }
                             }
@@ -2102,8 +2107,8 @@
                         "transaction": {
                           "properties": {
                             "transformations": {
-                              "path": "beat.stats.apm_server.processor.transaction.transformations",
-                              "type": "alias"
+                              "type": "alias",
+                              "path": "beat.stats.apm_server.processor.transaction.transformations"
                             }
                           }
                         }
@@ -2114,114 +2119,114 @@
                         "request": {
                           "properties": {
                             "count": {
-                              "path": "beat.stats.apm_server.root.request.count",
-                              "type": "alias"
+                              "type": "alias",
+                              "path": "beat.stats.apm_server.root.request.count"
                             }
                           }
                         },
                         "response": {
                           "properties": {
                             "count": {
-                              "path": "beat.stats.apm_server.root.response.count",
-                              "type": "alias"
+                              "type": "alias",
+                              "path": "beat.stats.apm_server.root.response.count"
                             },
                             "errors": {
                               "properties": {
                                 "closed": {
-                                  "path": "beat.stats.apm_server.root.response.errors.closed",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.closed"
                                 },
                                 "count": {
-                                  "path": "beat.stats.apm_server.root.response.errors.count",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.count"
                                 },
                                 "decode": {
-                                  "path": "beat.stats.apm_server.root.response.errors.decode",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.decode"
                                 },
                                 "forbidden": {
-                                  "path": "beat.stats.apm_server.root.response.errors.forbidden",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.forbidden"
                                 },
                                 "internal": {
-                                  "path": "beat.stats.apm_server.root.response.errors.internal",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.internal"
                                 },
                                 "invalidquery": {
-                                  "path": "beat.stats.apm_server.root.response.errors.invalidquery",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.invalidquery"
                                 },
                                 "method": {
-                                  "path": "beat.stats.apm_server.root.response.errors.method",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.method"
                                 },
                                 "notfound": {
-                                  "path": "beat.stats.apm_server.root.response.errors.notfound",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.notfound"
                                 },
                                 "queue": {
-                                  "path": "beat.stats.apm_server.root.response.errors.queue",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.queue"
                                 },
                                 "ratelimit": {
-                                  "path": "beat.stats.apm_server.root.response.errors.ratelimit",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.ratelimit"
                                 },
                                 "timeout": {
-                                  "path": "beat.stats.apm_server.root.response.errors.timeout",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.timeout"
                                 },
                                 "toolarge": {
-                                  "path": "beat.stats.apm_server.root.response.errors.toolarge",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.toolarge"
                                 },
                                 "unauthorized": {
-                                  "path": "beat.stats.apm_server.root.response.errors.unauthorized",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.unauthorized"
                                 },
                                 "unavailable": {
-                                  "path": "beat.stats.apm_server.root.response.errors.unavailable",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.unavailable"
                                 },
                                 "validate": {
-                                  "path": "beat.stats.apm_server.root.response.errors.validate",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.errors.validate"
                                 }
                               }
                             },
                             "valid": {
                               "properties": {
                                 "accepted": {
-                                  "path": "beat.stats.apm_server.root.response.valid.accepted",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.valid.accepted"
                                 },
                                 "count": {
-                                  "path": "beat.stats.apm_server.root.response.valid.count",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.valid.count"
                                 },
                                 "notmodified": {
-                                  "path": "beat.stats.apm_server.root.response.valid.notmodified",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.valid.notmodified"
                                 },
                                 "ok": {
-                                  "path": "beat.stats.apm_server.root.response.valid.ok",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.root.response.valid.ok"
                                 }
                               }
                             }
                           }
                         },
                         "unset": {
-                          "path": "beat.stats.apm_server.root.unset",
-                          "type": "alias"
+                          "type": "alias",
+                          "path": "beat.stats.apm_server.root.unset"
                         }
                       }
                     },
                     "sampling": {
                       "properties": {
                         "transactions_dropped": {
-                          "path": "beat.stats.apm_server.sampling.transactions_dropped",
-                          "type": "alias"
+                          "type": "alias",
+                          "path": "beat.stats.apm_server.sampling.transactions_dropped"
                         }
                       }
                     },
@@ -2230,106 +2235,106 @@
                         "request": {
                           "properties": {
                             "count": {
-                              "path": "beat.stats.apm_server.server.request.count",
-                              "type": "alias"
+                              "type": "alias",
+                              "path": "beat.stats.apm_server.server.request.count"
                             }
                           }
                         },
                         "response": {
                           "properties": {
                             "count": {
-                              "path": "beat.stats.apm_server.server.response.count",
-                              "type": "alias"
+                              "type": "alias",
+                              "path": "beat.stats.apm_server.server.response.count"
                             },
                             "errors": {
                               "properties": {
                                 "closed": {
-                                  "path": "beat.stats.apm_server.server.response.errors.closed",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.closed"
                                 },
                                 "count": {
-                                  "path": "beat.stats.apm_server.server.response.errors.count",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.count"
                                 },
                                 "decode": {
-                                  "path": "beat.stats.apm_server.server.response.errors.decode",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.decode"
                                 },
                                 "forbidden": {
-                                  "path": "beat.stats.apm_server.server.response.errors.forbidden",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.forbidden"
                                 },
                                 "internal": {
-                                  "path": "beat.stats.apm_server.server.response.errors.internal",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.internal"
                                 },
                                 "invalidquery": {
-                                  "path": "beat.stats.apm_server.server.response.errors.invalidquery",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.invalidquery"
                                 },
                                 "method": {
-                                  "path": "beat.stats.apm_server.server.response.errors.method",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.method"
                                 },
                                 "notfound": {
-                                  "path": "beat.stats.apm_server.server.response.errors.notfound",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.notfound"
                                 },
                                 "queue": {
-                                  "path": "beat.stats.apm_server.server.response.errors.queue",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.queue"
                                 },
                                 "ratelimit": {
-                                  "path": "beat.stats.apm_server.server.response.errors.ratelimit",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.ratelimit"
                                 },
                                 "timeout": {
-                                  "path": "beat.stats.apm_server.server.response.errors.timeout",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.timeout"
                                 },
                                 "toolarge": {
-                                  "path": "beat.stats.apm_server.server.response.errors.toolarge",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.toolarge"
                                 },
                                 "unauthorized": {
-                                  "path": "beat.stats.apm_server.server.response.errors.unauthorized",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.unauthorized"
                                 },
                                 "unavailable": {
-                                  "path": "beat.stats.apm_server.server.response.errors.unavailable",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.unavailable"
                                 },
                                 "validate": {
-                                  "path": "beat.stats.apm_server.server.response.errors.validate",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.errors.validate"
                                 }
                               }
                             },
                             "valid": {
                               "properties": {
                                 "accepted": {
-                                  "path": "beat.stats.apm_server.server.response.valid.accepted",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.valid.accepted"
                                 },
                                 "count": {
-                                  "path": "beat.stats.apm_server.server.response.valid.count",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.valid.count"
                                 },
                                 "notmodified": {
-                                  "path": "beat.stats.apm_server.server.response.valid.notmodified",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.valid.notmodified"
                                 },
                                 "ok": {
-                                  "path": "beat.stats.apm_server.server.response.valid.ok",
-                                  "type": "alias"
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.server.response.valid.ok"
                                 }
                               }
                             }
                           }
                         },
                         "unset": {
-                          "path": "beat.stats.apm_server.server.unset",
-                          "type": "alias"
+                          "type": "alias",
+                          "path": "beat.stats.apm_server.server.unset"
                         }
                       }
                     }
@@ -2765,35 +2770,43 @@
                 },
                 "output": {
                   "properties": {
-                    "elasticsearch": {
+                    "events": {
                       "properties": {
-                        "bulk_requests": {
-                          "properties": {
-                            "available": {
-                              "path": "beat.stats.output.elasticsearch.bulk_requests.available",
-                              "type": "alias"
-                            },
-                            "completed": {
-                              "path": "beat.stats.output.elasticsearch.bulk_requests.completed",
-                              "type": "alias"
-                            }
-                          }
+                        "acked": {
+                          "type": "alias",
+                          "path": "beat.stats.output.events.acked"
                         },
-                        "indexers": {
-                          "properties": {
-                            "active": {
-                              "path": "beat.stats.output.elasticsearch.indexers.active",
-                              "type": "alias"
-                            },
-                            "created": {
-                              "path": "beat.stats.output.elasticsearch.indexers.created",
-                              "type": "alias"
-                            },
-                            "destroyed": {
-                              "path": "beat.stats.output.elasticsearch.indexers.destroyed",
-                              "type": "alias"
-                            }
-                          }
+                        "active": {
+                          "type": "alias",
+                          "path": "beat.stats.output.events.active"
+                        },
+                        "batches": {
+                          "type": "alias",
+                          "path": "beat.stats.output.events.batches"
+                        },
+                        "failed": {
+                          "type": "alias",
+                          "path": "beat.stats.output.events.failed"
+                        },
+                        "toomany": {
+                          "type": "alias",
+                          "path": "beat.stats.output.events.toomany"
+                        },
+                        "total": {
+                          "type": "alias",
+                          "path": "beat.stats.output.events.total"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "alias",
+                      "path": "beat.stats.output.type"
+                    },
+                    "write": {
+                      "properties": {
+                        "bytes": {
+                          "type": "alias",
+                          "path": "beat.stats.output.write.bytes"
                         }
                       }
                     }

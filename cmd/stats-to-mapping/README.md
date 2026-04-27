@@ -35,13 +35,13 @@ upstream checkout and submit per-repo PRs.
 
 ## Supported files
 
-| Target | Source repo | Modifies |
-| --- | --- | --- |
-| `monitoring-beats.json` | `elastic/elasticsearch` | Concrete-typed properties under `mappings._doc.…metrics.properties` |
-| `monitoring-beats-mb.json` | `elastic/elasticsearch` | Alias view under `metrics.properties` and concrete view under `beat.stats` |
-| `metricbeat/module/beat/_meta/fields.yml` | `elastic/beats` | Alias entries under `beats_stats` |
-| `metricbeat/module/beat/stats/_meta/fields.yml` | `elastic/beats` | Concrete-typed entries under `stats` |
-| `elastic_agent/data_stream/apm_server_metrics/fields/beat-fields.yml` | `elastic/integrations` | Concrete-typed entries under `beat.stats` |
+| Target | Modifies |
+| --- | --- |
+| [`monitoring-beats.json`](https://github.com/elastic/elasticsearch/blob/main/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats.json) (`elastic/elasticsearch`) | Concrete-typed properties under `mappings._doc.…metrics.properties` |
+| [`monitoring-beats-mb.json`](https://github.com/elastic/elasticsearch/blob/main/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats-mb.json) (`elastic/elasticsearch`) | Alias view under `metrics.properties` and concrete view under `beat.stats` |
+| [`metricbeat/module/beat/_meta/fields.yml`](https://github.com/elastic/beats/blob/main/metricbeat/module/beat/_meta/fields.yml) (`elastic/beats`) | Alias entries under `beats_stats` |
+| [`metricbeat/module/beat/stats/_meta/fields.yml`](https://github.com/elastic/beats/blob/main/metricbeat/module/beat/stats/_meta/fields.yml) (`elastic/beats`) | Concrete-typed entries under `stats` |
+| [`elastic_agent/data_stream/apm_server_metrics/fields/beat-stats-fields.yml`](https://github.com/elastic/integrations/blob/main/packages/elastic_agent/data_stream/apm_server_metrics/fields/beat-stats-fields.yml) (`elastic/integrations`) | Concrete-typed entries under `beat.stats` |
 
 ## What gets touched
 
@@ -51,9 +51,24 @@ rewritten. Every byte outside those entries — comments, quoting, sibling
 keys, the version placeholder in the JSON templates — is preserved verbatim.
 
 Within the spliced subtree, JSON keys are emitted in alphabetical order
-(stdlib `encoding/json`); YAML emission follows the upstream conventions of
-those repos (4-column indent per nesting level, dashes at parent_col+2,
-mapping body at dash+2).
+(stdlib `encoding/json`); alias entries emit `{type, path}` via a typed
+struct so field order matches the upstream Python reference. YAML emission
+follows the upstream conventions of those repos (4-column indent per
+nesting level, dashes at parent_col+2, mapping body at dash+2).
+
+## Stats input shape
+
+The tool reads two metric subtrees from the apm-server `/stats` document:
+
+- `apm-server.*` — APM Server's own counters
+- `libbeat.output.*` — output metrics, which moved out from a top-level
+  `output` key into `libbeat.output` in [elastic/apm-server#15094](https://github.com/elastic/apm-server/pull/15094)
+
+If `libbeat.output` is absent (e.g. stats captured from an apm-server with
+no output configured or no traffic), the tool prints a one-line note to
+stderr and leaves the corresponding upstream entries unchanged for that
+metric. Scalar string values like `libbeat.output.type = "elasticsearch"`
+are emitted as `keyword` fields.
 
 ## Tests
 

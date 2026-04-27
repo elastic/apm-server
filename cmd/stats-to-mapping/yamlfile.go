@@ -140,11 +140,15 @@ func upsertYAML(path string, stats []byte, plan yamlPlan) error {
 	}
 
 	items := splitListItems(src[listStart:listEnd], plan.childIndent)
-	for _, metric := range metrics {
-		yamlName := plan.nameTransform(metric)
-		fields, err := fieldsYAML(stats, metric, plan.alias)
+	for _, m := range metrics {
+		yamlName := plan.nameTransform(m.name)
+		fields, err := fieldsYAML(stats, m, plan.alias)
 		if err != nil {
 			return err
+		}
+		if fields == nil {
+			warnMissing(m, path)
+			continue
 		}
 		var rendered bytes.Buffer
 		renderItem(&rendered, item{Name: yamlName, Type: "group", Fields: fields}, plan.childIndent)
