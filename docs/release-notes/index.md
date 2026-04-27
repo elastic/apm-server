@@ -41,7 +41,7 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ### Fixes [apm-9.3.4-fixes]
 
-* Fix HTTP/2 SETTINGS mismatch connection failure in gmux ([#20913](https://github.com/elastic/apm-server/pull/20913))
+* HTTP/2 connections can fail with strict clients due to framing errors ([#20913](https://github.com/elastic/apm-server/pull/20913))
 
 ## 9.3.3 [apm-9.3.3-release-notes]
 
