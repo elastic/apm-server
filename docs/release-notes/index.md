@@ -42,7 +42,7 @@ To check for security updates, go to [Security announcements for the Elastic sta
 ### Fixes [apm-9.3.4-fixes]
 
 * Fixed HTTP/2 connections being dropped by strict clients and browser-based RUM agents due to APM Server sending inconsistent SETTINGS frames at connection start. ([#20913](https://github.com/elastic/apm-server/pull/20913))
-For more details, please refer to our [known issues](https://www.elastic.co/docs/release-notes/apm/known-issues)
+For more details, refer to our known issues [page](https://www.elastic.co/docs/release-notes/apm/known-issues)
 
 ## 9.3.3 [apm-9.3.3-release-notes]
 
