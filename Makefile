@@ -135,12 +135,8 @@ system-test:
 
 # stats-to-mapping-drift detects divergence between this checkout's /stats
 # endpoint and the upstream mapping files in elastic/elasticsearch,
-# elastic/beats, and elastic/integrations. Same script the
-# stats-to-mapping-drift CI workflow runs; run it locally to reproduce a
-# drift issue's diffs without waiting for the next Monday cron.
-#
-# Depends on the apm-server binary at the repo root (built by `make
-# apm-server`). See script/stats-to-mapping-drift.sh for the rest.
+# elastic/beats, and elastic/integrations. See
+# script/stats-to-mapping-drift.sh.
 .PHONY: stats-to-mapping-drift
 stats-to-mapping-drift: apm-server
 	@bash script/stats-to-mapping-drift.sh

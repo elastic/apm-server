@@ -8,8 +8,6 @@ name: stats-to-mapping-drift
 # stats-to-mapping-drift`); this workflow wraps the script with
 # GitHub-Actions-specific concerns: artifact upload and drift-issue
 # creation.
-#
-# Background: elastic/apm-server#21000.
 
 on:
   workflow_dispatch:

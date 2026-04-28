@@ -48,9 +48,7 @@ if [ ! -x "$APM_SERVER_BIN" ]; then
   exit 1
 fi
 
-# 1. Write config and start apm-server. The same config is reused below
-# when generating the recipe in any drift issue, so there's a single
-# source of truth.
+# 1. Write config and start apm-server.
 echo "==> Writing apm-server config"
 install -m 0600 /dev/stdin "$WORK/apm-server.yml" <<EOF
 apm-server:
