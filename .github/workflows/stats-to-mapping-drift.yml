@@ -29,6 +29,11 @@ jobs:
     env:
       DRIFT_LABEL: stats-to-mapping-drift
       WORK: ${{ github.workspace }}/.drift
+      # Single source of truth for the files this job tracks. Each line is
+      # "<repo>/<path-within-repo>". The first slash-separated segment is
+      # treated as the github.com/elastic/<repo> name; the remainder is the
+      # file's path inside that repo. Sparse-checkout, the regen invocation,
+      # the drift loop, and the issue-body recipe are all derived from this.
       UPSTREAM_FILES: |
         elasticsearch/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats.json
         elasticsearch/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats-mb.json
@@ -91,28 +96,27 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$WORK/upstream"
-          clone() {
-            local repo=$1 path=$2
+          declare -A repo_paths
+          while IFS= read -r path; do
+            [ -z "$path" ] && continue
+            repo=${path%%/*}
+            repo_paths[$repo]+="${path#*/} "
+          done <<< "$UPSTREAM_FILES"
+          for repo in "${!repo_paths[@]}"; do
             git clone --depth 1 --filter=blob:none --no-checkout \
               "https://github.com/elastic/$repo" "$WORK/upstream/$repo"
             git -C "$WORK/upstream/$repo" sparse-checkout init --no-cone
-            git -C "$WORK/upstream/$repo" sparse-checkout set "$path"
+            # shellcheck disable=SC2086
+            git -C "$WORK/upstream/$repo" sparse-checkout set ${repo_paths[$repo]}
             git -C "$WORK/upstream/$repo" checkout
-          }
-          clone elasticsearch  x-pack/plugin/core/template-resources/src/main/resources
-          clone beats          metricbeat/module/beat
-          clone integrations   packages/elastic_agent/data_stream/apm_server_metrics
+          done
 
       - name: Run stats-to-mapping
         run: |
           set -euo pipefail
-          stats-to-mapping \
-            "$WORK/upstream/elasticsearch/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats.json" \
-            "$WORK/upstream/elasticsearch/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats-mb.json" \
-            "$WORK/upstream/beats/metricbeat/module/beat/_meta/fields.yml" \
-            "$WORK/upstream/beats/metricbeat/module/beat/stats/_meta/fields.yml" \
-            "$WORK/upstream/integrations/packages/elastic_agent/data_stream/apm_server_metrics/fields/beat-stats-fields.yml" \
-            < "$WORK/stats.json"
+          mapfile -t paths < <(printf '%s\n' "$UPSTREAM_FILES" \
+            | awk -v w="$WORK" 'NF > 0 { print w "/upstream/" $0 }')
+          stats-to-mapping "${paths[@]}" < "$WORK/stats.json"
 
       - name: Compute drift per file
         id: drift
@@ -125,21 +129,19 @@ jobs:
             [ -z "$path" ] && continue
             repo=${path%%/*}
             file=${path#*/}
-            cd "$WORK/upstream/$repo"
-            if git diff --quiet -- "$file"; then
-              cd - >/dev/null
+            tree="$WORK/upstream/$repo"
+            if git -C "$tree" diff --quiet -- "$file"; then
               continue
             fi
             drift_found=true
-            added=$(git diff --numstat -- "$file" | awk '{print $1}')
-            removed=$(git diff --numstat -- "$file" | awk '{print $2}')
-            printf -- '- `%s/%s` — +%s / -%s\n' "$repo" "$file" "$added" "$removed" >> "$WORK/drift.summary.md"
+            read -r added removed _ < <(git -C "$tree" diff --numstat -- "$file")
+            printf -- '- `%s/%s` — +%s / -%s\n' "$repo" "$file" "$added" "$removed" \
+              >> "$WORK/drift.summary.md"
             {
               printf '\n## %s/%s\n\n```diff\n' "$repo" "$file"
-              git diff -- "$file"
+              git -C "$tree" diff -- "$file"
               printf '\n```\n'
             } >> "$WORK/drift.diff"
-            cd - >/dev/null
           done <<< "$UPSTREAM_FILES"
           echo "drift=$drift_found" >> "$GITHUB_OUTPUT"
 
@@ -167,6 +169,8 @@ jobs:
             exit 0
           fi
           today=$(date -u +%Y-%m-%d)
+          recipe_paths=$(printf '%s\n' "$UPSTREAM_FILES" \
+            | awk 'NF > 0 { print "    /tmp/" $0 " \\" }')
           BODY=$WORK/issue-body.md
           {
             cat <<HEADER
@@ -216,12 +220,8 @@ jobs:
 
           # 4. Run the regen.
           stats-to-mapping \\
-            /tmp/elasticsearch/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats.json \\
-            /tmp/elasticsearch/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats-mb.json \\
-            /tmp/beats/metricbeat/module/beat/_meta/fields.yml \\
-            /tmp/beats/metricbeat/module/beat/stats/_meta/fields.yml \\
-            /tmp/integrations/packages/elastic_agent/data_stream/apm_server_metrics/fields/beat-stats-fields.yml \\
-            < /tmp/stats.json
+          $recipe_paths
+              < /tmp/stats.json
 
           # 5. Inspect the diffs and prepare upstream PRs.
           for r in elasticsearch beats integrations; do
