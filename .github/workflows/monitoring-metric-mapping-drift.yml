@@ -1,0 +1,243 @@
+---
+name: monitoring-metric-mapping-drift
+
+# Weekly cron that detects drift between apm-server's /stats endpoint and the
+# upstream mapping files in elastic/elasticsearch, elastic/beats, and
+# elastic/integrations. When drift is detected and no open drift issue exists,
+# a new issue is opened with the per-file change summary, a reproduction
+# recipe, and a link to the workflow run (where the full diff is attached as
+# an artifact).
+#
+# Background: elastic/apm-server#21000.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays at 06:00 UTC.
+    - cron: '0 6 * * MON'
+
+permissions:
+  contents: read
+
+jobs:
+  drift-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      issues: write
+    env:
+      DRIFT_LABEL: monitoring-metrics-drift
+      WORK: ${{ github.workspace }}/.drift
+      UPSTREAM_FILES: |
+        elasticsearch/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats.json
+        elasticsearch/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats-mb.json
+        beats/metricbeat/module/beat/_meta/fields.yml
+        beats/metricbeat/module/beat/stats/_meta/fields.yml
+        integrations/packages/elastic_agent/data_stream/apm_server_metrics/fields/beat-stats-fields.yml
+    steps:
+      - name: Checkout apm-server
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build apm-server from main
+        run: go build -o "$WORK/apm-server" ./x-pack/apm-server
+
+      - name: Install stats-to-mapping
+        run: go install github.com/elastic/apm-tools/cmd/stats-to-mapping@latest
+
+      - name: Run apm-server, capture /stats
+        run: |
+          set -euo pipefail
+          mkdir -p "$WORK/data"
+          install -m 0600 /dev/stdin "$WORK/apm-server.yml" <<'EOF'
+          apm-server:
+            host: "127.0.0.1:18200"
+            sampling.tail:
+              enabled: true
+              interval: 1m
+              policies:
+                - sample_rate: 1
+          output.elasticsearch:
+            hosts: ["http://127.0.0.1:9200"]
+          path.data: ${WORK}/data
+          http.enabled: true
+          http.host: "127.0.0.1"
+          http.port: 15066
+          logging.level: warning
+          EOF
+          # Substitute $WORK because the heredoc was quoted.
+          sed -i "s|\${WORK}|$WORK|" "$WORK/apm-server.yml"
+          "$WORK/apm-server" --strict.perms=false -e -c "$WORK/apm-server.yml" >"$WORK/apm-server.log" 2>&1 &
+          echo $! > "$WORK/apm-server.pid"
+          for attempt in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:15066/stats -o "$WORK/stats.json"; then
+              echo "Captured /stats on attempt $attempt"
+              break
+            fi
+            sleep 1
+          done
+          kill "$(cat "$WORK/apm-server.pid")" || true
+          wait || true
+          test -s "$WORK/stats.json"
+          # Sanity: TBS-enabled stats should contain sampling.tail.storage.
+          jq -e '.["apm-server"].sampling.tail.storage' "$WORK/stats.json" >/dev/null
+
+      - name: Sparse-checkout upstream mapping files
+        run: |
+          set -euo pipefail
+          mkdir -p "$WORK/upstream"
+          clone() {
+            local repo=$1 path=$2
+            git clone --depth 1 --filter=blob:none --no-checkout \
+              "https://github.com/elastic/$repo" "$WORK/upstream/$repo"
+            git -C "$WORK/upstream/$repo" sparse-checkout init --no-cone
+            git -C "$WORK/upstream/$repo" sparse-checkout set "$path"
+            git -C "$WORK/upstream/$repo" checkout
+          }
+          clone elasticsearch  x-pack/plugin/core/template-resources/src/main/resources
+          clone beats          metricbeat/module/beat
+          clone integrations   packages/elastic_agent/data_stream/apm_server_metrics
+
+      - name: Run stats-to-mapping
+        run: |
+          set -euo pipefail
+          stats-to-mapping \
+            "$WORK/upstream/elasticsearch/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats.json" \
+            "$WORK/upstream/elasticsearch/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats-mb.json" \
+            "$WORK/upstream/beats/metricbeat/module/beat/_meta/fields.yml" \
+            "$WORK/upstream/beats/metricbeat/module/beat/stats/_meta/fields.yml" \
+            "$WORK/upstream/integrations/packages/elastic_agent/data_stream/apm_server_metrics/fields/beat-stats-fields.yml" \
+            < "$WORK/stats.json"
+
+      - name: Compute drift per file
+        id: drift
+        run: |
+          set -euo pipefail
+          : > "$WORK/drift.diff"
+          : > "$WORK/drift.summary.md"
+          drift_found=false
+          while IFS= read -r path; do
+            [ -z "$path" ] && continue
+            repo=${path%%/*}
+            file=${path#*/}
+            cd "$WORK/upstream/$repo"
+            if git diff --quiet -- "$file"; then
+              cd - >/dev/null
+              continue
+            fi
+            drift_found=true
+            added=$(git diff --numstat -- "$file" | awk '{print $1}')
+            removed=$(git diff --numstat -- "$file" | awk '{print $2}')
+            printf -- '- `%s/%s` — +%s / -%s\n' "$repo" "$file" "$added" "$removed" >> "$WORK/drift.summary.md"
+            {
+              printf '\n## %s/%s\n\n```diff\n' "$repo" "$file"
+              git diff -- "$file"
+              printf '\n```\n'
+            } >> "$WORK/drift.diff"
+            cd - >/dev/null
+          done <<< "$UPSTREAM_FILES"
+          echo "drift=$drift_found" >> "$GITHUB_OUTPUT"
+
+      - name: Upload drift diff artifact
+        if: steps.drift.outputs.drift == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-diff
+          path: |
+            ${{ env.WORK }}/drift.diff
+            ${{ env.WORK }}/stats.json
+          retention-days: 30
+
+      - name: Open drift issue if none exists
+        if: steps.drift.outputs.drift == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list --repo "$REPO" --label "$DRIFT_LABEL" --state open --json number --jq 'length')
+          if [ "$existing" -gt 0 ]; then
+            echo "Open drift issue already exists; not opening another"
+            exit 0
+          fi
+          today=$(date -u +%Y-%m-%d)
+          BODY=$WORK/issue-body.md
+          {
+            cat <<HEADER
+          The weekly drift-check workflow detected divergence between apm-server's \`/stats\` endpoint and the upstream mapping files maintained in \`elastic/elasticsearch\`, \`elastic/beats\`, and \`elastic/integrations\`.
+
+          Detected on $today by [workflow run]($RUN_URL). The full \`git diff\` of every drifted file is attached to that run as the \`drift-diff\` artifact, alongside the captured \`stats.json\`.
+
+          ## Files that drifted
+
+          HEADER
+            cat "$WORK/drift.summary.md"
+            cat <<RECIPE
+
+          ## Reproduce locally
+
+          \`\`\`shell
+          # 1. Install the regen tool.
+          go install github.com/elastic/apm-tools/cmd/stats-to-mapping@latest
+
+          # 2. Build apm-server from main and capture a TBS-enabled /stats snapshot.
+          go build -o /tmp/apm-server ./x-pack/apm-server
+          install -m 0600 /dev/stdin /tmp/apm-server.yml <<'CFG'
+          apm-server:
+            host: "127.0.0.1:18200"
+            sampling.tail:
+              enabled: true
+              interval: 1m
+              policies:
+                - sample_rate: 1
+          output.elasticsearch:
+            hosts: ["http://127.0.0.1:9200"]
+          path.data: /tmp/apm-server-data
+          http.enabled: true
+          http.host: "127.0.0.1"
+          http.port: 15066
+          logging.level: warning
+          CFG
+          /tmp/apm-server --strict.perms=false -e -c /tmp/apm-server.yml &
+          sleep 6
+          curl -s http://127.0.0.1:15066/stats > /tmp/stats.json
+          kill %1; wait || true
+
+          # 3. Clone the three upstream repos (sparse).
+          for r in elasticsearch beats integrations; do
+            git clone --depth 1 --filter=blob:none "https://github.com/elastic/\$r" "/tmp/\$r"
+          done
+
+          # 4. Run the regen.
+          stats-to-mapping \\
+            /tmp/elasticsearch/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats.json \\
+            /tmp/elasticsearch/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats-mb.json \\
+            /tmp/beats/metricbeat/module/beat/_meta/fields.yml \\
+            /tmp/beats/metricbeat/module/beat/stats/_meta/fields.yml \\
+            /tmp/integrations/packages/elastic_agent/data_stream/apm_server_metrics/fields/beat-stats-fields.yml \\
+            < /tmp/stats.json
+
+          # 5. Inspect the diffs and prepare upstream PRs.
+          for r in elasticsearch beats integrations; do
+            echo "=== \$r ==="; git -C "/tmp/\$r" diff
+          done
+          \`\`\`
+
+          ## Resolution
+
+          Open a PR in each upstream repo with the diffs above, then close this issue.
+
+          Tracked by #21000. This workflow will not open another issue while this one stays open.
+          RECIPE
+          } > "$BODY"
+          gh issue create --repo "$REPO" \
+            --title "Monitoring metric mappings drifted from /stats ($today)" \
+            --label bug \
+            --label "$DRIFT_LABEL" \
+            --body-file "$BODY"
