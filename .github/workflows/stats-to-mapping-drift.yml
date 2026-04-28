@@ -1,5 +1,5 @@
 ---
-name: monitoring-metric-mapping-drift
+name: stats-to-mapping-drift
 
 # Weekly cron that detects drift between apm-server's /stats endpoint and the
 # upstream mapping files in elastic/elasticsearch, elastic/beats, and
@@ -27,7 +27,7 @@ jobs:
       contents: read
       issues: write
     env:
-      DRIFT_LABEL: monitoring-metrics-drift
+      DRIFT_LABEL: stats-to-mapping-drift
       WORK: ${{ github.workspace }}/.drift
       UPSTREAM_FILES: |
         elasticsearch/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats.json
