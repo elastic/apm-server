@@ -231,9 +231,7 @@ jobs:
 
           ## Resolution
 
-          Open a PR in each upstream repo with the diffs above, then close this issue.
-
-          Tracked by #21000. This workflow will not open another issue while this one stays open.
+          Open a PR in each upstream repo with the diffs above, then close this issue. The workflow will not open another issue while this one stays open.
           RECIPE
           } > "$BODY"
           gh issue create --repo "$REPO" \
