@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 # Detect drift between apm-server's /stats endpoint and the upstream
 # mapping files in elastic/elasticsearch, elastic/beats, and
-# elastic/integrations.
+# elastic/integrations. Run via `make stats-to-mapping-drift` (which
+# builds the apm-server binary first via the apm-server target);
+# invoking the script directly assumes ./apm-server already exists.
 #
 # Steps:
-#   1. Build apm-server (or reuse a prebuilt binary at $APM_SERVER_BIN).
-#   2. Start it with TBS enabled and capture /stats.
-#   3. Install the regen tool (github.com/elastic/apm-tools/cmd/stats-to-mapping).
-#   4. Sparse-clone the three upstream repos.
-#   5. Run the regen tool over the five tracked files.
-#   6. Compute per-file git diff and a summary.
+#   1. Start ./apm-server with TBS enabled and capture /stats.
+#   2. Install the regen tool (github.com/elastic/apm-tools/cmd/stats-to-mapping).
+#   3. Sparse-clone the three upstream repos.
+#   4. Run the regen tool over the five tracked files.
+#   5. Compute per-file git diff and a summary.
 #
 # Outputs (relative to $WORK, default .drift/):
 #   apm-server.yml         apm-server config used to capture stats
@@ -25,7 +26,7 @@ set -euo pipefail
 
 WORK=${WORK:-.drift}
 STATS_PORT=${STATS_PORT:-15066}
-APM_SERVER_BIN=${APM_SERVER_BIN:-}
+APM_SERVER_BIN=${APM_SERVER_BIN:-./apm-server}
 
 # UPSTREAM_FILES is the single source of truth for the files this script
 # tracks. Each line is "<repo>/<path-within-repo>". Sparse-checkout, the
@@ -41,14 +42,13 @@ EOF
 
 mkdir -p "$WORK/data"
 
-# 1. Build apm-server unless a binary was provided.
-if [ -z "$APM_SERVER_BIN" ]; then
-  echo "==> Building apm-server"
-  go build -o "$WORK/apm-server" ./x-pack/apm-server
-  APM_SERVER_BIN="$WORK/apm-server"
+if [ ! -x "$APM_SERVER_BIN" ]; then
+  echo "apm-server binary not found at $APM_SERVER_BIN" >&2
+  echo "Run \`make apm-server\` first, or invoke this script via \`make stats-to-mapping-drift\`." >&2
+  exit 1
 fi
 
-# 2. Write config and start apm-server. The same config is reused below
+# 1. Write config and start apm-server. The same config is reused below
 # when generating the recipe in any drift issue, so there's a single
 # source of truth.
 echo "==> Writing apm-server config"
@@ -86,12 +86,12 @@ test -s "$WORK/stats.json"
 # the config or apm-server's stats shape changed.
 jq -e '.["apm-server"].sampling.tail.storage' "$WORK/stats.json" >/dev/null
 
-# 3. Install the regen tool. $(go env GOPATH)/bin must be on PATH.
+# 2. Install the regen tool. $(go env GOPATH)/bin must be on PATH.
 echo "==> Installing stats-to-mapping"
 go install github.com/elastic/apm-tools/cmd/stats-to-mapping@latest
 export PATH="$PATH:$(go env GOPATH)/bin"
 
-# 4. Sparse-clone the three upstream repos. Group UPSTREAM_FILES lines by
+# 3. Sparse-clone the three upstream repos. Group UPSTREAM_FILES lines by
 # repo so each repo is cloned once with all its tracked paths.
 echo "==> Cloning upstream repos"
 mkdir -p "$WORK/upstream"
@@ -114,13 +114,13 @@ for repo in "${!repo_paths[@]}"; do
   git -C "$WORK/upstream/$repo" checkout
 done
 
-# 5. Run the regen tool over the five tracked files.
+# 4. Run the regen tool over the five tracked files.
 echo "==> Running stats-to-mapping"
 mapfile -t paths < <(printf '%s\n' "$UPSTREAM_FILES" \
   | awk -v w="$WORK" 'NF > 0 { print w "/upstream/" $0 }')
 stats-to-mapping "${paths[@]}" < "$WORK/stats.json"
 
-# 6. Compute per-file drift.
+# 5. Compute per-file drift.
 echo "==> Computing drift"
 : > "$WORK/drift.diff"
 : > "$WORK/drift.summary.md"
