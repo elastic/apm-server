@@ -49,17 +49,25 @@ LDFLAGS := \
 	-X github.com/elastic/beats/v7/libbeat/version.commit=$(GITCOMMIT) \
 	-X github.com/elastic/beats/v7/libbeat/version.buildTime=$(GITCOMMITTIMESTAMP)
 
+# Rule to build apm-server fips binaries
+.PHONY: $(APM_SERVER_FIPS_BINARIES)
+$(APM_SERVER_FIPS_BINARIES):
+	# call make instead of using a prerequisite to force it to run the task when
+	# multiple targets are specified
+	GOOS=$(GOOS) GOARCH=$(GOARCH) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) NOCP=1 \
+		    $(MAKE) apm-server-fips
+
 # Rule to build apm-server binaries, using Go's native cross-compilation.
 #
 # Note, we do not export GO* environment variables in the Makefile,
 # as they would be inherited by common dependencies, which is undesirable.
 # Instead, we use the "env" command to export them just when cross-compiling
 # the apm-server binaries.
-.PHONY: $(APM_SERVER_BINARIES) $(APM_SERVER_FIPS_BINARIES)
-$(APM_SERVER_BINARIES) $(APM_SERVER_FIPS_BINARIES):
+.PHONY: $(APM_SERVER_BINARIES)
+$(APM_SERVER_BINARIES):
 	# call make instead of using a prerequisite to force it to run the task when
 	# multiple targets are specified
-	GOOS=$(GOOS) GOARCH=$(GOARCH) GOFIPS140=$(GOFIPS140) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) NOCP=1 \
+	GOOS=$(GOOS) GOARCH=$(GOARCH) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) NOCP=1 \
 		    $(MAKE) apm-server
 
 .PHONY: apm-server-build
