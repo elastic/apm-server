@@ -6,7 +6,7 @@
 // not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//	http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing,
 // software distributed under the License is distributed on an
@@ -15,13 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// Command stats-to-mapping reads APM Server stats JSON from stdin and updates
-// upstream mapping files in-place to expose those fields. It is a developer
-// tool used when adding new metrics to APM Server's /stats endpoint, to keep
-// the corresponding Elasticsearch monitoring templates, Beats fields.yml
-// files, and the elastic_agent integration package in sync.
-//
-// See cmd/stats-to-mapping/README.md for usage.
 package main
 
 import (
