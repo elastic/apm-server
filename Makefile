@@ -49,38 +49,22 @@ LDFLAGS := \
 	-X github.com/elastic/beats/v7/libbeat/version.commit=$(GITCOMMIT) \
 	-X github.com/elastic/beats/v7/libbeat/version.buildTime=$(GITCOMMITTIMESTAMP)
 
-# Rule to build apm-server fips binaries
-.PHONY: $(APM_SERVER_FIPS_BINARIES)
-$(APM_SERVER_FIPS_BINARIES):
-	docker run --privileged --rm "tonistiigi/binfmt:latest@sha256:1b804311fe87047a4c96d38b4b3ef6f62fca8cd125265917a9e3dc3c996c39e6" --install arm64,amd64
-	# remove any leftover container from a failed task
-	docker container rm apm-server-fips-cont || true
-	docker image rm apm-server-fips-image-temp || true
-	# rely on Dockerfile.fips to use the go fips toolchain
-	docker buildx build --load --platform "$(GOOS)/$(GOARCH)" --build-arg GOLANG_VERSION="$(shell go list -m -f '{{.Version}}' go)" -f ./packaging/docker/Dockerfile.fips -t apm-server-fips-image-temp .
-	docker container create --name apm-server-fips-cont apm-server-fips-image-temp
-	mkdir -p build
-	docker cp apm-server-fips-cont:/usr/share/apm-server/apm-server "build/apm-server-fips-$(GOOS)-$(GOARCH)"
-	# cleanup running container
-	docker container rm apm-server-fips-cont
-	docker image rm apm-server-fips-image-temp
-
 # Rule to build apm-server binaries, using Go's native cross-compilation.
 #
 # Note, we do not export GO* environment variables in the Makefile,
 # as they would be inherited by common dependencies, which is undesirable.
 # Instead, we use the "env" command to export them just when cross-compiling
 # the apm-server binaries.
-.PHONY: $(APM_SERVER_BINARIES)
-$(APM_SERVER_BINARIES):
+.PHONY: $(APM_SERVER_BINARIES) $(APM_SERVER_FIPS_BINARIES)
+$(APM_SERVER_BINARIES) $(APM_SERVER_FIPS_BINARIES):
 	# call make instead of using a prerequisite to force it to run the task when
 	# multiple targets are specified
-	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) NOCP=1 \
+	GOOS=$(GOOS) GOARCH=$(GOARCH) GOFIPS140=$(GOFIPS140) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) NOCP=1 \
 		    $(MAKE) apm-server
 
 .PHONY: apm-server-build
 apm-server-build:
-	env CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) MS_GOTOOLCHAIN_TELEMETRY_ENABLED=0 \
+	env CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) GOFIPS140=$(GOFIPS140) \
 	go build -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) -tags=grpcnotrace,pebblegozstd,$(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
 
 build/apm-server-linux-% build/apm-server-fips-linux-%: GOOS=linux
@@ -102,24 +86,22 @@ x-pack/apm-server/versioninfo_%.syso: $(GITREFFILE) packaging/versioninfo.json
 	# but it could be run from any OS so use the host os and arch.
 	GOOS=$(GOHOSTOS) GOARCH=$(GOHOSTARCH) go tool github.com/josephspurrier/goversioninfo/cmd/goversioninfo -o $@ $(GOVERSIONINFO_FLAGS) packaging/versioninfo.json
 
-.PHONY: apm-server apm-server-oss apm-server-fips apm-server-fips-msft
+.PHONY: apm-server apm-server-oss apm-server-fips
 
 apm-server-oss: PKG=./cmd/apm-server
-apm-server apm-server-fips apm-server-fips-msft: PKG=./x-pack/apm-server
-
-apm-server-fips apm-server-fips-msft: CGO_ENABLED=1
-apm-server apm-server-oss: CGO_ENABLED=0
+apm-server apm-server-fips: PKG=./x-pack/apm-server
 
 apm-server-fips: GOTAGS=requirefips
-apm-server-fips-msft: GOTAGS=requirefips,relaxfips
+
+apm-server-fips: GOFIPS140=v1.0.0
 
 apm-server-oss: SUFFIX=-oss
-apm-server-fips apm-server-fips-msft: SUFFIX=-fips
+apm-server-fips: SUFFIX=-fips
 
-apm-server apm-server-oss apm-server-fips apm-server-fips-msft:
+apm-server apm-server-oss apm-server-fips:
 	# call make instead of using a prerequisite to force it to run the task when
 	# multiple targets are specified
-	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) \
+	GOOS=$(GOOS) GOARCH=$(GOARCH) GOFIPS140=$(GOFIPS140) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) \
 		    $(MAKE) apm-server-build
 	@[ "${NOCP}" ] || cp "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" "apm-server$(SUFFIX)"
 
