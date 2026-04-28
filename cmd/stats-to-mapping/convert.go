@@ -55,13 +55,14 @@ type item struct {
 }
 
 // goType returns the field type for a JSON scalar value. Integer-valued
-// numbers map to "long"; strings (e.g. libbeat.output.type = "elasticsearch")
-// map to "keyword".
+// numbers map to "long" and non-integer numbers map to "float" (e.g.
+// apm-server.sampling.tail.storage.disk_usage_threshold_pct = 0.8); strings
+// (e.g. libbeat.output.type = "elasticsearch") map to "keyword".
 func goType(v any) (string, error) {
 	switch v := v.(type) {
 	case float64:
 		if v != math.Trunc(v) {
-			return "", fmt.Errorf("non-integer number %g", v)
+			return "float", nil
 		}
 		return "long", nil
 	case string:

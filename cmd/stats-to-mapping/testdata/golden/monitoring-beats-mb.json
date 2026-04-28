@@ -285,98 +285,6 @@
                         }
                       }
                     },
-                    "jaeger": {
-                      "properties": {
-                        "grpc": {
-                          "properties": {
-                            "collect": {
-                              "properties": {
-                                "request": {
-                                  "properties": {
-                                    "count": {
-                                      "type": "long"
-                                    }
-                                  }
-                                },
-                                "response": {
-                                  "properties": {
-                                    "count": {
-                                      "type": "long"
-                                    },
-                                    "errors": {
-                                      "properties": {
-                                        "count": {
-                                          "type": "long"
-                                        },
-                                        "ratelimit": {
-                                          "type": "long"
-                                        },
-                                        "timeout": {
-                                          "type": "long"
-                                        },
-                                        "unauthorized": {
-                                          "type": "long"
-                                        }
-                                      }
-                                    },
-                                    "valid": {
-                                      "properties": {
-                                        "count": {
-                                          "type": "long"
-                                        }
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            "sampling": {
-                              "properties": {
-                                "event": {
-                                  "properties": {
-                                    "received": {
-                                      "properties": {
-                                        "count": {
-                                          "type": "long"
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                "request": {
-                                  "properties": {
-                                    "count": {
-                                      "type": "long"
-                                    }
-                                  }
-                                },
-                                "response": {
-                                  "properties": {
-                                    "count": {
-                                      "type": "long"
-                                    },
-                                    "errors": {
-                                      "properties": {
-                                        "count": {
-                                          "type": "long"
-                                        }
-                                      }
-                                    },
-                                    "valid": {
-                                      "properties": {
-                                        "count": {
-                                          "type": "long"
-                                        }
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    },
                     "otlp": {
                       "properties": {
                         "grpc": {
@@ -397,7 +305,31 @@
                                     },
                                     "errors": {
                                       "properties": {
+                                        "closed": {
+                                          "type": "long"
+                                        },
                                         "count": {
+                                          "type": "long"
+                                        },
+                                        "decode": {
+                                          "type": "long"
+                                        },
+                                        "forbidden": {
+                                          "type": "long"
+                                        },
+                                        "internal": {
+                                          "type": "long"
+                                        },
+                                        "invalidquery": {
+                                          "type": "long"
+                                        },
+                                        "method": {
+                                          "type": "long"
+                                        },
+                                        "notfound": {
+                                          "type": "long"
+                                        },
+                                        "queue": {
                                           "type": "long"
                                         },
                                         "ratelimit": {
@@ -406,19 +338,40 @@
                                         "timeout": {
                                           "type": "long"
                                         },
+                                        "toolarge": {
+                                          "type": "long"
+                                        },
                                         "unauthorized": {
+                                          "type": "long"
+                                        },
+                                        "unavailable": {
+                                          "type": "long"
+                                        },
+                                        "validate": {
                                           "type": "long"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
+                                        "accepted": {
+                                          "type": "long"
+                                        },
                                         "count": {
+                                          "type": "long"
+                                        },
+                                        "notmodified": {
+                                          "type": "long"
+                                        },
+                                        "ok": {
                                           "type": "long"
                                         }
                                       }
                                     }
                                   }
+                                },
+                                "unset": {
+                                  "type": "long"
                                 }
                               }
                             },
@@ -445,7 +398,31 @@
                                     },
                                     "errors": {
                                       "properties": {
+                                        "closed": {
+                                          "type": "long"
+                                        },
                                         "count": {
+                                          "type": "long"
+                                        },
+                                        "decode": {
+                                          "type": "long"
+                                        },
+                                        "forbidden": {
+                                          "type": "long"
+                                        },
+                                        "internal": {
+                                          "type": "long"
+                                        },
+                                        "invalidquery": {
+                                          "type": "long"
+                                        },
+                                        "method": {
+                                          "type": "long"
+                                        },
+                                        "notfound": {
+                                          "type": "long"
+                                        },
+                                        "queue": {
                                           "type": "long"
                                         },
                                         "ratelimit": {
@@ -454,19 +431,40 @@
                                         "timeout": {
                                           "type": "long"
                                         },
+                                        "toolarge": {
+                                          "type": "long"
+                                        },
                                         "unauthorized": {
+                                          "type": "long"
+                                        },
+                                        "unavailable": {
+                                          "type": "long"
+                                        },
+                                        "validate": {
                                           "type": "long"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
+                                        "accepted": {
+                                          "type": "long"
+                                        },
                                         "count": {
+                                          "type": "long"
+                                        },
+                                        "notmodified": {
+                                          "type": "long"
+                                        },
+                                        "ok": {
                                           "type": "long"
                                         }
                                       }
                                     }
                                   }
+                                },
+                                "unset": {
+                                  "type": "long"
                                 }
                               }
                             },
@@ -486,7 +484,31 @@
                                     },
                                     "errors": {
                                       "properties": {
+                                        "closed": {
+                                          "type": "long"
+                                        },
                                         "count": {
+                                          "type": "long"
+                                        },
+                                        "decode": {
+                                          "type": "long"
+                                        },
+                                        "forbidden": {
+                                          "type": "long"
+                                        },
+                                        "internal": {
+                                          "type": "long"
+                                        },
+                                        "invalidquery": {
+                                          "type": "long"
+                                        },
+                                        "method": {
+                                          "type": "long"
+                                        },
+                                        "notfound": {
+                                          "type": "long"
+                                        },
+                                        "queue": {
                                           "type": "long"
                                         },
                                         "ratelimit": {
@@ -495,19 +517,40 @@
                                         "timeout": {
                                           "type": "long"
                                         },
+                                        "toolarge": {
+                                          "type": "long"
+                                        },
                                         "unauthorized": {
+                                          "type": "long"
+                                        },
+                                        "unavailable": {
+                                          "type": "long"
+                                        },
+                                        "validate": {
                                           "type": "long"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
+                                        "accepted": {
+                                          "type": "long"
+                                        },
                                         "count": {
+                                          "type": "long"
+                                        },
+                                        "notmodified": {
+                                          "type": "long"
+                                        },
+                                        "ok": {
                                           "type": "long"
                                         }
                                       }
                                     }
                                   }
+                                },
+                                "unset": {
+                                  "type": "long"
                                 }
                               }
                             }
@@ -531,7 +574,31 @@
                                     },
                                     "errors": {
                                       "properties": {
+                                        "closed": {
+                                          "type": "long"
+                                        },
                                         "count": {
+                                          "type": "long"
+                                        },
+                                        "decode": {
+                                          "type": "long"
+                                        },
+                                        "forbidden": {
+                                          "type": "long"
+                                        },
+                                        "internal": {
+                                          "type": "long"
+                                        },
+                                        "invalidquery": {
+                                          "type": "long"
+                                        },
+                                        "method": {
+                                          "type": "long"
+                                        },
+                                        "notfound": {
+                                          "type": "long"
+                                        },
+                                        "queue": {
                                           "type": "long"
                                         },
                                         "ratelimit": {
@@ -540,19 +607,40 @@
                                         "timeout": {
                                           "type": "long"
                                         },
+                                        "toolarge": {
+                                          "type": "long"
+                                        },
                                         "unauthorized": {
+                                          "type": "long"
+                                        },
+                                        "unavailable": {
+                                          "type": "long"
+                                        },
+                                        "validate": {
                                           "type": "long"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
+                                        "accepted": {
+                                          "type": "long"
+                                        },
                                         "count": {
+                                          "type": "long"
+                                        },
+                                        "notmodified": {
+                                          "type": "long"
+                                        },
+                                        "ok": {
                                           "type": "long"
                                         }
                                       }
                                     }
                                   }
+                                },
+                                "unset": {
+                                  "type": "long"
                                 }
                               }
                             },
@@ -579,7 +667,31 @@
                                     },
                                     "errors": {
                                       "properties": {
+                                        "closed": {
+                                          "type": "long"
+                                        },
                                         "count": {
+                                          "type": "long"
+                                        },
+                                        "decode": {
+                                          "type": "long"
+                                        },
+                                        "forbidden": {
+                                          "type": "long"
+                                        },
+                                        "internal": {
+                                          "type": "long"
+                                        },
+                                        "invalidquery": {
+                                          "type": "long"
+                                        },
+                                        "method": {
+                                          "type": "long"
+                                        },
+                                        "notfound": {
+                                          "type": "long"
+                                        },
+                                        "queue": {
                                           "type": "long"
                                         },
                                         "ratelimit": {
@@ -588,19 +700,40 @@
                                         "timeout": {
                                           "type": "long"
                                         },
+                                        "toolarge": {
+                                          "type": "long"
+                                        },
                                         "unauthorized": {
+                                          "type": "long"
+                                        },
+                                        "unavailable": {
+                                          "type": "long"
+                                        },
+                                        "validate": {
                                           "type": "long"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
+                                        "accepted": {
+                                          "type": "long"
+                                        },
                                         "count": {
+                                          "type": "long"
+                                        },
+                                        "notmodified": {
+                                          "type": "long"
+                                        },
+                                        "ok": {
                                           "type": "long"
                                         }
                                       }
                                     }
                                   }
+                                },
+                                "unset": {
+                                  "type": "long"
                                 }
                               }
                             },
@@ -620,7 +753,31 @@
                                     },
                                     "errors": {
                                       "properties": {
+                                        "closed": {
+                                          "type": "long"
+                                        },
                                         "count": {
+                                          "type": "long"
+                                        },
+                                        "decode": {
+                                          "type": "long"
+                                        },
+                                        "forbidden": {
+                                          "type": "long"
+                                        },
+                                        "internal": {
+                                          "type": "long"
+                                        },
+                                        "invalidquery": {
+                                          "type": "long"
+                                        },
+                                        "method": {
+                                          "type": "long"
+                                        },
+                                        "notfound": {
+                                          "type": "long"
+                                        },
+                                        "queue": {
                                           "type": "long"
                                         },
                                         "ratelimit": {
@@ -629,19 +786,40 @@
                                         "timeout": {
                                           "type": "long"
                                         },
+                                        "toolarge": {
+                                          "type": "long"
+                                        },
                                         "unauthorized": {
+                                          "type": "long"
+                                        },
+                                        "unavailable": {
+                                          "type": "long"
+                                        },
+                                        "validate": {
                                           "type": "long"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
+                                        "accepted": {
+                                          "type": "long"
+                                        },
                                         "count": {
+                                          "type": "long"
+                                        },
+                                        "notmodified": {
+                                          "type": "long"
+                                        },
+                                        "ok": {
                                           "type": "long"
                                         }
                                       }
                                     }
                                   }
+                                },
+                                "unset": {
+                                  "type": "long"
                                 }
                               }
                             }
@@ -652,6 +830,13 @@
                     "processor": {
                       "properties": {
                         "error": {
+                          "properties": {
+                            "transformations": {
+                              "type": "long"
+                            }
+                          }
+                        },
+                        "log": {
                           "properties": {
                             "transformations": {
                               "type": "long"
@@ -690,6 +875,13 @@
                           }
                         },
                         "transaction": {
+                          "properties": {
+                            "transformations": {
+                              "type": "long"
+                            }
+                          }
+                        },
+                        "undefined": {
                           "properties": {
                             "transformations": {
                               "type": "long"
@@ -786,6 +978,57 @@
                     },
                     "sampling": {
                       "properties": {
+                        "tail": {
+                          "properties": {
+                            "dynamic_service_groups": {
+                              "type": "long"
+                            },
+                            "events": {
+                              "properties": {
+                                "dropped": {
+                                  "type": "long"
+                                },
+                                "failed_writes": {
+                                  "type": "long"
+                                },
+                                "head_unsampled": {
+                                  "type": "long"
+                                },
+                                "processed": {
+                                  "type": "long"
+                                },
+                                "sampled": {
+                                  "type": "long"
+                                },
+                                "stored": {
+                                  "type": "long"
+                                }
+                              }
+                            },
+                            "storage": {
+                              "properties": {
+                                "disk_total": {
+                                  "type": "long"
+                                },
+                                "disk_usage_threshold_pct": {
+                                  "type": "float"
+                                },
+                                "disk_used": {
+                                  "type": "long"
+                                },
+                                "lsm_size": {
+                                  "type": "long"
+                                },
+                                "storage_limit": {
+                                  "type": "long"
+                                },
+                                "value_log_size": {
+                                  "type": "long"
+                                }
+                              }
+                            }
+                          }
+                        },
                         "transactions_dropped": {
                           "type": "long"
                         }
@@ -1286,37 +1529,8 @@
                 },
                 "output": {
                   "properties": {
-                    "events": {
-                      "properties": {
-                        "acked": {
-                          "type": "long"
-                        },
-                        "active": {
-                          "type": "long"
-                        },
-                        "batches": {
-                          "type": "long"
-                        },
-                        "failed": {
-                          "type": "long"
-                        },
-                        "toomany": {
-                          "type": "long"
-                        },
-                        "total": {
-                          "type": "long"
-                        }
-                      }
-                    },
                     "type": {
                       "type": "keyword"
-                    },
-                    "write": {
-                      "properties": {
-                        "bytes": {
-                          "type": "long"
-                        }
-                      }
                     }
                   }
                 }
@@ -1638,110 +1852,6 @@
                         }
                       }
                     },
-                    "jaeger": {
-                      "properties": {
-                        "grpc": {
-                          "properties": {
-                            "collect": {
-                              "properties": {
-                                "request": {
-                                  "properties": {
-                                    "count": {
-                                      "type": "alias",
-                                      "path": "beat.stats.apm_server.jaeger.grpc.collect.request.count"
-                                    }
-                                  }
-                                },
-                                "response": {
-                                  "properties": {
-                                    "count": {
-                                      "type": "alias",
-                                      "path": "beat.stats.apm_server.jaeger.grpc.collect.response.count"
-                                    },
-                                    "errors": {
-                                      "properties": {
-                                        "count": {
-                                          "type": "alias",
-                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.errors.count"
-                                        },
-                                        "ratelimit": {
-                                          "type": "alias",
-                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.errors.ratelimit"
-                                        },
-                                        "timeout": {
-                                          "type": "alias",
-                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.errors.timeout"
-                                        },
-                                        "unauthorized": {
-                                          "type": "alias",
-                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.errors.unauthorized"
-                                        }
-                                      }
-                                    },
-                                    "valid": {
-                                      "properties": {
-                                        "count": {
-                                          "type": "alias",
-                                          "path": "beat.stats.apm_server.jaeger.grpc.collect.response.valid.count"
-                                        }
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            "sampling": {
-                              "properties": {
-                                "event": {
-                                  "properties": {
-                                    "received": {
-                                      "properties": {
-                                        "count": {
-                                          "type": "alias",
-                                          "path": "beat.stats.apm_server.jaeger.grpc.sampling.event.received.count"
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                "request": {
-                                  "properties": {
-                                    "count": {
-                                      "type": "alias",
-                                      "path": "beat.stats.apm_server.jaeger.grpc.sampling.request.count"
-                                    }
-                                  }
-                                },
-                                "response": {
-                                  "properties": {
-                                    "count": {
-                                      "type": "alias",
-                                      "path": "beat.stats.apm_server.jaeger.grpc.sampling.response.count"
-                                    },
-                                    "errors": {
-                                      "properties": {
-                                        "count": {
-                                          "type": "alias",
-                                          "path": "beat.stats.apm_server.jaeger.grpc.sampling.response.errors.count"
-                                        }
-                                      }
-                                    },
-                                    "valid": {
-                                      "properties": {
-                                        "count": {
-                                          "type": "alias",
-                                          "path": "beat.stats.apm_server.jaeger.grpc.sampling.response.valid.count"
-                                        }
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    },
                     "otlp": {
                       "properties": {
                         "grpc": {
@@ -1764,9 +1874,41 @@
                                     },
                                     "errors": {
                                       "properties": {
+                                        "closed": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.closed"
+                                        },
                                         "count": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.count"
+                                        },
+                                        "decode": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.decode"
+                                        },
+                                        "forbidden": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.forbidden"
+                                        },
+                                        "internal": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.internal"
+                                        },
+                                        "invalidquery": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.invalidquery"
+                                        },
+                                        "method": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.method"
+                                        },
+                                        "notfound": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.notfound"
+                                        },
+                                        "queue": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.queue"
                                         },
                                         "ratelimit": {
                                           "type": "alias",
@@ -1776,21 +1918,49 @@
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.timeout"
                                         },
+                                        "toolarge": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.toolarge"
+                                        },
                                         "unauthorized": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.unauthorized"
+                                        },
+                                        "unavailable": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.unavailable"
+                                        },
+                                        "validate": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.errors.validate"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
+                                        "accepted": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.valid.accepted"
+                                        },
                                         "count": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.grpc.logs.response.valid.count"
+                                        },
+                                        "notmodified": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.valid.notmodified"
+                                        },
+                                        "ok": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.logs.response.valid.ok"
                                         }
                                       }
                                     }
                                   }
+                                },
+                                "unset": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.otlp.grpc.logs.unset"
                                 }
                               }
                             },
@@ -1820,9 +1990,41 @@
                                     },
                                     "errors": {
                                       "properties": {
+                                        "closed": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.closed"
+                                        },
                                         "count": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.count"
+                                        },
+                                        "decode": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.decode"
+                                        },
+                                        "forbidden": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.forbidden"
+                                        },
+                                        "internal": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.internal"
+                                        },
+                                        "invalidquery": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.invalidquery"
+                                        },
+                                        "method": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.method"
+                                        },
+                                        "notfound": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.notfound"
+                                        },
+                                        "queue": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.queue"
                                         },
                                         "ratelimit": {
                                           "type": "alias",
@@ -1832,21 +2034,49 @@
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.timeout"
                                         },
+                                        "toolarge": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.toolarge"
+                                        },
                                         "unauthorized": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.unauthorized"
+                                        },
+                                        "unavailable": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.unavailable"
+                                        },
+                                        "validate": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.errors.validate"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
+                                        "accepted": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.valid.accepted"
+                                        },
                                         "count": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.grpc.metrics.response.valid.count"
+                                        },
+                                        "notmodified": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.valid.notmodified"
+                                        },
+                                        "ok": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.metrics.response.valid.ok"
                                         }
                                       }
                                     }
                                   }
+                                },
+                                "unset": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.otlp.grpc.metrics.unset"
                                 }
                               }
                             },
@@ -1868,9 +2098,41 @@
                                     },
                                     "errors": {
                                       "properties": {
+                                        "closed": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.closed"
+                                        },
                                         "count": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.count"
+                                        },
+                                        "decode": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.decode"
+                                        },
+                                        "forbidden": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.forbidden"
+                                        },
+                                        "internal": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.internal"
+                                        },
+                                        "invalidquery": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.invalidquery"
+                                        },
+                                        "method": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.method"
+                                        },
+                                        "notfound": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.notfound"
+                                        },
+                                        "queue": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.queue"
                                         },
                                         "ratelimit": {
                                           "type": "alias",
@@ -1880,21 +2142,49 @@
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.timeout"
                                         },
+                                        "toolarge": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.toolarge"
+                                        },
                                         "unauthorized": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.unauthorized"
+                                        },
+                                        "unavailable": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.unavailable"
+                                        },
+                                        "validate": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.errors.validate"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
+                                        "accepted": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.valid.accepted"
+                                        },
                                         "count": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.grpc.traces.response.valid.count"
+                                        },
+                                        "notmodified": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.valid.notmodified"
+                                        },
+                                        "ok": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.grpc.traces.response.valid.ok"
                                         }
                                       }
                                     }
                                   }
+                                },
+                                "unset": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.otlp.grpc.traces.unset"
                                 }
                               }
                             }
@@ -1920,9 +2210,41 @@
                                     },
                                     "errors": {
                                       "properties": {
+                                        "closed": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.closed"
+                                        },
                                         "count": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.http.logs.response.errors.count"
+                                        },
+                                        "decode": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.decode"
+                                        },
+                                        "forbidden": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.forbidden"
+                                        },
+                                        "internal": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.internal"
+                                        },
+                                        "invalidquery": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.invalidquery"
+                                        },
+                                        "method": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.method"
+                                        },
+                                        "notfound": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.notfound"
+                                        },
+                                        "queue": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.queue"
                                         },
                                         "ratelimit": {
                                           "type": "alias",
@@ -1932,21 +2254,49 @@
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.http.logs.response.errors.timeout"
                                         },
+                                        "toolarge": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.toolarge"
+                                        },
                                         "unauthorized": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.http.logs.response.errors.unauthorized"
+                                        },
+                                        "unavailable": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.unavailable"
+                                        },
+                                        "validate": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.errors.validate"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
+                                        "accepted": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.valid.accepted"
+                                        },
                                         "count": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.http.logs.response.valid.count"
+                                        },
+                                        "notmodified": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.valid.notmodified"
+                                        },
+                                        "ok": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.logs.response.valid.ok"
                                         }
                                       }
                                     }
                                   }
+                                },
+                                "unset": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.otlp.http.logs.unset"
                                 }
                               }
                             },
@@ -1976,9 +2326,41 @@
                                     },
                                     "errors": {
                                       "properties": {
+                                        "closed": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.closed"
+                                        },
                                         "count": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.count"
+                                        },
+                                        "decode": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.decode"
+                                        },
+                                        "forbidden": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.forbidden"
+                                        },
+                                        "internal": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.internal"
+                                        },
+                                        "invalidquery": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.invalidquery"
+                                        },
+                                        "method": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.method"
+                                        },
+                                        "notfound": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.notfound"
+                                        },
+                                        "queue": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.queue"
                                         },
                                         "ratelimit": {
                                           "type": "alias",
@@ -1988,21 +2370,49 @@
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.timeout"
                                         },
+                                        "toolarge": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.toolarge"
+                                        },
                                         "unauthorized": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.unauthorized"
+                                        },
+                                        "unavailable": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.unavailable"
+                                        },
+                                        "validate": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.errors.validate"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
+                                        "accepted": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.valid.accepted"
+                                        },
                                         "count": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.http.metrics.response.valid.count"
+                                        },
+                                        "notmodified": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.valid.notmodified"
+                                        },
+                                        "ok": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.metrics.response.valid.ok"
                                         }
                                       }
                                     }
                                   }
+                                },
+                                "unset": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.otlp.http.metrics.unset"
                                 }
                               }
                             },
@@ -2024,9 +2434,41 @@
                                     },
                                     "errors": {
                                       "properties": {
+                                        "closed": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.closed"
+                                        },
                                         "count": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.http.traces.response.errors.count"
+                                        },
+                                        "decode": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.decode"
+                                        },
+                                        "forbidden": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.forbidden"
+                                        },
+                                        "internal": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.internal"
+                                        },
+                                        "invalidquery": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.invalidquery"
+                                        },
+                                        "method": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.method"
+                                        },
+                                        "notfound": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.notfound"
+                                        },
+                                        "queue": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.queue"
                                         },
                                         "ratelimit": {
                                           "type": "alias",
@@ -2036,21 +2478,49 @@
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.http.traces.response.errors.timeout"
                                         },
+                                        "toolarge": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.toolarge"
+                                        },
                                         "unauthorized": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.http.traces.response.errors.unauthorized"
+                                        },
+                                        "unavailable": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.unavailable"
+                                        },
+                                        "validate": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.errors.validate"
                                         }
                                       }
                                     },
                                     "valid": {
                                       "properties": {
+                                        "accepted": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.valid.accepted"
+                                        },
                                         "count": {
                                           "type": "alias",
                                           "path": "beat.stats.apm_server.otlp.http.traces.response.valid.count"
+                                        },
+                                        "notmodified": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.valid.notmodified"
+                                        },
+                                        "ok": {
+                                          "type": "alias",
+                                          "path": "beat.stats.apm_server.otlp.http.traces.response.valid.ok"
                                         }
                                       }
                                     }
                                   }
+                                },
+                                "unset": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.otlp.http.traces.unset"
                                 }
                               }
                             }
@@ -2065,6 +2535,14 @@
                             "transformations": {
                               "type": "alias",
                               "path": "beat.stats.apm_server.processor.error.transformations"
+                            }
+                          }
+                        },
+                        "log": {
+                          "properties": {
+                            "transformations": {
+                              "type": "alias",
+                              "path": "beat.stats.apm_server.processor.log.transformations"
                             }
                           }
                         },
@@ -2109,6 +2587,14 @@
                             "transformations": {
                               "type": "alias",
                               "path": "beat.stats.apm_server.processor.transaction.transformations"
+                            }
+                          }
+                        },
+                        "undefined": {
+                          "properties": {
+                            "transformations": {
+                              "type": "alias",
+                              "path": "beat.stats.apm_server.processor.undefined.transformations"
                             }
                           }
                         }
@@ -2224,6 +2710,70 @@
                     },
                     "sampling": {
                       "properties": {
+                        "tail": {
+                          "properties": {
+                            "dynamic_service_groups": {
+                              "type": "alias",
+                              "path": "beat.stats.apm_server.sampling.tail.dynamic_service_groups"
+                            },
+                            "events": {
+                              "properties": {
+                                "dropped": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.sampling.tail.events.dropped"
+                                },
+                                "failed_writes": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.sampling.tail.events.failed_writes"
+                                },
+                                "head_unsampled": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.sampling.tail.events.head_unsampled"
+                                },
+                                "processed": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.sampling.tail.events.processed"
+                                },
+                                "sampled": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.sampling.tail.events.sampled"
+                                },
+                                "stored": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.sampling.tail.events.stored"
+                                }
+                              }
+                            },
+                            "storage": {
+                              "properties": {
+                                "disk_total": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.sampling.tail.storage.disk_total"
+                                },
+                                "disk_usage_threshold_pct": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.sampling.tail.storage.disk_usage_threshold_pct"
+                                },
+                                "disk_used": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.sampling.tail.storage.disk_used"
+                                },
+                                "lsm_size": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.sampling.tail.storage.lsm_size"
+                                },
+                                "storage_limit": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.sampling.tail.storage.storage_limit"
+                                },
+                                "value_log_size": {
+                                  "type": "alias",
+                                  "path": "beat.stats.apm_server.sampling.tail.storage.value_log_size"
+                                }
+                              }
+                            }
+                          }
+                        },
                         "transactions_dropped": {
                           "type": "alias",
                           "path": "beat.stats.apm_server.sampling.transactions_dropped"
@@ -2770,45 +3320,9 @@
                 },
                 "output": {
                   "properties": {
-                    "events": {
-                      "properties": {
-                        "acked": {
-                          "type": "alias",
-                          "path": "beat.stats.output.events.acked"
-                        },
-                        "active": {
-                          "type": "alias",
-                          "path": "beat.stats.output.events.active"
-                        },
-                        "batches": {
-                          "type": "alias",
-                          "path": "beat.stats.output.events.batches"
-                        },
-                        "failed": {
-                          "type": "alias",
-                          "path": "beat.stats.output.events.failed"
-                        },
-                        "toomany": {
-                          "type": "alias",
-                          "path": "beat.stats.output.events.toomany"
-                        },
-                        "total": {
-                          "type": "alias",
-                          "path": "beat.stats.output.events.total"
-                        }
-                      }
-                    },
                     "type": {
                       "type": "alias",
                       "path": "beat.stats.output.type"
-                    },
-                    "write": {
-                      "properties": {
-                        "bytes": {
-                          "type": "alias",
-                          "path": "beat.stats.output.write.bytes"
-                        }
-                      }
                     }
                   }
                 }

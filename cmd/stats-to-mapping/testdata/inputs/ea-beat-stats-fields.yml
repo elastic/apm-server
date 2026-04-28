@@ -1,524 +1,425 @@
-- name: beat.type
-  description: Beat type.
-  type: keyword
 - name: beat.stats
   type: group
   fields:
-    - name: apm_server
+    - name: beat
       type: group
       fields:
-        - name: acm
-          type: group
-          fields:
-            - name: request.count
-              type: long
-            - name: response
-              type: group
-              fields:
-                - name: count
-                  type: long
-                - name: errors
-                  type: group
-                  fields:
-                    - name: closed
-                      type: long
-                    - name: count
-                      type: long
-                    - name: decode
-                      type: long
-                    - name: forbidden
-                      type: long
-                    - name: internal
-                      type: long
-                    - name: invalidquery
-                      type: long
-                    - name: method
-                      type: long
-                    - name: notfound
-                      type: long
-                    - name: queue
-                      type: long
-                    - name: ratelimit
-                      type: long
-                    - name: timeout
-                      type: long
-                    - name: toolarge
-                      type: long
-                    - name: unauthorized
-                      type: long
-                    - name: unavailable
-                      type: long
-                    - name: validate
-                      type: long
-                - name: valid
-                  type: group
-                  fields:
-                    - name: accepted
-                      type: long
-                    - name: count
-                      type: long
-                    - name: notmodified
-                      type: long
-                    - name: ok
-                      type: long
-            - name: unset
-              type: long
-        - name: agentcfg
-          type: group
-          fields:
-            - name: elasticsearch
-              type: group
-              fields:
-                - name: cache.entries.count
-                  type: long
-                - name: cache.refresh.failures
-                  type: long
-                - name: cache.refresh.successes
-                  type: long
-                - name: fetch.es
-                  type: long
-                - name: fetch.fallback
-                  type: long
-                - name: fetch.invalid
-                  type: long
-                - name: fetch.unavailable
-                  type: long
-        - name: jaeger
-          type: group
-          fields:
-            - name: grpc
-              type: group
-              fields:
-                - name: collect
-                  type: group
-                  fields:
-                    - name: request.count
-                      type: long
-                    - name: response
-                      type: group
-                      fields:
-                        - name: count
-                          type: long
-                        - name: errors
-                          type: group
-                          fields:
-                            - name: count
-                              type: long
-                            - name: ratelimit
-                              type: long
-                            - name: timeout
-                              type: long
-                            - name: unauthorized
-                              type: long
-                        - name: valid.count
-                          type: long
-                - name: sampling
-                  type: group
-                  fields:
-                    - name: event.received.count
-                      type: long
-                    - name: request.count
-                      type: long
-                    - name: response
-                      type: group
-                      fields:
-                        - name: count
-                          type: long
-                        - name: errors.count
-                          type: long
-                        - name: valid.count
-                          type: long
-        - name: otlp
-          type: group
-          fields:
-            - name: grpc
-              type: group
-              fields:
-                - name: logs
-                  type: group
-                  fields:
-                    - name: request.count
-                      type: long
-                    - name: response
-                      type: group
-                      fields:
-                        - name: count
-                          type: long
-                        - name: errors
-                          type: group
-                          fields:
-                            - name: count
-                              type: long
-                            - name: ratelimit
-                              type: long
-                            - name: timeout
-                              type: long
-                            - name: unauthorized
-                              type: long
-                        - name: valid.count
-                          type: long
-                - name: metrics
-                  type: group
-                  fields:
-                    - name: consumer.unsupported_dropped
-                      type: long
-                    - name: request.count
-                      type: long
-                    - name: response
-                      type: group
-                      fields:
-                        - name: count
-                          type: long
-                        - name: errors
-                          type: group
-                          fields:
-                            - name: count
-                              type: long
-                            - name: ratelimit
-                              type: long
-                            - name: timeout
-                              type: long
-                            - name: unauthorized
-                              type: long
-                        - name: valid.count
-                          type: long
-                - name: traces
-                  type: group
-                  fields:
-                    - name: request.count
-                      type: long
-                    - name: response
-                      type: group
-                      fields:
-                        - name: count
-                          type: long
-                        - name: errors
-                          type: group
-                          fields:
-                            - name: count
-                              type: long
-                            - name: ratelimit
-                              type: long
-                            - name: timeout
-                              type: long
-                            - name: unauthorized
-                              type: long
-                        - name: valid.count
-                          type: long
-            - name: http
-              type: group
-              fields:
-                - name: logs
-                  type: group
-                  fields:
-                    - name: request.count
-                      type: long
-                    - name: response
-                      type: group
-                      fields:
-                        - name: count
-                          type: long
-                        - name: errors
-                          type: group
-                          fields:
-                            - name: count
-                              type: long
-                            - name: ratelimit
-                              type: long
-                            - name: timeout
-                              type: long
-                            - name: unauthorized
-                              type: long
-                        - name: valid.count
-                          type: long
-                - name: metrics
-                  type: group
-                  fields:
-                    - name: consumer.unsupported_dropped
-                      type: long
-                    - name: request.count
-                      type: long
-                    - name: response
-                      type: group
-                      fields:
-                        - name: count
-                          type: long
-                        - name: errors
-                          type: group
-                          fields:
-                            - name: count
-                              type: long
-                            - name: ratelimit
-                              type: long
-                            - name: timeout
-                              type: long
-                            - name: unauthorized
-                              type: long
-                        - name: valid.count
-                          type: long
-                - name: traces
-                  type: group
-                  fields:
-                    - name: request.count
-                      type: long
-                    - name: response
-                      type: group
-                      fields:
-                        - name: count
-                          type: long
-                        - name: errors
-                          type: group
-                          fields:
-                            - name: count
-                              type: long
-                            - name: ratelimit
-                              type: long
-                            - name: timeout
-                              type: long
-                            - name: unauthorized
-                              type: long
-                        - name: valid.count
-                          type: long
-        - name: processor
-          type: group
-          fields:
-            - name: error.transformations
-              type: long
-            - name: metric.transformations
-              type: long
-            - name: span.transformations
-              type: long
-            - name: stream
-              type: group
-              fields:
-                - name: accepted
-                  type: long
-                - name: errors
-                  type: group
-                  fields:
-                    - name: invalid
-                      type: long
-                    - name: toolarge
-                      type: long
-            - name: transaction.transformations
-              type: long
-        - name: root
-          type: group
-          fields:
-            - name: request.count
-              type: long
-            - name: response
-              type: group
-              fields:
-                - name: count
-                  type: long
-                - name: errors
-                  type: group
-                  fields:
-                    - name: closed
-                      type: long
-                    - name: count
-                      type: long
-                    - name: decode
-                      type: long
-                    - name: forbidden
-                      type: long
-                    - name: internal
-                      type: long
-                    - name: invalidquery
-                      type: long
-                    - name: method
-                      type: long
-                    - name: notfound
-                      type: long
-                    - name: queue
-                      type: long
-                    - name: ratelimit
-                      type: long
-                    - name: timeout
-                      type: long
-                    - name: toolarge
-                      type: long
-                    - name: unauthorized
-                      type: long
-                    - name: unavailable
-                      type: long
-                    - name: validate
-                      type: long
-                - name: valid
-                  type: group
-                  fields:
-                    - name: accepted
-                      type: long
-                    - name: count
-                      type: long
-                    - name: notmodified
-                      type: long
-                    - name: ok
-                      type: long
-            - name: unset
-              type: long
-        - name: sampling.transactions_dropped
+        - name: name
+          type: keyword
+        - name: host
+          type: keyword
+        - name: type
+          type: keyword
+        - name: uuid
+          type: keyword
+        - name: version
+          type: keyword
+    - name: system
+      type: group
+      fields:
+        - name: cpu.cores
           type: long
-        - name: server
+        - name: load
           type: group
           fields:
-            - name: request.count
-              type: long
-            - name: response
+            - name: "1"
+              type: double
+            - name: "15"
+              type: double
+            - name: "5"
+              type: double
+            - name: norm
               type: group
               fields:
-                - name: count
-                  type: long
-                - name: errors
-                  type: group
-                  fields:
-                    - name: closed
-                      type: long
-                    - name: count
-                      type: long
-                    - name: decode
-                      type: long
-                    - name: forbidden
-                      type: long
-                    - name: internal
-                      type: long
-                    - name: invalidquery
-                      type: long
-                    - name: method
-                      type: long
-                    - name: notfound
-                      type: long
-                    - name: queue
-                      type: long
-                    - name: ratelimit
-                      type: long
-                    - name: timeout
-                      type: long
-                    - name: toolarge
-                      type: long
-                    - name: unauthorized
-                      type: long
-                    - name: unavailable
-                      type: long
-                    - name: validate
-                      type: long
-                - name: valid
-                  type: group
-                  fields:
-                    - name: accepted
-                      type: long
-                    - name: count
-                      type: long
-                    - name: notmodified
-                      type: long
-                    - name: ok
-                      type: long
-            - name: unset
+                - name: "1"
+                  type: double
+                - name: "15"
+                  type: double
+                - name: "5"
+                  type: double
+    - name: cpu
+      type: group
+      fields:
+        - name: system.ticks
+          type: long
+        - name: system.time.ms
+          type: long
+        - name: total.value
+          type: long
+        - name: total.ticks
+          type: long
+        - name: total.time.ms
+          type: long
+        - name: user.ticks
+          type: long
+        - name: user.time.ms
+          type: long
+    - name: info
+      type: group
+      fields:
+        - name: ephemeral_id
+          type: keyword
+        - name: uptime.ms
+          type: long
+    - name: cgroup
+      type: group
+      fields:
+        - name: cpu
+          type: group
+          fields:
+            - name: cfs.period.us
               type: long
+            - name: cfs.quota.us
+              type: long
+            - name: id
+              type: keyword
+            - name: stats
+              type: group
+              fields:
+                - name: periods
+                  type: long
+                - name: throttled.periods
+                  type: long
+                - name: throttled.ns
+                  type: long
+        - name: cpuacct.id
+          type: keyword
+        - name: cpuacct.total.ns
+          type: long
+        - name: memory
+          type: group
+          fields:
+            - name: id
+              type: keyword
+            - name: mem.limit.bytes
+              type: long
+            - name: mem.usage.bytes
+              type: long
+    - name: memstats
+      type: group
+      fields:
+        - name: gc_next
+          type: long
+        - name: memory.alloc
+          type: long
+        - name: memory.total
+          type: long
+        - name: rss
+          type: long
+    - name: handles
+      type: group
+      fields:
+        - name: open
+          type: long
+        - name: limit.hard
+          type: long
+        - name: limit.soft
+          type: long
+    - name: uptime.ms
+      type: long
+      description: >
+        Beat uptime
+    - name: runtime.goroutines
+      type: long
+      description: >
+        Number of goroutines running in Beat
     - name: libbeat
       type: group
       description: >
         Fields common to all Beats
-
       fields:
-        - name: output
+        - name: pipeline
           type: group
-          description: >
-            Output stats
-
           fields:
+            - name: clients
+              type: long
+            - name: queue
+              type: group
+              fields:
+                - name: acked
+                  type: long
+                  metric_type: counter
+                  description: >
+                    Number of acknowledged events
+                - name: added.bytes
+                  type: long
+                  metric_type: counter
+                  description: >
+                    Number of bytes added to the queue
+                - name: added.events
+                  type: long
+                  metric_type: counter
+                  description: >
+                    Number of events added to the queue
+                - name: consumed.bytes
+                  type: long
+                  metric_type: counter
+                  description: >
+                    Number of bytes consumed from the queue
+                - name: consumed.events
+                  type: long
+                  metric_type: counter
+                  description: >
+                    Number of events consumed from the queue
+                - name: filled.bytes
+                  type: long
+                  metric_type: gauge
+                  description: >
+                    Number of bytes filled in the queue
+                - name: filled.events
+                  type: long
+                  metric_type: gauge
+                  description: >
+                    Number of events filled in the queue
+                - name: filled.pct
+                  type: float
+                  metric_type: gauge
+                  description: >
+                    Percentage of the queue filled
+                - name: max_events
+                  type: long
+                  metric_type: gauge
+                  description: >
+                    Maximum number of events allowed in the queue
+                - name: removed.bytes
+                  type: long
+                  metric_type: counter
+                  description: >
+                    Number of bytes removed from the queue
+                - name: removed.events
+                  type: long
+                  metric_type: counter
+                  description: >
+                    Number of events removed from the queue
             - name: events
               type: group
+              fields:
+                - name: active
+                  type: long
+                  metric_type: counter
+                - name: dropped
+                  type: long
+                  metric_type: counter
+                - name: failed
+                  type: long
+                  metric_type: counter
+                - name: filtered
+                  type: long
+                  metric_type: counter
+                - name: published
+                  type: long
+                  metric_type: counter
+                - name: retry
+                  type: long
+                  metric_type: counter
+                - name: total
+                  type: long
+                  metric_type: counter
+        - name: config
+          type: group
+          fields:
+            - name: reloads
+              type: long
+            - name: running
+              type: long
+            - name: starts
+              type: long
+            - name: stops
+              type: long
+        - name: output
+          type: group
+          fields:
+            - name: type
+              type: keyword
               description: >
-                Event counters
-
+                Type of output
+            - name: events
+              type: group
               fields:
                 - name: acked
                   type: long
                   metric_type: counter
                   description: >
                     Number of events acknowledged
-
                 - name: active
                   type: long
-                  metric_type: gauge
+                  metric_type: counter
                   description: >
                     Number of active events
-
                 - name: batches
                   type: long
                   metric_type: counter
                   description: >
                     Number of event batches
-
                 - name: dropped
                   type: long
                   metric_type: counter
                   description: >
                     Number of events dropped
-
                 - name: duplicates
                   type: long
                   metric_type: counter
                   description: >
                     Number of events duplicated
-
                 - name: failed
                   type: long
                   metric_type: counter
                   description: >
                     Number of events failed
-
                 - name: toomany
                   type: long
                   metric_type: counter
                   description: >
                     Number of too many events
-
                 - name: total
                   type: long
                   metric_type: counter
                   description: >
-                    Total number of events
-
+                    Total number of events processed by the output
             - name: write
               type: group
               description: >
                 Write stats
-
               fields:
                 - name: bytes
                   type: long
                   metric_type: counter
                   description: >
                     Number of bytes written
-
                 - name: errors
                   type: long
                   metric_type: counter
                   description: >
                     Number of write errors
-
-    - name: output
+                - name: latency
+                  type: group
+                  fields:
+                    - name: histogram
+                      type: group
+                      fields:
+                        - name: count
+                          type: long
+                        - name: max
+                          type: float
+                        - name: median
+                          type: long
+                        - name: p99
+                          type: float
+            - name: read
+              type: group
+              description: >
+                Read stats
+              fields:
+                - name: bytes
+                  type: long
+                  metric_type: counter
+                  description: >
+                    Number of bytes read
+                - name: errors
+                  type: long
+                  metric_type: counter
+                  description: >
+                    Number of read errors
+    - name: apm_server
       type: group
+      description: >
+        APM Server specific metrics
       fields:
-        - name: elasticsearch
+        - name: sampling
           type: group
           fields:
-            - name: bulk_requests
+            - name: tail
               type: group
               fields:
-                - name: available
-                  type: long
-                - name: completed
-                  type: long
-            - name: indexers
+                - name: events
+                  type: group
+                  fields:
+                    - name: dropped
+                      type: long
+                      metric_type: counter
+                      description: >
+                        Number of tail-sampling events dropped
+                    - name: failed_writes
+                      type: long
+                      metric_type: counter
+                      description: >
+                        Number of failed writes in tail-based sampling
+                    - name: head_unsampled
+                      type: long
+                      metric_type: counter
+                      description: >
+                        Number of head-unsampled events
+                    - name: processed
+                      type: long
+                      metric_type: counter
+                      description: >
+                        Number of tail-sampling events processed
+                    - name: sampled
+                      type: long
+                      metric_type: counter
+                      description: >
+                        Number of tail-sampling events sampled
+                    - name: stored
+                      type: long
+                      metric_type: counter
+                      description: >
+                        Number of tail-sampling events stored
+                - name: storage
+                  type: group
+                  fields:
+                    - name: lsm_size
+                      type: long
+                      format: bytes
+                      unit: byte
+                      metric_type: gauge
+                      description: >
+                        Size of the LSM tree in bytes
+                    - name: value_log_size
+                      type: long
+                      format: bytes
+                      unit: byte
+                      metric_type: gauge
+                      description: >
+                        Size of the value log in bytes (legacy, always 0 for pebble)
+                    - name: storage_limit
+                      type: long
+                      format: bytes
+                      unit: byte
+                      metric_type: gauge
+                      description: >
+                        Configured storage limit for tail-based sampling database in bytes. 0 means unlimited storage with disk usage threshold check enabled.
+                    - name: disk_used
+                      type: long
+                      format: bytes
+                      unit: byte
+                      metric_type: gauge
+                      description: >
+                        Actual used disk space in bytes for the filesystem containing the tail-based sampling storage directory
+                    - name: disk_total
+                      type: long
+                      format: bytes
+                      unit: byte
+                      metric_type: gauge
+                      description: >
+                        Total disk space in bytes for the filesystem containing the tail-based sampling storage directory
+                    - name: disk_usage_threshold_pct
+                      type: float
+                      metric_type: gauge
+                      description: >
+                        Configured disk usage threshold as a percentage (0-1). When storage_limit is 0, writes are rejected when disk_used exceeds this percentage of disk_total.
+            - name: transactions_dropped
+              type: long
+              metric_type: counter
+              description: >
+                Number of transactions dropped
+        - name: server
+          type: group
+          fields:
+            - name: request
               type: group
               fields:
-                - name: active
+                - name: count
                   type: long
-                - name: created
-                  type: long
-                - name: destroyed
-                  type: long
+                  metric_type: counter
+                  description: >
+                    Number of requests received
