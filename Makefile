@@ -133,6 +133,16 @@ system-test:
 	# would only work on the parts that don't involve APM Server binary.
 	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -tags=grpcnotrace,pebblegozstd,$(GOTAGS) -race -timeout=20m ./...)
 
+# stats-to-mapping-drift detects divergence between this checkout's /stats
+# endpoint and the upstream mapping files in elastic/elasticsearch,
+# elastic/beats, and elastic/integrations. Same script the
+# stats-to-mapping-drift CI workflow runs; run it locally to reproduce a
+# drift issue's diffs without waiting for the next Monday cron. See
+# script/stats-to-mapping-drift.sh for the orchestration.
+.PHONY: stats-to-mapping-drift
+stats-to-mapping-drift:
+	@bash script/stats-to-mapping-drift.sh
+
 .PHONY:
 clean:
 	@rm -rf build apm-server apm-server.exe apm-server-oss apm-server-fips
