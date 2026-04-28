@@ -72,14 +72,21 @@ echo "==> Capturing /stats"
   >"$WORK/apm-server.log" 2>&1 &
 pid=$!
 trap 'kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null || true' EXIT
+captured=false
 for attempt in $(seq 1 30); do
   if curl -sf "http://127.0.0.1:$STATS_PORT/stats" -o "$WORK/stats.json"; then
     echo "    captured on attempt $attempt"
+    captured=true
     break
   fi
   sleep 1
 done
-test -s "$WORK/stats.json"
+if ! $captured; then
+  echo "Failed to capture /stats from http://127.0.0.1:$STATS_PORT after 30 attempts." >&2
+  echo "Last 50 lines of apm-server log:" >&2
+  tail -50 "$WORK/apm-server.log" >&2 || true
+  exit 1
+fi
 # TBS-enabled stats must include sampling.tail.storage.* — fail fast if
 # the config or apm-server's stats shape changed.
 jq -e '.["apm-server"].sampling.tail.storage' "$WORK/stats.json" >/dev/null
