@@ -43,7 +43,7 @@ jobs:
         integrations/packages/elastic_agent/data_stream/apm_server_metrics/fields/beat-stats-fields.yml
     steps:
       - name: Checkout apm-server
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
         uses: actions/setup-go@v5
