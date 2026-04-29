@@ -291,6 +291,10 @@ func TestMonitoringApmServer(t *testing.T) {
 	storageMeter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
 	lsmSizeGauge, _ := storageMeter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
 	lsmSizeGauge.Record(context.Background(), 123)
+	// Float-typed instruments under apm-server.* must surface in the
+	// snapshot too, not only int64 ones.
+	diskThresholdGauge, _ := storageMeter.Float64Gauge("apm-server.sampling.tail.storage.disk_usage_threshold_pct")
+	diskThresholdGauge.Record(context.Background(), 0.8)
 
 	samplingMeter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
 	processedCounter, _ := samplingMeter.Int64Counter("apm-server.sampling.tail.events.processed")
@@ -313,7 +317,8 @@ func TestMonitoringApmServer(t *testing.T) {
 				},
 				"tail": map[string]any{
 					"storage": map[string]any{
-						"lsm_size": int64(123),
+						"lsm_size":                 int64(123),
+						"disk_usage_threshold_pct": 0.8,
 					},
 					"events": map[string]any{
 						"processed": int64(456),
