@@ -24,9 +24,10 @@ import (
 
 	"go.opentelemetry.io/otel/metric"
 
+	"github.com/elastic/elastic-agent-libs/logp"
+
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/otelmetric"
-	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 const (
