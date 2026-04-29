@@ -109,6 +109,13 @@ var (
 	// The set is the IDs the middleware unconditionally increments per
 	// request, plus every key in MapResultIDToStatus (anything c.Result.ID
 	// can be set to). Treat as read-only.
+	//
+	// Drift contract: any new ResultID passed to a monitoring counter
+	// (middleware/monitoring_middleware.go, interceptors/metrics.go) must
+	// be reachable from this list. HTTP-status-mapped IDs go in
+	// MapResultIDToStatus and are picked up automatically. IDs that are
+	// not status-mapped (incremented unconditionally) must be appended to
+	// the literal slice below.
 	AllResultIDs = func() []ResultID {
 		ids := []ResultID{
 			IDUnset,

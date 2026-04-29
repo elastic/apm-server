@@ -42,6 +42,11 @@ type monitoringMiddleware struct {
 }
 
 func (m *monitoringMiddleware) Middleware() Middleware {
+	// Every ResultID passed to m.inc() below must also appear in
+	// request.AllResultIDs so the corresponding counter is eagerly
+	// registered in MonitoringMiddleware(). c.Result.ID is set by request
+	// handlers from keys of MapResultIDToStatus; the four unconditional
+	// IDs are part of AllResultIDs's hand-maintained list.
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
 			m.inc(request.IDRequestCount)
@@ -91,10 +96,15 @@ func (m *monitoringMiddleware) getHistogram(n string, opts ...metric.Int64Histog
 // MonitoringMiddleware returns a middleware that increases monitoring counters for collecting metrics
 // about request processing. As input parameter it takes a map capable of mapping a request.ResultID to a counter.
 //
-// All counters for the canonical request.AllResultIDs set are created
-// eagerly at construction so /stats enumerates every metric name from
-// process start. The zero-init happens inside getCounter; this loop just
-// triggers creation. See request.AllResultIDs for the rationale.
+// Counters for the canonical request.AllResultIDs set are created eagerly
+// at construction so /stats enumerates every metric name from process
+// start. The zero-init happens inside getCounter; this loop just triggers
+// creation. See request.AllResultIDs for the rationale.
+//
+// Drift contract: Middleware()'s m.inc() calls above must only pass IDs
+// from request.AllResultIDs. New ResultIDs introduced into the inc()
+// paths must be added to AllResultIDs (or MapResultIDToStatus, which
+// feeds it).
 func MonitoringMiddleware(legacyMetricsPrefix string, mp metric.MeterProvider) Middleware {
 	mid := &monitoringMiddleware{
 		meter:               mp.Meter("github.com/elastic/apm-server/internal/beater/middleware"),
