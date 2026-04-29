@@ -88,7 +88,7 @@ func TestConsumeTracesGRPC(t *testing.T) {
 	assert.Len(t, batches[0], 1)
 	assert.Len(t, batches[1], 1)
 
-	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+	monitoringtest.ExpectOtelMetricsNonZero(t, reader, map[string]any{
 		"grpc.server.request.count":                         2,
 		"grpc.server.response.valid.count":                  1,
 		"grpc.server.response.count":                        2,
@@ -137,7 +137,7 @@ func TestConsumeMetricsGRPC(t *testing.T) {
 	errStatus := status.Convert(err)
 	assert.Equal(t, "failed to publish events", errStatus.Message())
 
-	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+	monitoringtest.ExpectOtelMetricsNonZero(t, reader, map[string]any{
 		"grpc.server.request.count":                          2,
 		"grpc.server.response.valid.count":                   1,
 		"grpc.server.response.count":                         2,
@@ -188,7 +188,7 @@ func TestConsumeLogsGRPC(t *testing.T) {
 	assert.Len(t, batches[0], 1)
 	assert.Len(t, batches[1], 1)
 
-	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+	monitoringtest.ExpectOtelMetricsNonZero(t, reader, map[string]any{
 		"grpc.server.request.count":                       2,
 		"grpc.server.response.valid.count":                1,
 		"grpc.server.response.count":                      2,

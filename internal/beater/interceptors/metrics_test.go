@@ -160,14 +160,21 @@ func TestMetrics(t *testing.T) {
 
 				interceptor(ctx, nil, info, tc.f)
 
-				expectedMetrics := make(map[string]any, 2*len(tc.expectedOtel))
-
+				// Metrics() eagerly zero-initializes the cross product of
+				// these prefixes and request.AllResultIDs; only the non-
+				// zero values from tc.expectedOtel are set explicitly.
+				expectedMetrics := monitoringtest.EagerCountersZeros(
+					[]string{
+						"grpc.server.",
+						"apm-server.otlp.grpc.metrics.",
+						"apm-server.otlp.grpc.traces.",
+						"apm-server.otlp.grpc.logs.",
+					},
+					request.AllResultIDs,
+				)
 				for k, v := range tc.expectedOtel {
-					// add otel metrics
 					expectedMetrics["grpc.server."+k] = v
-
 					if k != "request.duration" {
-						// add legacy metrics
 						expectedMetrics[metrics.prefix+k] = v
 					}
 				}

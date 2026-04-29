@@ -111,7 +111,7 @@ func TestRootHandler_MonitoringMiddleware(t *testing.T) {
 			req := httptest.NewRequest(tc.method, "/", nil)
 			h.ServeHTTP(httptest.NewRecorder(), req)
 
-			monitoringtest.ExpectOtelMetrics(t, reader, tc.wantMetrics)
+			monitoringtest.ExpectOtelMetricsNonZero(t, reader, tc.wantMetrics)
 		})
 	}
 }

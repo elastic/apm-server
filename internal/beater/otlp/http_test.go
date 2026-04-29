@@ -80,7 +80,7 @@ func TestConsumeTracesHTTP(t *testing.T) {
 	require.Len(t, batches, 1)
 	assert.Len(t, batches[0], 1)
 
-	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+	monitoringtest.ExpectOtelMetricsNonZero(t, reader, map[string]any{
 		"http.server.request.count":                        1,
 		"http.server.response.count":                       1,
 		"http.server.response.valid.count":                 1,
@@ -122,7 +122,7 @@ func TestConsumeMetricsHTTP(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, rsp.Body.Close())
 
-	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+	monitoringtest.ExpectOtelMetricsNonZero(t, reader, map[string]any{
 		"http.server.request.count":                         1,
 		"http.server.response.count":                        1,
 		"http.server.response.valid.count":                  1,
@@ -163,7 +163,7 @@ func TestConsumeLogsHTTP(t *testing.T) {
 	assert.NoError(t, rsp.Body.Close())
 	require.Len(t, batches, 1)
 
-	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+	monitoringtest.ExpectOtelMetricsNonZero(t, reader, map[string]any{
 		"http.server.request.count":                      1,
 		"http.server.response.count":                     1,
 		"http.server.response.valid.count":               1,

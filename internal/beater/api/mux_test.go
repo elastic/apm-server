@@ -146,7 +146,12 @@ func testMonitoringMiddleware(t *testing.T, urlPath string, expectedMetrics map[
 	req := httptest.NewRequest(http.MethodGet, urlPath, nil)
 	h.ServeHTTP(httptest.NewRecorder(), req)
 
-	monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
+	// The full mux eagerly initializes counters across many prefixes
+	// (every MonitoringMiddleware instance plus the gRPC interceptor,
+	// intake handler, sampling, agentcfg, …). Use the non-zero
+	// assertion so the test only spells out the counters it cares
+	// about; the eager-init noise floor is verified to remain zero.
+	monitoringtest.ExpectOtelMetricsNonZero(t, reader, expectedMetrics)
 }
 
 func newTestMux(t *testing.T, cfg *config.Config) (http.Handler, sdkmetric.Reader) {

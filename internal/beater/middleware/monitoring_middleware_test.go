@@ -18,6 +18,7 @@
 package middleware
 
 import (
+	"maps"
 	"sync"
 	"testing"
 
@@ -30,9 +31,14 @@ import (
 )
 
 func TestMonitoringHandler(t *testing.T) {
+	// MonitoringMiddleware eagerly zero-initializes the cross product of
+	// these prefixes and request.AllResultIDs; tests only specify
+	// overrides for the counters they expect to be non-zero.
+	eagerPrefixes := []string{"http.server.", ""}
+
 	checkMonitoring := func(t *testing.T,
 		h func(*request.Context),
-		expectedOtel map[string]interface{},
+		overrides map[string]any,
 	) {
 		reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
 			func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
@@ -45,7 +51,9 @@ func TestMonitoringHandler(t *testing.T) {
 		logger := logptest.NewTestingLogger(t, "monitoring-middleware.test")
 		Apply(MonitoringMiddleware("", mp, logger), h)(c)
 
-		monitoringtest.ExpectOtelMetrics(t, reader, expectedOtel)
+		expected := monitoringtest.EagerCountersZeros(eagerPrefixes, request.AllResultIDs)
+		maps.Copy(expected, overrides)
+		monitoringtest.ExpectOtelMetrics(t, reader, expected)
 	}
 
 	t.Run("Error", func(t *testing.T) {
@@ -158,7 +166,8 @@ func TestMonitoringHandler(t *testing.T) {
 			}()
 		}
 		wg.Wait()
-		monitoringtest.ExpectOtelMetrics(t, reader, map[string]interface{}{
+		expected := monitoringtest.EagerCountersZeros(eagerPrefixes, request.AllResultIDs)
+		maps.Copy(expected, map[string]any{
 			"http.server." + string(request.IDRequestCount):       i,
 			"http.server." + string(request.IDResponseCount):      i,
 			"http.server." + string(request.IDResponseValidCount): i,
@@ -170,6 +179,7 @@ func TestMonitoringHandler(t *testing.T) {
 
 			"http.server.request.duration": i,
 		})
+		monitoringtest.ExpectOtelMetrics(t, reader, expected)
 	})
 }
 
