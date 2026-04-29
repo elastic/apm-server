@@ -558,21 +558,27 @@ func (b *Beat) registerStatsMetrics() {
 	})
 }
 
+// scalarValue extracts the single dimensionless data point from a Sum or
+// Gauge aggregation's DataPoints slice, or returns (zero, false) if the
+// data has the wrong shape: zero or many points, or attribute-tagged
+// points.
+func scalarValue[T int64 | float64](dp []metricdata.DataPoint[T]) (T, bool) {
+	if len(dp) != 1 || dp[0].Attributes.Len() != 0 {
+		var zero T
+		return zero, false
+	}
+	return dp[0].Value, true
+}
+
 // getScalarInt64 returns a single-value, dimensionless
 // gauge or counter integer value, or (0, false) if the
 // data does not match these constraints.
 func getScalarInt64(data metricdata.Aggregation) (int64, bool) {
 	switch data := data.(type) {
 	case metricdata.Sum[int64]:
-		if len(data.DataPoints) != 1 || data.DataPoints[0].Attributes.Len() != 0 {
-			break
-		}
-		return data.DataPoints[0].Value, true
+		return scalarValue(data.DataPoints)
 	case metricdata.Gauge[int64]:
-		if len(data.DataPoints) != 1 || data.DataPoints[0].Attributes.Len() != 0 {
-			break
-		}
-		return data.DataPoints[0].Value, true
+		return scalarValue(data.DataPoints)
 	}
 	return 0, false
 }
@@ -582,15 +588,9 @@ func getScalarInt64(data metricdata.Aggregation) (int64, bool) {
 func getScalarFloat64(data metricdata.Aggregation) (float64, bool) {
 	switch data := data.(type) {
 	case metricdata.Sum[float64]:
-		if len(data.DataPoints) != 1 || data.DataPoints[0].Attributes.Len() != 0 {
-			break
-		}
-		return data.DataPoints[0].Value, true
+		return scalarValue(data.DataPoints)
 	case metricdata.Gauge[float64]:
-		if len(data.DataPoints) != 1 || data.DataPoints[0].Attributes.Len() != 0 {
-			break
-		}
-		return data.DataPoints[0].Value, true
+		return scalarValue(data.DataPoints)
 	}
 	return 0, false
 }
