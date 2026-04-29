@@ -26,6 +26,7 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestMonitoringHandler(t *testing.T) {
@@ -41,7 +42,8 @@ func TestMonitoringHandler(t *testing.T) {
 		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
 		c, _ := DefaultContextWithResponseRecorder()
-		Apply(MonitoringMiddleware("", mp), h)(c)
+		logger := logptest.NewTestingLogger(t, "monitoring-middleware.test")
+		Apply(MonitoringMiddleware("", mp, logger), h)(c)
 
 		monitoringtest.ExpectOtelMetrics(t, reader, expectedOtel)
 	}
@@ -144,7 +146,8 @@ func TestMonitoringHandler(t *testing.T) {
 			},
 		))
 		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
-		m := MonitoringMiddleware("", mp)
+		logger := logptest.NewTestingLogger(t, "monitoring-middleware.test")
+		m := MonitoringMiddleware("", mp, logger)
 		c, _ := DefaultContextWithResponseRecorder()
 		var wg sync.WaitGroup
 		for range i {
@@ -173,7 +176,8 @@ func TestMonitoringHandler(t *testing.T) {
 func BenchmarkMonitoringMiddleware(b *testing.B) {
 	reader := sdkmetric.NewManualReader()
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
-	handler := Apply(MonitoringMiddleware("apm-server.foo.", mp), HandlerIdle)
+	logger := logptest.NewTestingLogger(b, "monitoring-middleware.bench")
+	handler := Apply(MonitoringMiddleware("apm-server.foo.", mp, logger), HandlerIdle)
 
 	c, _ := DefaultContextWithResponseRecorder()
 	b.ReportAllocs()
