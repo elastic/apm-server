@@ -46,34 +46,25 @@ var otlpGRPCLegacyMetricsPrefixes = map[string]string{
 	"/opentelemetry.proto.collector.logs.v1.LogsService/Export":       "apm-server.otlp.grpc.logs.",
 }
 
-// counterKey identifies a counter by its (prefix, ResultID) tuple. Used as
-// the map key in metricsInterceptor.counters; struct keys avoid the
-// per-call allocation of "prefix + id" string concatenation.
+// counterKey is the map key for metricsInterceptor.counters. A struct key
+// is used instead of the concatenated "prefix+id" string so the lookup at
+// each m.inc() call avoids allocating a fresh string.
 type counterKey struct {
 	prefix string
 	id     request.ResultID
 }
 
 type metricsInterceptor struct {
-	logger *logp.Logger
-
-	// counters holds every counter the interceptor will ever record
-	// against. Populated once in Metrics() before the interceptor is
-	// returned; read-only thereafter, which makes plain map access safe
-	// for concurrent reads. Lookup misses are reported via logger and
-	// otherwise treated as no-ops; see the drift contract.
+	logger              *logp.Logger
 	counters            map[counterKey]metric.Int64Counter
 	requestDurationHist metric.Int64Histogram
 }
 
-// Drift contract: every prefix the inner closure passes to m.inc() comes
-// from otlpGRPCLegacyMetricsPrefixes (via the lookup below); every
-// request.ResultID it passes must appear in request.AllResultIDs. The
-// eager-registration loop in Metrics() iterates the cross-product of
-// those two sets and pre-populates m.counters. Any (prefix, id) pair the
-// inner closure tries to use that wasn't pre-populated is reported via
-// logger.Error and otherwise dropped: drift surfaces at runtime instead
-// of silently creating a counter on first use.
+// Interceptor returns the gRPC UnaryServerInterceptor that increments
+// per-method counters and records the request-duration histogram. Any
+// counter or histogram it touches must already exist in m.counters /
+// m.requestDurationHist, populated by Metrics(); inc() logs an error on
+// missing entries.
 func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -117,8 +108,8 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 }
 
 // inc increments the grpc.server.<id> and <legacyMetricsPrefix><id>
-// counters. Both must already exist in m.counters, populated by Metrics()
-// at construction; a missing entry is a drift bug and is logged.
+// counters. A missing entry means Metrics() didn't eagerly create it and
+// is logged as an error.
 func (m *metricsInterceptor) inc(legacyMetricsPrefix string, id request.ResultID) {
 	server, sok := m.counters[counterKey{prefix: grpcServerPrefix, id: id}]
 	legacy, lok := m.counters[counterKey{prefix: legacyMetricsPrefix, id: id}]
