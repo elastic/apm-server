@@ -36,6 +36,16 @@ const (
 	requestDurationHistogram = "request.duration"
 )
 
+// otlpGRPCLegacyMetricsPrefixes maps each OTLP gRPC service method to its
+// legacy "apm-server.otlp.grpc.<signal>." metric prefix. Single source of
+// truth for both the per-call dispatch in Interceptor() and the eager
+// registration loop in Metrics(); adding a new signal means one entry.
+var otlpGRPCLegacyMetricsPrefixes = map[string]string{
+	"/opentelemetry.proto.collector.metrics.v1.MetricsService/Export": "apm-server.otlp.grpc.metrics.",
+	"/opentelemetry.proto.collector.trace.v1.TraceService/Export":     "apm-server.otlp.grpc.traces.",
+	"/opentelemetry.proto.collector.logs.v1.LogsService/Export":       "apm-server.otlp.grpc.logs.",
+}
+
 type metricsInterceptor struct {
 	logger *logp.Logger
 	meter  metric.Meter
@@ -51,16 +61,8 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		var legacyMetricsPrefix string
-
-		switch info.FullMethod {
-		case "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export":
-			legacyMetricsPrefix = "apm-server.otlp.grpc.metrics."
-		case "/opentelemetry.proto.collector.trace.v1.TraceService/Export":
-			legacyMetricsPrefix = "apm-server.otlp.grpc.traces."
-		case "/opentelemetry.proto.collector.logs.v1.LogsService/Export":
-			legacyMetricsPrefix = "apm-server.otlp.grpc.logs."
-		default:
+		legacyMetricsPrefix, ok := otlpGRPCLegacyMetricsPrefixes[info.FullMethod]
+		if !ok {
 			m.logger.With(
 				"grpc.request.method", info.FullMethod,
 			).Warn("metrics registry missing")
@@ -119,15 +121,6 @@ func (m *metricsInterceptor) getHistogram(n string, opts ...metric.Int64Histogra
 	return met.(metric.Int64Histogram)
 }
 
-// otlpLegacyMetricsPrefixes lists every legacy metric prefix the metrics
-// interceptor records under. Used to eagerly register counters at startup
-// so /stats enumerates each metric from process start.
-var otlpLegacyMetricsPrefixes = []string{
-	"apm-server.otlp.grpc.metrics.",
-	"apm-server.otlp.grpc.traces.",
-	"apm-server.otlp.grpc.logs.",
-}
-
 // Metrics returns a grpc.UnaryServerInterceptor that increments metrics
 // for gRPC method calls.
 //
@@ -149,7 +142,7 @@ func Metrics(logger *logp.Logger, mp metric.MeterProvider) grpc.UnaryServerInter
 
 	for _, id := range request.AllResultIDs {
 		i.getCounter("grpc.server.", string(id))
-		for _, prefix := range otlpLegacyMetricsPrefixes {
+		for _, prefix := range otlpGRPCLegacyMetricsPrefixes {
 			i.getCounter(prefix, string(id))
 		}
 	}
