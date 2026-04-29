@@ -169,3 +169,15 @@ func TestMonitoringHandler(t *testing.T) {
 		})
 	})
 }
+
+func BenchmarkMonitoringMiddleware(b *testing.B) {
+	reader := sdkmetric.NewManualReader()
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+	handler := Apply(MonitoringMiddleware("apm-server.foo.", mp), HandlerIdle)
+
+	c, _ := DefaultContextWithResponseRecorder()
+	b.ReportAllocs()
+	for b.Loop() {
+		handler(c)
+	}
+}
