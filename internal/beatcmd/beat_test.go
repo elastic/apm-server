@@ -749,3 +749,21 @@ func (m *mockManager) Stop() {
 func (m *mockManager) SetStopCallback(f func()) {
 	m.stopCallback = f
 }
+
+func BenchmarkAddAPMServerMetricsToMap(b *testing.B) {
+	int64Sum := metricdata.Sum[int64]{
+		DataPoints: []metricdata.DataPoint[int64]{{Value: 1}},
+	}
+	float64Gauge := metricdata.Gauge[float64]{
+		DataPoints: []metricdata.DataPoint[float64]{{Value: 0.8}},
+	}
+	metrics := []metricdata.Metrics{
+		{Name: "apm-server.acm.response.errors.count", Data: int64Sum},
+		{Name: "apm-server.sampling.tail.events.processed", Data: int64Sum},
+		{Name: "apm-server.sampling.tail.storage.disk_usage_threshold_pct", Data: float64Gauge},
+	}
+	b.ReportAllocs()
+	for b.Loop() {
+		addAPMServerMetricsToMap(map[string]any{}, metrics)
+	}
+}
