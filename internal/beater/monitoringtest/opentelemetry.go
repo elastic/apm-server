@@ -19,44 +19,29 @@ package monitoringtest
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
-
-	"github.com/elastic/apm-server/internal/beater/request"
 )
 
 // ExpectOtelMetrics asserts that the gathered metric set is exactly
 // expectedMetrics: every gathered metric must be listed and match, and
-// every listed metric must be present in the gathered set. Tests that
-// exercise eagerly-zero-initialized counters (HTTP middleware, gRPC
-// interceptor) bootstrap their expectedMetrics map via EagerCountersZeros
-// so the noise floor is part of the asserted contract.
+// every listed metric must be present in the gathered set.
+//
+// Tests that exercise eagerly-zero-initialized counters can pass
+// WithEagerPrefixes to declare the prefixes under which unlisted
+// counters are tolerated provided their value is 0; histograms and
+// non-zero counters under those prefixes still fail.
 func ExpectOtelMetrics(
 	t *testing.T,
 	reader sdkmetric.Reader,
 	expectedMetrics map[string]any,
+	opts ...ExpectOption,
 ) {
-	assertOtelMetrics(t, reader, expectedMetrics, matchModeFull, false)
-}
-
-// ExpectOtelMetricsNonZero is a relaxation of ExpectOtelMetrics for tests
-// whose code path exercises a large set of eagerly-zero-initialized
-// counters that the test does not care to enumerate. Every listed metric
-// is asserted exactly; every unlisted gathered metric must equal 0
-// (histograms are exempt because their value is an observation count).
-// Use ExpectOtelMetrics when the test wants a strict "exactly these
-// metrics fired" contract; use this when the test only wants to assert
-// "these specific metrics fired with these values, and nothing else
-// surprising fired".
-func ExpectOtelMetricsNonZero(
-	t *testing.T,
-	reader sdkmetric.Reader,
-	expectedMetrics map[string]any,
-) {
-	assertOtelMetrics(t, reader, expectedMetrics, matchModeNonZero, false)
+	assertOtelMetrics(t, reader, expectedMetrics, true, false, opts...)
 }
 
 func ExpectContainOtelMetrics(
@@ -64,7 +49,35 @@ func ExpectContainOtelMetrics(
 	reader sdkmetric.Reader,
 	expectedMetrics map[string]any,
 ) {
-	assertOtelMetrics(t, reader, expectedMetrics, matchModeContain, false)
+	assertOtelMetrics(t, reader, expectedMetrics, false, false)
+}
+
+// ExpectOption configures ExpectOtelMetrics.
+type ExpectOption func(*expectConfig)
+
+type expectConfig struct {
+	eagerPrefixes []string
+}
+
+// WithEagerPrefixes declares that the implementation eagerly
+// zero-initializes counters under the given metric-name prefixes. An
+// unlisted gathered counter whose name has one of these prefixes is
+// required to equal 0 (and is otherwise tolerated); histograms and
+// counters outside these prefixes still trigger "unexpected metric"
+// failures.
+func WithEagerPrefixes(prefixes ...string) ExpectOption {
+	return func(c *expectConfig) {
+		c.eagerPrefixes = append(c.eagerPrefixes, prefixes...)
+	}
+}
+
+func hasEagerPrefix(name string, prefixes []string) bool {
+	for _, p := range prefixes {
+		if strings.HasPrefix(name, p) {
+			return true
+		}
+	}
+	return false
 }
 
 func ExpectContainAndNotContainOtelMetrics(
@@ -73,7 +86,7 @@ func ExpectContainAndNotContainOtelMetrics(
 	expectedMetrics map[string]any,
 	notExpectedMetricKeys []string,
 ) {
-	foundMetricKeys := assertOtelMetrics(t, reader, expectedMetrics, matchModeContain, false)
+	foundMetricKeys := assertOtelMetrics(t, reader, expectedMetrics, false, false)
 	for _, key := range notExpectedMetricKeys {
 		assert.NotContains(t, foundMetricKeys, key)
 	}
@@ -84,48 +97,30 @@ func ExpectContainOtelMetricsKeys(t assert.TestingT, reader sdkmetric.Reader, ex
 	for _, metricKey := range expectedMetricsKeys {
 		expectedMetrics[metricKey] = nil
 	}
-	assertOtelMetrics(t, reader, expectedMetrics, matchModeContain, true)
+	assertOtelMetrics(t, reader, expectedMetrics, false, true)
 }
 
-// EagerCountersZeros returns a map[name]int64(0) for every (prefix, id)
-// pair in `prefixes × ids`. Tests that exercise code paths with eagerly
-// zero-initialized counters use this to bootstrap their expected map for
-// ExpectOtelMetrics; the listed prefixes make the eager-init contract
-// part of the test, and any non-zero values are added by the caller via
-// map assignment after.
-func EagerCountersZeros(prefixes []string, ids []request.ResultID) map[string]any {
-	out := make(map[string]any, len(prefixes)*len(ids))
-	for _, p := range prefixes {
-		for _, id := range ids {
-			out[p+string(id)] = int64(0)
-		}
-	}
-	return out
-}
-
-type matchMode int
-
-const (
-	// matchModeFull: gathered ≡ expected (set equality with values).
-	matchModeFull matchMode = iota
-	// matchModeNonZero: every listed metric matches, every unlisted
-	// gathered metric must equal 0 (histograms exempt).
-	matchModeNonZero
-	// matchModeContain: expected is a subset of gathered.
-	matchModeContain
-)
-
-// assertOtelMetrics gathers metrics from `reader` and asserts they match
-// `expectedMetrics` according to `mode`.
+// assertOtelMetrics gathers all the metrics from `reader` and asserts that the value of those gathered metrics
+// are equal to that specified in `expectedMetrics`.
 //
-// If `skipValAssert` is true, only the metric keys are checked.
+// If `fullMatch` is true, every gathered metric must be listed in
+// `expectedMetrics` with a matching value, except counters whose name has
+// a prefix passed via WithEagerPrefixes — those are tolerated when
+// unlisted provided the value is 0. Otherwise, `expectedMetrics` only
+// needs to be a subset of the gathered metrics.
+//
+// If `skipValAssert` is true, the value assertion will be skipped entirely i.e. only care about the metric keys.
 func assertOtelMetrics(
 	t assert.TestingT,
 	reader sdkmetric.Reader,
 	expectedMetrics map[string]any,
-	mode matchMode,
-	skipValAssert bool,
+	fullMatch, skipValAssert bool,
+	opts ...ExpectOption,
 ) []string {
+	var cfg expectConfig
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
@@ -145,27 +140,24 @@ func assertOtelMetrics(
 				assert.EqualValues(t, expected, value, m.Name)
 				continue
 			}
-			switch mode {
-			case matchModeFull:
-				assert.Fail(t, "unexpected metric", m.Name)
-			case matchModeNonZero:
-				if !isHistogram {
+			if fullMatch {
+				if !isHistogram && hasEagerPrefix(m.Name, cfg.eagerPrefixes) {
 					assert.EqualValues(t, 0, value, m.Name)
+					continue
 				}
+				assert.Fail(t, "unexpected metric", m.Name)
 			}
 		}
 	}
 
-	expectedKeys := make([]string, 0, len(expectedMetrics))
+	var expectedMetricsKeys []string
 	for k := range expectedMetrics {
-		expectedKeys = append(expectedKeys, k)
+		expectedMetricsKeys = append(expectedMetricsKeys, k)
 	}
-	switch mode {
-	case matchModeFull:
-		assert.ElementsMatch(t, foundMetrics, expectedKeys)
-	case matchModeNonZero, matchModeContain:
-		assert.Subset(t, foundMetrics, expectedKeys)
-	}
+	// Subset (every expected is in found) covers both modes: the
+	// per-metric "unexpected" check above already catches extras under
+	// fullMatch, modulo the eager-prefix tolerance.
+	assert.Subset(t, foundMetrics, expectedMetricsKeys)
 	return foundMetrics
 }
 
