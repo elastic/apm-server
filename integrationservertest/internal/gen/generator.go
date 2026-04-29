@@ -19,7 +19,6 @@ package gen
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -62,7 +61,7 @@ func New(url, apikey string, kbc *kibana.Client, logger *zap.Logger) *Generator 
 // This may lead to data loss if the final flush takes more than 30s, which may happen if the
 // quantity of data ingested with runBlocking gets too big. The current quantity does not
 // trigger this behavior.
-func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version, integrations bool) error {
+func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version) error {
 	g.logger.Info("wait for apm server to be ready")
 	if err := g.waitForAPMToBePublishReady(ctx); err != nil {
 		return fmt.Errorf("failed to wait for apm server: %w", err)
@@ -71,13 +70,6 @@ func (g *Generator) RunBlockingWait(ctx context.Context, version ech.Version, in
 	g.logger.Info("ingest data")
 	if err := g.retryRunBlocking(ctx, version, 2); err != nil {
 		return fmt.Errorf("cannot run generator: %w", err)
-	}
-
-	if integrations {
-		g.logger.Info("re-apply apm policy")
-		if err := g.reapplyAPMPolicy(ctx, version); err != nil {
-			return fmt.Errorf("failed to re-apply apm policy: %w", err)
-		}
 	}
 
 	// Simply wait for some arbitrary time, for the data to be flushed.
@@ -166,20 +158,6 @@ func (g *Generator) retryRunBlocking(ctx context.Context, version ech.Version, r
 	}
 
 	return finalErr
-}
-
-func (g *Generator) reapplyAPMPolicy(ctx context.Context, version ech.Version) error {
-	policyID := "elastic-cloud-apm"
-	description := fmt.Sprintf("%s %s", version, rand.Text()[:10])
-
-	if err := g.kbc.UpdatePackagePolicyDescriptionByID(ctx, policyID, version, description); err != nil {
-		return fmt.Errorf(
-			"cannot update %s package policy description: %w",
-			policyID, err,
-		)
-	}
-
-	return nil
 }
 
 type apmInfoResp struct {
