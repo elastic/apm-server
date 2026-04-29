@@ -101,7 +101,7 @@ apm-server apm-server-fips: PKG=./x-pack/apm-server
 
 apm-server-fips: GOTAGS=requirefips
 
-apm-server-fips: GOFIPS140=v1.0.0
+apm-server-fips: GOFIPS140=certified
 
 apm-server-oss: SUFFIX=-oss
 apm-server-fips: SUFFIX=-fips
