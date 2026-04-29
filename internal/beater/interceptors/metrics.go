@@ -63,8 +63,8 @@ type metricsInterceptor struct {
 // Interceptor returns the gRPC UnaryServerInterceptor that increments
 // per-method counters and records the request-duration histogram. Any
 // counter or histogram it touches must already exist in m.counters /
-// m.requestDurationHist, populated by Metrics(); inc() logs an error on
-// missing entries.
+// m.requestDurationHist, populated by Metrics(); a missing entry is an
+// apm-server bug logged by inc().
 func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -108,8 +108,8 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 }
 
 // inc increments the grpc.server.<id> and <legacyMetricsPrefix><id>
-// counters. A missing entry means Metrics() didn't eagerly create it and
-// is logged as an error.
+// counters. A missing entry is an apm-server bug: Metrics() must eagerly
+// create every counter inc() can use.
 func (m *metricsInterceptor) inc(legacyMetricsPrefix string, id request.ResultID) {
 	server, sok := m.counters[counterKey{prefix: grpcServerPrefix, id: id}]
 	legacy, lok := m.counters[counterKey{prefix: legacyMetricsPrefix, id: id}]
@@ -117,7 +117,7 @@ func (m *metricsInterceptor) inc(legacyMetricsPrefix string, id request.ResultID
 		m.logger.With(
 			"prefix", legacyMetricsPrefix,
 			"id", string(id),
-		).Error("monitoring counter not eagerly registered")
+		).Error("BUG: monitoring counter missing from eager registration")
 		return
 	}
 	ctx := context.Background()

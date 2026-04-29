@@ -45,7 +45,8 @@ type monitoringMiddleware struct {
 // Middleware returns the request.Middleware that increments per-request
 // counters and records the request-duration histogram. Any counter or
 // histogram it touches must already exist in the maps populated by
-// MonitoringMiddleware(); inc() logs an error on missing entries.
+// MonitoringMiddleware(); a missing entry is an apm-server bug logged
+// by inc().
 func (m *monitoringMiddleware) Middleware() Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
@@ -69,8 +70,8 @@ func (m *monitoringMiddleware) Middleware() Middleware {
 }
 
 // inc increments the http.server.<id> and <legacyMetricsPrefix><id>
-// counters. A missing entry means MonitoringMiddleware() didn't eagerly
-// create it and is logged as an error.
+// counters. A missing entry is an apm-server bug: MonitoringMiddleware()
+// must eagerly create every counter inc() can use.
 func (m *monitoringMiddleware) inc(id request.ResultID) {
 	server, sok := m.serverCounters[id]
 	legacy, lok := m.legacyCounters[id]
@@ -78,7 +79,7 @@ func (m *monitoringMiddleware) inc(id request.ResultID) {
 		m.logger.With(
 			"prefix", m.legacyMetricsPrefix,
 			"id", string(id),
-		).Error("monitoring counter not eagerly registered")
+		).Error("BUG: monitoring counter missing from eager registration")
 		return
 	}
 	ctx := context.Background()
