@@ -19,7 +19,6 @@ package interceptors
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel/metric"
@@ -34,6 +33,7 @@ import (
 
 const (
 	requestDurationHistogram = "request.duration"
+	grpcServerPrefix         = "grpc.server."
 )
 
 // otlpGRPCLegacyMetricsPrefixes maps each OTLP gRPC service method to its
@@ -46,14 +46,34 @@ var otlpGRPCLegacyMetricsPrefixes = map[string]string{
 	"/opentelemetry.proto.collector.logs.v1.LogsService/Export":       "apm-server.otlp.grpc.logs.",
 }
 
-type metricsInterceptor struct {
-	logger *logp.Logger
-	meter  metric.Meter
-
-	counters   sync.Map
-	histograms sync.Map
+// counterKey identifies a counter by its (prefix, ResultID) tuple. Used as
+// the map key in metricsInterceptor.counters; struct keys avoid the
+// per-call allocation of "prefix + id" string concatenation.
+type counterKey struct {
+	prefix string
+	id     request.ResultID
 }
 
+type metricsInterceptor struct {
+	logger *logp.Logger
+
+	// counters holds every counter the interceptor will ever record
+	// against. Populated once in Metrics() before the interceptor is
+	// returned; read-only thereafter, which makes plain map access safe
+	// for concurrent reads. Lookup misses are reported via logger and
+	// otherwise treated as no-ops; see the drift contract.
+	counters            map[counterKey]metric.Int64Counter
+	requestDurationHist metric.Int64Histogram
+}
+
+// Drift contract: every prefix the inner closure passes to m.inc() comes
+// from otlpGRPCLegacyMetricsPrefixes (via the lookup below); every
+// request.ResultID it passes must appear in request.AllResultIDs. The
+// eager-registration loop in Metrics() iterates the cross-product of
+// those two sets and pre-populates m.counters. Any (prefix, id) pair the
+// inner closure tries to use that wasn't pre-populated is reported via
+// logger.Error and otherwise dropped: drift surfaces at runtime instead
+// of silently creating a counter on first use.
 func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -75,7 +95,7 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 		start := time.Now()
 		resp, err := handler(ctx, req)
 		duration := time.Since(start)
-		m.getHistogram(requestDurationHistogram, metric.WithUnit("ms")).Record(context.Background(), duration.Milliseconds())
+		m.requestDurationHist.Record(context.Background(), duration.Milliseconds())
 
 		responseID := request.IDResponseValidCount
 		if err != nil {
@@ -96,29 +116,22 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 	}
 }
 
+// inc increments the grpc.server.<id> and <legacyMetricsPrefix><id>
+// counters. Both must already exist in m.counters, populated by Metrics()
+// at construction; a missing entry is a drift bug and is logged.
 func (m *metricsInterceptor) inc(legacyMetricsPrefix string, id request.ResultID) {
-	m.getCounter("grpc.server.", string(id)).Add(context.Background(), 1)
-	m.getCounter(legacyMetricsPrefix, string(id)).Add(context.Background(), 1)
-}
-
-func (m *metricsInterceptor) getCounter(prefix, n string) metric.Int64Counter {
-	name := prefix + n
-	if met, ok := m.counters.Load(name); ok {
-		return met.(metric.Int64Counter)
+	server, sok := m.counters[counterKey{prefix: grpcServerPrefix, id: id}]
+	legacy, lok := m.counters[counterKey{prefix: legacyMetricsPrefix, id: id}]
+	if !sok || !lok {
+		m.logger.With(
+			"prefix", legacyMetricsPrefix,
+			"id", string(id),
+		).Error("monitoring counter not eagerly registered")
+		return
 	}
-	nm := otelmetric.NewInt64Counter(m.meter, name)
-	met, _ := m.counters.LoadOrStore(name, nm)
-	return met.(metric.Int64Counter)
-}
-
-func (m *metricsInterceptor) getHistogram(n string, opts ...metric.Int64HistogramOption) metric.Int64Histogram {
-	name := "grpc.server." + n
-	if met, ok := m.histograms.Load(name); ok {
-		return met.(metric.Int64Histogram)
-	}
-	nm, _ := m.meter.Int64Histogram(name, opts...)
-	met, _ := m.histograms.LoadOrStore(name, nm)
-	return met.(metric.Int64Histogram)
+	ctx := context.Background()
+	server.Add(ctx, 1)
+	legacy.Add(ctx, 1)
 }
 
 // Metrics returns a grpc.UnaryServerInterceptor that increments metrics
@@ -132,20 +145,27 @@ func (m *metricsInterceptor) getHistogram(n string, opts ...metric.Int64Histogra
 // if neither of these are available, a warning will be logged and no metrics
 // will be gathered.
 func Metrics(logger *logp.Logger, mp metric.MeterProvider) grpc.UnaryServerInterceptor {
-	i := &metricsInterceptor{
-		logger: logger,
-		meter:  mp.Meter("github.com/elastic/apm-server/internal/beater/interceptors"),
+	meter := mp.Meter("github.com/elastic/apm-server/internal/beater/interceptors")
+	requestDurationHist, _ := meter.Int64Histogram(
+		grpcServerPrefix+requestDurationHistogram,
+		metric.WithUnit("ms"),
+	)
 
-		counters:   sync.Map{},
-		histograms: sync.Map{},
-	}
-
+	// Eager registration: pre-populate every (prefix, id) pair the
+	// interceptor can ever record against. Done once before the
+	// interceptor is returned, so subsequent map reads are concurrent-safe.
+	counters := make(map[counterKey]metric.Int64Counter, len(request.AllResultIDs)*(len(otlpGRPCLegacyMetricsPrefixes)+1))
 	for _, id := range request.AllResultIDs {
-		i.getCounter("grpc.server.", string(id))
+		counters[counterKey{prefix: grpcServerPrefix, id: id}] = otelmetric.NewInt64Counter(meter, grpcServerPrefix+string(id))
 		for _, prefix := range otlpGRPCLegacyMetricsPrefixes {
-			i.getCounter(prefix, string(id))
+			counters[counterKey{prefix: prefix, id: id}] = otelmetric.NewInt64Counter(meter, prefix+string(id))
 		}
 	}
 
+	i := &metricsInterceptor{
+		logger:              logger,
+		counters:            counters,
+		requestDurationHist: requestDurationHist,
+	}
 	return i.Interceptor()
 }
