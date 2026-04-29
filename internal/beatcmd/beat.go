@@ -612,17 +612,22 @@ func addAPMServerMetricsToMap(beatsMetrics map[string]any, metrics []metricdata.
 			continue
 		}
 		current := beatsMetrics
-		suffixSlice := strings.Split(suffix, ".")
-		for i := 0; i < len(suffixSlice)-1; i++ {
-			k := suffixSlice[i]
-			if _, ok := current[k]; !ok {
-				current[k] = make(map[string]any)
+		// SplitAfterSeq yields each segment with its trailing "." preserved,
+		// except the last. CutSuffix tells us which we're looking at: hasDot
+		// true => intermediate (descend), false => leaf (assign).
+		for seg := range strings.SplitAfterSeq(suffix, ".") {
+			name, hasDot := strings.CutSuffix(seg, ".")
+			if !hasDot {
+				current[name] = value
+				continue
 			}
-			if currentmap, ok := current[k].(map[string]any); ok {
-				current = currentmap
+			if _, ok := current[name]; !ok {
+				current[name] = make(map[string]any)
+			}
+			if next, ok := current[name].(map[string]any); ok {
+				current = next
 			}
 		}
-		current[suffixSlice[len(suffixSlice)-1]] = value
 	}
 }
 
