@@ -225,3 +225,23 @@ func TestMetrics_ConcurrentSafe(t *testing.T) {
 		"grpc.server.request.count": numG,
 	})
 }
+
+func BenchmarkInterceptor(b *testing.B) {
+	reader := sdkmetric.NewManualReader()
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+	logger := logptest.NewTestingLogger(b, "interceptor.metrics.bench")
+	interceptor := Metrics(logger, mp)
+
+	ctx := context.Background()
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "/opentelemetry.proto.collector.trace.v1.TraceService/Export",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return req, nil
+	}
+
+	b.ReportAllocs()
+	for b.Loop() {
+		_, _ = interceptor(ctx, "hello", info, handler)
+	}
+}
