@@ -19,7 +19,6 @@ package monitoringtest
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,21 +26,12 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )
 
-// ExpectOtelMetrics asserts that the gathered metric set is exactly
-// expectedMetrics: every gathered metric must be listed and match, and
-// every listed metric must be present in the gathered set.
-//
-// Tests that exercise eagerly-zero-initialized counters can pass
-// WithEagerPrefixes to declare the prefixes under which unlisted
-// counters are tolerated provided their value is 0; histograms and
-// non-zero counters under those prefixes still fail.
 func ExpectOtelMetrics(
 	t *testing.T,
 	reader sdkmetric.Reader,
 	expectedMetrics map[string]any,
-	opts ...ExpectOption,
 ) {
-	assertOtelMetrics(t, reader, expectedMetrics, true, false, opts...)
+	assertOtelMetrics(t, reader, expectedMetrics, true, false)
 }
 
 func ExpectContainOtelMetrics(
@@ -50,34 +40,6 @@ func ExpectContainOtelMetrics(
 	expectedMetrics map[string]any,
 ) {
 	assertOtelMetrics(t, reader, expectedMetrics, false, false)
-}
-
-// ExpectOption configures ExpectOtelMetrics.
-type ExpectOption func(*expectConfig)
-
-type expectConfig struct {
-	eagerPrefixes []string
-}
-
-// WithEagerPrefixes declares that the implementation eagerly
-// zero-initializes counters under the given metric-name prefixes. An
-// unlisted gathered counter whose name has one of these prefixes is
-// required to equal 0 (and is otherwise tolerated); histograms and
-// counters outside these prefixes still trigger "unexpected metric"
-// failures.
-func WithEagerPrefixes(prefixes ...string) ExpectOption {
-	return func(c *expectConfig) {
-		c.eagerPrefixes = append(c.eagerPrefixes, prefixes...)
-	}
-}
-
-func hasEagerPrefix(name string, prefixes []string) bool {
-	for _, p := range prefixes {
-		if strings.HasPrefix(name, p) {
-			return true
-		}
-	}
-	return false
 }
 
 func ExpectContainAndNotContainOtelMetrics(
@@ -103,11 +65,8 @@ func ExpectContainOtelMetricsKeys(t assert.TestingT, reader sdkmetric.Reader, ex
 // assertOtelMetrics gathers all the metrics from `reader` and asserts that the value of those gathered metrics
 // are equal to that specified in `expectedMetrics`.
 //
-// If `fullMatch` is true, every gathered metric must be listed in
-// `expectedMetrics` with a matching value, except counters whose name has
-// a prefix passed via WithEagerPrefixes — those are tolerated when
-// unlisted provided the value is 0. Otherwise, `expectedMetrics` only
-// needs to be a subset of the gathered metrics.
+// If `fullMatch` is true, all gathered metrics from `reader` must be found in `expectedMetrics` and vice versa.
+// Otherwise, `expectedMetrics` only need to be a subset of the gathered metrics.
 //
 // If `skipValAssert` is true, the value assertion will be skipped entirely i.e. only care about the metric keys.
 func assertOtelMetrics(
@@ -115,12 +74,7 @@ func assertOtelMetrics(
 	reader sdkmetric.Reader,
 	expectedMetrics map[string]any,
 	fullMatch, skipValAssert bool,
-	opts ...ExpectOption,
 ) []string {
-	var cfg expectConfig
-	for _, opt := range opts {
-		opt(&cfg)
-	}
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
@@ -128,24 +82,58 @@ func assertOtelMetrics(
 	var foundMetrics []string
 	for _, sm := range rm.ScopeMetrics {
 		for _, m := range sm.Metrics {
-			value, isHistogram, ok := scalarValue(m.Data)
-			if !ok {
-				continue
-			}
-			foundMetrics = append(foundMetrics, m.Name)
-			if skipValAssert {
-				continue
-			}
-			if expected, listed := expectedMetrics[m.Name]; listed {
-				assert.EqualValues(t, expected, value, m.Name)
-				continue
-			}
-			if fullMatch {
-				if !isHistogram && hasEagerPrefix(m.Name, cfg.eagerPrefixes) {
-					assert.EqualValues(t, 0, value, m.Name)
+			switch d := m.Data.(type) {
+			case metricdata.Gauge[int64]:
+				assert.Equal(t, 1, len(d.DataPoints))
+				foundMetrics = append(foundMetrics, m.Name)
+				if skipValAssert {
 					continue
 				}
-				assert.Fail(t, "unexpected metric", m.Name)
+
+				if v, ok := expectedMetrics[m.Name]; ok {
+					assert.EqualValues(t, v, d.DataPoints[0].Value, m.Name)
+				} else if fullMatch {
+					assert.Fail(t, "unexpected metric", m.Name)
+				}
+
+			case metricdata.Gauge[float64]:
+				assert.Equal(t, 1, len(d.DataPoints))
+				foundMetrics = append(foundMetrics, m.Name)
+				if skipValAssert {
+					continue
+				}
+
+				if v, ok := expectedMetrics[m.Name]; ok {
+					assert.EqualValues(t, v, d.DataPoints[0].Value, m.Name)
+				} else if fullMatch {
+					assert.Fail(t, "unexpected metric", m.Name)
+				}
+
+			case metricdata.Sum[int64]:
+				assert.Equal(t, 1, len(d.DataPoints))
+				foundMetrics = append(foundMetrics, m.Name)
+				if skipValAssert {
+					continue
+				}
+
+				if v, ok := expectedMetrics[m.Name]; ok {
+					assert.EqualValues(t, v, d.DataPoints[0].Value, m.Name)
+				} else if fullMatch {
+					assert.Fail(t, "unexpected metric", m.Name)
+				}
+
+			case metricdata.Histogram[int64]:
+				assert.Equal(t, 1, len(d.DataPoints))
+				foundMetrics = append(foundMetrics, m.Name)
+				if skipValAssert {
+					continue
+				}
+
+				if v, ok := expectedMetrics[m.Name]; ok {
+					assert.EqualValues(t, v, d.DataPoints[0].Count, m.Name)
+				} else if fullMatch {
+					assert.Fail(t, "unexpected metric", m.Name)
+				}
 			}
 		}
 	}
@@ -154,41 +142,10 @@ func assertOtelMetrics(
 	for k := range expectedMetrics {
 		expectedMetricsKeys = append(expectedMetricsKeys, k)
 	}
-	// Subset (every expected is in found) covers both modes: the
-	// per-metric "unexpected" check above already catches extras under
-	// fullMatch, modulo the eager-prefix tolerance.
-	assert.Subset(t, foundMetrics, expectedMetricsKeys)
-	return foundMetrics
-}
-
-// scalarValue extracts the assertable scalar from a metric aggregation:
-// the data-point value for gauges and sums, the data-point count for
-// histograms. Returns ok=false if the metric has 0 or >1 data points.
-// isHistogram is true when the value is a histogram observation count;
-// callers use it to skip "must be 0 if unlisted" rules that don't apply
-// to histograms.
-func scalarValue(data metricdata.Aggregation) (value any, isHistogram, ok bool) {
-	switch d := data.(type) {
-	case metricdata.Gauge[int64]:
-		if len(d.DataPoints) != 1 {
-			return nil, false, false
-		}
-		return d.DataPoints[0].Value, false, true
-	case metricdata.Gauge[float64]:
-		if len(d.DataPoints) != 1 {
-			return nil, false, false
-		}
-		return d.DataPoints[0].Value, false, true
-	case metricdata.Sum[int64]:
-		if len(d.DataPoints) != 1 {
-			return nil, false, false
-		}
-		return d.DataPoints[0].Value, false, true
-	case metricdata.Histogram[int64]:
-		if len(d.DataPoints) != 1 {
-			return nil, false, false
-		}
-		return d.DataPoints[0].Count, true, true
+	if fullMatch {
+		assert.ElementsMatch(t, foundMetrics, expectedMetricsKeys)
+	} else {
+		assert.Subset(t, foundMetrics, expectedMetricsKeys)
 	}
-	return nil, false, false
+	return foundMetrics
 }

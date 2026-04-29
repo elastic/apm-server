@@ -160,7 +160,21 @@ func TestMetrics(t *testing.T) {
 
 				interceptor(ctx, nil, info, tc.f)
 
+				// Metrics() eagerly zero-initializes the cross product of
+				// these prefixes and request.AllResultIDs. Build the full
+				// expected map starting from those zeros, then override
+				// with the non-zero values the test fires.
 				expectedMetrics := make(map[string]any)
+				for _, prefix := range []string{
+					"grpc.server.",
+					"apm-server.otlp.grpc.metrics.",
+					"apm-server.otlp.grpc.traces.",
+					"apm-server.otlp.grpc.logs.",
+				} {
+					for _, id := range request.AllResultIDs {
+						expectedMetrics[prefix+string(id)] = int64(0)
+					}
+				}
 				for k, v := range tc.expectedOtel {
 					expectedMetrics["grpc.server."+k] = v
 					if k != "request.duration" {
@@ -168,16 +182,7 @@ func TestMetrics(t *testing.T) {
 					}
 				}
 
-				// Metrics() eagerly zero-initializes counters under these
-				// prefixes; unlisted counters under them must be 0.
-				monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics,
-					monitoringtest.WithEagerPrefixes(
-						"grpc.server.",
-						"apm-server.otlp.grpc.metrics.",
-						"apm-server.otlp.grpc.traces.",
-						"apm-server.otlp.grpc.logs.",
-					),
-				)
+				monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
 			})
 		}
 	}
