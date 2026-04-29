@@ -61,10 +61,14 @@ func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {
 
 func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
 	testMonitoringMiddleware(t, "/config/v1/agents", map[string]any{
-		"http.server." + string(request.IDRequestCount):               1,
-		"http.server." + string(request.IDResponseCount):              1,
-		"http.server." + string(request.IDResponseErrorsCount):        1,
-		"http.server." + string(request.IDResponseErrorsInvalidQuery): 1,
+		"http.server." + string(request.IDRequestCount):                  1,
+		"http.server." + string(request.IDResponseCount):                 1,
+		"http.server." + string(request.IDResponseErrorsCount):           1,
+		"http.server." + string(request.IDResponseErrorsInvalidQuery):    1,
+		"apm-server.acm." + string(request.IDRequestCount):               1,
+		"apm-server.acm." + string(request.IDResponseCount):              1,
+		"apm-server.acm." + string(request.IDResponseErrorsCount):        1,
+		"apm-server.acm." + string(request.IDResponseErrorsInvalidQuery): 1,
 	})
 }
 

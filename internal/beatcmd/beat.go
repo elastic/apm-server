@@ -558,43 +558,74 @@ func (b *Beat) registerStatsMetrics() {
 	})
 }
 
+// scalarValue extracts the single dimensionless data point from a Sum or
+// Gauge aggregation's DataPoints slice, or returns (zero, false) if the
+// data has the wrong shape: zero or many points, or attribute-tagged
+// points.
+func scalarValue[T int64 | float64](dp []metricdata.DataPoint[T]) (T, bool) {
+	if len(dp) != 1 || dp[0].Attributes.Len() != 0 {
+		var zero T
+		return zero, false
+	}
+	return dp[0].Value, true
+}
+
 // getScalarInt64 returns a single-value, dimensionless
 // gauge or counter integer value, or (0, false) if the
 // data does not match these constraints.
 func getScalarInt64(data metricdata.Aggregation) (int64, bool) {
 	switch data := data.(type) {
 	case metricdata.Sum[int64]:
-		if len(data.DataPoints) != 1 || data.DataPoints[0].Attributes.Len() != 0 {
-			break
-		}
-		return data.DataPoints[0].Value, true
+		return scalarValue(data.DataPoints)
 	case metricdata.Gauge[int64]:
-		if len(data.DataPoints) != 1 || data.DataPoints[0].Attributes.Len() != 0 {
-			break
-		}
-		return data.DataPoints[0].Value, true
+		return scalarValue(data.DataPoints)
+	}
+	return 0, false
+}
+
+// getScalarFloat64 returns a single-value, dimensionless gauge or counter
+// float value, or (0, false) if the data does not match these constraints.
+func getScalarFloat64(data metricdata.Aggregation) (float64, bool) {
+	switch data := data.(type) {
+	case metricdata.Sum[float64]:
+		return scalarValue(data.DataPoints)
+	case metricdata.Gauge[float64]:
+		return scalarValue(data.DataPoints)
 	}
 	return 0, false
 }
 
 // addAPMServerMetricsToMap adds simple scalar metrics with the "apm-server." prefix
-// to the map.
+// to the map. Both int64 and float64 instruments are supported.
 func addAPMServerMetricsToMap(beatsMetrics map[string]any, metrics []metricdata.Metrics) {
 	for _, m := range metrics {
-		if suffix, ok := strings.CutPrefix(m.Name, "apm-server."); ok {
-			if value, ok := getScalarInt64(m.Data); ok {
-				current := beatsMetrics
-				suffixSlice := strings.Split(suffix, ".")
-				for i := 0; i < len(suffixSlice)-1; i++ {
-					k := suffixSlice[i]
-					if _, ok := current[k]; !ok {
-						current[k] = make(map[string]any)
-					}
-					if currentmap, ok := current[k].(map[string]any); ok {
-						current = currentmap
-					}
-				}
-				current[suffixSlice[len(suffixSlice)-1]] = value
+		suffix, ok := strings.CutPrefix(m.Name, "apm-server.")
+		if !ok {
+			continue
+		}
+		var value any
+		if v, ok := getScalarInt64(m.Data); ok {
+			value = v
+		} else if v, ok := getScalarFloat64(m.Data); ok {
+			value = v
+		} else {
+			continue
+		}
+		current := beatsMetrics
+		// SplitAfterSeq yields each segment with its trailing "." preserved,
+		// except the last. CutSuffix tells us which we're looking at: hasDot
+		// true => intermediate (descend), false => leaf (assign).
+		for seg := range strings.SplitAfterSeq(suffix, ".") {
+			name, hasDot := strings.CutSuffix(seg, ".")
+			if !hasDot {
+				current[name] = value
+				continue
+			}
+			if _, ok := current[name]; !ok {
+				current[name] = make(map[string]any)
+			}
+			if next, ok := current[name].(map[string]any); ok {
+				current = next
 			}
 		}
 	}
@@ -602,14 +633,16 @@ func addAPMServerMetricsToMap(beatsMetrics map[string]any, metrics []metricdata.
 
 func reportOnKey(v monitoring.Visitor, m map[string]any) {
 	for key, value := range m {
-		if valueMap, ok := value.(map[string]any); ok {
+		switch value := value.(type) {
+		case map[string]any:
 			v.OnRegistryStart()
 			v.OnKey(key)
-			reportOnKey(v, valueMap)
+			reportOnKey(v, value)
 			v.OnRegistryFinished()
-		}
-		if valueMetric, ok := value.(int64); ok {
-			monitoring.ReportInt(v, key, valueMetric)
+		case int64:
+			monitoring.ReportInt(v, key, value)
+		case float64:
+			monitoring.ReportFloat(v, key, value)
 		}
 	}
 }

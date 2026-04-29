@@ -285,17 +285,23 @@ func TestMonitoringApmServer(t *testing.T) {
 	b := newNopBeat(t, "")
 	b.registerStatsMetrics()
 
-	// add metrics similar to lsm_size in storage_manager.go and events.processed in processor.go
-	meter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
-	lsmSizeGauge, _ := meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
+	// Three independently-scoped meters whose metrics share the
+	// "apm-server.sampling" prefix; the assertion below verifies they
+	// merge into one snapshot subtree.
+	storageMeter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
+	lsmSizeGauge, _ := storageMeter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
 	lsmSizeGauge.Record(context.Background(), 123)
+	// Float-typed instruments under apm-server.* must surface in the
+	// snapshot too, not only int64 ones.
+	diskThresholdGauge, _ := storageMeter.Float64Gauge("apm-server.sampling.tail.storage.disk_usage_threshold_pct")
+	diskThresholdGauge.Record(context.Background(), 0.8)
 
-	meter2 := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
-	processedCounter, _ := meter2.Int64Counter("apm-server.sampling.tail.events.processed")
+	samplingMeter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
+	processedCounter, _ := samplingMeter.Int64Counter("apm-server.sampling.tail.events.processed")
 	processedCounter.Add(context.Background(), 456)
 
-	meter3 := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/foo")
-	otherCounter, _ := meter3.Int64Counter("apm-server.sampling.foo.request")
+	otherSamplingMeter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/foo")
+	otherCounter, _ := otherSamplingMeter.Int64Counter("apm-server.sampling.foo.request")
 	otherCounter.Add(context.Background(), 1)
 
 	// collect metrics
@@ -311,7 +317,8 @@ func TestMonitoringApmServer(t *testing.T) {
 				},
 				"tail": map[string]any{
 					"storage": map[string]any{
-						"lsm_size": int64(123),
+						"lsm_size":                 int64(123),
+						"disk_usage_threshold_pct": 0.8,
 					},
 					"events": map[string]any{
 						"processed": int64(456),
@@ -741,4 +748,22 @@ func (m *mockManager) Stop() {
 
 func (m *mockManager) SetStopCallback(f func()) {
 	m.stopCallback = f
+}
+
+func BenchmarkAddAPMServerMetricsToMap(b *testing.B) {
+	int64Sum := metricdata.Sum[int64]{
+		DataPoints: []metricdata.DataPoint[int64]{{Value: 1}},
+	}
+	float64Gauge := metricdata.Gauge[float64]{
+		DataPoints: []metricdata.DataPoint[float64]{{Value: 0.8}},
+	}
+	metrics := []metricdata.Metrics{
+		{Name: "apm-server.acm.response.errors.count", Data: int64Sum},
+		{Name: "apm-server.sampling.tail.events.processed", Data: int64Sum},
+		{Name: "apm-server.sampling.tail.storage.disk_usage_threshold_pct", Data: float64Gauge},
+	}
+	b.ReportAllocs()
+	for b.Loop() {
+		addAPMServerMetricsToMap(map[string]any{}, metrics)
+	}
 }

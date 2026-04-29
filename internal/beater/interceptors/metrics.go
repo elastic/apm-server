@@ -19,7 +19,6 @@ package interceptors
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel/metric"
@@ -27,22 +26,46 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/elastic-agent-libs/logp"
+
+	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/internal/otelmetric"
 )
 
 const (
 	requestDurationHistogram = "request.duration"
+	grpcServerPrefix         = "grpc.server."
 )
 
-type metricsInterceptor struct {
-	logger *logp.Logger
-	meter  metric.Meter
-
-	counters   sync.Map
-	histograms sync.Map
+// otlpGRPCLegacyMetricsPrefixes maps each OTLP gRPC service method to its
+// legacy "apm-server.otlp.grpc.<signal>." metric prefix. Single source of
+// truth for both the per-call dispatch in Interceptor() and the eager
+// registration loop in Metrics(); adding a new signal means one entry.
+var otlpGRPCLegacyMetricsPrefixes = map[string]string{
+	"/opentelemetry.proto.collector.metrics.v1.MetricsService/Export": "apm-server.otlp.grpc.metrics.",
+	"/opentelemetry.proto.collector.trace.v1.TraceService/Export":     "apm-server.otlp.grpc.traces.",
+	"/opentelemetry.proto.collector.logs.v1.LogsService/Export":       "apm-server.otlp.grpc.logs.",
 }
 
+// counterKey is the map key for metricsInterceptor.counters. A struct key
+// is used instead of the concatenated "prefix+id" string so the lookup at
+// each m.inc() call avoids allocating a fresh string.
+type counterKey struct {
+	prefix string
+	id     request.ResultID
+}
+
+type metricsInterceptor struct {
+	logger              *logp.Logger
+	counters            map[counterKey]metric.Int64Counter
+	requestDurationHist metric.Int64Histogram
+}
+
+// Interceptor returns the gRPC UnaryServerInterceptor that increments
+// per-method counters and records the request-duration histogram. Any
+// counter or histogram it touches must already exist in m.counters /
+// m.requestDurationHist, populated by Metrics(); a missing entry is an
+// apm-server bug logged by inc().
 func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -50,16 +73,8 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		var legacyMetricsPrefix string
-
-		switch info.FullMethod {
-		case "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export":
-			legacyMetricsPrefix = "apm-server.otlp.grpc.metrics."
-		case "/opentelemetry.proto.collector.trace.v1.TraceService/Export":
-			legacyMetricsPrefix = "apm-server.otlp.grpc.traces."
-		case "/opentelemetry.proto.collector.logs.v1.LogsService/Export":
-			legacyMetricsPrefix = "apm-server.otlp.grpc.logs."
-		default:
+		legacyMetricsPrefix, ok := otlpGRPCLegacyMetricsPrefixes[info.FullMethod]
+		if !ok {
 			m.logger.With(
 				"grpc.request.method", info.FullMethod,
 			).Warn("metrics registry missing")
@@ -72,7 +87,7 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 		start := time.Now()
 		resp, err := handler(ctx, req)
 		duration := time.Since(start)
-		m.getHistogram(requestDurationHistogram, metric.WithUnit("ms")).Record(context.Background(), duration.Milliseconds())
+		m.requestDurationHist.Record(context.Background(), duration.Milliseconds())
 
 		responseID := request.IDResponseValidCount
 		if err != nil {
@@ -93,30 +108,22 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 	}
 }
 
+// inc increments the grpc.server.<id> and <legacyMetricsPrefix><id>
+// counters. A missing entry is an apm-server bug: Metrics() must eagerly
+// create every counter inc() can use.
 func (m *metricsInterceptor) inc(legacyMetricsPrefix string, id request.ResultID) {
-	m.getCounter("grpc.server.", string(id)).Add(context.Background(), 1)
-	m.getCounter(legacyMetricsPrefix, string(id)).Add(context.Background(), 1)
-}
-
-func (m *metricsInterceptor) getCounter(prefix, n string) metric.Int64Counter {
-	name := prefix + n
-	if met, ok := m.counters.Load(name); ok {
-		return met.(metric.Int64Counter)
+	server, sok := m.counters[counterKey{prefix: grpcServerPrefix, id: id}]
+	legacy, lok := m.counters[counterKey{prefix: legacyMetricsPrefix, id: id}]
+	if !sok || !lok {
+		m.logger.With(
+			"prefix", legacyMetricsPrefix,
+			"id", string(id),
+		).Error("BUG: monitoring counter missing from eager registration")
+		return
 	}
-
-	nm, _ := m.meter.Int64Counter(name)
-	met, _ := m.counters.LoadOrStore(name, nm)
-	return met.(metric.Int64Counter)
-}
-
-func (m *metricsInterceptor) getHistogram(n string, opts ...metric.Int64HistogramOption) metric.Int64Histogram {
-	name := "grpc.server." + n
-	if met, ok := m.histograms.Load(name); ok {
-		return met.(metric.Int64Histogram)
-	}
-	nm, _ := m.meter.Int64Histogram(name, opts...)
-	met, _ := m.histograms.LoadOrStore(name, nm)
-	return met.(metric.Int64Histogram)
+	ctx := context.Background()
+	server.Add(ctx, 1)
+	legacy.Add(ctx, 1)
 }
 
 // Metrics returns a grpc.UnaryServerInterceptor that increments metrics
@@ -130,13 +137,27 @@ func (m *metricsInterceptor) getHistogram(n string, opts ...metric.Int64Histogra
 // if neither of these are available, a warning will be logged and no metrics
 // will be gathered.
 func Metrics(logger *logp.Logger, mp metric.MeterProvider) grpc.UnaryServerInterceptor {
-	i := &metricsInterceptor{
-		logger: logger,
-		meter:  mp.Meter("github.com/elastic/apm-server/internal/beater/interceptors"),
+	meter := mp.Meter("github.com/elastic/apm-server/internal/beater/interceptors")
+	requestDurationHist, _ := meter.Int64Histogram(
+		grpcServerPrefix+requestDurationHistogram,
+		metric.WithUnit("ms"),
+	)
 
-		counters:   sync.Map{},
-		histograms: sync.Map{},
+	// Eager registration: pre-populate every (prefix, id) pair the
+	// interceptor can ever record against. Done once before the
+	// interceptor is returned, so subsequent map reads are concurrent-safe.
+	counters := make(map[counterKey]metric.Int64Counter, len(request.AllResultIDs)*(len(otlpGRPCLegacyMetricsPrefixes)+1))
+	for _, id := range request.AllResultIDs {
+		counters[counterKey{prefix: grpcServerPrefix, id: id}] = otelmetric.NewInt64Counter(meter, grpcServerPrefix+string(id))
+		for _, prefix := range otlpGRPCLegacyMetricsPrefixes {
+			counters[counterKey{prefix: prefix, id: id}] = otelmetric.NewInt64Counter(meter, prefix+string(id))
+		}
 	}
 
+	i := &metricsInterceptor{
+		logger:              logger,
+		counters:            counters,
+		requestDurationHist: requestDurationHist,
+	}
 	return i.Interceptor()
 }

@@ -34,6 +34,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/internal/otelmetric"
 	"github.com/elastic/apm-server/internal/publish"
 )
 
@@ -55,9 +56,9 @@ type RequestMetadataFunc func(*request.Context) *modelpb.APMEvent
 // Handler returns a request.Handler for managing intake requests for backend and rum events.
 func Handler(mp metric.MeterProvider, tp trace.TracerProvider, handler elasticapm.StreamHandler, requestMetadataFunc RequestMetadataFunc, batchProcessor modelpb.BatchProcessor) request.Handler {
 	meter := mp.Meter("github.com/elastic/apm-server/internal/beater/api/intake")
-	eventsAccepted, _ := meter.Int64Counter("apm-server.processor.stream.accepted")
-	eventsInvalid, _ := meter.Int64Counter("apm-server.processor.stream.errors.invalid")
-	eventsTooLarge, _ := meter.Int64Counter("apm-server.processor.stream.errors.toolarge")
+	eventsAccepted := otelmetric.NewInt64Counter(meter, "apm-server.processor.stream.accepted")
+	eventsInvalid := otelmetric.NewInt64Counter(meter, "apm-server.processor.stream.errors.invalid")
+	eventsTooLarge := otelmetric.NewInt64Counter(meter, "apm-server.processor.stream.errors.toolarge")
 
 	batchProcessor = modelprocessor.NewTracer("intake.ProcessBatch", batchProcessor, modelprocessor.WithTracerProvider(tp))
 
