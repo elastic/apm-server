@@ -188,7 +188,7 @@ func (i ingestStep) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	beforeIngestDSDocCount := getDocCountPerDS(t, ctx, e.esc, ignoreDS...)
 
 	t.Logf("------ ingest in %s------", e.currentVersion())
-	err := e.gen.RunBlockingWait(ctx, e.currentVersion(), e.integrations)
+	err := e.gen.RunBlockingWait(ctx, e.currentVersion())
 	// Check if there are any panic logs in elastic-agent so we can report it.
 	t.Log("checking for panic logs")
 	checkPanicLogs(t, ctx, e.esc)
@@ -346,7 +346,7 @@ func (i ingestV7Step) Step(t *testing.T, ctx context.Context, e *testStepEnv) {
 	}
 
 	t.Logf("------ ingest in %s ------", e.currentVersion())
-	err := e.gen.RunBlockingWait(ctx, e.currentVersion(), e.integrations)
+	err := e.gen.RunBlockingWait(ctx, e.currentVersion())
 	require.NoError(t, err)
 
 	t.Logf("------ ingest check in %s ------", e.currentVersion())
