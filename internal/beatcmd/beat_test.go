@@ -173,6 +173,9 @@ func TestLibbeatMetrics(t *testing.T) {
 				"active": int64(totalRequests),
 				"total":  int64(totalRequests),
 			},
+			"write": map[string]any{
+				"bytes": int64(0),
+			},
 		},
 		"pipeline": map[string]any{
 			"events": map[string]any{

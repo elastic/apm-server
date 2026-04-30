@@ -701,12 +701,10 @@ func addDocappenderLibbeatOutputMetrics(ctx context.Context, v monitoring.Visito
 	}
 	v.OnRegistryFinished()
 
-	if writeBytes > 0 {
-		v.OnRegistryStart()
-		v.OnKey("write")
-		monitoring.ReportInt(v, "bytes", writeBytes)
-		v.OnRegistryFinished()
-	}
+	v.OnRegistryStart()
+	v.OnKey("write")
+	monitoring.ReportInt(v, "bytes", writeBytes)
+	v.OnRegistryFinished()
 }
 
 func addDocappenderLibbeatPipelineMetrics(ctx context.Context, v monitoring.Visitor, sm metricdata.ScopeMetrics) {
