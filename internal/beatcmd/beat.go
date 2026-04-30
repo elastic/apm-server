@@ -30,6 +30,7 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -489,34 +490,59 @@ func (b *Beat) registerStateMetrics() {
 func (b *Beat) registerStatsMetrics() {
 	statsRegistry := b.Monitoring.StatsRegistry()
 	libbeatRegistry := statsRegistry.GetOrCreateRegistry("libbeat")
+
+	// Per-callback persistent state for the libbeat.output.* and
+	// libbeat.pipeline.* sub-trees. Both structs zero-init, so every
+	// field surfaces in /stats from process start (which downstream
+	// mapping-regeneration tooling depends on) without any per-scrape
+	// fabrication. Each scrape that finds the docappender scope updates
+	// the fields it observes; fields docappender never reports stay at
+	// 0; fields docappender stops reporting retain their last-known
+	// value rather than silently snapping back to a fabricated 0.
+	outputState := &libbeatOutputState{}
+	pipelineState := &libbeatPipelineState{}
+
 	monitoring.NewFunc(libbeatRegistry, "output", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
 		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
 			return
 		}
-		v.OnRegistryStart()
-		defer v.OnRegistryFinished()
+		var docappenderSeen bool
 		for _, sm := range rm.ScopeMetrics {
-			switch {
-			case sm.Scope.Name == "github.com/elastic/go-docappender":
-				monitoring.ReportString(v, "type", "elasticsearch")
-				addDocappenderLibbeatOutputMetrics(context.Background(), v, sm)
+			if sm.Scope.Name == "github.com/elastic/go-docappender" {
+				docappenderSeen = true
+				outputState.update(sm)
 			}
 		}
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		if !docappenderSeen && !outputState.everSeen() {
+			// Never observed docappender (e.g. console output): emit
+			// nothing so libbeat.output stays an empty sub-tree, the
+			// same shape /stats had before this PR.
+			return
+		}
+		monitoring.ReportString(v, "type", "elasticsearch")
+		outputState.report(v)
 	})
 	monitoring.NewFunc(libbeatRegistry, "pipeline", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
 		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
 			return
 		}
-		v.OnRegistryStart()
-		defer v.OnRegistryFinished()
+		var docappenderSeen bool
 		for _, sm := range rm.ScopeMetrics {
-			switch {
-			case sm.Scope.Name == "github.com/elastic/go-docappender":
-				addDocappenderLibbeatPipelineMetrics(context.Background(), v, sm)
+			if sm.Scope.Name == "github.com/elastic/go-docappender" {
+				docappenderSeen = true
+				pipelineState.update(sm)
 			}
 		}
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		if !docappenderSeen && !pipelineState.everSeen() {
+			return
+		}
+		pipelineState.report(v)
 	})
 	monitoring.NewFunc(statsRegistry, "output.elasticsearch", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
@@ -651,13 +677,20 @@ func reportOnKey(v monitoring.Visitor, m map[string]any) {
 	}
 }
 
-// Adapt go-docappender's OTel metrics to beats stack monitoring metrics,
-// with a mixture of libbeat-specific and apm-server specific metric names.
-func addDocappenderLibbeatOutputMetrics(ctx context.Context, v monitoring.Visitor, sm metricdata.ScopeMetrics) {
-	var writeBytes int64
+// libbeatOutputState holds the last observed values for the
+// libbeat.output.* sub-tree. Zero-initialised at process start so every
+// field appears in /stats from the first scrape, even before docappender
+// has reported anything; subsequent scrapes update only the fields
+// docappender currently exports, so a rename or drop in docappender does
+// not silently snap a field back to a fabricated 0 — the last-known
+// value is retained.
+type libbeatOutputState struct {
+	seen                                                       atomic.Bool
+	acked, active, batches, failed, toomany, total, writeBytes atomic.Int64
+}
 
-	v.OnRegistryStart()
-	v.OnKey("events")
+func (s *libbeatOutputState) update(sm metricdata.ScopeMetrics) {
+	s.seen.Store(true)
 	for _, m := range sm.Metrics {
 		switch m.Name {
 		case "elasticsearch.events.processed":
@@ -678,48 +711,78 @@ func addDocappenderLibbeatOutputMetrics(ctx context.Context, v monitoring.Visito
 					failed += dp.Value
 				}
 			}
-			monitoring.ReportInt(v, "acked", acked)
-			monitoring.ReportInt(v, "failed", failed)
-			monitoring.ReportInt(v, "toomany", toomany)
+			s.acked.Store(acked)
+			s.toomany.Store(toomany)
+			s.failed.Store(failed)
 		case "elasticsearch.events.count":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "total", value)
+				s.total.Store(value)
 			}
 		case "elasticsearch.events.queued":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "active", value)
+				s.active.Store(value)
 			}
 		case "elasticsearch.flushed.bytes":
 			if value, ok := getScalarInt64(m.Data); ok {
-				writeBytes = value
+				s.writeBytes.Store(value)
 			}
 		case "elasticsearch.bulk_requests.count":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "batches", value)
+				s.batches.Store(value)
 			}
 		}
 	}
+}
+
+func (s *libbeatOutputState) report(v monitoring.Visitor) {
+	v.OnRegistryStart()
+	v.OnKey("events")
+	monitoring.ReportInt(v, "acked", s.acked.Load())
+	monitoring.ReportInt(v, "active", s.active.Load())
+	monitoring.ReportInt(v, "batches", s.batches.Load())
+	monitoring.ReportInt(v, "failed", s.failed.Load())
+	monitoring.ReportInt(v, "toomany", s.toomany.Load())
+	monitoring.ReportInt(v, "total", s.total.Load())
 	v.OnRegistryFinished()
 
 	v.OnRegistryStart()
 	v.OnKey("write")
-	monitoring.ReportInt(v, "bytes", writeBytes)
+	monitoring.ReportInt(v, "bytes", s.writeBytes.Load())
 	v.OnRegistryFinished()
 }
 
-func addDocappenderLibbeatPipelineMetrics(ctx context.Context, v monitoring.Visitor, sm metricdata.ScopeMetrics) {
-	v.OnRegistryStart()
-	defer v.OnRegistryFinished()
-	v.OnKey("events")
+func (s *libbeatOutputState) everSeen() bool {
+	return s.seen.Load()
+}
 
+// libbeatPipelineState holds the last observed values for the
+// libbeat.pipeline.* sub-tree. Same shape and rationale as
+// libbeatOutputState.
+type libbeatPipelineState struct {
+	seen  atomic.Bool
+	total atomic.Int64
+}
+
+func (s *libbeatPipelineState) update(sm metricdata.ScopeMetrics) {
+	s.seen.Store(true)
 	for _, m := range sm.Metrics {
-		switch m.Name {
-		case "elasticsearch.events.count":
+		if m.Name == "elasticsearch.events.count" {
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "total", value)
+				s.total.Store(value)
 			}
 		}
 	}
+}
+
+func (s *libbeatPipelineState) report(v monitoring.Visitor) {
+	v.OnRegistryStart()
+	defer v.OnRegistryFinished()
+	v.OnKey("events")
+	monitoring.ReportInt(v, "total", s.total.Load())
+}
+
+func (s *libbeatPipelineState) everSeen() bool {
+	return s.seen.Load()
 }
 
 // Add non-libbeat Elasticsearch output metrics under "output.elasticsearch".

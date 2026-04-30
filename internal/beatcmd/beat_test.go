@@ -170,8 +170,12 @@ func TestLibbeatMetrics(t *testing.T) {
 		"output": map[string]any{
 			"type": "elasticsearch",
 			"events": map[string]any{
-				"active": int64(totalRequests),
-				"total":  int64(totalRequests),
+				"acked":   int64(0),
+				"active":  int64(totalRequests),
+				"batches": int64(0),
+				"failed":  int64(0),
+				"toomany": int64(0),
+				"total":   int64(totalRequests),
 			},
 			"write": map[string]any{
 				"bytes": int64(0),
@@ -238,23 +242,13 @@ func TestLibbeatMetrics(t *testing.T) {
 	}, snapshot)
 }
 
-// TestLibbeatMetricsEagerZero confirms that the docappender-derived
-// libbeat.output.* / libbeat.pipeline.* fields surface in /stats from
-// process start, before any indexing has occurred. Five of these fields
-// are unblocked by the upstream Add(0) eager-init in
-// https://github.com/elastic/go-docappender/pull/317; the three
-// status-attributed fields (events.acked / events.failed / events.toomany,
-// derived from elasticsearch.events.processed) remain lazy until a
-// follow-up addresses status-attributed counters.
-//
-// The test is skipped until apm-server's docappender go.mod entry is
-// bumped to a release that includes the eager-init change. It can be
-// validated locally before that release lands by adding a `replace`
-// directive in go.mod pointing at a local docappender checkout on the
-// PR branch.
+// TestLibbeatMetricsEagerZero confirms that every docappender-derived
+// libbeat.output.* / libbeat.pipeline.* field surfaces in /stats from
+// process start, before any indexing has occurred. The apm-server-side
+// adapters in addDocappenderLibbeat{Output,Pipeline}Metrics own this
+// schema and emit zero values unconditionally; this test locks the
+// contract that downstream mapping-regeneration tooling depends on.
 func TestLibbeatMetricsEagerZero(t *testing.T) {
-	t.Skip("requires elastic/go-docappender#317; remove this skip after the docappender bump")
-
 	runnerParamsChan := make(chan RunnerParams, 1)
 	beat := newBeat(t, "output.elasticsearch.enabled: true", func(args RunnerParams) (Runner, error) {
 		runnerParamsChan <- args
@@ -281,19 +275,27 @@ func TestLibbeatMetricsEagerZero(t *testing.T) {
 	statsRegistry := beat.Monitoring.StatsRegistry()
 	libbeatRegistry := statsRegistry.GetRegistry("libbeat")
 	snapshot := monitoring.CollectStructSnapshot(libbeatRegistry, monitoring.Full, false)
-
-	output := snapshot["output"].(map[string]any)
-	assert.Equal(t, "elasticsearch", output["type"])
-	events := output["events"].(map[string]any)
-	assert.Equal(t, int64(0), events["active"])
-	assert.Equal(t, int64(0), events["batches"])
-	assert.Equal(t, int64(0), events["total"])
-	write := output["write"].(map[string]any)
-	assert.Equal(t, int64(0), write["bytes"])
-
-	pipeline := snapshot["pipeline"].(map[string]any)
-	pipelineEvents := pipeline["events"].(map[string]any)
-	assert.Equal(t, int64(0), pipelineEvents["total"])
+	assert.Equal(t, map[string]any{
+		"output": map[string]any{
+			"type": "elasticsearch",
+			"events": map[string]any{
+				"acked":   int64(0),
+				"active":  int64(0),
+				"batches": int64(0),
+				"failed":  int64(0),
+				"toomany": int64(0),
+				"total":   int64(0),
+			},
+			"write": map[string]any{
+				"bytes": int64(0),
+			},
+		},
+		"pipeline": map[string]any{
+			"events": map[string]any{
+				"total": int64(0),
+			},
+		},
+	}, snapshot)
 }
 
 // TestAddAPMServerMetrics tests basic functionality of the metrics collection and reporting
