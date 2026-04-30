@@ -398,10 +398,11 @@ func (b *Beat) Run(ctx context.Context) error {
 		g.Go(func() error { return reloader.Run(ctx) })
 
 		b.Manager.SetStopCallback(cancel)
-		if err := b.Manager.Start(); err != nil {
+		if err := b.Manager.PreInit(); err != nil {
 			return fmt.Errorf("failed to start manager: %w", err)
 		}
 		defer b.Manager.Stop()
+		b.Manager.PostInit()
 	} else {
 		if !b.Config.Output.IsSet() {
 			return errors.New("no output defined, please define one under the output section")
