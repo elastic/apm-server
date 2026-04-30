@@ -112,18 +112,20 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 // counters. A missing entry is an apm-server bug: Metrics() must eagerly
 // create every counter inc() can use.
 func (m *metricsInterceptor) inc(legacyMetricsPrefix string, id request.ResultID) {
-	server, sok := m.counters[counterKey{prefix: grpcServerPrefix, id: id}]
-	legacy, lok := m.counters[counterKey{prefix: legacyMetricsPrefix, id: id}]
-	if !sok || !lok {
-		m.logger.With(
-			"prefix", legacyMetricsPrefix,
-			"id", string(id),
-		).Error("BUG: monitoring counter missing from eager registration")
+	m.incOne(grpcServerPrefix, id)
+	m.incOne(legacyMetricsPrefix, id)
+}
+
+// incOne adds 1 to the counter for (prefix, id). A missing entry logs
+// the BUG and is otherwise a no-op.
+func (m *metricsInterceptor) incOne(prefix string, id request.ResultID) {
+	c, ok := m.counters[counterKey{prefix: prefix, id: id}]
+	if !ok {
+		m.logger.With("name", prefix+string(id)).
+			Error("BUG: monitoring counter missing from eager registration")
 		return
 	}
-	ctx := context.Background()
-	server.Add(ctx, 1)
-	legacy.Add(ctx, 1)
+	c.Add(context.Background(), 1)
 }
 
 // Metrics returns a grpc.UnaryServerInterceptor that increments metrics

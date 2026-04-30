@@ -74,18 +74,21 @@ func (m *monitoringMiddleware) Middleware() Middleware {
 // counters. A missing entry is an apm-server bug: MonitoringMiddleware()
 // must eagerly create every counter inc() can use.
 func (m *monitoringMiddleware) inc(id request.ResultID) {
-	server, sok := m.serverCounters[id]
-	legacy, lok := m.legacyCounters[id]
-	if !sok || !lok {
-		m.logger.With(
-			"prefix", m.legacyMetricsPrefix,
-			"id", string(id),
-		).Error("BUG: monitoring counter missing from eager registration")
+	m.incOne(m.serverCounters, httpServerPrefix, id)
+	m.incOne(m.legacyCounters, m.legacyMetricsPrefix, id)
+}
+
+// incOne adds 1 to counters[id]. A missing entry logs the BUG (with
+// prefix only used to build the full metric name) and is otherwise a
+// no-op.
+func (m *monitoringMiddleware) incOne(counters map[request.ResultID]metric.Int64Counter, prefix string, id request.ResultID) {
+	c, ok := counters[id]
+	if !ok {
+		m.logger.With("name", prefix+string(id)).
+			Error("BUG: monitoring counter missing from eager registration")
 		return
 	}
-	ctx := context.Background()
-	server.Add(ctx, 1)
-	legacy.Add(ctx, 1)
+	c.Add(context.Background(), 1)
 }
 
 // MonitoringMiddleware returns a middleware that increments monitoring
