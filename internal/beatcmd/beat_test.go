@@ -170,15 +170,8 @@ func TestLibbeatMetrics(t *testing.T) {
 		"output": map[string]any{
 			"type": "elasticsearch",
 			"events": map[string]any{
-				"acked":   int64(0),
-				"active":  int64(totalRequests),
-				"batches": int64(0),
-				"failed":  int64(0),
-				"toomany": int64(0),
-				"total":   int64(totalRequests),
-			},
-			"write": map[string]any{
-				"bytes": int64(0),
+				"active": int64(totalRequests),
+				"total":  int64(totalRequests),
 			},
 		},
 		"pipeline": map[string]any{
@@ -237,61 +230,6 @@ func TestLibbeatMetrics(t *testing.T) {
 				"active":    int64(2),
 				"created":   int64(1),
 				"destroyed": int64(0),
-			},
-		},
-	}, snapshot)
-}
-
-// TestLibbeatMetricsEagerZero verifies that the libbeat.output.* and
-// libbeat.pipeline.* fields populated by the docappender adapters are
-// present at zero before any indexing has occurred. The mapping-regeneration
-// tooling reads a single /stats snapshot, so every field that may appear
-// later must already exist at startup.
-func TestLibbeatMetricsEagerZero(t *testing.T) {
-	runnerParamsChan := make(chan RunnerParams, 1)
-	beat := newBeat(t, "output.elasticsearch.enabled: true", func(args RunnerParams) (Runner, error) {
-		runnerParamsChan <- args
-		return runnerFunc(func(ctx context.Context) error {
-			<-ctx.Done()
-			return ctx.Err()
-		}), nil
-	})
-	stop := runBeat(t, beat)
-	defer func() { assert.NoError(t, stop()) }()
-	args := <-runnerParamsChan
-
-	esClient := docappendertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
-		t.Fatalf("unexpected request to mock ES")
-	})
-	appender, err := docappender.New(esClient, docappender.Config{
-		MeterProvider: args.MeterProvider,
-	})
-	require.NoError(t, err)
-	defer func() {
-		assert.NoError(t, appender.Close(context.Background()))
-	}()
-
-	statsRegistry := beat.Monitoring.StatsRegistry()
-	libbeatRegistry := statsRegistry.GetRegistry("libbeat")
-	snapshot := monitoring.CollectStructSnapshot(libbeatRegistry, monitoring.Full, false)
-	assert.Equal(t, map[string]any{
-		"output": map[string]any{
-			"type": "elasticsearch",
-			"events": map[string]any{
-				"acked":   int64(0),
-				"active":  int64(0),
-				"batches": int64(0),
-				"failed":  int64(0),
-				"toomany": int64(0),
-				"total":   int64(0),
-			},
-			"write": map[string]any{
-				"bytes": int64(0),
-			},
-		},
-		"pipeline": map[string]any{
-			"events": map[string]any{
-				"total": int64(0),
 			},
 		},
 	}, snapshot)

@@ -651,17 +651,17 @@ func reportOnKey(v monitoring.Visitor, m map[string]any) {
 	}
 }
 
-// addDocappenderLibbeatOutputMetrics adapts go-docappender's OTel metrics to
-// the libbeat.output.* monitoring tree. Every reported field is accumulated
-// into a local variable and reported unconditionally, so the full field set
-// appears with zero values even before docappender has published anything.
-// This keeps /stats's libbeat.output.* shape stable from process start, which
-// downstream mapping-regeneration tooling relies on.
+// Adapt go-docappender's OTel metrics to beats stack monitoring metrics,
+// with a mixture of libbeat-specific and apm-server specific metric names.
 func addDocappenderLibbeatOutputMetrics(ctx context.Context, v monitoring.Visitor, sm metricdata.ScopeMetrics) {
-	var acked, active, batches, failed, toomany, total, writeBytes int64
+	var writeBytes int64
+
+	v.OnRegistryStart()
+	v.OnKey("events")
 	for _, m := range sm.Metrics {
 		switch m.Name {
 		case "elasticsearch.events.processed":
+			var acked, toomany, failed int64
 			data, _ := m.Data.(metricdata.Sum[int64])
 			for _, dp := range data.DataPoints {
 				status, ok := dp.Attributes.Value(attribute.Key("status"))
@@ -678,13 +678,16 @@ func addDocappenderLibbeatOutputMetrics(ctx context.Context, v monitoring.Visito
 					failed += dp.Value
 				}
 			}
+			monitoring.ReportInt(v, "acked", acked)
+			monitoring.ReportInt(v, "failed", failed)
+			monitoring.ReportInt(v, "toomany", toomany)
 		case "elasticsearch.events.count":
 			if value, ok := getScalarInt64(m.Data); ok {
-				total = value
+				monitoring.ReportInt(v, "total", value)
 			}
 		case "elasticsearch.events.queued":
 			if value, ok := getScalarInt64(m.Data); ok {
-				active = value
+				monitoring.ReportInt(v, "active", value)
 			}
 		case "elasticsearch.flushed.bytes":
 			if value, ok := getScalarInt64(m.Data); ok {
@@ -692,45 +695,33 @@ func addDocappenderLibbeatOutputMetrics(ctx context.Context, v monitoring.Visito
 			}
 		case "elasticsearch.bulk_requests.count":
 			if value, ok := getScalarInt64(m.Data); ok {
-				batches = value
+				monitoring.ReportInt(v, "batches", value)
 			}
 		}
 	}
-
-	v.OnRegistryStart()
-	v.OnKey("events")
-	monitoring.ReportInt(v, "acked", acked)
-	monitoring.ReportInt(v, "active", active)
-	monitoring.ReportInt(v, "batches", batches)
-	monitoring.ReportInt(v, "failed", failed)
-	monitoring.ReportInt(v, "toomany", toomany)
-	monitoring.ReportInt(v, "total", total)
 	v.OnRegistryFinished()
 
-	v.OnRegistryStart()
-	v.OnKey("write")
-	monitoring.ReportInt(v, "bytes", writeBytes)
-	v.OnRegistryFinished()
+	if writeBytes > 0 {
+		v.OnRegistryStart()
+		v.OnKey("write")
+		monitoring.ReportInt(v, "bytes", writeBytes)
+		v.OnRegistryFinished()
+	}
 }
 
-// addDocappenderLibbeatPipelineMetrics adapts go-docappender's OTel metrics
-// to the libbeat.pipeline.* monitoring tree. Reports the field unconditionally
-// so it surfaces at zero before any publish, matching the eager-emission
-// contract used by addDocappenderLibbeatOutputMetrics.
 func addDocappenderLibbeatPipelineMetrics(ctx context.Context, v monitoring.Visitor, sm metricdata.ScopeMetrics) {
-	var total int64
-	for _, m := range sm.Metrics {
-		if m.Name == "elasticsearch.events.count" {
-			if value, ok := getScalarInt64(m.Data); ok {
-				total = value
-			}
-		}
-	}
-
 	v.OnRegistryStart()
 	defer v.OnRegistryFinished()
 	v.OnKey("events")
-	monitoring.ReportInt(v, "total", total)
+
+	for _, m := range sm.Metrics {
+		switch m.Name {
+		case "elasticsearch.events.count":
+			if value, ok := getScalarInt64(m.Data); ok {
+				monitoring.ReportInt(v, "total", value)
+			}
+		}
+	}
 }
 
 // Add non-libbeat Elasticsearch output metrics under "output.elasticsearch".
