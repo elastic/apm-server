@@ -26,7 +26,7 @@ https://github.com/elastic/apm-server/compare/v8.19.14\...v8.19.15[View commits]
 [float]
 ==== Bug fixes
 
-- Fixed HTTP/2 connections being dropped by strict clients and browser-based RUM agents due to APM Server sending inconsistent SETTINGS frames at connection start. ({pull}20913[20913]) For more details, refer to our known issues [page](https://www.elastic.co/docs/release-notes/apm/known-issues)
+- Fixed HTTP/2 connections being dropped by strict clients and browser-based RUM agents due to APM Server sending inconsistent SETTINGS frames at connection start ({pull}20913[20913]). For more details, refer to our known issues (https://www.elastic.co/docs/release-notes/apm/known-issues[page])
 
 [float]
 [[apm-release-notes-8.19.14]]
