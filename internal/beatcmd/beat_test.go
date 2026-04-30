@@ -268,7 +268,7 @@ func TestAddAPMServerMetrics(t *testing.T) {
 		defer v.OnRegistryFinished()
 
 		beatsMetrics := make(map[string]any)
-		addAPMServerMetricsToMap(beatsMetrics, sm.Metrics)
+		addAPMServerMetricsToMap(beatsMetrics, sm.Metrics, logptest.NewTestingLogger(t, "beat"))
 		reportOnKey(v, beatsMetrics)
 	})
 
@@ -750,6 +750,31 @@ func (m *mockManager) SetStopCallback(f func()) {
 	m.stopCallback = f
 }
 
+func TestAddAPMServerMetricsToMapBUG(t *testing.T) {
+	// A Histogram is not in the {Sum,Gauge}[int64,float64] set the
+	// translator handles; addAPMServerMetricsToMap should drop it from
+	// the output and log the BUG with the metric's name and Go type.
+	logger, observed := logptest.NewTestingLoggerWithObserver(t, "beat")
+
+	metrics := []metricdata.Metrics{{
+		Name: "apm-server.unsupported.metric",
+		Data: metricdata.Histogram[int64]{
+			DataPoints: []metricdata.HistogramDataPoint[int64]{{Count: 1}},
+		},
+	}}
+
+	out := map[string]any{}
+	addAPMServerMetricsToMap(out, metrics, logger)
+
+	assert.Empty(t, out)
+
+	entries := observed.FilterMessage("BUG: cannot report monitoring metric").All()
+	require.Len(t, entries, 1)
+	fields := entries[0].ContextMap()
+	assert.Equal(t, "apm-server.unsupported.metric", fields["name"])
+	assert.Contains(t, fields["type"], "Histogram")
+}
+
 func BenchmarkAddAPMServerMetricsToMap(b *testing.B) {
 	int64Sum := metricdata.Sum[int64]{
 		DataPoints: []metricdata.DataPoint[int64]{{Value: 1}},
@@ -762,8 +787,9 @@ func BenchmarkAddAPMServerMetricsToMap(b *testing.B) {
 		{Name: "apm-server.sampling.tail.events.processed", Data: int64Sum},
 		{Name: "apm-server.sampling.tail.storage.disk_usage_threshold_pct", Data: float64Gauge},
 	}
+	logger := logptest.NewTestingLogger(b, "beat")
 	b.ReportAllocs()
 	for b.Loop() {
-		addAPMServerMetricsToMap(map[string]any{}, metrics)
+		addAPMServerMetricsToMap(map[string]any{}, metrics, logger)
 	}
 }

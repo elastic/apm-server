@@ -547,7 +547,7 @@ func (b *Beat) registerStatsMetrics() {
 			case strings.HasPrefix(sm.Scope.Name, "github.com/elastic/apm-server"):
 				// All simple scalar metrics that begin with the name "apm-server."
 				// in github.com/elastic/apm-server/... scopes are mapped directly.
-				addAPMServerMetricsToMap(beatsMetrics, sm.Metrics)
+				addAPMServerMetricsToMap(beatsMetrics, sm.Metrics, b.Info.Logger)
 			}
 		}
 
@@ -597,7 +597,7 @@ func getScalarFloat64(data metricdata.Aggregation) (float64, bool) {
 
 // addAPMServerMetricsToMap adds simple scalar metrics with the "apm-server." prefix
 // to the map. Both int64 and float64 instruments are supported.
-func addAPMServerMetricsToMap(beatsMetrics map[string]any, metrics []metricdata.Metrics) {
+func addAPMServerMetricsToMap(beatsMetrics map[string]any, metrics []metricdata.Metrics, logger *logp.Logger) {
 	for _, m := range metrics {
 		suffix, ok := strings.CutPrefix(m.Name, "apm-server.")
 		if !ok {
@@ -609,6 +609,10 @@ func addAPMServerMetricsToMap(beatsMetrics map[string]any, metrics []metricdata.
 		} else if v, ok := getScalarFloat64(m.Data); ok {
 			value = v
 		} else {
+			logger.With(
+				"name", m.Name,
+				"type", fmt.Sprintf("%T", m.Data),
+			).Error("BUG: cannot report monitoring metric")
 			continue
 		}
 		current := beatsMetrics
