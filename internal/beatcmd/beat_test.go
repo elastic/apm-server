@@ -235,6 +235,64 @@ func TestLibbeatMetrics(t *testing.T) {
 	}, snapshot)
 }
 
+// TestLibbeatMetricsEagerZero confirms that the docappender-derived
+// libbeat.output.* / libbeat.pipeline.* fields surface in /stats from
+// process start, before any indexing has occurred. Five of these fields
+// are unblocked by the upstream Add(0) eager-init in
+// https://github.com/elastic/go-docappender/pull/317; the three
+// status-attributed fields (events.acked / events.failed / events.toomany,
+// derived from elasticsearch.events.processed) remain lazy until a
+// follow-up addresses status-attributed counters.
+//
+// The test is skipped until apm-server's docappender go.mod entry is
+// bumped to a release that includes the eager-init change. It can be
+// validated locally before that release lands by adding a `replace`
+// directive in go.mod pointing at a local docappender checkout on the
+// PR branch.
+func TestLibbeatMetricsEagerZero(t *testing.T) {
+	t.Skip("requires elastic/go-docappender#317; remove this skip after the docappender bump")
+
+	runnerParamsChan := make(chan RunnerParams, 1)
+	beat := newBeat(t, "output.elasticsearch.enabled: true", func(args RunnerParams) (Runner, error) {
+		runnerParamsChan <- args
+		return runnerFunc(func(ctx context.Context) error {
+			<-ctx.Done()
+			return ctx.Err()
+		}), nil
+	})
+	stop := runBeat(t, beat)
+	defer func() { assert.NoError(t, stop()) }()
+	args := <-runnerParamsChan
+
+	esClient := docappendertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		t.Fatalf("unexpected request to mock ES")
+	})
+	appender, err := docappender.New(esClient, docappender.Config{
+		MeterProvider: args.MeterProvider,
+	})
+	require.NoError(t, err)
+	defer func() {
+		assert.NoError(t, appender.Close(context.Background()))
+	}()
+
+	statsRegistry := beat.Monitoring.StatsRegistry()
+	libbeatRegistry := statsRegistry.GetRegistry("libbeat")
+	snapshot := monitoring.CollectStructSnapshot(libbeatRegistry, monitoring.Full, false)
+
+	output := snapshot["output"].(map[string]any)
+	assert.Equal(t, "elasticsearch", output["type"])
+	events := output["events"].(map[string]any)
+	assert.Equal(t, int64(0), events["active"])
+	assert.Equal(t, int64(0), events["batches"])
+	assert.Equal(t, int64(0), events["total"])
+	write := output["write"].(map[string]any)
+	assert.Equal(t, int64(0), write["bytes"])
+
+	pipeline := snapshot["pipeline"].(map[string]any)
+	pipelineEvents := pipeline["events"].(map[string]any)
+	assert.Equal(t, int64(0), pipelineEvents["total"])
+}
+
 // TestAddAPMServerMetrics tests basic functionality of the metrics collection and reporting
 func TestAddAPMServerMetrics(t *testing.T) {
 	r := monitoring.NewRegistry()
