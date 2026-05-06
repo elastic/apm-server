@@ -7,7 +7,8 @@
 #
 # Steps:
 #   1. Start ./apm-server with TBS enabled and capture /stats.
-#   2. Install the regen tool (github.com/elastic/apm-tools/cmd/stats-to-mapping).
+#   2. Shallow-clone elastic/apm-tools and build cmd/stats-to-mapping
+#      into $WORK; nothing is installed into $GOPATH/bin.
 #   3. Sparse-clone the three upstream repos.
 #   4. Run the regen tool over the five tracked files.
 #   5. Compute per-file git diff and a summary.
@@ -16,6 +17,9 @@
 #   apm-server.yml         apm-server config used to capture stats
 #   apm-server.log         apm-server stdout/stderr
 #   stats.json             captured /stats document
+#   apm-tools/             shallow clone of elastic/apm-tools
+#                          (skipped when $APM_TOOLS_DIR is set)
+#   stats-to-mapping       compiled regen tool binary
 #   upstream/<repo>/...    sparse clones of the three upstream repos
 #   drift.diff             full git diff of every drifted file
 #   drift.summary.md       per-file `<repo>/<file> — +N / -M` bullets
@@ -91,10 +95,20 @@ fi
 # the config or apm-server's stats shape changed.
 jq -e '.["apm-server"].sampling.tail.storage' "$WORK/stats.json" >/dev/null
 
-# 2. Install the regen tool. $(go env GOPATH)/bin must be on PATH.
-echo "==> Installing stats-to-mapping"
-go install github.com/elastic/apm-tools/cmd/stats-to-mapping@latest
-export PATH="$PATH:$(go env GOPATH)/bin"
+# 2. Build the regen tool from apm-tools. Built into $WORK so the
+# developer/CI environment's $GOPATH/bin is not polluted. Set
+# APM_TOOLS_DIR to point at an existing local apm-tools checkout to
+# skip the shallow clone (useful when iterating on the regen tool).
+APM_TOOLS_DIR=${APM_TOOLS_DIR:-$WORK/apm-tools}
+if [ ! -d "$APM_TOOLS_DIR" ]; then
+  echo "==> Cloning elastic/apm-tools"
+  git clone --depth 1 https://github.com/elastic/apm-tools "$APM_TOOLS_DIR"
+fi
+echo "==> Building stats-to-mapping (from $APM_TOOLS_DIR)"
+# Resolve to an absolute path so `go build -C` can write to it regardless
+# of what working directory go itself ends up in.
+STATS_TO_MAPPING=$(realpath -m "$WORK/stats-to-mapping")
+go build -C "$APM_TOOLS_DIR" -o "$STATS_TO_MAPPING" ./cmd/stats-to-mapping
 
 # 3. Sparse-clone the three upstream repos. Group UPSTREAM_FILES lines by
 # repo so each repo is cloned once with all its tracked paths.
@@ -123,7 +137,7 @@ done
 echo "==> Running stats-to-mapping"
 mapfile -t paths < <(printf '%s\n' "$UPSTREAM_FILES" \
   | awk -v w="$WORK" 'NF > 0 { print w "/upstream/" $0 }')
-stats-to-mapping "${paths[@]}" < "$WORK/stats.json"
+"$STATS_TO_MAPPING" "${paths[@]}" < "$WORK/stats.json"
 
 # 5. Compute per-file drift.
 echo "==> Computing drift"
