@@ -170,8 +170,15 @@ func TestLibbeatMetrics(t *testing.T) {
 		"output": map[string]any{
 			"type": "elasticsearch",
 			"events": map[string]any{
-				"active": int64(totalRequests),
-				"total":  int64(totalRequests),
+				"acked":   int64(0),
+				"active":  int64(totalRequests),
+				"batches": int64(0),
+				"failed":  int64(0),
+				"toomany": int64(0),
+				"total":   int64(totalRequests),
+			},
+			"write": map[string]any{
+				"bytes": int64(0),
 			},
 		},
 		"pipeline": map[string]any{
@@ -235,6 +242,62 @@ func TestLibbeatMetrics(t *testing.T) {
 	}, snapshot)
 }
 
+// TestLibbeatMetricsEagerZero confirms that every docappender-derived
+// libbeat.output.* / libbeat.pipeline.* field surfaces in /stats from
+// process start, before any indexing has occurred. The apm-server-side
+// adapters in addDocappenderLibbeat{Output,Pipeline}Metrics own this
+// schema and emit zero values unconditionally; this test locks the
+// contract that downstream mapping-regeneration tooling depends on.
+func TestLibbeatMetricsEagerZero(t *testing.T) {
+	runnerParamsChan := make(chan RunnerParams, 1)
+	beat := newBeat(t, "output.elasticsearch.enabled: true", func(args RunnerParams) (Runner, error) {
+		runnerParamsChan <- args
+		return runnerFunc(func(ctx context.Context) error {
+			<-ctx.Done()
+			return ctx.Err()
+		}), nil
+	})
+	stop := runBeat(t, beat)
+	defer func() { assert.NoError(t, stop()) }()
+	args := <-runnerParamsChan
+
+	esClient := docappendertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		t.Fatalf("unexpected request to mock ES")
+	})
+	appender, err := docappender.New(esClient, docappender.Config{
+		MeterProvider: args.MeterProvider,
+	})
+	require.NoError(t, err)
+	defer func() {
+		assert.NoError(t, appender.Close(context.Background()))
+	}()
+
+	statsRegistry := beat.Monitoring.StatsRegistry()
+	libbeatRegistry := statsRegistry.GetRegistry("libbeat")
+	snapshot := monitoring.CollectStructSnapshot(libbeatRegistry, monitoring.Full, false)
+	assert.Equal(t, map[string]any{
+		"output": map[string]any{
+			"type": "elasticsearch",
+			"events": map[string]any{
+				"acked":   int64(0),
+				"active":  int64(0),
+				"batches": int64(0),
+				"failed":  int64(0),
+				"toomany": int64(0),
+				"total":   int64(0),
+			},
+			"write": map[string]any{
+				"bytes": int64(0),
+			},
+		},
+		"pipeline": map[string]any{
+			"events": map[string]any{
+				"total": int64(0),
+			},
+		},
+	}, snapshot)
+}
+
 // TestAddAPMServerMetrics tests basic functionality of the metrics collection and reporting
 func TestAddAPMServerMetrics(t *testing.T) {
 	r := monitoring.NewRegistry()
@@ -268,7 +331,7 @@ func TestAddAPMServerMetrics(t *testing.T) {
 		defer v.OnRegistryFinished()
 
 		beatsMetrics := make(map[string]any)
-		addAPMServerMetricsToMap(beatsMetrics, sm.Metrics)
+		addAPMServerMetricsToMap(beatsMetrics, sm.Metrics, logptest.NewTestingLogger(t, "beat"))
 		reportOnKey(v, beatsMetrics)
 	})
 
@@ -285,17 +348,23 @@ func TestMonitoringApmServer(t *testing.T) {
 	b := newNopBeat(t, "")
 	b.registerStatsMetrics()
 
-	// add metrics similar to lsm_size in storage_manager.go and events.processed in processor.go
-	meter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
-	lsmSizeGauge, _ := meter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
+	// Three independently-scoped meters whose metrics share the
+	// "apm-server.sampling" prefix; the assertion below verifies they
+	// merge into one snapshot subtree.
+	storageMeter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
+	lsmSizeGauge, _ := storageMeter.Int64Gauge("apm-server.sampling.tail.storage.lsm_size")
 	lsmSizeGauge.Record(context.Background(), 123)
+	// Float-typed instruments under apm-server.* must surface in the
+	// snapshot too, not only int64 ones.
+	diskThresholdGauge, _ := storageMeter.Float64Gauge("apm-server.sampling.tail.storage.disk_usage_threshold_pct")
+	diskThresholdGauge.Record(context.Background(), 0.8)
 
-	meter2 := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
-	processedCounter, _ := meter2.Int64Counter("apm-server.sampling.tail.events.processed")
+	samplingMeter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
+	processedCounter, _ := samplingMeter.Int64Counter("apm-server.sampling.tail.events.processed")
 	processedCounter.Add(context.Background(), 456)
 
-	meter3 := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/foo")
-	otherCounter, _ := meter3.Int64Counter("apm-server.sampling.foo.request")
+	otherSamplingMeter := b.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/foo")
+	otherCounter, _ := otherSamplingMeter.Int64Counter("apm-server.sampling.foo.request")
 	otherCounter.Add(context.Background(), 1)
 
 	// collect metrics
@@ -311,7 +380,8 @@ func TestMonitoringApmServer(t *testing.T) {
 				},
 				"tail": map[string]any{
 					"storage": map[string]any{
-						"lsm_size": int64(123),
+						"lsm_size":                 int64(123),
+						"disk_usage_threshold_pct": 0.8,
 					},
 					"events": map[string]any{
 						"processed": int64(456),
@@ -741,4 +811,48 @@ func (m *mockManager) Stop() {
 
 func (m *mockManager) SetStopCallback(f func()) {
 	m.stopCallback = f
+}
+
+func TestAddAPMServerMetricsToMapBUG(t *testing.T) {
+	// A Histogram is not in the {Sum,Gauge}[int64,float64] set the
+	// translator handles; addAPMServerMetricsToMap should drop it from
+	// the output and log the BUG with the metric's name and Go type.
+	logger, observed := logptest.NewTestingLoggerWithObserver(t, "beat")
+
+	metrics := []metricdata.Metrics{{
+		Name: "apm-server.unsupported.metric",
+		Data: metricdata.Histogram[int64]{
+			DataPoints: []metricdata.HistogramDataPoint[int64]{{Count: 1}},
+		},
+	}}
+
+	out := map[string]any{}
+	addAPMServerMetricsToMap(out, metrics, logger)
+
+	assert.Empty(t, out)
+
+	entries := observed.FilterMessage("BUG: cannot report monitoring metric").All()
+	require.Len(t, entries, 1)
+	fields := entries[0].ContextMap()
+	assert.Equal(t, "apm-server.unsupported.metric", fields["name"])
+	assert.Contains(t, fields["type"], "Histogram")
+}
+
+func BenchmarkAddAPMServerMetricsToMap(b *testing.B) {
+	int64Sum := metricdata.Sum[int64]{
+		DataPoints: []metricdata.DataPoint[int64]{{Value: 1}},
+	}
+	float64Gauge := metricdata.Gauge[float64]{
+		DataPoints: []metricdata.DataPoint[float64]{{Value: 0.8}},
+	}
+	metrics := []metricdata.Metrics{
+		{Name: "apm-server.acm.response.errors.count", Data: int64Sum},
+		{Name: "apm-server.sampling.tail.events.processed", Data: int64Sum},
+		{Name: "apm-server.sampling.tail.storage.disk_usage_threshold_pct", Data: float64Gauge},
+	}
+	logger := logptest.NewTestingLogger(b, "beat")
+	b.ReportAllocs()
+	for b.Loop() {
+		addAPMServerMetricsToMap(map[string]any{}, metrics, logger)
+	}
 }

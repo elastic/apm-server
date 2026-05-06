@@ -26,12 +26,28 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
 func TestMonitoringHandler(t *testing.T) {
+	// eagerZeros returns the cross product of MonitoringMiddleware's
+	// eagerly initialized prefixes (http.server. and the empty legacy
+	// prefix) with request.AllResultIDs, all set to 0. Tests merge
+	// overrides into this map so the assertion is a strict full match
+	// against the gathered set.
+	eagerZeros := func() map[string]any {
+		m := map[string]any{}
+		for _, prefix := range []string{"http.server.", ""} {
+			for _, id := range request.AllResultIDs {
+				m[prefix+string(id)] = int64(0)
+			}
+		}
+		return m
+	}
+
 	checkMonitoring := func(t *testing.T,
 		h func(*request.Context),
-		expectedOtel map[string]interface{},
+		overrides map[string]any,
 	) {
 		reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
 			func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
@@ -41,9 +57,14 @@ func TestMonitoringHandler(t *testing.T) {
 		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
 		c, _ := DefaultContextWithResponseRecorder()
-		Apply(MonitoringMiddleware("", mp), h)(c)
+		logger := logptest.NewTestingLogger(t, "monitoring-middleware.test")
+		Apply(MonitoringMiddleware("", mp, logger), h)(c)
 
-		monitoringtest.ExpectOtelMetrics(t, reader, expectedOtel)
+		expected := eagerZeros()
+		for k, v := range overrides {
+			expected[k] = v
+		}
+		monitoringtest.ExpectOtelMetrics(t, reader, expected)
 	}
 
 	t.Run("Error", func(t *testing.T) {
@@ -144,7 +165,8 @@ func TestMonitoringHandler(t *testing.T) {
 			},
 		))
 		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
-		m := MonitoringMiddleware("", mp)
+		logger := logptest.NewTestingLogger(t, "monitoring-middleware.test")
+		m := MonitoringMiddleware("", mp, logger)
 		c, _ := DefaultContextWithResponseRecorder()
 		var wg sync.WaitGroup
 		for range i {
@@ -155,7 +177,8 @@ func TestMonitoringHandler(t *testing.T) {
 			}()
 		}
 		wg.Wait()
-		monitoringtest.ExpectOtelMetrics(t, reader, map[string]interface{}{
+		expected := eagerZeros()
+		for k, v := range map[string]any{
 			"http.server." + string(request.IDRequestCount):       i,
 			"http.server." + string(request.IDResponseCount):      i,
 			"http.server." + string(request.IDResponseValidCount): i,
@@ -166,6 +189,22 @@ func TestMonitoringHandler(t *testing.T) {
 			string(request.IDUnset):                               i,
 
 			"http.server.request.duration": i,
-		})
+		} {
+			expected[k] = v
+		}
+		monitoringtest.ExpectOtelMetrics(t, reader, expected)
 	})
+}
+
+func BenchmarkMonitoringMiddleware(b *testing.B) {
+	reader := sdkmetric.NewManualReader()
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+	logger := logptest.NewTestingLogger(b, "monitoring-middleware.bench")
+	handler := Apply(MonitoringMiddleware("apm-server.foo.", mp, logger), HandlerIdle)
+
+	c, _ := DefaultContextWithResponseRecorder()
+	b.ReportAllocs()
+	for b.Loop() {
+		handler(c)
+	}
 }

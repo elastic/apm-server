@@ -30,6 +30,7 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -489,34 +490,59 @@ func (b *Beat) registerStateMetrics() {
 func (b *Beat) registerStatsMetrics() {
 	statsRegistry := b.Monitoring.StatsRegistry()
 	libbeatRegistry := statsRegistry.GetOrCreateRegistry("libbeat")
+
+	// Per-callback persistent state for the libbeat.output.* and
+	// libbeat.pipeline.* sub-trees. Both structs zero-init, so every
+	// field surfaces in /stats from process start (which downstream
+	// mapping-regeneration tooling depends on) without any per-scrape
+	// fabrication. Each scrape that finds the docappender scope updates
+	// the fields it observes; fields docappender never reports stay at
+	// 0; fields docappender stops reporting retain their last-known
+	// value rather than silently snapping back to a fabricated 0.
+	outputState := &libbeatOutputState{}
+	pipelineState := &libbeatPipelineState{}
+
 	monitoring.NewFunc(libbeatRegistry, "output", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
 		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
 			return
 		}
-		v.OnRegistryStart()
-		defer v.OnRegistryFinished()
+		var docappenderSeen bool
 		for _, sm := range rm.ScopeMetrics {
-			switch {
-			case sm.Scope.Name == "github.com/elastic/go-docappender":
-				monitoring.ReportString(v, "type", "elasticsearch")
-				addDocappenderLibbeatOutputMetrics(context.Background(), v, sm)
+			if sm.Scope.Name == "github.com/elastic/go-docappender" {
+				docappenderSeen = true
+				outputState.update(sm)
 			}
 		}
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		if !docappenderSeen && !outputState.everSeen() {
+			// Never observed docappender (e.g. console output): emit
+			// nothing so libbeat.output stays an empty sub-tree, the
+			// same shape /stats had before this PR.
+			return
+		}
+		monitoring.ReportString(v, "type", "elasticsearch")
+		outputState.report(v)
 	})
 	monitoring.NewFunc(libbeatRegistry, "pipeline", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
 		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
 			return
 		}
-		v.OnRegistryStart()
-		defer v.OnRegistryFinished()
+		var docappenderSeen bool
 		for _, sm := range rm.ScopeMetrics {
-			switch {
-			case sm.Scope.Name == "github.com/elastic/go-docappender":
-				addDocappenderLibbeatPipelineMetrics(context.Background(), v, sm)
+			if sm.Scope.Name == "github.com/elastic/go-docappender" {
+				docappenderSeen = true
+				pipelineState.update(sm)
 			}
 		}
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		if !docappenderSeen && !pipelineState.everSeen() {
+			return
+		}
+		pipelineState.report(v)
 	})
 	monitoring.NewFunc(statsRegistry, "output.elasticsearch", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
@@ -547,7 +573,7 @@ func (b *Beat) registerStatsMetrics() {
 			case strings.HasPrefix(sm.Scope.Name, "github.com/elastic/apm-server"):
 				// All simple scalar metrics that begin with the name "apm-server."
 				// in github.com/elastic/apm-server/... scopes are mapped directly.
-				addAPMServerMetricsToMap(beatsMetrics, sm.Metrics)
+				addAPMServerMetricsToMap(beatsMetrics, sm.Metrics, b.Info.Logger)
 			}
 		}
 
@@ -558,43 +584,78 @@ func (b *Beat) registerStatsMetrics() {
 	})
 }
 
+// scalarValue extracts the single dimensionless data point from a Sum or
+// Gauge aggregation's DataPoints slice, or returns (zero, false) if the
+// data has the wrong shape: zero or many points, or attribute-tagged
+// points.
+func scalarValue[T int64 | float64](dp []metricdata.DataPoint[T]) (T, bool) {
+	if len(dp) != 1 || dp[0].Attributes.Len() != 0 {
+		var zero T
+		return zero, false
+	}
+	return dp[0].Value, true
+}
+
 // getScalarInt64 returns a single-value, dimensionless
 // gauge or counter integer value, or (0, false) if the
 // data does not match these constraints.
 func getScalarInt64(data metricdata.Aggregation) (int64, bool) {
 	switch data := data.(type) {
 	case metricdata.Sum[int64]:
-		if len(data.DataPoints) != 1 || data.DataPoints[0].Attributes.Len() != 0 {
-			break
-		}
-		return data.DataPoints[0].Value, true
+		return scalarValue(data.DataPoints)
 	case metricdata.Gauge[int64]:
-		if len(data.DataPoints) != 1 || data.DataPoints[0].Attributes.Len() != 0 {
-			break
-		}
-		return data.DataPoints[0].Value, true
+		return scalarValue(data.DataPoints)
+	}
+	return 0, false
+}
+
+// getScalarFloat64 returns a single-value, dimensionless gauge or counter
+// float value, or (0, false) if the data does not match these constraints.
+func getScalarFloat64(data metricdata.Aggregation) (float64, bool) {
+	switch data := data.(type) {
+	case metricdata.Sum[float64]:
+		return scalarValue(data.DataPoints)
+	case metricdata.Gauge[float64]:
+		return scalarValue(data.DataPoints)
 	}
 	return 0, false
 }
 
 // addAPMServerMetricsToMap adds simple scalar metrics with the "apm-server." prefix
-// to the map.
-func addAPMServerMetricsToMap(beatsMetrics map[string]any, metrics []metricdata.Metrics) {
+// to the map. Both int64 and float64 instruments are supported.
+func addAPMServerMetricsToMap(beatsMetrics map[string]any, metrics []metricdata.Metrics, logger *logp.Logger) {
 	for _, m := range metrics {
-		if suffix, ok := strings.CutPrefix(m.Name, "apm-server."); ok {
-			if value, ok := getScalarInt64(m.Data); ok {
-				current := beatsMetrics
-				suffixSlice := strings.Split(suffix, ".")
-				for i := 0; i < len(suffixSlice)-1; i++ {
-					k := suffixSlice[i]
-					if _, ok := current[k]; !ok {
-						current[k] = make(map[string]any)
-					}
-					if currentmap, ok := current[k].(map[string]any); ok {
-						current = currentmap
-					}
-				}
-				current[suffixSlice[len(suffixSlice)-1]] = value
+		suffix, ok := strings.CutPrefix(m.Name, "apm-server.")
+		if !ok {
+			continue
+		}
+		var value any
+		if v, ok := getScalarInt64(m.Data); ok {
+			value = v
+		} else if v, ok := getScalarFloat64(m.Data); ok {
+			value = v
+		} else {
+			logger.With(
+				"name", m.Name,
+				"type", fmt.Sprintf("%T", m.Data),
+			).Error("BUG: cannot report monitoring metric")
+			continue
+		}
+		current := beatsMetrics
+		// SplitAfterSeq yields each segment with its trailing "." preserved,
+		// except the last. CutSuffix tells us which we're looking at: hasDot
+		// true => intermediate (descend), false => leaf (assign).
+		for seg := range strings.SplitAfterSeq(suffix, ".") {
+			name, hasDot := strings.CutSuffix(seg, ".")
+			if !hasDot {
+				current[name] = value
+				continue
+			}
+			if _, ok := current[name]; !ok {
+				current[name] = make(map[string]any)
+			}
+			if next, ok := current[name].(map[string]any); ok {
+				current = next
 			}
 		}
 	}
@@ -602,25 +663,34 @@ func addAPMServerMetricsToMap(beatsMetrics map[string]any, metrics []metricdata.
 
 func reportOnKey(v monitoring.Visitor, m map[string]any) {
 	for key, value := range m {
-		if valueMap, ok := value.(map[string]any); ok {
+		switch value := value.(type) {
+		case map[string]any:
 			v.OnRegistryStart()
 			v.OnKey(key)
-			reportOnKey(v, valueMap)
+			reportOnKey(v, value)
 			v.OnRegistryFinished()
-		}
-		if valueMetric, ok := value.(int64); ok {
-			monitoring.ReportInt(v, key, valueMetric)
+		case int64:
+			monitoring.ReportInt(v, key, value)
+		case float64:
+			monitoring.ReportFloat(v, key, value)
 		}
 	}
 }
 
-// Adapt go-docappender's OTel metrics to beats stack monitoring metrics,
-// with a mixture of libbeat-specific and apm-server specific metric names.
-func addDocappenderLibbeatOutputMetrics(ctx context.Context, v monitoring.Visitor, sm metricdata.ScopeMetrics) {
-	var writeBytes int64
+// libbeatOutputState holds the last observed values for the
+// libbeat.output.* sub-tree. Zero-initialised at process start so every
+// field appears in /stats from the first scrape, even before docappender
+// has reported anything; subsequent scrapes update only the fields
+// docappender currently exports, so a rename or drop in docappender does
+// not silently snap a field back to a fabricated 0 — the last-known
+// value is retained.
+type libbeatOutputState struct {
+	seen                                                       atomic.Bool
+	acked, active, batches, failed, toomany, total, writeBytes atomic.Int64
+}
 
-	v.OnRegistryStart()
-	v.OnKey("events")
+func (s *libbeatOutputState) update(sm metricdata.ScopeMetrics) {
+	s.seen.Store(true)
 	for _, m := range sm.Metrics {
 		switch m.Name {
 		case "elasticsearch.events.processed":
@@ -641,50 +711,78 @@ func addDocappenderLibbeatOutputMetrics(ctx context.Context, v monitoring.Visito
 					failed += dp.Value
 				}
 			}
-			monitoring.ReportInt(v, "acked", acked)
-			monitoring.ReportInt(v, "failed", failed)
-			monitoring.ReportInt(v, "toomany", toomany)
+			s.acked.Store(acked)
+			s.toomany.Store(toomany)
+			s.failed.Store(failed)
 		case "elasticsearch.events.count":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "total", value)
+				s.total.Store(value)
 			}
 		case "elasticsearch.events.queued":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "active", value)
+				s.active.Store(value)
 			}
 		case "elasticsearch.flushed.bytes":
 			if value, ok := getScalarInt64(m.Data); ok {
-				writeBytes = value
+				s.writeBytes.Store(value)
 			}
 		case "elasticsearch.bulk_requests.count":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "batches", value)
+				s.batches.Store(value)
 			}
 		}
-	}
-	v.OnRegistryFinished()
-
-	if writeBytes > 0 {
-		v.OnRegistryStart()
-		v.OnKey("write")
-		monitoring.ReportInt(v, "bytes", writeBytes)
-		v.OnRegistryFinished()
 	}
 }
 
-func addDocappenderLibbeatPipelineMetrics(ctx context.Context, v monitoring.Visitor, sm metricdata.ScopeMetrics) {
+func (s *libbeatOutputState) report(v monitoring.Visitor) {
 	v.OnRegistryStart()
-	defer v.OnRegistryFinished()
 	v.OnKey("events")
+	monitoring.ReportInt(v, "acked", s.acked.Load())
+	monitoring.ReportInt(v, "active", s.active.Load())
+	monitoring.ReportInt(v, "batches", s.batches.Load())
+	monitoring.ReportInt(v, "failed", s.failed.Load())
+	monitoring.ReportInt(v, "toomany", s.toomany.Load())
+	monitoring.ReportInt(v, "total", s.total.Load())
+	v.OnRegistryFinished()
 
+	v.OnRegistryStart()
+	v.OnKey("write")
+	monitoring.ReportInt(v, "bytes", s.writeBytes.Load())
+	v.OnRegistryFinished()
+}
+
+func (s *libbeatOutputState) everSeen() bool {
+	return s.seen.Load()
+}
+
+// libbeatPipelineState holds the last observed values for the
+// libbeat.pipeline.* sub-tree. Same shape and rationale as
+// libbeatOutputState.
+type libbeatPipelineState struct {
+	seen  atomic.Bool
+	total atomic.Int64
+}
+
+func (s *libbeatPipelineState) update(sm metricdata.ScopeMetrics) {
+	s.seen.Store(true)
 	for _, m := range sm.Metrics {
-		switch m.Name {
-		case "elasticsearch.events.count":
+		if m.Name == "elasticsearch.events.count" {
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "total", value)
+				s.total.Store(value)
 			}
 		}
 	}
+}
+
+func (s *libbeatPipelineState) report(v monitoring.Visitor) {
+	v.OnRegistryStart()
+	defer v.OnRegistryFinished()
+	v.OnKey("events")
+	monitoring.ReportInt(v, "total", s.total.Load())
+}
+
+func (s *libbeatPipelineState) everSeen() bool {
+	return s.seen.Load()
 }
 
 // Add non-libbeat Elasticsearch output metrics under "output.elasticsearch".
