@@ -54,7 +54,7 @@ Before merging them compare commits between latest minor and the new major versi
 Create a GitHub Issue to track testing of the release branch.
 
 Choose one way to create the initial issue:
-- **Option 1 (recommended):** Run the [`create-test-plan-patch`](https://github.com/elastic/apm-server/actions/workflows/create-test-plan-patch.yml) workflow with the upcoming version, then review and adjust the generated issue content.
+- **Option 1 (recommended):** Run the [`create-test-plan`](https://github.com/elastic/apm-server/actions/workflows/create-test-plan.yml) workflow with the upcoming version, then review and adjust the generated issue content.
 - **Option 2:** Create it manually using the [test plan issue template](https://github.com/elastic/apm-server/issues/new?assignees=&labels=test-plan&projects=&template=test-plan.md).
 
 The issue should include:
