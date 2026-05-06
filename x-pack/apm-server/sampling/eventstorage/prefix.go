@@ -62,7 +62,7 @@ func (rw PrefixReadWriter) ReadTraceEventsCallback(traceID string, softMemoryLim
 	b.WriteString(traceID)
 	b.WriteByte(traceIDSeparator)
 
-	iter, err := rw.db.NewIter(&pebble.IterOptions{})
+	iter, err := rw.db.NewIter(nil)
 	if err != nil {
 		return err
 	}
