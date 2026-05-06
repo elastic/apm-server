@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//go:build requirefips && !relaxfips
+//go:build requirefips
 
 // enforce fips140=only when running in fips mode
 //go:debug fips140=only
