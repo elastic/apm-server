@@ -7,11 +7,11 @@ commands_restrictions:
 queue_rules:
   - name: default
     merge_method: squash
-    conditions:
+    merge_conditions:
       - check-success=test (macos-latest)
       - or:
-        - check-success=test (windows-2025)
-        - check-success=test (windows-latest)
+          - check-success=test (windows-2025)
+          - check-success=test (windows-latest)
       - check-success=system-test
       - check-success=lint
       - check-success=CLA
