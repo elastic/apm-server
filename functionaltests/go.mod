@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server/functionaltests
 
-go 1.26.2
+go 1.26.3
 
 require (
 	github.com/elastic/apm-perf v0.0.0-20241230130730-2ad47482b731
