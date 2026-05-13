@@ -25,6 +25,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -74,6 +75,8 @@ func queryActiveBranches(ctx context.Context) ([]string, error) {
 
 // convertActiveBranchesToVersions converts active branches to versions.
 func convertActiveBranchesToVersions(activeBranches []string) ([]string, error) {
+	// Sort active branches so that 'main' is last.
+	slices.Sort(activeBranches)
 	// Active branch is either 'main' or some minor version in the form of 'x.y',
 	// and the branches should be in chronological order, i.e. 'main' is last.
 	versions := make([]string, 0, len(activeBranches))
