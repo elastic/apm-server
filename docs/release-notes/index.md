@@ -24,6 +24,12 @@ To check for security updates, go to [Security announcements for the Elastic sta
 % ### Fixes [apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
+## 9.4.1 [apm-9.4.1-release-notes]
+
+### Fixes [apm-9.4.1-fixes]
+
+* Bound Tail-Based Sampling memory usage when reading sampled trace events by implementing paging ([#20881](https://github.com/elastic/apm-server/pull/20881))
+
 ## 9.4.0 [apm-9.4.0-release-notes]
 
 ### Features and enhancements [apm-9.4.0-features-enhancements]
