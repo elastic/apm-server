@@ -216,8 +216,7 @@ jobs:
       - name: Compare Go version in go.mod with target branch
         id: go-mod-changed
         run: |
-          BASE_REF="${{ github.event.pull_request.base.ref }}"
-          git fetch --no-tags --depth=1 origin "${BASE_REF}"
+          git fetch --no-tags --depth=1 origin "${GITHUB_BASE_REF}"
           BASE_GO_VERSION="$(git show FETCH_HEAD:go.mod | awk '/^go / {print $2; exit}')"
           PR_GO_VERSION="$(awk '/^go / {print $2; exit}' go.mod)"
 
