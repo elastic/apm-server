@@ -213,14 +213,29 @@ jobs:
     if: ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true ) || github.actor == 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v6
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
-        with:
-          files: go.mod
+      - name: Compare Go version in go.mod with target branch
+        id: go-mod-changed
+        run: |
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+          git fetch --no-tags --depth=1 origin "${BASE_REF}"
+          BASE_GO_VERSION="$(git show FETCH_HEAD:go.mod | awk '/^go / {print $2; exit}')"
+          PR_GO_VERSION="$(awk '/^go / {print $2; exit}' go.mod)"
+
+          if [[ -z "${BASE_GO_VERSION}" || -z "${PR_GO_VERSION}" ]]; then
+            echo "Unable to determine Go version from go.mod."
+            exit 1
+          fi
+
+          if [[ "${BASE_GO_VERSION}" == "${PR_GO_VERSION}" ]]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "base_go_version=${BASE_GO_VERSION}"
+            echo "pr_go_version=${PR_GO_VERSION}"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: If go.mod changed validate wolfi docker image is available.
-        if: steps.changed-files.outputs.any_changed == 'true'
+        if: steps.go-mod-changed.outputs.changed == 'true'
         run: |
           GO_VERSION=$(grep '^go ' go.mod | awk '{print $2}')
           echo "If you change the Go version in go.mod please use a branch in the upstream repository to validate the wolfi images with test-package-and-push."
