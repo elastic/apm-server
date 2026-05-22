@@ -396,6 +396,7 @@ cat >> "${OUTPUT_FILE}" <<EOF
 ## apm-aggregation
 
 <!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/apm-aggregation/pulls-->
+- [ ] I have merged all dependency updates available (dependabot, renovate...)
 
 EOF
 
@@ -408,6 +409,7 @@ cat >> "${OUTPUT_FILE}" <<EOF
 ## go-docappender
 
 <!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/go-docappender/pulls-->
+- [ ] I have merged all dependency updates available (dependabot, renovate...)
 
 EOF
 
@@ -420,6 +422,7 @@ cat >> "${OUTPUT_FILE}" <<EOF
 ## apm-data
 
 <!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/apm-data/pulls-->
+- [ ] I have merged all dependency updates available (dependabot, renovate...)
 
 EOF
 
@@ -432,6 +435,7 @@ cat >> "${OUTPUT_FILE}" <<EOF
 ## apm-server
 
 <!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/apm-server/pulls-->
+- [ ] I have merged all dependency updates available (dependabot, renovate...)
 
 List of changes: https://github.com/elastic/apm-server/compare/${PREVIOUS_TAG}...${BRANCH}
 

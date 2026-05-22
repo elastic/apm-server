@@ -37,6 +37,12 @@ spec:
       branch_configuration: "main 7.* 8.* 9.*"
       repository: elastic/apm-server
       pipeline_file: ".buildkite/package.yml"
+      initial_step_plugins:
+        - sparse-checkout#v1.6.0:
+            paths:
+              - .buildkite
+              - go.mod
+            cleanup_sparse_state: true
       provider_settings:
         build_branches: true
         build_pull_requests: true
@@ -61,7 +67,7 @@ spec:
 apiVersion: backstage.io/v1alpha1
 kind: Resource
 metadata:
-  name: buildkite-pipeline-apm-version-bump
+  name: buildkite-pipeline-apm-server-version-bump
   description: Buildkite Pipeline for APM Server Version Bump
   links:
     - title: Pipeline
@@ -75,7 +81,7 @@ spec:
     apiVersion: buildkite.elastic.dev/v1
     kind: Pipeline
     metadata:
-      name: apm-version-bump
+      name: apm-server-version-bump
     spec:
       branch_configuration: "main"
       repository: elastic/apm-server
@@ -89,7 +95,7 @@ spec:
       teams:
         obs-ds-intake-services: {}
         observablt-robots: {}
-        release-eng:
+        artifact-management:
           access_level: BUILD_AND_READ
         everyone:
           access_level: READ_ONLY

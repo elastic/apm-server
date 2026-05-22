@@ -33,33 +33,36 @@ ARG VCS_REF
 
 # Statically defined labels.
 LABEL \
-  org.label-schema.schema-version="1.0" \
-  org.label-schema.vendor="Elastic" \
-  org.label-schema.license="Elastic License" \
-  org.label-schema.name="apm-server" \
-  org.label-schema.url="https://www.elastic.co/apm" \
-  org.label-schema.vcs-url="github.com/elastic/apm-server" \
-  io.k8s.description="Elastic APM Server" \
-  io.k8s.display-name="Apm-Server image" \
-  org.opencontainers.image.licenses="Elastic License" \
+  org.opencontainers.image.authors="obs-ds-intake-services" \
+  org.opencontainers.image.base.name="registry.access.redhat.com/ubi10-micro:latest" \
+  org.opencontainers.image.description="Elastic APM Server" \
+  org.opencontainers.image.documentation="https://www.elastic.co/docs/solutions/observability/apm/apm-server" \
+  org.opencontainers.image.licenses="Elastic-2.0" \
+  org.opencontainers.image.source="https://github.com/elastic/apm-server" \
   org.opencontainers.image.title="Apm-Server" \
+  org.opencontainers.image.url="https://github.com/elastic/apm-server" \
   org.opencontainers.image.vendor="Elastic" \
-  name="apm-server" \
-  maintainer="infra@elastic.co" \
-  vendor="Elastic" \
-  release="1" \
-  url="https://www.elastic.co/apm" \
-  summary="apm-server" \
-  license="Elastic License" \
-  description="Elastic APM Server"
+  io.k8s.description="Elastic APM Server" \
+  io.k8s.display-name="Apm-Server image"
 
 # Dynamic labels, only set in published images.
 LABEL \
-  org.label-schema.build-date=${BUILD_DATE} \
-  org.label-schema.version=${VERSION} \
-  org.label-schema.vcs-ref=${VCS_REF} \
   org.opencontainers.image.created=${BUILD_DATE} \
-  version=${VERSION}
+  org.opencontainers.image.revision=${VCS_REF} \
+  org.opencontainers.image.version=${VERSION}
+
+# Overwrite ubi base image non-standard labels
+LABEL \
+  build-date="" \
+  description="" \
+  maintainer="" \
+  name="" \
+  release="" \
+  summary="" \
+  url="" \
+  vcs-ref="" \
+  vendor="" \
+  version=""
 
 ENV ELASTIC_CONTAINER="true"
 

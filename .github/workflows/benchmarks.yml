@@ -58,7 +58,7 @@ on:
         type: boolean
         default: false
   schedule:
-    - cron: '0 17 * * *' # Scheduled regular benchmarks.
+    - cron: '0 17 * * 3' # Scheduled regular benchmarks.
     - cron: '0 0 1 * *' # Scheduled PGO benchmarks.
 
 env:
@@ -105,7 +105,7 @@ jobs:
           go-version-file: 'go.mod'
           cache: false
 
-      - uses: rlespinasse/github-slug-action@9e7def61550737ba68c62d34a32dd31792e3f429 # v5.5.0
+      - uses: rlespinasse/github-slug-action@e6f261660910b273384c5c42b17a0217881b217a # v5.6.0
 
       - name: Set up env
         run: |
@@ -141,7 +141,7 @@ jobs:
           echo "BENCHMARK_RUN=Benchmark[^T]" >> "$GITHUB_ENV"
 
       - name: Log in to the Elastic Container registry
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
           registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
           username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
@@ -162,7 +162,7 @@ jobs:
           secrets: |-
             EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-pro-api-key
 
-      - uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
           terraform_version: ~1.10.0
           terraform_wrapper: false
@@ -265,7 +265,7 @@ jobs:
 
       - name: Get token
         id: get_token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
           private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}

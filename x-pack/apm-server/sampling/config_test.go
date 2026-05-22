@@ -82,4 +82,7 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 
 	assertInvalidConfigError("invalid storage config: TTL unspecified or negative")
 	config.TTL = 1
+
+	assertInvalidConfigError("invalid storage config: ReadBatchMemoryLimit unspecified or negative")
+	config.ReadBatchMemoryLimit = 10 << 20
 }

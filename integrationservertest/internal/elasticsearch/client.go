@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
@@ -156,13 +157,17 @@ func (c *Client) APMDSDocCount(ctx context.Context) (DataStreamsDocCount, error)
 	qry := c.es.Esql.Query().Query(q)
 	resp, err := query.Helper[docCount](ctx, qry)
 	if err != nil {
+		// Suppress these errors as it only indicates no data is available yet.
+		ignoreErrReasons := []string{
+			`Found 1 problem
+line 1:1: Unknown index [traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-*.otel-*,metrics-apm*,apm-*,metrics-*.otel-*]`,
+			`Found 1 problem
+line 2:9: Unknown column [data_stream.type]`,
+		}
 		var eserr *types.ElasticsearchError
-		// suppress this error as it only indicates no data is available yet.
-		expected := `Found 1 problem
-line 1:1: Unknown index [traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-*.otel-*,metrics-apm*,apm-*,metrics-*.otel-*]`
 		if errors.As(err, &eserr) &&
 			eserr.ErrorCause.Reason != nil &&
-			*eserr.ErrorCause.Reason == expected {
+			slices.Contains(ignoreErrReasons, *eserr.ErrorCause.Reason) {
 			return DataStreamsDocCount{}, nil
 		}
 
@@ -283,6 +288,24 @@ func (c *Client) GetPanicLogs(ctx context.Context) (*search.Response, error) {
 	}
 
 	return res, nil
+}
+
+// GetFieldCaps returns field capabilities for given fields on a given index pattern.
+func (c *Client) GetFieldCaps(ctx context.Context, index string, fields ...string) (map[string]map[string]types.FieldCapability, error) {
+	resp, err := c.es.FieldCaps().Index(index).Fields(fields...).Do(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error getting field caps for %s: %w", index, err)
+	}
+	return resp.Fields, nil
+}
+
+// IndexDocument indexes a raw JSON document into a target index/data stream.
+func (c *Client) IndexDocument(ctx context.Context, index string, body io.Reader) error {
+	_, err := c.es.Index(index).Raw(body).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("error indexing document into %s: %w", index, err)
+	}
+	return nil
 }
 
 /* V7 */

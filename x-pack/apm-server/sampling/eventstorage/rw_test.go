@@ -30,7 +30,7 @@ type mockRW struct {
 	callback func()
 }
 
-func (m mockRW) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
+func (m mockRW) ReadTraceEventsCallback(traceID string, softMemoryLimit int, batch *modelpb.Batch, fn func(modelpb.Batch) error) error {
 	m.callback()
 	return nil
 }
@@ -84,7 +84,7 @@ func TestStorageLimitReadWriter(t *testing.T) {
 					callCount++
 				},
 			})
-			assert.NoError(t, rw.ReadTraceEvents("foo", nil))
+			assert.NoError(t, rw.ReadTraceEventsCallback("foo", 1<<30, &modelpb.Batch{}, func(modelpb.Batch) error { return nil }))
 			_, err := rw.IsTraceSampled("foo")
 			assert.NoError(t, err)
 			assert.NoError(t, rw.DeleteTraceEvent("foo", "bar"))
@@ -92,7 +92,7 @@ func TestStorageLimitReadWriter(t *testing.T) {
 			err = rw.WriteTraceEvent("foo", "bar", nil)
 			if tt.wantCalled {
 				assert.NoError(t, err)
-				assert.Equal(t, 4, callCount)
+				assert.Equal(t, 4, callCount) // ReadTraceEventsCallback + IsTraceSampled + DeleteTraceEvent + WriteTraceEvent
 			} else {
 				assert.Error(t, err)
 			}
