@@ -237,7 +237,7 @@ jobs:
       - name: If go.mod changed validate wolfi docker image is available.
         if: steps.go-mod-changed.outputs.changed == 'true'
         run: |
-          GO_VERSION=$(grep '^go ' go.mod | awk '{print $2}')
+          GO_VERSION=$(awk '/^go / {print $2; exit}' go.mod)
           echo "If you change the Go version in go.mod please use a branch in the upstream repository to validate the wolfi images with test-package-and-push."
           echo "Otherwise, this validation will run and fail the CI build."
           echo "Please validate the wolfi image is available by running the following command:"
