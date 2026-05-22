@@ -11,7 +11,7 @@ script_dir = os.path.join(config.main_dir, 'script')
 default_kibana_port = 5601
 kibana_host = "localhost"
 kibana_base_path = ""
-golang_version = str(local("awk '/^go / {print $2; exit}' go.mod", quiet=True, echo_off=True)).strip()
+golang_version = str(local("go list -m -f '{{.GoVersion}}'", quiet=True, echo_off=True)).strip()
 
 # checks whether (dev mode) kibana is already running at given port,
 # and returns the URL it is redirected to
