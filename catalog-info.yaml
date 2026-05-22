@@ -95,7 +95,7 @@ spec:
       teams:
         obs-ds-intake-services: {}
         observablt-robots: {}
-        release-eng:
+        artifact-management:
           access_level: BUILD_AND_READ
         everyone:
           access_level: READ_ONLY
