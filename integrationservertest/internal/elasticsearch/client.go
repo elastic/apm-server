@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
@@ -156,13 +157,17 @@ func (c *Client) APMDSDocCount(ctx context.Context) (DataStreamsDocCount, error)
 	qry := c.es.Esql.Query().Query(q)
 	resp, err := query.Helper[docCount](ctx, qry)
 	if err != nil {
+		// Suppress these errors as it only indicates no data is available yet.
+		ignoreErrReasons := []string{
+			`Found 1 problem
+line 1:1: Unknown index [traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-*.otel-*,metrics-apm*,apm-*,metrics-*.otel-*]`,
+			`Found 1 problem
+line 2:9: Unknown column [data_stream.type]`,
+		}
 		var eserr *types.ElasticsearchError
-		// suppress this error as it only indicates no data is available yet.
-		expected := `Found 1 problem
-line 1:1: Unknown index [traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-*.otel-*,metrics-apm*,apm-*,metrics-*.otel-*]`
 		if errors.As(err, &eserr) &&
 			eserr.ErrorCause.Reason != nil &&
-			*eserr.ErrorCause.Reason == expected {
+			slices.Contains(ignoreErrReasons, *eserr.ErrorCause.Reason) {
 			return DataStreamsDocCount{}, nil
 		}
 

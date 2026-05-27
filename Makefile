@@ -57,7 +57,7 @@ $(APM_SERVER_FIPS_BINARIES):
 	docker container rm apm-server-fips-cont || true
 	docker image rm apm-server-fips-image-temp || true
 	# rely on Dockerfile.fips to use the go fips toolchain
-	docker buildx build --load --platform "$(GOOS)/$(GOARCH)" --build-arg GOLANG_VERSION="$(shell go list -m -f '{{.Version}}' go)" -f ./packaging/docker/Dockerfile.fips -t apm-server-fips-image-temp .
+	docker buildx build --load --platform "$(GOOS)/$(GOARCH)" --build-arg GOLANG_VERSION="$(shell go list -m -f '{{.GoVersion}}')" -f ./packaging/docker/Dockerfile.fips -t apm-server-fips-image-temp .
 	docker container create --name apm-server-fips-cont apm-server-fips-image-temp
 	mkdir -p build
 	docker cp apm-server-fips-cont:/usr/share/apm-server/apm-server "build/apm-server-fips-$(GOOS)-$(GOARCH)"
