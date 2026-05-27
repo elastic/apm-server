@@ -26,7 +26,7 @@ https://github.com/elastic/apm-server/compare/v8.19.14\...v8.19.15[View commits]
 [float]
 ==== Bug fixes
 
-- Fix HTTP/2 SETTINGS mismatch connection failure in gmux {pull}20912[20912]
+- Fixed HTTP/2 connections being dropped by strict clients and browser-based RUM agents due to APM Server sending inconsistent SETTINGS frames at connection start ({pull}20913[20913]). For more details, refer to our known issues (https://www.elastic.co/docs/release-notes/apm/known-issues[page])
 
 [float]
 [[apm-release-notes-8.19.14]]
@@ -48,7 +48,7 @@ https://github.com/elastic/apm-server/compare/v8.19.12\...v8.19.13[View commits]
 [float]
 ==== Bug fixes
 
-- Fix `timestamp.us` explicit mapping ([#elasticsearch/143593](https://github.com/elastic/elasticsearch/pull/143593))
+- Fix `timestamp.us` explicit mapping https://github.com/elastic/elasticsearch/pull/143593[elasticsearch#143593]
 
 [float]
 [[apm-release-notes-8.19.12]]
@@ -188,6 +188,7 @@ https://github.com/elastic/apm-server/compare/v8.18.1\...v8.19.0[View commits]
 
 - Fix default tracer `http request sent to https endpoint` error when both self-instrumentation and TLS are enabled {pull}17293[17293]
 - TBS: Surface pubsub subscriber errors by logging at Warn level for `429` and Error level for others, instead of Debug level {pull}17135[17135]
+- Fix a panic when OTLP resource attribute `host.ip` is not of array type {pull}17234[17234]
 
 [float]
 ==== Breaking Changes
