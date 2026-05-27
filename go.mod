@@ -14,7 +14,7 @@ require (
 	github.com/elastic/elastic-agent-libs v0.33.3
 	github.com/elastic/elastic-agent-system-metrics v0.14.3
 	github.com/elastic/elastic-transport-go/v8 v8.8.0
-	github.com/elastic/gmux v0.3.2
+	github.com/elastic/gmux v0.3.3
 	github.com/elastic/go-docappender/v2 v2.14.1
 	github.com/elastic/go-freelru v0.16.0
 	github.com/elastic/go-sysinfo v1.15.4
@@ -72,7 +72,7 @@ require (
 	github.com/blakesmith/ar v0.0.0-20190502131153-809d4375e1fb // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible // indirect
-	github.com/buger/jsonparser v1.1.1 // indirect
+	github.com/buger/jsonparser v1.1.2 // indirect
 	github.com/caarlos0/go-version v0.2.0 // indirect
 	github.com/cavaliergopher/cpio v1.0.1 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
@@ -108,8 +108,8 @@ require (
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/getsentry/sentry-go v0.29.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
-	github.com/go-git/go-billy/v5 v5.6.2 // indirect
-	github.com/go-git/go-git/v5 v5.16.5 // indirect
+	github.com/go-git/go-billy/v5 v5.8.0 // indirect
+	github.com/go-git/go-git/v5 v5.17.1 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
