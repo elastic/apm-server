@@ -440,11 +440,11 @@ func (p *Processor) Run() error {
 		}
 	})
 	g.Go(func() error {
-		var events modelpb.Batch
 		// TODO(axw) pace the publishing over the flush interval?
 		// Alternatively we can rely on backpressure from the reporter,
 		// removing the artificial one second timeout from publisher code
 		// and just waiting as long as it takes here.
+		var events modelpb.Batch
 		remoteSampledTraceIDs := remoteSampledTraceIDs
 		localSampledTraceIDs := localSampledTraceIDs
 		for {
@@ -482,16 +482,10 @@ func (p *Processor) Run() error {
 			}
 			p.shardLock.Unlock(traceID)
 
-			events = events[:0]
-			err = p.eventStore.ReadTraceEvents(traceID, &events)
-			if err != nil {
-				p.rateLimitedLogger.Warnf(
-					"received error reading trace events: %s", err,
-				)
-				continue
-			}
-			if n := len(events); n > 0 {
-				p.logger.Debugf("reporting %d events", n)
+			// Read and publish trace events in pages to bound memory
+			// usage for huge traces that could otherwise cause OOM.
+			var totalEvents int64
+			err = p.eventStore.ReadTraceEventsCallback(traceID, p.config.ReadBatchMemoryLimit, &events, func(events modelpb.Batch) error {
 				if remoteDecision {
 					// Remote decisions may be received multiple times,
 					// e.g. if this server restarts and resubscribes to
@@ -516,14 +510,18 @@ func (p *Processor) Run() error {
 						}
 					}
 				}
-				p.eventMetrics.sampled.Add(gracefulContext, int64(len(events)))
-				if err := p.config.BatchProcessor.ProcessBatch(gracefulContext, &events); err != nil {
-					p.logger.With(logp.Error(err)).Warn("failed to report events")
-				}
-
-				for i := range events {
-					events[i] = nil // not required but ensure that there is no ref to the freed event
-				}
+				n := int64(len(events))
+				totalEvents += n
+				p.eventMetrics.sampled.Add(gracefulContext, n)
+				return p.config.BatchProcessor.ProcessBatch(gracefulContext, &events)
+			})
+			if err != nil {
+				p.rateLimitedLogger.Warnf(
+					"received error reading trace events: %s", err,
+				)
+			}
+			if totalEvents > 0 {
+				p.logger.Debugf("reporting %d events", totalEvents)
 			}
 		}
 	})

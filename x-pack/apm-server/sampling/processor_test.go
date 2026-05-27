@@ -146,11 +146,11 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	reader := newUnlimitedReadWriter(config.DB)
 
 	batch = nil
-	err = reader.ReadTraceEvents(trace1.Id, &batch)
+	err = readAllTraceEvents(reader, trace1.Id, &batch)
 	assert.NoError(t, err)
 	assert.Zero(t, batch)
 
-	err = reader.ReadTraceEvents(trace2.Id, &batch)
+	err = readAllTraceEvents(reader, trace2.Id, &batch)
 	assert.NoError(t, err)
 	assert.Empty(t, cmp.Diff(modelpb.Batch{&transaction2, &span2}, batch, protocmp.Transform()))
 }
@@ -274,7 +274,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			assert.False(t, sampled)
 
 			var batch modelpb.Batch
-			err = reader.ReadTraceEvents(sampledTraceID, &batch)
+			err = readAllTraceEvents(reader, sampledTraceID, &batch)
 			assert.NoError(t, err)
 			assert.Empty(t, cmp.Diff(sampledTraceEvents, batch, protocmp.Transform()))
 
@@ -282,7 +282,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			// available in storage until the TTL expires, as they're
 			// written there first.
 			batch = batch[:0]
-			err = reader.ReadTraceEvents(unsampledTraceID, &batch)
+			err = readAllTraceEvents(reader, unsampledTraceID, &batch)
 			assert.NoError(t, err)
 			assert.Empty(t, cmp.Diff(unsampledTraceEvents, batch, protocmp.Transform()))
 		})
@@ -512,21 +512,30 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	assert.True(t, sampled)
 
 	var batch modelpb.Batch
-	err = reader.ReadTraceEvents(traceID1, &batch)
+	err = readAllTraceEvents(reader, traceID1, &batch)
 	assert.NoError(t, err)
 	assert.Zero(t, batch) // events are deleted from local storage
 
 	batch = modelpb.Batch{}
-	err = reader.ReadTraceEvents(traceID2, &batch)
+	err = readAllTraceEvents(reader, traceID2, &batch)
 	assert.NoError(t, err)
 	assert.Empty(t, batch)
+}
+
+// readAllTraceEvents is a test helper that reads all events for a trace.
+func readAllTraceEvents(rw eventstorage.RW, traceID string, out *modelpb.Batch) error {
+	var scratch modelpb.Batch
+	return rw.ReadTraceEventsCallback(traceID, 1<<30, &scratch, func(batch modelpb.Batch) error {
+		*out = append(*out, batch...)
+		return nil
+	})
 }
 
 type errorRW struct {
 	err error
 }
 
-func (m errorRW) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
+func (m errorRW) ReadTraceEventsCallback(traceID string, softMemoryLimit int, batch *modelpb.Batch, fn func(modelpb.Batch) error) error {
 	return m.err
 }
 
@@ -1089,9 +1098,10 @@ func newTempdirConfigLogger(tb testing.TB, logger *logp.Logger) testConfig {
 				UUID: "local-apm-server",
 			},
 			StorageConfig: sampling.StorageConfig{
-				DB:      db,
-				Storage: newUnlimitedReadWriter(db),
-				TTL:     30 * time.Minute,
+				DB:                   db,
+				Storage:              newUnlimitedReadWriter(db),
+				TTL:                  30 * time.Minute,
+				ReadBatchMemoryLimit: 10 << 20, // 10MB
 			},
 		},
 	}
