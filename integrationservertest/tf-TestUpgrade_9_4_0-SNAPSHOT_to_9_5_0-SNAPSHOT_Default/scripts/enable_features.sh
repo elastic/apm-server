@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -e
+
+KIBANA_ENDPOINT=https://0944d03c888748e49d689fa41f653eae.us-west2.gcp.elastic-cloud.com:443/api/fleet/package_policies/elastic-cloud-apm
+KIBANA_AUTH=elastic:3G0p0N5zukcI7PH3IEBu8KJC
+
+# Check if the policy has expvar disabled:
+POLICY=$(curl -sk -u ${KIBANA_AUTH} ${KIBANA_ENDPOINT})
+NOT_FOUND_MSG='statusCode":404'
+
+if [[ "${POLICY}" == *"${NOT_FOUND_MSG}"* ]]; then
+    echo "APM policy not found, expvar and pprof won't be enabled."
+    exit 0
+fi
+
+# Download and modify the APM policy
+echo ${POLICY} | jq '.item' | \
+    jq 'del(.id)' | jq 'del(.elasticsearch)'| jq 'del(.inputs[].compiled_input)' | jq 'del(.revision)' |\
+    jq 'del(.created_at)' | jq 'del(.created_by)' | jq 'del(.updated_at)' | jq 'del(.updated_by)' |\
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.expvar_enabled = {type: "bool", value: false}' |\
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.pprof_enabled = {type: "bool", value: false}' |\
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_storage_limit = {"value":"10GB","type":"text"}' |\
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_enabled = {type: "bool", value: false}' |\
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_policies = {type: "yaml", value: "- sample_rate: 0.1"}' > policy.json
+
+# Update the policy, hide output to prevent secret leakage.
+if ! curl -s -o response.txt -H 'content-type: application/json' -H 'kbn-xsrf: true' -X PUT -k -d@policy.json -u ${KIBANA_AUTH} ${KIBANA_ENDPOINT}; then
+  # If command failed print output to aid troubleshooting.
+  cat response.txt
+fi
+
+rm -f policy.json
