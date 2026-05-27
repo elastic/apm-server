@@ -10,8 +10,13 @@ tags:
 - "latest"
 # Build args passed to Dockerfile ARGs
 args:
+<<<<<<< HEAD
   BASE_IMAGE: "redhat/ubi/ubi9"
   BASE_TAG: "9.7"
+=======
+  BASE_IMAGE: "redhat/ubi/ubi10"
+  BASE_TAG: "10.2"
+>>>>>>> e0ea1388 (deps: Bump ironbank version to 10.2 (#21085))
   ELASTIC_STACK: "${APM_SERVER_VERSION}"
   ELASTIC_PRODUCT: "apm-server"
 # Docker image labels
