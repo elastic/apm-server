@@ -4914,11 +4914,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : go.yaml.in/yaml/v2
-Version: v2.4.3
+Version: v2.4.4
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.yaml.in/yaml/v2@v2.4.3/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.yaml.in/yaml/v2@v2.4.4/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
