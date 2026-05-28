@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.1
 	github.com/elastic/apm-data v1.22.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260330201428-8b17db95a512
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260527201110-df270b4d9aa1
 	github.com/elastic/elastic-agent-client/v7 v7.18.1
 	github.com/elastic/elastic-agent-libs v0.43.1
 	github.com/elastic/elastic-agent-system-metrics v0.14.3
@@ -27,7 +27,7 @@ require (
 	github.com/jaegertracing/jaeger-idl v0.9.0
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901
 	github.com/libp2p/go-reuseport v0.4.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.152.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.153.0
 	github.com/pkg/errors v0.9.1
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.10.2
