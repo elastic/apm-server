@@ -109,18 +109,17 @@ func NewClientParams(args ClientParams) (*Client, error) {
 		apikey = base64.StdEncoding.EncodeToString([]byte(args.Config.APIKey))
 	}
 
-	return elastictransport.New(elastictransport.Config{
-		APIKey:        apikey,
-		Username:      args.Config.Username,
-		Password:      args.Config.Password,
-		URLs:          addrs,
-		Header:        headers,
-		Transport:     apmelasticsearch.WrapRoundTripper(transport),
-		MaxRetries:    args.Config.MaxRetries,
-		RetryBackoff:  exponentialBackoff(args.Config.Backoff),
-		RetryOnError:  args.RetryOnError,
-		RetryOnStatus: retryableStatuses,
-	})
+	return elastictransport.NewClient(
+		elastictransport.WithAPIKey(apikey),
+		elastictransport.WithBasicAuth(args.Config.Username, args.Config.Password),
+		elastictransport.WithURLs(addrs...),
+		elastictransport.WithHeader(headers),
+		elastictransport.WithTransport(apmelasticsearch.WrapRoundTripper(transport)),
+		elastictransport.WithMaxRetries(args.Config.MaxRetries),
+		elastictransport.WithRetryBackoff(exponentialBackoff(args.Config.Backoff)),
+		elastictransport.WithRetryOnError(args.RetryOnError),
+		elastictransport.WithRetryOnStatus(retryableStatuses...),
+	)
 }
 
 func doRequest(client *elastictransport.Client, req *http.Request, out interface{}) error {

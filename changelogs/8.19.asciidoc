@@ -188,6 +188,7 @@ https://github.com/elastic/apm-server/compare/v8.18.1\...v8.19.0[View commits]
 
 - Fix default tracer `http request sent to https endpoint` error when both self-instrumentation and TLS are enabled {pull}17293[17293]
 - TBS: Surface pubsub subscriber errors by logging at Warn level for `429` and Error level for others, instead of Debug level {pull}17135[17135]
+- Fix a panic when OTLP resource attribute `host.ip` is not of array type {pull}17234[17234]
 
 [float]
 ==== Breaking Changes
