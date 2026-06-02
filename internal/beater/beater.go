@@ -56,7 +56,6 @@ import (
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
-	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-ucfg"
 
@@ -259,6 +258,13 @@ func (s *Runner) Run(ctx context.Context) error {
 		s.config.Sampling.Tail.DatabaseCacheSize = uint64(linearScaledValue(8<<20, memLimitGB, 8<<20))
 		s.logger.Infof("Sampling.Tail.DatabaseCacheSize set to %d based on %0.1fgb of memory",
 			s.config.Sampling.Tail.DatabaseCacheSize, memLimitGB,
+		)
+	}
+	if s.config.Sampling.Tail.Enabled && s.config.Sampling.Tail.ReadBatchMemoryLimit == 0 {
+		// 1GB=10MB, 2GB=15MB, 4GB=25MB, ..., 32GB=165MB, 64GB=325MB
+		s.config.Sampling.Tail.ReadBatchMemoryLimit = linearScaledValue(5<<20, memLimitGB, 5<<20)
+		s.logger.Infof("Sampling.Tail.ReadBatchMemoryLimit set to %d based on %0.1fgb of memory",
+			s.config.Sampling.Tail.ReadBatchMemoryLimit, memLimitGB,
 		)
 	}
 
@@ -890,18 +896,20 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 			return "", outputs.Group{}, nil
 		}
 		outputName := s.outputConfig.Name()
-		output, err := outputs.Load(nil, beatInfo, stats, outputName, s.outputConfig.Config(), paths.New())
+		output, err := outputs.Load(nil, beatInfo, stats, outputName, s.outputConfig.Config())
 		return outputName, output, err
 	}
 	var pipelineConfig pipeline.Config
 	if err := s.rawConfig.Unpack(&pipelineConfig); err != nil {
 		return nil, nil, fmt.Errorf("failed to unpack libbeat pipeline config: %w", err)
 	}
-	pipeline, err := pipeline.Load(beatInfo, monitors, pipelineConfig, nopProcessingSupporter{}, outputFactory)
+	pipe, err := pipeline.LoadWithSettings(beatInfo, monitors, pipelineConfig, outputFactory, pipeline.Settings{
+		Processors: nopProcessingSupporter{},
+	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create libbeat output pipeline: %w", err)
 	}
-	pipelineConnector := pipetool.WithACKer(pipeline, acker)
+	pipelineConnector := pipetool.WithACKer(pipe, acker)
 	publisher, err := publish.NewPublisher(pipelineConnector)
 	if err != nil {
 		return nil, nil, err
@@ -910,7 +918,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		// clients need to be closed before running Close so
 		// this method needs to be called after the publisher has
 		// stopped
-		defer pipeline.Close()
+		defer pipe.Close()
 		if err := publisher.Stop(ctx); err != nil {
 			return err
 		}
@@ -1082,6 +1090,6 @@ func (nopProcessingSupporter) Processors() []string {
 	return nil
 }
 
-func (nopProcessingSupporter) Create(cfg beat.ProcessingConfig, _ bool, _ *paths.Path) (beat.Processor, error) {
+func (nopProcessingSupporter) Create(cfg beat.ProcessingConfig, _ bool) (beat.Processor, error) {
 	return cfg.Processor, nil
 }

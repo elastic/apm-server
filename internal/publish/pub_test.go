@@ -95,7 +95,7 @@ func newBlockingPipeline(t testing.TB) (*pipeline.Pipeline, *mockClient) {
 	err = conf.Unpack(&namespace)
 	require.NoError(t, err)
 
-	pipeline, err := pipeline.New(
+	pipe, err := pipeline.New(
 		beat.Info{
 			Logger: logptest.NewTestingLogger(t, "beat"),
 		},
@@ -106,9 +106,9 @@ func newBlockingPipeline(t testing.TB) (*pipeline.Pipeline, *mockClient) {
 	)
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		require.NoError(t, pipeline.Close())
+		require.NoError(t, pipe.Close())
 	})
-	return pipeline, client
+	return pipe, client
 }
 
 func makeTransformable(events ...beat.Event) publish.Transformer {
