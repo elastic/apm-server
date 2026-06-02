@@ -9,10 +9,10 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.1
 	github.com/elastic/apm-data v1.19.6
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260601084306-e3714792dc6d
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260602145145-24b3ef55f923
 	github.com/elastic/elastic-agent-client/v7 v7.18.1
 	github.com/elastic/elastic-agent-libs v0.43.1
-	github.com/elastic/elastic-agent-system-metrics v0.14.3
+	github.com/elastic/elastic-agent-system-metrics v0.14.4
 	github.com/elastic/elastic-transport-go/v8 v8.8.0
 	github.com/elastic/gmux v0.3.3
 	github.com/elastic/go-docappender/v2 v2.14.1
@@ -259,8 +259,8 @@ require (
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.44.0 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260406210006-6f92a3bedf2d // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260406210006-6f92a3bedf2d // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260511170946-3700d4141b60 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260504160031-60b97b32f348 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
