@@ -19,13 +19,17 @@ COPY --chmod=0644 apm-server.yml ./apm-server.yml
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 
-FROM cgr.dev/chainguard/static:latest@sha256:d6a97eb401cbc7c6d48be76ad81d7899b94303580859d396b52b67bc84ea7345 AS builder-certs
+FROM cgr.dev/chainguard/static:latest@sha256:77d8b8925dc27970ec2f48243f44c7a260d52c49cd778288e4ee97566e0cb75b AS builder-certs
 
 ################################################################################
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
+<<<<<<< HEAD
 FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:e9765516d74cafded50d8ef593331eeca2ef6eababdda118e5297898d99b7433
+=======
+FROM registry.access.redhat.com/ubi10-micro:latest@sha256:e025b421d29b8ecd86fcfd8a4ad18c0d7de747cbcc4e372f414ba02390b031b6
+>>>>>>> 666018a7 (build(deps): bump the docker group across 1 directory with 3 updates (#20769))
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION
