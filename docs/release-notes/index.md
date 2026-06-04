@@ -24,18 +24,27 @@ To check for security updates, go to [Security announcements for the Elastic sta
 % ### Fixes [apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
-% Commenting 9.4.0 release notes until it is released
-% ## 9.4.0 [apm-9.4.0-release-notes]
+## 9.4.1 [apm-9.4.1-release-notes]
 
-% ### Features and enhancements [apm-9.4.0-features-enhancements]
-% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+### Fixes [apm-9.4.1-fixes]
 
-% _No new features or enhancements_ 
+* Bound Tail-Based Sampling memory usage when reading sampled trace events by implementing paging ([#20881](https://github.com/elastic/apm-server/pull/20881))
 
-% ### Fixes [apm-9.4.0-fixes]
-% * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
+## 9.4.0 [apm-9.4.0-release-notes]
 
-% _No new fixes_ 
+### Features and enhancements [apm-9.4.0-features-enhancements]
+
+* Report APM Server status on major health issues ([#20166](https://github.com/elastic/apm-server/pull/20166))
+
+### Fixes [apm-9.4.0-fixes]
+
+* Fixed HTTP/2 connections being dropped by strict clients and browser-based RUM agents due to APM Server sending inconsistent SETTINGS frames at connection start. ([#20913](https://github.com/elastic/apm-server/pull/20913)). For more details, refer to our known issues [page](https://www.elastic.co/docs/release-notes/apm/known-issues)
+
+## 9.3.4 [apm-9.3.4-release-notes]
+
+### Fixes [apm-9.3.4-fixes]
+
+* Fixed HTTP/2 connections being dropped by strict clients and browser-based RUM agents due to APM Server sending inconsistent SETTINGS frames at connection start. ([#20913](https://github.com/elastic/apm-server/pull/20913)). For more details, refer to our known issues [page](https://www.elastic.co/docs/release-notes/apm/known-issues)
 
 ## 9.3.3 [apm-9.3.3-release-notes]
 
