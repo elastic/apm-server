@@ -12,7 +12,7 @@ require (
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260330201428-8b17db95a512
 	github.com/elastic/elastic-agent-client/v7 v7.18.1
 	github.com/elastic/elastic-agent-libs v0.43.1
-	github.com/elastic/elastic-agent-system-metrics v0.14.3
+	github.com/elastic/elastic-agent-system-metrics v0.14.4
 	github.com/elastic/elastic-transport-go/v8 v8.11.0
 	github.com/elastic/gmux v0.3.3
 	github.com/elastic/go-docappender/v2 v2.14.1
@@ -27,26 +27,26 @@ require (
 	github.com/jaegertracing/jaeger-idl v0.9.0
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901
 	github.com/libp2p/go-reuseport v0.4.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.152.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.153.0
 	github.com/pkg/errors v0.9.1
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.9
-	go.elastic.co/apm/module/apmgorilla/v2 v2.7.9
-	go.elastic.co/apm/module/apmgrpc/v2 v2.7.9
-	go.elastic.co/apm/module/apmhttp/v2 v2.7.9
-	go.elastic.co/apm/module/apmotel/v2 v2.7.9
-	go.elastic.co/apm/v2 v2.7.9
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.12
+	go.elastic.co/apm/module/apmgorilla/v2 v2.7.12
+	go.elastic.co/apm/module/apmgrpc/v2 v2.7.12
+	go.elastic.co/apm/module/apmhttp/v2 v2.7.12
+	go.elastic.co/apm/module/apmotel/v2 v2.7.12
+	go.elastic.co/apm/v2 v2.7.12
 	go.elastic.co/fastjson v1.5.1
 	go.opentelemetry.io/collector/consumer v1.59.0
 	go.opentelemetry.io/collector/pdata v1.59.0
-	go.opentelemetry.io/otel v1.43.0
-	go.opentelemetry.io/otel/metric v1.43.0
-	go.opentelemetry.io/otel/sdk v1.43.0
-	go.opentelemetry.io/otel/sdk/metric v1.43.0
-	go.opentelemetry.io/otel/trace v1.43.0
+	go.opentelemetry.io/otel v1.44.0
+	go.opentelemetry.io/otel/metric v1.44.0
+	go.opentelemetry.io/otel/sdk v1.44.0
+	go.opentelemetry.io/otel/sdk/metric v1.44.0
+	go.opentelemetry.io/otel/trace v1.44.0
 	go.opentelemetry.io/proto/otlp v1.10.0
 	go.uber.org/zap v1.28.0
 	go.uber.org/zap/exp v0.3.0
