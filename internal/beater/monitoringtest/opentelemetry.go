@@ -20,6 +20,7 @@ package monitoringtest
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -60,6 +61,30 @@ func ExpectContainOtelMetricsKeys(t assert.TestingT, reader sdkmetric.Reader, ex
 		expectedMetrics[metricKey] = nil
 	}
 	assertOtelMetrics(t, reader, expectedMetrics, false, true)
+}
+
+func ExpectContainOtelMetricsEventually(
+	t *testing.T,
+	reader sdkmetric.Reader,
+	expectedMetrics map[string]any,
+	timeout time.Duration,
+	interval time.Duration,
+) {
+	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+		assertOtelMetrics(c, reader, expectedMetrics, false, false)
+	}, timeout, interval)
+}
+
+func ExpectContainOtelMetricsKeysEventually(
+	t *testing.T,
+	reader sdkmetric.Reader,
+	expectedMetricsKeys []string,
+	timeout time.Duration,
+	interval time.Duration,
+) {
+	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+		ExpectContainOtelMetricsKeys(c, reader, expectedMetricsKeys)
+	}, timeout, interval)
 }
 
 // assertOtelMetrics gathers all the metrics from `reader` and asserts that the value of those gathered metrics
