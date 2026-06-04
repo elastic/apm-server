@@ -115,7 +115,7 @@ func (e *MetricExporter) Export(ctx context.Context, rm *metricdata.ResourceMetr
 				iter := ms.attributes.Iter()
 				for iter.Next() {
 					_, kv := iter.IndexedAttribute()
-					setLabel(string(kv.Key), event, kv.Value.Emit())
+					setLabel(string(kv.Key), event, kv.Value.String())
 				}
 				if len(event.Labels) == 0 {
 					event.Labels = nil
@@ -329,7 +329,7 @@ func (ms metricsets) upsertOne(timestamp time.Time, attributes attribute.Set, sa
 	for iter.Next() {
 		_, kv := iter.IndexedAttribute()
 		signatureBuilder.WriteString(string(kv.Key))
-		signatureBuilder.WriteString(kv.Value.Emit())
+		signatureBuilder.WriteString(kv.Value.String())
 	}
 
 	key := metricsetKey{timestamp: timestamp, signature: signatureBuilder.String()}
