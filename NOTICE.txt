@@ -604,11 +604,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.22.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20260604103809-4bcab7d0ab5e
+Version: v7.0.0-alpha2.0.20260605135525-6820ad2da5d2
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20260604103809-4bcab7d0ab5e/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20260605135525-6820ad2da5d2/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
