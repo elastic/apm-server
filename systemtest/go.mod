@@ -15,7 +15,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.42.0
 	github.com/tidwall/gjson v1.19.0
-	go.elastic.co/apm/v2 v2.7.11
+	go.elastic.co/apm/v2 v2.7.12
 	go.elastic.co/fastjson v1.5.1
 	go.opentelemetry.io/collector/pdata v1.59.0
 	go.opentelemetry.io/otel v1.44.0
@@ -30,8 +30,8 @@ require (
 	go.uber.org/zap v1.28.0
 	go.yaml.in/yaml/v3 v3.0.4
 	golang.org/x/net v0.55.0
-	golang.org/x/sync v0.20.0
-	golang.org/x/sys v0.45.0
+	golang.org/x/sync v0.21.0
+	golang.org/x/sys v0.46.0
 	golang.org/x/time v0.15.0
 	google.golang.org/grpc v1.81.1
 )
