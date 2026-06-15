@@ -43,14 +43,14 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 			retry := func() {
 				systemtest.SendRUMEventsPayload(t, serverURL, "../testdata/intake-v2/errors_rum.ndjson")
 			}
-		result := estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "logs-apm.error-*", 1, retry, nil, true)
-		approvaltest.ApproveFields(
-			t, t.Name(), result.Hits.Hits,
-			// RUM timestamps are set by the server based on the time the payload is received.
-			"@timestamp", "timestamp.us",
-			// RUM events have the source IP and port recorded, which are dynamic in the tests
-			"client.ip", "source.ip", "source.port",
-		)
+			result := estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "logs-apm.error-*", 1, retry, nil, true)
+			approvaltest.ApproveFields(
+				t, t.Name(), result.Hits.Hits,
+				// RUM timestamps are set by the server based on the time the payload is received.
+				"@timestamp", "timestamp.us",
+				// RUM events have the source IP and port recorded, which are dynamic in the tests
+				"client.ip", "source.ip", "source.port",
+			)
 		}
 
 		t.Run("standalone", func(t *testing.T) {
@@ -216,8 +216,8 @@ func TestSourcemapFetcher(t *testing.T) {
 			retry := func() {
 				systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
 			}
-		estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "logs-apm.error-*", 1, retry, nil, true)
-	})
+			estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "logs-apm.error-*", 1, retry, nil, true)
+		})
 	}
 }
 
