@@ -17,7 +17,7 @@ jobs:
     outputs:
       matrix: ${{ steps.generate.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: generate
         name: Generate matrix
         uses: elastic/oblt-actions/elastic/active-branches@v1
