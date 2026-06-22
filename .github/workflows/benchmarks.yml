@@ -156,7 +156,7 @@ jobs:
         with:
           export_to_environment: true
           secrets: |-
-            EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-pro-api-key
+            EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-qa-api-key
 
       - uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
         with:
@@ -302,7 +302,7 @@ jobs:
         with:
           export_to_environment: true
           secrets: |-
-            EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-pro-api-key
+            EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-qa-api-key
 
       - name: Tear down benchmark environment
         if: always()
