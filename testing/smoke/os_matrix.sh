@@ -8,7 +8,7 @@ os_names=(
     "al2023-ami-2023"
     "RHEL-8"
     "RHEL-9"
-    "Rocky-8-EC2-Base"
+    ## Rocky Linux 8 removed since Rocky-8-EC2-Base AMI is deprecated.
     "Rocky-9-EC2-Base"
     "AlmaLinux OS 8"
     "AlmaLinux OS 9"
@@ -16,4 +16,3 @@ os_names=(
     # "OL8"
     # "OL9"
 )
-
