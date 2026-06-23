@@ -8,7 +8,7 @@ locals {
     "al2023-ami-2023.*-x86_64"        = "137112412989" # amazon
     "RHEL-8"                          = "309956199498" # Red Hat
     "RHEL-9"                          = "309956199498" # Red Hat
-    "Rocky-8-EC2-Base"                = "792107900819" # Rocky Linux
+#    "Rocky-8-EC2-Base"                = "792107900819" # Rocky Linux  # See https://github.com/elastic/apm-server/issues/21179
     "Rocky-9-EC2-Base"                = "792107900819" # Rocky Linux
     "AlmaLinux OS 8"                  = "764336703387" # AlmaLinux OS Foundation
     "AlmaLinux OS 9"                  = "764336703387" # AlmaLinux OS Foundation
@@ -24,7 +24,7 @@ locals {
     "al2023-ami-2023.*-x86_64"        = "t3a.micro"
     "RHEL-8"                          = "t4g.micro" # RHEL doesn't support nano instances
     "RHEL-9"                          = "t4g.micro" # RHEL doesn't support nano instances
-    "Rocky-8-EC2-Base"                = "t4g.micro" # Larger instance size to improve test reliability
+#    "Rocky-8-EC2-Base"                = "t4g.micro" # Larger instance size to improve test reliability
     "Rocky-9-EC2-Base"                = "t4g.nano"
     "AlmaLinux OS 8"                  = "t4g.nano"
     "AlmaLinux OS 9"                  = "t4g.nano"
@@ -40,7 +40,7 @@ locals {
     "al2023-ami-2023.*-x86_64"        = "x86_64"
     "RHEL-8"                          = "arm64"
     "RHEL-9"                          = "arm64"
-    "Rocky-8-EC2-Base"                = "arm64"
+#    "Rocky-8-EC2-Base"                = "arm64"
     "Rocky-9-EC2-Base"                = "arm64"
     "AlmaLinux OS 8"                  = "arm64"
     "AlmaLinux OS 9"                  = "arm64"
@@ -56,7 +56,7 @@ locals {
     "al2023-ami-2023.*-x86_64"        = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
     "RHEL-8"                          = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
     "RHEL-9"                          = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
-    "Rocky-8-EC2-Base"                = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+#    "Rocky-8-EC2-Base"                = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
     "Rocky-9-EC2-Base"                = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
     "AlmaLinux OS 8"                  = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
     "AlmaLinux OS 9"                  = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
@@ -72,7 +72,7 @@ locals {
     "al2023-ami-2023.*-x86_64"        = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
     "RHEL-8"                          = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
     "RHEL-9"                          = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
-    "Rocky-8-EC2-Base"                = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+#    "Rocky-8-EC2-Base"                = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
     "Rocky-9-EC2-Base"                = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
     "AlmaLinux OS 8"                  = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
     "AlmaLinux OS 9"                  = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
@@ -88,7 +88,7 @@ locals {
     "al2023-ami-2023.*-x86_64"        = "ec2-user"
     "RHEL-8"                          = "ec2-user"
     "RHEL-9"                          = "ec2-user"
-    "Rocky-8-EC2-Base"                = "rocky"
+#    "Rocky-8-EC2-Base"                = "rocky"
     "Rocky-9-EC2-Base"                = "rocky"
     "AlmaLinux OS 8"                  = "ec2-user"
     "AlmaLinux OS 9"                  = "ec2-user"
