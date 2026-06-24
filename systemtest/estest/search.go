@@ -77,7 +77,15 @@ func ExpectMinDocs(t testing.TB, es *espoll.Client, min int, index string, query
 	return result
 }
 
-func ExpectSourcemapError(t testing.TB, es *espoll.Client, index string, retry func(), query interface{}, updated bool) espoll.SearchResult {
+// ExpectSourcemapError retries sending events via retry until the sourcemap
+// fetcher is available (i.e. no "fetcher unavailable" errors appear in the
+// indexed documents), then returns the search result.
+//
+// minDocs is the minimum number of documents expected in the index after a
+// successful retry. Callers must pass the exact count they expect so that the
+// underlying poll does not return early when Elasticsearch has only indexed a
+// partial batch (see: TotalHitsCondition race).
+func ExpectSourcemapError(t testing.TB, es *espoll.Client, index string, minDocs int, retry func(), query interface{}, updated bool) espoll.SearchResult {
 	t.Helper()
 
 	deadline := time.After(5 * time.Second)
@@ -99,7 +107,7 @@ func ExpectSourcemapError(t testing.TB, es *espoll.Client, index string, retry f
 
 			retry()
 
-			result := ExpectDocs(t, es, index, query)
+			result := ExpectMinDocs(t, es, minDocs, index, query)
 
 			if isFetcherAvailable(t, result) {
 				assertSourcemapUpdated(t, result, updated)

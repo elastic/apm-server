@@ -25,7 +25,7 @@ jobs:
       date: ${{ steps.generate.outputs.date }}
       version: ${{ steps.generate.outputs.version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.branch }}
       - id: generate
@@ -49,7 +49,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
           terraform_version: ~1.10.0
@@ -65,7 +65,7 @@ jobs:
         with:
           export_to_environment: true
           secrets: |-
-            EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-pro-api-key
+            EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-qa-api-key
       - name: Run smoke tests OS
         working-directory: ${{ github.workspace }}/testing/smoke/supported-os
         run: ./test.sh "${{ needs.prepare.outputs.version }}"
