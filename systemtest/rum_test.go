@@ -220,7 +220,11 @@ func TestRUMRoutingIntegration(t *testing.T) {
 		require.NoError(t, err)
 		defer resp.Body.Close()
 	}
-	result := estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "traces-apm.rum*", retry, nil, false)
+	// 9 = 1 transaction + 8 spans produced by testdata/intake-v3/rum_events.ndjson.
+	// Passing the exact count prevents ExpectSourcemapError from returning early
+	// when Elasticsearch has only indexed a partial batch (TotalHitsCondition race).
+	const wantDocs = 9
+	result := estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "traces-apm.rum*", wantDocs, retry, nil, false)
 	approvaltest.ApproveFields(
 		t, t.Name(), result.Hits.Hits, "@timestamp", "timestamp.us",
 		"source.port", "source.ip", "client.ip",
