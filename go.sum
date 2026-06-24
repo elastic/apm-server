@@ -197,8 +197,8 @@ github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f h1:TsPpU5EAwlt
 github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f/go.mod h1:HHaWnZamYKWsR9/eZNHqRHob8iQDKnchHmmskT/SKko=
 github.com/elastic/go-structform v0.0.12 h1:HXpzlAKyej8T7LobqKDThUw7BMhwV6Db24VwxNtgxCs=
 github.com/elastic/go-structform v0.0.12/go.mod h1:CZWf9aIRYY5SuKSmOhtXScE5uQiLZNqAFnwKR4OrIM4=
-github.com/elastic/go-sysinfo v1.15.4 h1:A3zQcunCxik14MgXu39cXFXcIw2sFXZ0zL886eyiv1Q=
-github.com/elastic/go-sysinfo v1.15.4/go.mod h1:ZBVXmqS368dOn/jvijV/zHLfakWTYHBZPk3G244lHrU=
+github.com/elastic/go-sysinfo v1.15.5 h1:fCVUDmjHgljLUQCygherMnsRRJ9AkuAQIywTL7dEH28=
+github.com/elastic/go-sysinfo v1.15.5/go.mod h1:ZBVXmqS368dOn/jvijV/zHLfakWTYHBZPk3G244lHrU=
 github.com/elastic/go-ucfg v0.9.1 h1:OwbVLC9pAmHqlBDq5owRC7HbfldsLuqPqrwg23n17BQ=
 github.com/elastic/go-ucfg v0.9.1/go.mod h1:6Z66LNkFK5xAlWg3Ny7qgtrvBUadaAcor+kYxw2pXBk=
 github.com/elastic/go-windows v1.0.2 h1:yoLLsAsV5cfg9FLhZ9EXZ2n2sQFKeDYrHenkcivY4vI=
