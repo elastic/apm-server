@@ -4,7 +4,7 @@ user_name = "USER"
 
 worker_instance_type = "c6i.2xlarge"
 
-worker_region       = "eu-west-1"
+worker_region = "eu-west-1"
 # Elastic Cloud
 ess_region          = "aws-eu-west-1"
 deployment_template = "aws-cpu-optimized-faster-warm"

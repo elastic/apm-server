@@ -4,7 +4,7 @@ user_name = "USER"
 
 worker_instance_type = "c6i.4xlarge"
 
-worker_region       = "us-east-2"
+worker_region = "us-east-2"
 # Elastic Cloud
 ess_region          = "gcp-us-central1"
 deployment_template = "gcp-cpu-optimized"
