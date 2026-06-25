@@ -1,3 +1,12 @@
+locals {
+  ec_target = lower(var.ec_target)
+  adminconsole_urls = {
+    qa   = "https://admin.qa.cld.elstc.co"
+    pro  = "https://cloud.elastic.co"
+  }
+  ec_console_url = local.adminconsole_urls[local.ec_target]
+}
+
 output "public_ip" {
   value       = module.benchmark_worker.public_ip
   description = "The worker public IP"
@@ -48,6 +57,6 @@ output "moxy_ip" {
 }
 
 output "admin_console_url" {
-  value       = var.run_standalone ? "https://cloud.elastic.co/deployments" : module.ec_deployment[0].admin_console_url
+  value       = var.run_standalone ? "${local.ec_console_url}/deployments" : "${local.ec_console_url}/deployments/${module.ec_deployment[0].deployment_id}/integrations_server"
   description = "The admin console URL"
 }

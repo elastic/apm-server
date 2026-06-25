@@ -31,6 +31,18 @@ variable "stack_version" {
   type        = string
 }
 
+variable "ec_target" {
+  # We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
+  default     = "pro"
+  description = "Elastic Cloud environment target. Supported values: qa, pro"
+  type        = string
+
+  validation {
+    condition     = contains(["qa", "pro"], lower(var.ec_target))
+    error_message = "ec_target must be one of: qa, pro"
+  }
+}
+
 variable "apm_server_size" {
   default     = "1g"
   type        = string
