@@ -45,6 +45,8 @@ jobs:
       TF_VAR_BRANCH: ${{ github.ref_name }}
       TF_VAR_REPO: ${{ github.repository }}
       TF_VAR_CREATED_DATE: ${{ needs.prepare.outputs.date }}
+      # Required for QA usage: aws-eu-west-1 is a valid QA region.
+      TF_VAR_region: aws-eu-west-1
       EC_TARGET: qa
     permissions:
       contents: read
