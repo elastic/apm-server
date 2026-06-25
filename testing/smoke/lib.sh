@@ -3,6 +3,11 @@
 export TF_IN_AUTOMATION=1
 export TF_CLI_ARGS=-no-color
 
+ec_api_base_url() {
+    local ec_url="${EC_URL:-https://cloud.elastic.co}"
+    echo "${ec_url%/}/api/v1"
+}
+
 get_versions() {
     if [[ -z ${EC_API_KEY} ]]; then
         echo "-> ESS API Key not set, please set the EC_API_KEY environment variable."
@@ -12,7 +17,7 @@ get_versions() {
     terraform_init
 
     local REGION=$(echo var.region | terraform console | tr -d '"')
-    local EC_VERSION_ENDPOINT="https://cloud.elastic.co/api/v1/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=false"
+    local EC_VERSION_ENDPOINT="$(ec_api_base_url)/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=false"
     local RES
     local RC=0
     RES=$(curl_fail -H "Authorization: ApiKey ${EC_API_KEY}" ${EC_VERSION_ENDPOINT}) || RC=$?
@@ -48,7 +53,7 @@ get_latest_snapshot() {
     terraform_init
 
     local REGION=$(echo var.region | terraform console | tr -d '"')
-    local EC_VERSION_ENDPOINT="https://cloud.elastic.co/api/v1/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=true"
+    local EC_VERSION_ENDPOINT="$(ec_api_base_url)/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=true"
     local RES
     local RC=0
     RES=$(curl_fail -H "Authorization: ApiKey ${EC_API_KEY}" ${EC_VERSION_ENDPOINT}) || RC=$?

@@ -45,6 +45,7 @@ jobs:
       TF_VAR_BRANCH: ${{ github.ref_name }}
       TF_VAR_REPO: ${{ github.repository }}
       TF_VAR_CREATED_DATE: ${{ needs.prepare.outputs.date }}
+      EC_URL: ${{ vars.EC_URL || 'https://cloud.elastic.co' }}
     permissions:
       contents: read
       id-token: write
