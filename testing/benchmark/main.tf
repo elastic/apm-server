@@ -29,8 +29,8 @@ locals {
   project   = "apm-server-benchmarks"
   ec_target = lower(var.ec_target)
   api_endpoints = {
-    qa   = "https://public-api.qa.cld.elstc.co"
-    pro  = "https://api.elastic-cloud.com"
+    qa  = "https://public-api.qa.cld.elstc.co"
+    pro = "https://api.elastic-cloud.com"
   }
 }
 
@@ -99,6 +99,7 @@ module "ec_deployment" {
   count  = var.run_standalone ? 0 : 1
   source = "../infra/terraform/modules/ec_deployment"
 
+  ec_target     = var.ec_target
   region        = var.ess_region
   stack_version = var.stack_version
 
