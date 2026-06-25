@@ -31,6 +31,12 @@ variable "stack_version" {
   type        = string
 }
 
+variable "ec_url" {
+  default     = "https://cloud.elastic.co"
+  description = "Optional Elastic Cloud console base URL"
+  type        = string
+}
+
 variable "apm_server_size" {
   default     = "1g"
   type        = string

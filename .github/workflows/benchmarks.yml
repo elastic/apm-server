@@ -94,6 +94,7 @@ jobs:
       TF_VAR_ENVIRONMENT: ci
       TF_VAR_REPO: ${{ github.repository }}
       EC_URL: ${{ vars.EC_URL || 'https://cloud.elastic.co' }}
+      TF_VAR_ec_url: ${{ vars.EC_URL || 'https://cloud.elastic.co' }}
       GOBENCH_TAGS: branch=${{ github.head_ref || github.ref }},commit=${{ github.sha }},target_branch=${{ github.base_ref }},enable_tail_sampling=${{ inputs.enableTailSampling }}
       GOBENCH_PASSWORD: ${{ secrets.GOBENCH_PASSWORD }}
       GOBENCH_USERNAME: ${{ secrets.GOBENCH_USERNAME }}

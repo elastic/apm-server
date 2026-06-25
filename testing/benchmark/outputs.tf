@@ -48,6 +48,6 @@ output "moxy_ip" {
 }
 
 output "admin_console_url" {
-  value       = var.run_standalone ? "https://cloud.elastic.co/deployments" : module.ec_deployment[0].admin_console_url
+  value       = var.run_standalone ? "${trimsuffix(var.ec_url, "/")}/deployments" : "${trimsuffix(var.ec_url, "/")}/deployments/${module.ec_deployment[0].deployment_id}/integrations_server"
   description = "The admin console URL"
 }
