@@ -51,6 +51,8 @@ const (
 
 const (
 	targetQA = "qa"
+	// we use 'pro' because it is the target passed by the Buildkite pipeline running
+	// these tests.
 	targetProd = "pro"
 )
 
