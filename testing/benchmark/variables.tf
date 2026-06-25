@@ -31,10 +31,15 @@ variable "stack_version" {
   type        = string
 }
 
-variable "ec_url" {
-  default     = "https://cloud.elastic.co"
-  description = "Optional Elastic Cloud console base URL"
+variable "ec_target" {
+  default     = "pro"
+  description = "Elastic Cloud environment target. Supported values: qa, pro, prod"
   type        = string
+
+  validation {
+    condition     = contains(["qa", "pro", "prod"], lower(var.ec_target))
+    error_message = "ec_target must be one of: qa, pro, prod"
+  }
 }
 
 variable "apm_server_size" {

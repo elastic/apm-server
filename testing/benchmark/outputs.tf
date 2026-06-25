@@ -1,5 +1,11 @@
 locals {
-  ec_console_url = trimsuffix(var.ec_url, "/")
+  ec_target = lower(var.ec_target)
+  ec_console_urls = {
+    qa   = "https://admin.qa.cld.elstc.co"
+    pro  = "https://cloud.elastic.co"
+    prod = "https://cloud.elastic.co"
+  }
+  ec_console_url = local.ec_console_urls[local.ec_target]
 }
 
 output "public_ip" {

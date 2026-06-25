@@ -26,7 +26,13 @@ locals {
     build        = var.BUILD_ID
     created_date = coalesce(var.CREATED_DATE, time_static.created_date.unix)
   }
-  project = "apm-server-benchmarks"
+  project   = "apm-server-benchmarks"
+  ec_target = lower(var.ec_target)
+  api_endpoints = {
+    qa   = "https://public-api.qa.cld.elstc.co"
+    pro  = "https://api.elastic-cloud.com"
+    prod = "https://api.elastic-cloud.com"
+  }
 }
 
 module "tags" {
@@ -36,7 +42,9 @@ module "tags" {
   project = startswith(var.user_name, "benchci") ? local.project : "${local.project}-${var.user_name}"
 }
 
-provider "ec" {}
+provider "ec" {
+  endpoint = local.api_endpoints[local.ec_target]
+}
 
 provider "aws" {
   region = var.worker_region
