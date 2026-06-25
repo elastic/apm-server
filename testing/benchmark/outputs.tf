@@ -1,3 +1,7 @@
+locals {
+  ec_console_url = trimsuffix(var.ec_url, "/")
+}
+
 output "public_ip" {
   value       = module.benchmark_worker.public_ip
   description = "The worker public IP"
@@ -48,6 +52,6 @@ output "moxy_ip" {
 }
 
 output "admin_console_url" {
-  value       = var.run_standalone ? "${trimsuffix(var.ec_url, "/")}/deployments" : "${trimsuffix(var.ec_url, "/")}/deployments/${module.ec_deployment[0].deployment_id}/integrations_server"
+  value       = var.run_standalone ? "${local.ec_console_url}/deployments" : "${local.ec_console_url}/deployments/${module.ec_deployment[0].deployment_id}/integrations_server"
   description = "The admin console URL"
 }
