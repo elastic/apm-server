@@ -1,7 +1,7 @@
 locals {
   admin_console_urls = {
     qa  = "https://admin.qa.cld.elstc.co"
-    pro = "https://cloud.elastic.co"
+    pro = "https://admin.found.no"
   }
 }
 

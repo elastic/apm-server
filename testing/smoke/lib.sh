@@ -7,10 +7,10 @@ ec_api_base_url() {
     local ec_target="${EC_TARGET:-pro}"
     case "${ec_target}" in
         qa)
-            echo "https://public-api.qa.cld.elstc.co/api/v1"
+            echo "https://public-api.qa.cld.elstc.co"
             ;;
         pro)
-            echo "https://api.elastic-cloud.com/api/v1"
+            echo "https://api.elastic-cloud.com"
             ;;
         *)
             echo "-> Unsupported EC_TARGET: ${ec_target}. Valid values are: qa, pro." >&2
@@ -28,7 +28,7 @@ get_versions() {
     terraform_init
 
     local REGION=$(echo var.region | terraform console | tr -d '"')
-    local EC_VERSION_ENDPOINT="$(ec_api_base_url)/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=false"
+    local EC_VERSION_ENDPOINT="$(ec_api_base_url)/api/v1/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=false"
     local RES
     local RC=0
     RES=$(curl_fail -H "Authorization: ApiKey ${EC_API_KEY}" ${EC_VERSION_ENDPOINT}) || RC=$?
@@ -64,7 +64,7 @@ get_latest_snapshot() {
     terraform_init
 
     local REGION=$(echo var.region | terraform console | tr -d '"')
-    local EC_VERSION_ENDPOINT="$(ec_api_base_url)/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=true"
+    local EC_VERSION_ENDPOINT="$(ec_api_base_url)/api/v1/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=true"
     local RES
     local RC=0
     RES=$(curl_fail -H "Authorization: ApiKey ${EC_API_KEY}" ${EC_VERSION_ENDPOINT}) || RC=$?

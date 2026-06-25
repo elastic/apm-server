@@ -48,6 +48,6 @@ output "moxy_ip" {
 }
 
 output "admin_console_url" {
-  value       = var.run_standalone ? "https://cloud.elastic.co/deployments" : module.ec_deployment[0].admin_console_url
+  value       = var.run_standalone ? (lower(var.ec_target) == "qa" ? "https://admin.qa.cld.elstc.co/deployments" : "https://admin.found.no/deployments") : module.ec_deployment[0].admin_console_url
   description = "The admin console URL"
 }
