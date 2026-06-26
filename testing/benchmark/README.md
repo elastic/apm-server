@@ -39,7 +39,7 @@ In order for the `ec_deployment` provider to work against ESS, it is necessary t
 an API Key by exporting the environment variable `EC_API_KEY`. To generate a new API
 key in ESS, you can navigate to [Features > API Keys > Generate API Key](https://cloud.elastic.co/deployment-features/keys).
 
-To target a non-production Elastic Cloud environment, set `TF_VAR_ec_target=qa` (default is `pro`).
+To target QA Elastic Cloud environment, set `TF_VAR_ec_target=qa` (default is `pro`).
 
 ## Usage
 
