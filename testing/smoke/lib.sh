@@ -4,9 +4,25 @@ export TF_IN_AUTOMATION=1
 export TF_CLI_ARGS=-no-color
 
 ec_api_base_url() {
-    local ec_target="${EC_TARGET:-${TF_VAR_ec_target:-pro}}"
+    local ec_target="${EC_TARGET:-}"
+    local tf_target="${TF_VAR_ec_target:-}"
+    local effective_target=""
+
     ec_target="${ec_target,,}"
-    case "${ec_target}" in
+    tf_target="${tf_target,,}"
+
+    if [[ -n "${ec_target}" ]] && [[ -n "${tf_target}" ]] && [[ "${ec_target}" != "${tf_target}" ]]; then
+        echo "-> EC target mismatch: EC_TARGET=${ec_target} but TF_VAR_ec_target=${tf_target}" >&2
+        return 1
+    fi
+
+    effective_target="${tf_target:-${ec_target:-pro}}"
+
+    # Keep Terraform and smoke script target selection aligned.
+    if [[ -z "${TF_VAR_ec_target:-}" ]]; then
+        export TF_VAR_ec_target="${effective_target}"
+    fi
+    case "${effective_target}" in
         qa)
             echo "https://public-api.qa.cld.elstc.co"
             ;;
@@ -14,7 +30,7 @@ ec_api_base_url() {
             echo "https://api.elastic-cloud.com"
             ;;
         *)
-            echo "-> Unsupported EC_TARGET: ${ec_target}. Valid values are: qa, pro." >&2
+            echo "-> Unsupported EC target: ${effective_target}. Valid values are: qa, pro." >&2
             return 1
             ;;
     esac
