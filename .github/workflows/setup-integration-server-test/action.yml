@@ -20,4 +20,4 @@ runs:
       with:
         export_to_environment: true
         secrets: |-
-          EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-qa-api-key
+          EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-pro-api-key
