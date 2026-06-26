@@ -455,11 +455,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.19.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20260625094604-f81a982a107e
+Version: v7.0.0-alpha2.0.20260626102331-d471874ec8dc
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20260625094604-f81a982a107e/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20260626102331-d471874ec8dc/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -7457,11 +7457,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-lumber
-Version: v0.1.2-0.20220819171948-335fde24ea0f
+Version: v0.2.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-lumber@v0.1.2-0.20220819171948-335fde24ea0f/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-lumber@v0.2.0/LICENSE:
 
 
                                  Apache License
