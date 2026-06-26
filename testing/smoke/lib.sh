@@ -4,7 +4,8 @@ export TF_IN_AUTOMATION=1
 export TF_CLI_ARGS=-no-color
 
 ec_api_base_url() {
-    local ec_target="${EC_TARGET:-pro}"
+    local ec_target="${EC_TARGET:-${TF_VAR_ec_target:-pro}}"
+    ec_target="${ec_target,,}"
     case "${ec_target}" in
         qa)
             echo "https://public-api.qa.cld.elstc.co"

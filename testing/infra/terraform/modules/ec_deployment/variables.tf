@@ -20,7 +20,7 @@ variable "deployment_template" {
 
 variable "ec_target" {
   default     = "pro"
-  description = "Elastic Cloud target for endpoint-specific links"
+  description = "Elastic Cloud control plane to target for admin console URLs (`qa` uses the QA control plane, `pro` uses production)"
   type        = string
   validation {
     condition     = contains(["qa", "pro"], lower(var.ec_target))
