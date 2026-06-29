@@ -18,6 +18,16 @@ variable "deployment_template" {
   type        = string
 }
 
+variable "ec_target" {
+  default     = "pro"
+  description = "Elastic Cloud environment selector (`qa` for QA Elastic Cloud, `pro` for production Elastic Cloud)"
+  type        = string
+  validation {
+    condition     = contains(["qa", "pro"], lower(var.ec_target))
+    error_message = "ec_target must be one of: qa, pro"
+  }
+}
+
 variable "stack_version" {
   default     = "latest"
   description = "Optional stack version"
