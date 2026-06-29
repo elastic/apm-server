@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 locals {
   admin_console_urls = {
     qa  = "https://admin.qa.cld.elstc.co"
@@ -12,7 +10,6 @@ output "deployment_id" {
   description = "The deployment ID for the created cluster"
 }
 
->>>>>>> 3ecb34da (tf: configurable ec_target for smoke and benchmark (#21274))
 output "kibana_url" {
   value       = ec_deployment.deployment.kibana.0.https_endpoint
   description = "The secure Kibana URL"
