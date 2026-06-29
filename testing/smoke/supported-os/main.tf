@@ -13,7 +13,17 @@ terraform {
   }
 }
 
-provider "ec" {}
+locals {
+  ec_target = lower(var.ec_target)
+  api_endpoints = {
+    qa  = "https://public-api.qa.cld.elstc.co"
+    pro = "https://api.elastic-cloud.com"
+  }
+}
+
+provider "ec" {
+  endpoint = local.api_endpoints[local.ec_target]
+}
 
 module "tags" {
   source  = "../../infra/terraform/modules/tags"
@@ -36,8 +46,9 @@ data "aws_vpc" "default" {
 }
 
 module "ec_deployment" {
-  source = "../../infra/terraform/modules/ec_deployment"
-  region = var.region
+  source    = "../../infra/terraform/modules/ec_deployment"
+  ec_target = var.ec_target
+  region    = var.region
 
   deployment_template    = "gcp-vector-search-optimized"
   deployment_name_prefix = "supported-os-standalone"
@@ -83,6 +94,16 @@ variable "stack_version" {
   default     = "latest"
   description = "Optional stack version"
   type        = string
+}
+
+variable "ec_target" {
+  default     = "pro"
+  description = "Elastic Cloud environment target"
+  type        = string
+  validation {
+    condition     = contains(["qa", "pro"], lower(var.ec_target))
+    error_message = "ec_target must be one of: qa, pro"
+  }
 }
 
 variable "region" {
