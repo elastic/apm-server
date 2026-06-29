@@ -1,3 +1,15 @@
+locals {
+  admin_console_urls = {
+    qa  = "https://admin.qa.cld.elstc.co"
+    pro = "https://admin.found.no"
+  }
+}
+
+output "deployment_id" {
+  value       = ec_deployment.deployment.id
+  description = "The deployment ID for the created cluster"
+}
+
 output "kibana_url" {
   value       = ec_deployment.deployment.kibana.0.https_endpoint
   description = "The secure Kibana URL"
@@ -41,5 +53,5 @@ output "stack_version" {
 }
 
 output "admin_console_url" {
-  value = "https://admin.found.no/deployments/${ec_deployment.deployment.id}/integrations_server"
+  value = "${local.admin_console_urls[lower(var.ec_target)]}/deployments/${ec_deployment.deployment.id}/integrations_server"
 }
