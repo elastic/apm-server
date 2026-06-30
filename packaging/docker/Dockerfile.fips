@@ -22,7 +22,7 @@ RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM docker.elastic.co/wolfi/chainguard-base-fips:latest@sha256:278de9601862fec07772cc560eb77402e2a36edbbe5de64940ed354507aae9ec
+FROM docker.elastic.co/wolfi/chainguard-base-fips:latest@sha256:3ff426e0cf01bfa68c79667a4b9790d86a62fefe8bd9dbbf6b3cedd00c6b1f22
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION
