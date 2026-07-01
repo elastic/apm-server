@@ -43,6 +43,9 @@ jobs:
       TF_VAR_BRANCH: ${{ github.ref_name }}
       TF_VAR_REPO: ${{ github.repository }}
       TF_VAR_CREATED_DATE: ${{ needs.prepare.outputs.date }}
+      TF_VAR_ec_target: qa
+      # Required for QA usage: gcp-us-central1 is a valid QA region.
+      TF_VAR_region: gcp-us-central1
     permissions:
       contents: read
       id-token: write
@@ -68,7 +71,7 @@ jobs:
         with:
           export_to_environment: true
           secrets: |-
-            EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-pro-api-key
+            EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-qa-api-key
       - name: Run smoke tests OS
         working-directory: ${{ github.workspace }}/testing/smoke/supported-os
         run: ./test.sh ${VERSION}-SNAPSHOT

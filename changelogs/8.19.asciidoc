@@ -1,5 +1,8 @@
 [[apm-release-notes-8.19]]
 == APM version 8.19
+* <<apm-release-notes-8.19.18>>
+* <<apm-release-notes-8.19.17>>
+* <<apm-release-notes-8.19.16>>
 * <<apm-release-notes-8.19.15>>
 * <<apm-release-notes-8.19.14>>
 * <<apm-release-notes-8.19.13>>
@@ -16,6 +19,26 @@
 * <<apm-release-notes-8.19.2>>
 * <<apm-release-notes-8.19.1>>
 * <<apm-release-notes-8.19.0>>
+
+[float]
+[[apm-release-notes-8.19.18]]
+=== APM version 8.19.18
+
+https://github.com/elastic/apm-server/compare/v8.19.17\...v8.19.18[View commits]
+
+No significant changes.
+
+[float]
+[[apm-release-notes-8.19.17]]
+=== APM version 8.19.17
+
+https://github.com/elastic/apm-server/compare/v8.19.16\...v8.19.17[View commits]
+
+[float]
+[[apm-release-notes-8.19.16]]
+=== APM version 8.19.16
+
+https://github.com/elastic/apm-server/compare/v8.19.15\...v8.19.16[View commits]
 
 [float]
 [[apm-release-notes-8.19.15]]
