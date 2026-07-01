@@ -889,8 +889,8 @@ google.golang.org/genproto/googleapis/api v0.0.0-20260511170946-3700d4141b60 h1:
 google.golang.org/genproto/googleapis/api v0.0.0-20260511170946-3700d4141b60/go.mod h1:7yoXV7RIh5gblj/xVYoogxAWvA9wUeVbpsK/M694l00=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20260504160031-60b97b32f348 h1:pfIbyB44sWzHiCpRqIen67ZQnVXSfIxWrqUMk1qwODE=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20260504160031-60b97b32f348/go.mod h1:4Hqkh8ycfw05ld/3BWL7rJOSfebL2Q+DVDeRgYgxUU8=
-google.golang.org/grpc v1.81.1 h1:VnnIIZ88UzOOKLukQi+ImGz8O1Wdp8nAGGnvOfEIWQQ=
-google.golang.org/grpc v1.81.1/go.mod h1:xGH9GfzOyMTGIOXBJmXt+BX/V0kcdQbdcuwQ/zNw42I=
+google.golang.org/grpc v1.82.0 h1:vguDnZUPjE26w09A63VoxZPnvPjB5Riyc0mkXPFmAIU=
+google.golang.org/grpc v1.82.0/go.mod h1:yzTZ1TB1Z3SG+LIYaI+WiE8D5+PZ3ArnrSp8zF3+/ZA=
 google.golang.org/grpc/examples v0.0.0-20231016154744-cb430bed4d27 h1:EB/3dtnYKOItaNPpOI/HmOCGbVZUiXcstRfiuxN+cFg=
 google.golang.org/grpc/examples v0.0.0-20231016154744-cb430bed4d27/go.mod h1:Crtq1t+mykyL5d6PR3z8zCxKx/Qjq/mlPWDPoWJANYA=
 google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af h1:+5/Sw3GsDNlEmu7TfklWKPdQ0Ykja5VEmq2i817+jbI=
