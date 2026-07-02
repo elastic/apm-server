@@ -54,11 +54,11 @@ Run the `run-patch-release` with the new `8.19.x` patch version.
 
 ## Day after Feature Freeze
 
-* Trigger release workflow manually
-  * For **patch releases**: run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow. In "Use workflow from", specify the following values:
+* Trigger release automation
+  * For **patch releases**, this is usually triggered by [unified-release-centralized-version-bump](https://buildkite.com/elastic/unified-release-centralized-version-bump), which calls [apm-server-version-bump](https://buildkite.com/elastic/apm-server-version-bump), and then triggers [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) with the new version.
+  * If needed, you can still run `run-patch-release` manually. In "Use workflow from", specify the following values:
        * Branch: Select the relevant `8.x` branch - e.g: `8.14` for `8.14.x` patch releases.
        * Version: Specify the **new** patch release version - e.g: if versions should be bumped to `8.14.2`, use `8.14.2`.
-       * This workflow is usually triggered by [unified-release-centralized-version-bump](https://buildkite.com/elastic/unified-release-centralized-version-bump), which calls [apm-server-version-bump](https://buildkite.com/elastic/apm-server-version-bump).
    
     This workflow will: create the `update-<VERSION>` branch for the provided version, update version constants across the codebase and create a PR targeting the release branch.
     

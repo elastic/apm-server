@@ -1,6 +1,6 @@
 # APM Server Release Checklist
 
-The APM Server follows the Elastic Stack release schedule and versions. A release starts with a Feature Freeze period, during which only bug fixes are allowed to be merged into the specific release branch. We generally follow [semver](https://semver.org/) for release versions. For major and minor releases, a new branch is cut from the main branch. For patch releases, only the version on the existing major and minor version branch gets updated. All release workflows (patch, minor, major) has to be triggered manually. The Release Manager will ping the team to align the release process.
+The APM Server follows the Elastic Stack release schedule and versions. A release starts with a Feature Freeze period, during which only bug fixes are allowed to be merged into the specific release branch. We generally follow [semver](https://semver.org/) for release versions. For major and minor releases, a new branch is cut from the main branch. For patch releases, only the version on the existing major and minor version branch gets updated. Major and minor release workflows are triggered manually, while patch releases are usually triggered through the centralized version bump pipeline. The Release Manager will ping the team to align the release process.
 
 This documentation is for 9.x releases. If you are releasing a 8.x look [here](./RELEASES_8x.md)
 
@@ -8,10 +8,10 @@ This documentation is for 9.x releases. If you are releasing a 8.x look [here](.
 
 1. Create a *Test Plan*.
 2. Ensure all relevant backport PRs are merged. We use backport labels on PRs and automation to ensure labels are set.
-3. Run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow
-    - In "Use workflow from", select `main` branch.
-    - Then in "The version", specify the **new** patch release version, e.g.: if versions should be bumped to `9.3.2`, use `9.3.2`.
-    - This workflow is usually triggered by [unified-release-centralized-version-bump](https://buildkite.com/elastic/unified-release-centralized-version-bump), which calls [apm-server-version-bump](https://buildkite.com/elastic/apm-server-version-bump).
+3. Trigger patch version bump automation.
+    - For patch releases, this is usually triggered by [unified-release-centralized-version-bump](https://buildkite.com/elastic/unified-release-centralized-version-bump), which calls [apm-server-version-bump](https://buildkite.com/elastic/apm-server-version-bump), and then triggers [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) with the new version.
+    - If needed, you can still run `run-patch-release` manually from `main`.
+    - In "The version", specify the **new** patch release version, e.g.: if versions should be bumped to `9.3.2`, use `9.3.2`.
     - This workflow will:
         - Create the `update-<VERSION>` branch for the provided version.
         - Update version constants across the codebase and create a PR targeting the release branch.
