@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'The new patch release version (semver: major.minor.patch). Example: if releasing 9.3.1, use 9.3.1.'
+        description: 'The new patch release version (semver: major.minor.patch). Example: if versions should be bumped to 9.3.1, use 9.3.1.'
         required: true
         type: string
 
