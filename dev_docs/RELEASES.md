@@ -1,6 +1,6 @@
 # APM Server Release Checklist
 
-The APM Server follows the Elastic Stack release schedule and versions. A release starts with a Feature Freeze period, during which only bug fixes are allowed to be merged into the specific release branch. We generally follow [semver](https://semver.org/) for release versions. For major and minor releases, a new branch is cut from the main branch. For patch releases, only the version on the existing major and minor version branch gets updated. Major and minor release workflows are triggered manually, while patch releases are usually triggered through the centralized version bump pipeline. The Release Manager will ping the team to align the release process.
+The APM Server follows the Elastic Stack release schedule and versions. A release starts with a Feature Freeze period, during which only bug fixes are allowed to be merged into the specific release branch. We generally follow [semver](https://semver.org/) for release versions. For major and minor releases, a new branch is cut from the main branch. For patch releases, only the version on the existing major and minor version branch gets updated. Release workflows can be run manually, and version bump automation is often driven by the centralized release pipeline (typically minor on Feature Freeze day and patch on release day). The Release Manager will ping the team to align the release process.
 
 This documentation is for 9.x releases. If you are releasing a 8.x look [here](./RELEASES_8x.md)
 
