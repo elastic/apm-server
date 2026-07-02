@@ -88,6 +88,7 @@ jobs:
           channel-id: ${{ env.SLACK_CHANNEL }}
           message: |-
             PRs to bump versions in `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` branch to `${{ needs.prepare.outputs.release-version }}` have been created.
+            Open release PRs: https://github.com/elastic/apm-server/pulls?q=is%3Apr+is%3Aopen+label%3Arelease
           thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
 
       - if: failure()
