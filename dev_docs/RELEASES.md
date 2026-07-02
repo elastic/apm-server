@@ -10,9 +10,10 @@ This documentation is for 9.x releases. If you are releasing a 8.x look [here](.
 2. Ensure all relevant backport PRs are merged. We use backport labels on PRs and automation to ensure labels are set.
 3. Run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow
     - In "Use workflow from", select `main` branch.
-    - Then in "The version", specify the **upcoming** patch release version, e.g.: on `9.3.2` feature freeze you will use `9.3.2`).
+    - Then in "The version", specify the **target/new** patch release version, e.g.: on `9.3.2` feature freeze you will use `9.3.2`.
+    - This workflow is usually triggered by [unified-release-centralized-version-bump](https://buildkite.com/elastic/unified-release-centralized-version-bump), which calls [apm-server-version-bump](https://buildkite.com/elastic/apm-server-version-bump).
     - This workflow will:
-        - Create the `update-<VERSION>` branch.
+        - Create the `update-<VERSION>` branch for the provided version.
         - Update version constants across the codebase and create a PR targeting the release branch.
 4. Release notes for patch releases **must be manually added** at least one day before release.
 5. Create a PR targeting the `main` branch. To add release notes:
