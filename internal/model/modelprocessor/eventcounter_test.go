@@ -52,5 +52,7 @@ func TestEventCounter(t *testing.T) {
 	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
 		"apm-server.processor.span.transformations":        1,
 		"apm-server.processor.transaction.transformations": 2,
+		// the empty event {} maps to APMEventType 0 ("undefined").
+		"apm-server.processor.undefined.transformations": 1,
 	})
 }

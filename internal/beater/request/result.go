@@ -24,7 +24,6 @@ import (
 )
 
 const (
-
 	// IDUnset identifies requests not covered by other IDs
 	IDUnset ResultID = "unset"
 
@@ -36,10 +35,6 @@ const (
 	IDResponseErrorsCount ResultID = "response.errors.count"
 	// IDResponseValidCount identifies all successful responses
 	IDResponseValidCount ResultID = "response.valid.count"
-	// IDEventReceivedCount identifies amount of received events
-	IDEventReceivedCount ResultID = "event.received.count"
-	// IDEventDroppedCount identifies amount of dropped events
-	IDEventDroppedCount ResultID = "event.dropped.count"
 
 	// IDResponseValidNotModified identifies all successful responses without a modified body
 	IDResponseValidNotModified ResultID = "response.valid.notmodified"
@@ -78,28 +73,56 @@ const (
 	IDResponseErrorsInternal ResultID = "response.errors.internal"
 )
 
-var (
-	// MapResultIDToStatus takes a ResultID and maps it to a status
-	MapResultIDToStatus = map[ResultID]Status{
-		IDResponseValidOK:                  {Code: http.StatusOK, Keyword: "request ok"},
-		IDResponseValidAccepted:            {Code: http.StatusAccepted, Keyword: "request accepted"},
-		IDResponseValidNotModified:         {Code: http.StatusNotModified, Keyword: "not modified"},
-		IDResponseErrorsForbidden:          {Code: http.StatusForbidden, Keyword: "forbidden request"},
-		IDResponseErrorsUnauthorized:       {Code: http.StatusUnauthorized, Keyword: "unauthorized"},
-		IDResponseErrorsNotFound:           {Code: http.StatusNotFound, Keyword: "404 page not found"},
-		IDResponseErrorsRequestTooLarge:    {Code: http.StatusRequestEntityTooLarge, Keyword: "request body too large"},
-		IDResponseErrorsInvalidQuery:       {Code: http.StatusBadRequest, Keyword: "invalid query"},
-		IDResponseErrorsDecode:             {Code: http.StatusBadRequest, Keyword: "data decoding error"},
-		IDResponseErrorsValidate:           {Code: http.StatusBadRequest, Keyword: "data validation error"},
-		IDResponseErrorsMethodNotAllowed:   {Code: http.StatusMethodNotAllowed, Keyword: "method not supported"},
-		IDResponseErrorsRateLimit:          {Code: http.StatusTooManyRequests, Keyword: "too many requests"},
-		IDResponseErrorsTimeout:            {Code: http.StatusServiceUnavailable, Keyword: "request timed out"},
-		IDResponseErrorsFullQueue:          {Code: http.StatusServiceUnavailable, Keyword: "queue is full"},
-		IDResponseErrorsShuttingDown:       {Code: http.StatusServiceUnavailable, Keyword: "server is shutting down"},
-		IDResponseErrorsServiceUnavailable: {Code: http.StatusServiceUnavailable, Keyword: "service unavailable"},
-		IDResponseErrorsInternal:           {Code: http.StatusInternalServerError, Keyword: "internal error"},
+// resultIDStatus maps each ResultID to its Status. Entries with a
+// zero-valued Status (no HTTP code) are IDs the middleware increments
+// unconditionally; entries with a Status are the values c.Result.ID can
+// be set to. This is the single source of truth: AllResultIDs and
+// MapResultIDToStatus are derived from it in init() below, so adding a
+// new ResultID is one new entry here.
+var resultIDStatus = map[ResultID]Status{
+	IDUnset:               {},
+	IDRequestCount:        {},
+	IDResponseCount:       {},
+	IDResponseErrorsCount: {},
+	IDResponseValidCount:  {},
+
+	IDResponseValidNotModified:         {Code: http.StatusNotModified, Keyword: "not modified"},
+	IDResponseValidOK:                  {Code: http.StatusOK, Keyword: "request ok"},
+	IDResponseValidAccepted:            {Code: http.StatusAccepted, Keyword: "request accepted"},
+	IDResponseErrorsForbidden:          {Code: http.StatusForbidden, Keyword: "forbidden request"},
+	IDResponseErrorsUnauthorized:       {Code: http.StatusUnauthorized, Keyword: "unauthorized"},
+	IDResponseErrorsNotFound:           {Code: http.StatusNotFound, Keyword: "404 page not found"},
+	IDResponseErrorsInvalidQuery:       {Code: http.StatusBadRequest, Keyword: "invalid query"},
+	IDResponseErrorsRequestTooLarge:    {Code: http.StatusRequestEntityTooLarge, Keyword: "request body too large"},
+	IDResponseErrorsDecode:             {Code: http.StatusBadRequest, Keyword: "data decoding error"},
+	IDResponseErrorsValidate:           {Code: http.StatusBadRequest, Keyword: "data validation error"},
+	IDResponseErrorsRateLimit:          {Code: http.StatusTooManyRequests, Keyword: "too many requests"},
+	IDResponseErrorsTimeout:            {Code: http.StatusServiceUnavailable, Keyword: "request timed out"},
+	IDResponseErrorsMethodNotAllowed:   {Code: http.StatusMethodNotAllowed, Keyword: "method not supported"},
+	IDResponseErrorsFullQueue:          {Code: http.StatusServiceUnavailable, Keyword: "queue is full"},
+	IDResponseErrorsShuttingDown:       {Code: http.StatusServiceUnavailable, Keyword: "server is shutting down"},
+	IDResponseErrorsServiceUnavailable: {Code: http.StatusServiceUnavailable, Keyword: "service unavailable"},
+	IDResponseErrorsInternal:           {Code: http.StatusInternalServerError, Keyword: "internal error"},
+}
+
+// AllResultIDs is the canonical list of every defined ResultID. It is
+// populated by init() from resultIDStatus above; tests and the
+// monitoring middleware/interceptor iterate it to eagerly register
+// every counter at startup. Treat as read-only after package init.
+var AllResultIDs []ResultID
+
+// MapResultIDToStatus is the subset of resultIDStatus with non-zero
+// Status (every ID c.Result.ID can be set to). Populated by init().
+var MapResultIDToStatus = map[ResultID]Status{}
+
+func init() {
+	for id, status := range resultIDStatus {
+		AllResultIDs = append(AllResultIDs, id)
+		if status.Code != 0 {
+			MapResultIDToStatus[id] = status
+		}
 	}
-)
+}
 
 // ResultID unique string identifying a requests Result
 type ResultID string

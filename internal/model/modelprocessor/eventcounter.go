@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/apm-server/internal/otelmetric"
 )
 
 // EventCounter is a model.BatchProcessor that counts the number of events processed,
@@ -44,10 +45,10 @@ func NewEventCounter(mp metric.MeterProvider) *EventCounter {
 	c := &EventCounter{}
 	for i := range c.eventCounters {
 		eventType := modelpb.APMEventType(i)
-		counter, _ := meter.Int64Counter(
+		c.eventCounters[i] = otelmetric.NewInt64Counter(
+			meter,
 			fmt.Sprintf("apm-server.processor.%s.transformations", eventType),
 		)
-		c.eventCounters[i] = counter
 	}
 	return c
 }
