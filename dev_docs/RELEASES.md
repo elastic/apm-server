@@ -1,6 +1,6 @@
 # APM Server Release Checklist
 
-The APM Server follows the Elastic Stack release schedule and versions. A release starts with a Feature Freeze period, during which only bug fixes are allowed to be merged into the specific release branch. We generally follow [semver](https://semver.org/) for release versions. For major and minor releases, a new branch is cut from the main branch. For patch releases, only the version on the existing major and minor version branch gets updated. All release workflows (patch, minor, major) has to be triggered manually. The Release Manager will ping the team to align the release process.
+The APM Server follows the Elastic Stack release schedule and versions. A release starts with a Feature Freeze period, during which only bug fixes are allowed to be merged into the specific release branch. We generally follow [semver](https://semver.org/) for release versions. For major and minor releases, a new branch is cut from the main branch. For patch releases, only the version on the existing major and minor version branch gets updated. Release workflows can be run manually, and version bump automation is often driven by the centralized release pipeline (typically minor on Feature Freeze day and patch on release day). The Release Manager will ping the team to align the release process.
 
 This documentation is for 9.x releases. If you are releasing a 8.x look [here](./RELEASES_8x.md)
 
@@ -8,17 +8,19 @@ This documentation is for 9.x releases. If you are releasing a 8.x look [here](.
 
 1. Create a *Test Plan*.
 2. Ensure all relevant backport PRs are merged. We use backport labels on PRs and automation to ensure labels are set.
-3. Run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow
-    - In "Use workflow from", select `main` branch.
-    - Then in "The version", specify the **upcoming** patch release version, e.g.: on `9.3.2` feature freeze you will use `9.3.2`).
-    - This workflow will:
-        - Create the `update-<VERSION>` branch.
-        - Update version constants across the codebase and create a PR targeting the release branch.
-4. Release notes for patch releases **must be manually added** at least one day before release.
-5. Create a PR targeting the `main` branch. To add release notes:
-    - Add a new section to the existing release notes file ([Sample PR](https://github.com/elastic/apm-server/pull/20723)) containing the `Features and enchancements` as well as the `Fixes` subsections.
+3. Release notes for patch releases **must be manually added** at least one day before release.
+4. Create a PR targeting the `main` branch. To add release notes:
+    - Add a new section to the existing release notes file ([Sample PR](https://github.com/elastic/apm-server/pull/20723)) containing the `Features and enhancements` as well as the `Fixes` subsections.
     - Add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/3467)).
     - The PR should be merged the day before release.
+5. On release day, ensure patch version bump automation has run for the release version.
+    - For patch releases, this is usually triggered by [unified-release-centralized-version-bump](https://buildkite.com/elastic/unified-release-centralized-version-bump), which calls [apm-server-version-bump](https://buildkite.com/elastic/apm-server-version-bump), and then triggers [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) with the new version.
+    - This automated patch bump is usually executed on release day.
+    - If needed, you can still run `run-patch-release` manually from `main`.
+    - In "The version", specify the **new** patch release version, e.g.: if versions should be bumped to `9.3.2`, use `9.3.2`.
+    - This workflow will:
+        - Create the `update-<VERSION>` branch for the provided version.
+        - Update version constants across the codebase and create a PR targeting the release branch.
 
 ## Minor Release
 
@@ -27,6 +29,7 @@ This documentation is for 9.x releases. If you are releasing a 8.x look [here](.
     - Create a new release branch using the stack version (X.Y).
     - Update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`.
     - Create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`.
+    - Automated minor version bumps are typically done on Feature Freeze day.
 
 ## Major Release
 
