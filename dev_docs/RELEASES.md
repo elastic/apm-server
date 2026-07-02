@@ -10,6 +10,7 @@ This documentation is for 9.x releases. If you are releasing a 8.x look [here](.
 2. Ensure all relevant backport PRs are merged. We use backport labels on PRs and automation to ensure labels are set.
 3. Ensure patch version bump automation has run for the release version.
     - For patch releases, this is usually triggered by [unified-release-centralized-version-bump](https://buildkite.com/elastic/unified-release-centralized-version-bump), which calls [apm-server-version-bump](https://buildkite.com/elastic/apm-server-version-bump), and then triggers [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) with the new version.
+    - This automated patch bump is usually executed on release day.
     - If needed, you can still run `run-patch-release` manually from `main`.
     - In "The version", specify the **new** patch release version, e.g.: if versions should be bumped to `9.3.2`, use `9.3.2`.
     - This workflow will:
@@ -28,6 +29,7 @@ This documentation is for 9.x releases. If you are releasing a 8.x look [here](.
     - Create a new release branch using the stack version (X.Y).
     - Update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`.
     - Create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`.
+    - Automated minor version bumps are typically done on Feature Freeze day.
 
 ## Major Release
 
