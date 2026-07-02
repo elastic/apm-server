@@ -10,7 +10,7 @@ This documentation is for 9.x releases. If you are releasing a 8.x look [here](.
 2. Ensure all relevant backport PRs are merged. We use backport labels on PRs and automation to ensure labels are set.
 3. Release notes for patch releases **must be manually added** at least one day before release.
 4. Create a PR targeting the `main` branch. To add release notes:
-    - Add a new section to the existing release notes file ([Sample PR](https://github.com/elastic/apm-server/pull/20723)) containing the `Features and enchancements` as well as the `Fixes` subsections.
+    - Add a new section to the existing release notes file ([Sample PR](https://github.com/elastic/apm-server/pull/20723)) containing the `Features and enhancements` as well as the `Fixes` subsections.
     - Add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/3467)).
     - The PR should be merged the day before release.
 5. On release day, ensure patch version bump automation has run for the release version.
