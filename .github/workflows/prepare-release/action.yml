@@ -76,7 +76,7 @@ runs:
     - name: validate if branch already exists (major or minor only)
       if: ${{ inputs.type == 'major' || inputs.type == 'minor' }}
       run: |-
-        if git ls-remote --exit-code --heads "https://github.com/${GITHUB_REPOSITORY}.git" "$BRANCH" > /dev/null ; then
+        if git ls-remote --exit-code --heads https://github.com/${{ github.repository }}.git "$BRANCH" > /dev/null ; then
           FAILURE_MESSAGE="Branch already exists. This is not a ${RELEASE_TYPE} release."
           echo "FAILURE_MESSAGE=${FAILURE_MESSAGE}" >> "$GITHUB_ENV"
           echo "::error::${FAILURE_MESSAGE}" ; exit 1
