@@ -251,7 +251,7 @@ func (c *Client) GetSnapshotVersions(ctx context.Context, region string) ([]Stac
 		return v.IsSnapshot()
 	}
 
-	versions, err := c.getVersions(ctx, region, true, nil, postFilter)
+	versions, err := c.getVersions(ctx, region, false, nil, postFilter)
 	if err != nil {
 		return nil, fmt.Errorf("get snapshot versions failed: %w", err)
 	}

@@ -34,6 +34,13 @@ import (
 	"github.com/elastic/apm-server/integrationservertest/internal/ech"
 )
 
+func envOrDefault(key, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return fallback
+}
+
 // recordedHTTPClient instantiates a http.Client backed by a recorder.Recorder to be
 // used in testing scenarios.
 // To update any fixture, delete it from the filesystem and run the test again.
@@ -84,8 +91,8 @@ func recordedHTTPClient(t *testing.T) (*recorder.Recorder, *http.Client) {
 }
 
 func newRecordedClient(t *testing.T) *ech.Client {
-	endpoint := os.Getenv("EC_URL")
-	apiKey := os.Getenv("EC_API_KEY")
+	endpoint := envOrDefault("EC_URL", "https://test")
+	apiKey := envOrDefault("EC_API_KEY", "test")
 	_, httpClient := recordedHTTPClient(t)
 	ecc, err := ech.NewClient(endpoint, apiKey, ech.WithHTTPClient(httpClient))
 	require.NoError(t, err)
@@ -94,7 +101,7 @@ func newRecordedClient(t *testing.T) *ech.Client {
 
 func TestClient_GetVersions(t *testing.T) {
 	ecc := newRecordedClient(t)
-	region := os.Getenv("EC_REGION")
+	region := envOrDefault("EC_REGION", "gcp-us-west2")
 
 	versions, err := ecc.GetVersions(context.Background(), region)
 	require.NoError(t, err)
@@ -114,7 +121,7 @@ func TestClient_GetVersions(t *testing.T) {
 
 func TestClient_GetSnapshotVersions(t *testing.T) {
 	ecc := newRecordedClient(t)
-	region := os.Getenv("EC_REGION")
+	region := envOrDefault("EC_REGION", "gcp-us-west2")
 
 	versions, err := ecc.GetSnapshotVersions(context.Background(), region)
 	require.NoError(t, err)
