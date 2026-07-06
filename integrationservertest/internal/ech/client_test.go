@@ -92,7 +92,7 @@ func recordedHTTPClient(t *testing.T) (*recorder.Recorder, *http.Client) {
 
 func newRecordedClient(t *testing.T) *ech.Client {
 	endpoint := envOrDefault("EC_URL", "https://test")
-	apiKey := envOrDefault("EC_API_KEY", "test")
+	apiKey := envOrDefault("EC_API_KEY", "test-api-key-placeholder")
 	_, httpClient := recordedHTTPClient(t)
 	ecc, err := ech.NewClient(endpoint, apiKey, ech.WithHTTPClient(httpClient))
 	require.NoError(t, err)
