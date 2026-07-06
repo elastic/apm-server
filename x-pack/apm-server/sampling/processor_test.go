@@ -693,11 +693,15 @@ func TestStorageMonitoring(t *testing.T) {
 		assert.Empty(t, batch)
 	}
 
+	require.NoError(t, config.DB.Flush())
+	require.Eventually(t, func() bool {
+		lsm, _ := config.DB.Size()
+		return lsm > 0
+	}, 2*time.Second, 20*time.Millisecond) // waitFor has to be greater than diskUsageFetchInterval
+
 	// Stop the processor, flushing pending writes.
 	err = processor.Stop(context.Background())
 	require.NoError(t, err)
-
-	require.NoError(t, config.DB.Flush())
 
 	metricsNames := []string{
 		"apm-server.sampling.tail.storage.lsm_size",
