@@ -705,7 +705,7 @@ func TestStorageMonitoring(t *testing.T) {
 	}
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		gaugeValues := getGaugeValues(c, tempdirConfig.metricReader, metricsNames...)
-		require.Len(c, gaugeValues, 6)
+		require.Len(c, gaugeValues, len(metricsNames))
 
 		lsmSize := gaugeValues[0]
 		assert.Greater(c, lsmSize, float64(2000), "lsm_size")
