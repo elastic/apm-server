@@ -108,25 +108,35 @@ func TestStorageMonitoring(t *testing.T) {
 	// Reopening storage is necessary to immediately recalculate the
 	// storage size, otherwise we must wait for a minute (hard-coded in
 	// badger) for storage metrics to be updated.
-	err = processor.Stop(context.Background())
+	err = processor.Stop(t.Context())
 	require.NoError(t, err)
 	require.NoError(t, closeBadger())
 	badgerDB, err = getBadgerDB(cfg.StorageDir, cfg.MeterProvider)
 	require.NoError(t, err)
+
+	// Run processor again to report storage limit
+	cfg.DB = badgerDB
+	processorNew, err := sampling.NewProcessor(cfg, logptest.NewTestingLogger(t, ""))
+	require.NoError(t, err)
+	go processorNew.Run()
+	defer processorNew.Stop(context.Background())
 
 	metricsNames := []string{
 		"apm-server.sampling.tail.storage.lsm_size",
 		"apm-server.sampling.tail.storage.value_log_size",
 		"apm-server.sampling.tail.storage.storage_limit",
 	}
-	gaugeValues := getGaugeValues(t, reader, metricsNames...)
 
-	lsmSize := gaugeValues[0]
-	assert.NotZero(t, lsmSize)
-	vlogSize := gaugeValues[1]
-	assert.NotZero(t, vlogSize)
-	storageLimit := gaugeValues[2]
-	assert.EqualValues(t, 270000, storageLimit)
+	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+		gaugeValues := getGaugeValues(c, reader, metricsNames...)
+		require.Len(t, gaugeValues, len(metricsNames))
+
+		lsmSize := gaugeValues[0]
+		vlogSize := gaugeValues[1]
+		assert.Greater(c, lsmSize+vlogSize, int64(10000), "lsm_size + value_log_size")
+		storageLimit := gaugeValues[2]
+		assert.Equal(c, int64(270000), storageLimit, "storage_limit")
+	}, 2*time.Second, 50*time.Millisecond)
 }
 
 func newTempdirConfig(tb testing.TB) (sampling.Config, sdkmetric.Reader) {
@@ -181,7 +191,7 @@ func newTempdirConfig(tb testing.TB) (sampling.Config, sdkmetric.Reader) {
 //
 // It is helpful to provide multiple names for synchronous metrics to avoid losing data when collecting.
 // Observable metrics report everytime Collect is called, so there will be no data loss.
-func getGaugeValues(t testing.TB, reader sdkmetric.Reader, names ...string) []int64 {
+func getGaugeValues(t assert.TestingT, reader sdkmetric.Reader, names ...string) []int64 {
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
