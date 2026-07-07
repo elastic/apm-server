@@ -129,13 +129,14 @@ func TestStorageMonitoring(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		gaugeValues := getGaugeValues(c, reader, metricsNames...)
+		require.Len(t, gaugeValues, len(metricsNames))
 
 		lsmSize := gaugeValues[0]
 		vlogSize := gaugeValues[1]
-		assert.Greater(c, lsmSize+vlogSize, int64(10000))
+		assert.Greater(c, lsmSize+vlogSize, int64(10000), "lsm_size + value_log_size")
 		storageLimit := gaugeValues[2]
-		assert.EqualValues(c, 270000, storageLimit)
-	}, 2*time.Second, 100*time.Millisecond)
+		assert.Equal(c, int64(270000), storageLimit, "storage_limit")
+	}, 2*time.Second, 50*time.Millisecond)
 }
 
 func newTempdirConfig(tb testing.TB) (sampling.Config, sdkmetric.Reader) {
