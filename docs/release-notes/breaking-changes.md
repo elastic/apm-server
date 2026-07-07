@@ -21,10 +21,10 @@ Breaking changes can impact your Elastic applications, potentially disrupting no
 % **Action**<br> Steps for mitigating deprecation impact.
 % ::::
 
-## 9.5.0 [9-5-0]
+% ## 9.5.0 [9-5-0]
 
-% Commenting 9.4.0 release notes until it is released
-_No breaking changes_ 
+% Commenting 9.5.0 release notes until it is released
+% _No breaking changes_ 
 
 % ## 9.4.0 [9-4-0] 
 
