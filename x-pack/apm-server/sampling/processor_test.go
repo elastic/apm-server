@@ -640,6 +640,8 @@ func TestStorageMonitoring(t *testing.T) {
 	processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	go processor.Run()
+	defer processor.Stop(context.Background())
+
 	for i := 0; i < 100; i++ {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		batch := modelpb.Batch{{
@@ -656,11 +658,11 @@ func TestStorageMonitoring(t *testing.T) {
 		assert.Empty(t, batch)
 	}
 
-	// Stop the processor, flushing pending writes.
-	err = processor.Stop(context.Background())
-	require.NoError(t, err)
-
-	require.NoError(t, config.DB.Flush())
+	// Wait for cached db size update
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		lsm, _ := config.DB.Size()
+		assert.Greater(c, lsm, int64(0))
+	}, 2*time.Second, 20*time.Millisecond)
 
 	metricsNames := []string{
 		"apm-server.sampling.tail.storage.lsm_size",
