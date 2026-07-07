@@ -117,9 +117,7 @@ func NewClient(args ClientParams) (*Client, error) {
 		elastictransport.WithRetryOnError(args.RetryOnError),
 		elastictransport.WithRetryOnStatus(retryableStatuses...),
 		elastictransport.WithBasicAuth(args.Config.Username, args.Config.Password),
-	}
-	if apikey != "" {
-		opts = append(opts, elastictransport.WithAPIKey(apikey))
+		elastictransport.WithAPIKey(apikey),
 	}
 	return elastictransport.NewClient(opts...)
 }
