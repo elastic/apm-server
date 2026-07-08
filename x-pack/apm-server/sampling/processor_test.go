@@ -609,7 +609,7 @@ func TestGroupsMonitoring(t *testing.T) {
 //
 // It is helpful to provide multiple names for synchronous metrics to avoid losing data when collecting.
 // Observable metrics report everytime Collect is called, so there will be no data loss.
-func getGaugeValues(t testing.TB, reader sdkmetric.Reader, names ...string) []float64 {
+func getGaugeValues(t assert.TestingT, reader sdkmetric.Reader, names ...string) []float64 {
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
@@ -653,16 +653,10 @@ func TestStorageMonitoring(t *testing.T) {
 				Sampled: true,
 			},
 		}}
-		err := processor.ProcessBatch(context.Background(), &batch)
+		err := processor.ProcessBatch(t.Context(), &batch)
 		require.NoError(t, err)
 		assert.Empty(t, batch)
 	}
-
-	// Wait for cached db size update
-	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		lsm, _ := config.DB.Size()
-		assert.Greater(c, lsm, int64(0))
-	}, 2*time.Second, 20*time.Millisecond)
 
 	metricsNames := []string{
 		"apm-server.sampling.tail.storage.lsm_size",
@@ -672,14 +666,24 @@ func TestStorageMonitoring(t *testing.T) {
 		"apm-server.sampling.tail.storage.disk_total",
 		"apm-server.sampling.tail.storage.disk_usage_threshold_pct",
 	}
-	gaugeValues := getGaugeValues(t, tempdirConfig.metricReader, metricsNames...)
-	assert.Len(t, gaugeValues, 6)
+	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+		gaugeValues := getGaugeValues(c, tempdirConfig.metricReader, metricsNames...)
+		require.Len(c, gaugeValues, len(metricsNames))
 
-	lsmSize := gaugeValues[0]
-	assert.NotZero(t, lsmSize)
+		lsmSize := gaugeValues[0]
+		assert.Greater(c, lsmSize, float64(2000), "lsm_size")
 
-	vlogSize := gaugeValues[1]
-	assert.Zero(t, vlogSize)
+		vlogSize := gaugeValues[1]
+		assert.Zero(c, vlogSize, "value_log_size")
+
+		assert.Zero(c, gaugeValues[2], "storage_limit")
+		assert.NotZero(c, gaugeValues[3], "disk_used")
+		assert.NotZero(c, gaugeValues[4], "disk_total")
+
+		// TODO: known issue: disk_usage_threshold_pct not reported
+		// See https://github.com/elastic/apm-server/issues/20996
+		assert.Zero(c, gaugeValues[5], "disk_usage_threshold_pct")
+	}, 2*time.Second, 50*time.Millisecond)
 }
 
 func TestStorageLimit(t *testing.T) {
