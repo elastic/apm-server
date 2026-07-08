@@ -82,10 +82,10 @@ func (f SubscriberFunc) Subscribe(ctx context.Context) (string, error) {
 // requests by calling sub (if non-nil). If either function is nil, then the
 // respective operation will be a no-op.
 func Client(pub Publisher, sub Subscriber) *elastictransport.Client {
-	client, err := elastictransport.New(elastictransport.Config{
-		URLs:      []*url.URL{{Host: "127.0.0.1"}},
-		Transport: &channelClientRoundTripper{pub: pub, sub: sub},
-	})
+	client, err := elastictransport.NewClient(
+		elastictransport.WithURLs(&url.URL{Host: "127.0.0.1"}),
+		elastictransport.WithTransport(&channelClientRoundTripper{pub: pub, sub: sub}),
+	)
 	if err != nil {
 		panic(err)
 	}
