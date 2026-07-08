@@ -8,13 +8,8 @@ require (
 	github.com/cockroachdb/pebble/v2 v2.1.6
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.1
-<<<<<<< HEAD
-	github.com/elastic/apm-data v1.19.6
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260707124701-db27a08f5a51
-=======
 	github.com/elastic/apm-data v1.22.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260602145145-24b3ef55f923
->>>>>>> c409523a (build(deps): bump github.com/elastic/apm-data from 1.19.6 to 1.22.0 (#21146))
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260707124701-db27a08f5a51
 	github.com/elastic/elastic-agent-client/v7 v7.18.1
 	github.com/elastic/elastic-agent-libs v0.46.0
 	github.com/elastic/elastic-agent-system-metrics v0.14.4
@@ -97,12 +92,7 @@ require (
 	github.com/ebitengine/purego v0.10.0 // indirect
 	github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 // indirect
 	github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe // indirect
-<<<<<<< HEAD
-	github.com/elastic/go-elasticsearch/v8 v8.19.1 // indirect
-=======
-	github.com/elastic/go-concert v0.3.0 // indirect
 	github.com/elastic/go-elasticsearch/v8 v8.19.6 // indirect
->>>>>>> c409523a (build(deps): bump github.com/elastic/apm-data from 1.19.6 to 1.22.0 (#21146))
 	github.com/elastic/go-licenser v0.4.2 // indirect
 	github.com/elastic/go-lumber v0.2.0 // indirect
 	github.com/elastic/go-structform v0.0.12 // indirect
