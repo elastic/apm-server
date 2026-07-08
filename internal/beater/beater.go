@@ -44,8 +44,6 @@ import (
 	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/encoding/gzip"
 
-	"github.com/elastic/elastic-agent-libs/paths"
-
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
@@ -885,7 +883,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		}
 		indexSupporter := idxmgmt.NewSupporter(logger, s.rawConfig)
 		outputName := s.outputConfig.Name()
-		output, err := outputs.Load(indexSupporter, beatInfo, stats, outputName, s.outputConfig.Config(), paths.New())
+		output, err := outputs.Load(indexSupporter, beatInfo, stats, outputName, s.outputConfig.Config())
 		return outputName, output, err
 	}
 	var pipelineConfig pipeline.Config
@@ -1073,6 +1071,6 @@ func (nopProcessingSupporter) Processors() []string {
 	return nil
 }
 
-func (s nopProcessingSupporter) Create(cfg beat.ProcessingConfig, _ bool, _ *paths.Path) (beat.Processor, error) {
+func (s nopProcessingSupporter) Create(cfg beat.ProcessingConfig, _ bool) (beat.Processor, error) {
 	return cfg.Processor, nil
 }
