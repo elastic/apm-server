@@ -427,9 +427,10 @@ func (b *Beat) Run(ctx context.Context) error {
 		g.Go(func() error { return reloader.Run(ctx) })
 
 		b.Manager.SetStopCallback(cancel)
-		if err := b.Manager.Start(); err != nil {
+		if err := b.Manager.PreInit(); err != nil {
 			return fmt.Errorf("failed to start manager: %w", err)
 		}
+		b.Manager.PostInit()
 		defer b.Manager.Stop()
 	} else {
 		if !b.Config.Output.IsSet() {
