@@ -159,10 +159,46 @@ func (c *ServerCmd) cleanup() {
 // BuildServerBinary builds the apm-server binary for the given GOOS
 // and GOARCH, returning its absolute path.
 func BuildServerBinary(goos, goarch string) (string, error) {
+<<<<<<< HEAD
 	apmServerBinaryMu.Lock()
 	defer apmServerBinaryMu.Unlock()
 	if binary := apmServerBinary[goos]; binary != "" {
 		return binary, nil
+=======
+	apmServerBinaryOnce.Do(func() {
+		repoRoot, err := getRepoRoot()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		suffix := ""
+		if fips140.Enabled() {
+			suffix = "-fips"
+		}
+		name := "apm-server" + suffix
+		abspath := filepath.Join(repoRoot, "build", fmt.Sprintf("apm-server%s-%s-%s", suffix, goos, goarch))
+		if goos == "windows" {
+			abspath += ".exe"
+		}
+
+		log.Printf("Building %s...", name)
+		cmd := exec.Command("make", name)
+		cmd.Dir = repoRoot
+		cmd.Env = append(cmd.Env, os.Environ()...)
+		cmd.Env = append(cmd.Env, "NOCP=1") // prevent race condition
+		cmd.Env = append(cmd.Env, "GOOS="+goos, "GOARCH="+goarch)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			log.Println(err)
+			return
+		}
+		log.Println("Built", abspath)
+		apmServerBinary = abspath
+	})
+	if apmServerBinary == "" {
+		return "", errors.New("failed to build apm-server binary")
+>>>>>>> 2329c74a (feat(fips): replace msft-go with upstream go (#20995))
 	}
 
 	repoRoot, err := getRepoRoot()
