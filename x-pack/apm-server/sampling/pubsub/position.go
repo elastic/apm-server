@@ -4,9 +4,10 @@
 
 package pubsub
 
-import "maps"
-
-import "encoding/json"
+import (
+	"encoding/json"
+	"maps"
+)
 
 // SubscriberPosition holds information for the subscriber to resume after the
 // recently observed sampled trace IDs.
