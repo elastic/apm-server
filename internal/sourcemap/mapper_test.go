@@ -51,9 +51,9 @@ func TestMapNoMatch(t *testing.T) {
 func TestMapMatch(t *testing.T) {
 	// Re-encode the sourcemap, adding carriage returns to the
 	// line endings in the source content.
-	decoded := make(map[string]interface{})
+	decoded := make(map[string]any)
 	require.NoError(t, json.Unmarshal([]byte(validSourcemap), &decoded))
-	sourceContent := decoded["sourcesContent"].([]interface{})
+	sourceContent := decoded["sourcesContent"].([]any)
 	for i := range sourceContent {
 		sourceContentFile := sourceContent[i].(string)
 		sourceContentFile = strings.Replace(sourceContentFile, "\n", "\r\n", -1)

@@ -107,9 +107,9 @@ func testESFetcher(t *testing.T, client *elasticsearch.Client) *esFetcher {
 }
 
 func sourcemapESResponseBody(found bool, s string) io.Reader {
-	result := map[string]interface{}{
+	result := map[string]any{
 		"found": found,
-		"_source": map[string]interface{}{
+		"_source": map[string]any{
 			"content": encodeSourcemap(s),
 		},
 	}

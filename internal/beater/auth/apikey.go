@@ -84,11 +84,11 @@ func (a *apikeyAuth) authenticate(ctx context.Context, credentials string) (*API
 	if err != nil {
 		return nil, nil, fmt.Errorf("%w: improperly encoded ApiKey credentials: expected base64(ID:APIKey): %s", ErrAuthFailed, err)
 	}
-	colon := bytes.IndexByte(decoded, ':')
-	if colon == -1 {
+	before, _, ok := bytes.Cut(decoded, []byte{':'})
+	if !ok {
 		return nil, nil, fmt.Errorf("%w: improperly formatted ApiKey credentials: expected base64(ID:APIKey)", ErrAuthFailed)
 	}
-	id := string(decoded[:colon])
+	id := string(before)
 
 	// Check that the user has any privileges for the internal resource.
 	response, err := a.hasPrivileges(ctx, id, credentials, ResourceInternal)

@@ -159,7 +159,7 @@ func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
 			tx.RecordError(err)
 
 			// Do not log as error when there is a fallback.
-			var logFunc func(string, ...interface{})
+			var logFunc func(string, ...any)
 			if f.fallbackFetcher == nil {
 				logFunc = f.logger.Errorf
 			} else {

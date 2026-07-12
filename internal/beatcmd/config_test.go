@@ -41,11 +41,11 @@ apm-server:
 	assert.NotNil(t, cfg)
 	assert.NotNil(t, rawConfig)
 
-	assertConfigEqual(t, map[string]interface{}{
-		"apm-server": map[string]interface{}{
+	assertConfigEqual(t, map[string]any{
+		"apm-server": map[string]any{
 			"host": ":8200",
 		},
-		"path": map[string]interface{}{
+		"path": map[string]any{
 			"config": paths.Paths.Config,
 			"logs":   paths.Paths.Logs,
 			"data":   paths.Paths.Data,
@@ -53,7 +53,7 @@ apm-server:
 		},
 	}, rawConfig)
 
-	assertConfigEqual(t, map[string]interface{}{"host": ":8200"}, cfg.APMServer)
+	assertConfigEqual(t, map[string]any{"host": ":8200"}, cfg.APMServer)
 }
 
 func TestLoadConfigMerge(t *testing.T) {
@@ -67,15 +67,15 @@ apm-server:
 	))
 	require.NoError(t, err)
 
-	assertConfigEqual(t, map[string]interface{}{
+	assertConfigEqual(t, map[string]any{
 		"host":             "localhost:8200",
 		"shutdown_timeout": "1s",
 	}, cfg.APMServer)
 }
 
-func assertConfigEqual(t testing.TB, expected map[string]interface{}, actual *config.C) {
+func assertConfigEqual(t testing.TB, expected map[string]any, actual *config.C) {
 	t.Helper()
-	var m map[string]interface{}
+	var m map[string]any
 	err := actual.Unpack(&m)
 	require.NoError(t, err)
 	assert.Equal(t, expected, m)

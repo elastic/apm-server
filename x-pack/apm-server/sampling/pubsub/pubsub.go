@@ -276,34 +276,34 @@ func (p *Pubsub) searchIndexTraceIDs(ctx context.Context, out chan<- string, ind
 	for maxObservedSeqno < maxSeqno {
 		// Include only documents after the old global checkpoint,
 		// and up to and including the new global checkpoint.
-		filters := []map[string]interface{}{{
-			"range": map[string]interface{}{
-				"_seq_no": map[string]interface{}{
+		filters := []map[string]any{{
+			"range": map[string]any{
+				"_seq_no": map[string]any{
 					"lte": maxSeqno,
 				},
 			},
 		}}
 		if minSeqno >= 0 {
-			filters = append(filters, map[string]interface{}{
-				"range": map[string]interface{}{
-					"_seq_no": map[string]interface{}{
+			filters = append(filters, map[string]any{
+				"range": map[string]any{
+					"_seq_no": map[string]any{
 						"gt": minSeqno,
 					},
 				},
 			})
 		}
 
-		searchBody := map[string]interface{}{
+		searchBody := map[string]any{
 			"size":                1000,
-			"sort":                []interface{}{map[string]interface{}{"_seq_no": "asc"}},
+			"sort":                []any{map[string]any{"_seq_no": "asc"}},
 			"seq_no_primary_term": true,
 			"track_total_hits":    false,
-			"query": map[string]interface{}{
-				"bool": map[string]interface{}{
+			"query": map[string]any{
+				"bool": map[string]any{
 					// Filter out local observations.
-					"must_not": map[string]interface{}{
-						"term": map[string]interface{}{
-							"agent.ephemeral_id": map[string]interface{}{
+					"must_not": map[string]any{
+						"term": map[string]any{
+							"agent.ephemeral_id": map[string]any{
 								"value": p.config.ServerID,
 							},
 						},
@@ -318,7 +318,7 @@ func (p *Pubsub) searchIndexTraceIDs(ctx context.Context, out chan<- string, ind
 				Hits []struct {
 					Seqno  int64           `json:"_seq_no"`
 					Source traceIDDocument `json:"_source"`
-					Sort   []interface{}   `json:"sort"`
+					Sort   []any           `json:"sort"`
 				}
 			}
 		}
@@ -349,7 +349,7 @@ func (p *Pubsub) searchIndexTraceIDs(ctx context.Context, out chan<- string, ind
 	return maxObservedSeqno, nil
 }
 
-func (p *Pubsub) doSearchRequest(ctx context.Context, index string, body io.Reader, out interface{}) error {
+func (p *Pubsub) doSearchRequest(ctx context.Context, index string, body io.Reader, out any) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/"+index+"/_search", body)
 	if err != nil {
 		return fmt.Errorf("failed to create search request: %w", err)

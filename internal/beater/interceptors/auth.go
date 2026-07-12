@@ -41,7 +41,7 @@ type UnaryAuthenticator interface {
 	// auth.AuthenticationDetails and auth.Authorizer.
 	AuthenticateUnaryCall(
 		ctx context.Context,
-		req interface{},
+		req any,
 		fullMethod string,
 		auth *auth.Authenticator,
 	) (auth.AuthenticationDetails, auth.Authorizer, error)
@@ -56,10 +56,10 @@ func Auth(authenticator *auth.Authenticator) grpc.UnaryServerInterceptor {
 	var defaultAuthenticator UnaryAuthenticator = AuthorizationMetadataAuthenticator{}
 	return func(
 		ctx context.Context,
-		req interface{},
+		req any,
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
-	) (interface{}, error) {
+	) (any, error) {
 		unaryAuthenticator, ok := info.Server.(UnaryAuthenticator)
 		if !ok {
 			unaryAuthenticator = defaultAuthenticator
@@ -89,7 +89,7 @@ type AuthorizationMetadataAuthenticator struct{}
 
 func (a AuthorizationMetadataAuthenticator) AuthenticateUnaryCall(
 	ctx context.Context,
-	req interface{},
+	req any,
 	fullMethod string,
 	authenticator *auth.Authenticator,
 ) (auth.AuthenticationDetails, auth.Authorizer, error) {

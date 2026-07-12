@@ -34,8 +34,8 @@ func TestRumSetup(t *testing.T) {
 	rum.SourceMapping.esOverrideConfigured = true
 	rum.Enabled = true
 	rum.SourceMapping.ESConfig = &elasticsearch.Config{APIKey: "id:apikey"}
-	esCfg := config.MustNewConfigFrom(map[string]interface{}{
-		"hosts": []interface{}{"cloud:9200"},
+	esCfg := config.MustNewConfigFrom(map[string]any{
+		"hosts": []any{"cloud:9200"},
 	})
 
 	err := rum.setup(logptest.NewTestingLogger(t, "test"), esCfg)

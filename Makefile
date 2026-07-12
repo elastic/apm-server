@@ -263,6 +263,7 @@ check-gofmt:
 gofmt: add-headers
 	@echo "fmt - goimports: Formatting Go code"
 	@GOIMPORTSFLAGS=-w sh script/goimports.sh
+	go fix ./...
 
 ##############################################################################
 # NOTICE.txt & dependencies.csv generation.

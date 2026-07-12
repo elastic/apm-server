@@ -4,6 +4,8 @@
 
 package pubsub
 
+import "maps"
+
 import "encoding/json"
 
 // SubscriberPosition holds information for the subscriber to resume after the
@@ -27,9 +29,7 @@ func (p *SubscriberPosition) UnmarshalJSON(data []byte) error {
 
 func copyPosition(pos SubscriberPosition) SubscriberPosition {
 	observedSeqnos := make(map[string]int64, len(pos.observedSeqnos))
-	for index, seqno := range pos.observedSeqnos {
-		observedSeqnos[index] = seqno
-	}
+	maps.Copy(observedSeqnos, pos.observedSeqnos)
 	pos.observedSeqnos = observedSeqnos
 	return pos
 }

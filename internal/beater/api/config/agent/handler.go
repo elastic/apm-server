@@ -157,7 +157,7 @@ func buildQuery(c *request.Context) (agentcfg.Query, error) {
 
 func extractInternalError(c *request.Context, err error) {
 	msg := err.Error()
-	var body interface{}
+	var body any
 	var keyword string
 	switch {
 	case strings.Contains(msg, agentcfg.ErrMsgSendToKibanaFailed):

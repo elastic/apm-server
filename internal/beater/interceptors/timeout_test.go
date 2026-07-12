@@ -52,7 +52,7 @@ func TestTimeout(t *testing.T) {
 	}} {
 		interceptor := interceptors.Timeout()
 		resp, err := interceptor(context.Background(), "request_arg", &grpc.UnaryServerInfo{},
-			func(context.Context, interface{}) (interface{}, error) { return 123, tc.err },
+			func(context.Context, any) (any, error) { return 123, tc.err },
 		)
 		if tc.err == nil {
 			assert.NoError(t, err)

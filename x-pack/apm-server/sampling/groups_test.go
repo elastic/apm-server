@@ -70,7 +70,7 @@ func TestTraceGroupsPolicies(t *testing.T) {
 	assertSampleRate := func(sampleRate float64, serviceName, serviceEnvironment, traceOutcome, traceName string) {
 		tx := makeTransaction(serviceName, serviceEnvironment, traceOutcome, traceName)
 		const N = 1000
-		for i := 0; i < N; i++ {
+		for range N {
 			if _, err := groups.sampleTrace(tx); err != nil {
 				t.Fatal(err)
 			}
@@ -95,9 +95,9 @@ func TestTraceGroupsMax(t *testing.T) {
 	policies := []Policy{{SampleRate: 1.0}}
 	groups := newTraceGroups(noop.Meter{}, policies, maxDynamicServices, ingestRateCoefficient)
 
-	for i := 0; i < maxDynamicServices; i++ {
+	for i := range maxDynamicServices {
 		serviceName := fmt.Sprintf("service_group_%d", i)
-		for i := 0; i < minReservoirSize; i++ {
+		for range minReservoirSize {
 			admitted, err := groups.sampleTrace(&modelpb.APMEvent{
 				Service: &modelpb.Service{
 					Name: serviceName,
@@ -135,7 +135,7 @@ func TestTraceGroupReservoirResize(t *testing.T) {
 	groups := newTraceGroups(noop.Meter{}, policies, maxDynamicServices, ingestRateCoefficient)
 
 	sendTransactions := func(n int) {
-		for i := 0; i < n; i++ {
+		for range n {
 			groups.sampleTrace(&modelpb.APMEvent{
 				Trace: &modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"},
 				Transaction: &modelpb.Transaction{
@@ -177,7 +177,7 @@ func TestTraceGroupReservoirResizeMinimum(t *testing.T) {
 	groups := newTraceGroups(noop.Meter{}, policies, maxDynamicServices, ingestRateCoefficient)
 
 	sendTransactions := func(n int) {
-		for i := 0; i < n; i++ {
+		for range n {
 			groups.sampleTrace(&modelpb.APMEvent{
 				Trace: &modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"},
 				Transaction: &modelpb.Transaction{
@@ -212,7 +212,7 @@ func TestTraceGroupsRemoval(t *testing.T) {
 	}
 	groups := newTraceGroups(noop.Meter{}, policies, maxDynamicServices, ingestRateCoefficient)
 
-	for i := 0; i < 10000; i++ {
+	for range 10000 {
 		_, err := groups.sampleTrace(&modelpb.APMEvent{
 			Service:     &modelpb.Service{Name: "many"},
 			Transaction: &modelpb.Transaction{Type: "type"},
@@ -279,7 +279,7 @@ func TestTraceGroupsRemovalConcurrent(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	go func() {
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			_, err := groups.sampleTrace(&modelpb.APMEvent{
 				Service:     &modelpb.Service{Name: "many"},
 				Transaction: &modelpb.Transaction{Type: "type"},
