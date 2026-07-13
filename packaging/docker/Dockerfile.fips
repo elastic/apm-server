@@ -30,24 +30,12 @@ ARG VCS_REF
 
 # Statically defined labels.
 LABEL \
-<<<<<<< HEAD
-  org.label-schema.schema-version="1.0" \
-  org.label-schema.vendor="Elastic" \
-  org.label-schema.license="Elastic License" \
-  org.label-schema.name="apm-server" \
-  org.label-schema.url="https://www.elastic.co/apm" \
-  org.label-schema.vcs-url="github.com/elastic/apm-server" \
-=======
-  org.opencontainers.image.authors="obs-ds-intake-services" \
-  org.opencontainers.image.base.name="cgr.dev/chainguard/static:latest" \
-  org.opencontainers.image.description="Elastic APM Server" \
-  org.opencontainers.image.documentation="https://www.elastic.co/docs/solutions/observability/apm/apm-server" \
-  org.opencontainers.image.licenses="Elastic-2.0" \
-  org.opencontainers.image.source="https://github.com/elastic/apm-server" \
-  org.opencontainers.image.title="Apm-Server" \
-  org.opencontainers.image.url="https://github.com/elastic/apm-server" \
-  org.opencontainers.image.vendor="Elastic" \
->>>>>>> 2329c74a (feat(fips): replace msft-go with upstream go (#20995))
+org.label-schema.schema-version="1.0" \
+org.label-schema.vendor="Elastic" \
+org.label-schema.license="Elastic License" \
+org.label-schema.name="apm-server" \
+org.label-schema.url="https://www.elastic.co/apm" \
+org.label-schema.vcs-url="github.com/elastic/apm-server" \
   io.k8s.description="Elastic APM Server" \
   io.k8s.display-name="Apm-Server image" \
   org.opencontainers.image.licenses="Elastic License" \
