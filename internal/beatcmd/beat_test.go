@@ -522,7 +522,8 @@ func TestRunManager_Reloader(t *testing.T) {
 	}, registry, client, logptest.NewTestingLogger(t, ""), xpacklbmanagement.WithChangeDebounce(0))
 	require.NoError(t, err)
 
-	err = manager.Start()
+	err = manager.PreInit()
+	manager.PostInit()
 	require.NoError(t, err)
 	defer manager.Stop()
 
@@ -625,7 +626,8 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 	}, registry, client, logptest.NewTestingLogger(t, ""), xpacklbmanagement.WithChangeDebounce(0))
 	require.NoError(t, err)
 
-	err = manager.Start()
+	err = manager.PreInit()
+	manager.PostInit()
 	require.NoError(t, err)
 
 	select {
@@ -729,8 +731,19 @@ func (m *mockManager) Enabled() bool {
 }
 
 func (m *mockManager) Start() error {
+	if err := m.PreInit(); err != nil {
+		return err
+	}
+	m.PostInit()
+	return nil
+}
+
+func (m *mockManager) PreInit() error {
 	close(m.started)
 	return nil
+}
+
+func (m *mockManager) PostInit() {
 }
 
 func (m *mockManager) Stop() {

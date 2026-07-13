@@ -12,6 +12,7 @@ GOTESTFLAGS?=-v
 
 # Prevent unintended modifications of go.[mod|sum]
 GOMODFLAG?=-mod=readonly
+DEFAULT_TAGS=grpcnotrace
 
 PYTHON_ENV?=.
 PYTHON_VENV_DIR:=$(PYTHON_ENV)/build/ve/$(shell go env GOOS)
@@ -72,13 +73,8 @@ $(APM_SERVER_BINARIES):
 
 .PHONY: apm-server-build
 apm-server-build:
-<<<<<<< HEAD
-	env CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) MS_GOTOOLCHAIN_TELEMETRY_ENABLED=0 \
-	go build -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) -tags=grpcnotrace,$(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
-=======
 	env CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) GOFIPS140=$(GOFIPS140) \
 	go build -o "build/apm-server$(SUFFIX)-$(GOOS)-$(GOARCH)$(EXTENSION)" -trimpath $(GOFLAGS) -tags=$(DEFAULT_TAGS),$(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
->>>>>>> 2329c74a (feat(fips): replace msft-go with upstream go (#20995))
 
 build/apm-server-linux-% build/apm-server-fips-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
@@ -279,10 +275,10 @@ gofmt: add-headers
 ##############################################################################
 
 MODULE_DEPS=$(sort $(shell \
-  CGO_ENABLED=0 go list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
+  CGO_ENABLED=0 go list -deps -tags=darwin,linux,windows,$(DEFAULT_TAGS) -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
 
 MODULE_DEPS_FIPS=$(sort $(shell \
-  CGO_ENABLED=1 go list -deps -tags=linux,requirefips -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
+  CGO_ENABLED=1 go list -deps -tags=linux,requirefips,$(DEFAULT_TAGS) -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
 
 notice: NOTICE.txt NOTICE-fips.txt
 NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod
