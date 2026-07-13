@@ -23,7 +23,7 @@ RUN rm -f empty && touch empty
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM docker.elastic.co/wolfi/chainguard-base-fips:latest@sha256:4f93977a10857943766684102afa293b14eeb37218f5457bb33687ea951a04ac
+FROM docker.elastic.co/wolfi/chainguard-base-fips:latest@sha256:564e91dbe7456d6d04f81d3fe0f4914abe7147ef65eac29cd9b2af3d503cb978
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION
