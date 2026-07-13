@@ -99,7 +99,11 @@ jobs:
           key: systemtest-go-${{ hashFiles('systemtest/go.mod', 'go.mod') }}
           restore-keys: |
             systemtest-go-
-      - run: |
+      - env:
+          NOCP: "1"
+          GOOS: "linux"
+          GOARCH: "amd64"
+        run: |
             docker compose up -d &
             make apm-server &
             wait
@@ -123,7 +127,11 @@ jobs:
           key: systemtest-go-${{ hashFiles('systemtest/go.mod', 'go.mod') }}
           restore-keys: |
             systemtest-go-
-      - run: |
+      - env:
+          NOCP: "1"
+          GOOS: "linux"
+          GOARCH: "amd64"
+        run: |
             docker compose up -d &
             make apm-server &
             wait
