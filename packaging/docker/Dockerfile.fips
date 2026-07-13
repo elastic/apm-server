@@ -5,18 +5,19 @@ ARG GOLANG_VERSION
 # Build the apm-server binary. The golang image version is kept
 # up to date with go.mod by Makefile.
 ################################################################################
-FROM docker.elastic.co/wolfi/go-msft-fips:${GOLANG_VERSION} as builder
+FROM docker.elastic.co/wolfi/go:${GOLANG_VERSION} as builder
 WORKDIR /src
 COPY go.mod go.sum /src/
 RUN --mount=type=cache,target=/root/go/pkg/mod go mod download
 COPY . .
 
 RUN --mount=type=cache,target=/root/go/pkg/mod \
-    make apm-server-fips-msft
+    make apm-server-fips
 
 COPY --chmod=0644 apm-server-fips.yml ./apm-server.yml
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
+RUN rm -f empty && touch empty
 
 ################################################################################
 # Build stage 1
@@ -68,6 +69,12 @@ ENV LIBBEAT_MONITORING_CGROUPS_HIERARCHY_OVERRIDE=/
 # Disable libbeat's strict permissions checking, which is not relevant when
 # running in Docker.
 ENV BEAT_STRICT_PERMS=false
+
+# STIG V-203716 requires that "The operating system must prohibit user installation
+# of system software without explicit privileged status." but this requirement does not
+# always apply cleanly to all base images, particularly Chainguard Static.
+# Since /usr/lib contains no files, the check fails, so we add an empty root-owned file to satisfy it.
+COPY --chmod=0755 --chown=0:0 --from=builder /src/empty /usr/lib/empty
 
 COPY --chmod=0644 --chown=nonroot:nonroot licenses/ELASTIC-LICENSE-2.0.txt /licenses/
 COPY --chmod=0644 --chown=nonroot:nonroot NOTICE-fips.txt /licenses/NOTICE.txt
