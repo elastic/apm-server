@@ -48,7 +48,7 @@ func Test_esFetcher_fetchError(t *testing.T) {
 
 	var (
 		// max allowed size is less than the test data
-		maxSourceMapSizeBytes = int64(len(validSourcemap) / 2)
+		sourceMapMaxSizeBytesSmaller = int64(len(validSourcemap) / 2)
 	)
 
 	for name, tc := range map[string]struct {
@@ -68,10 +68,14 @@ func Test_esFetcher_fetchError(t *testing.T) {
 			expectedErrMessage: "ES returned unknown status code: 400 Bad Request",
 		},
 		"source map size exceeds limit": {
-			statusCode:         http.StatusOK,
-			responseBody:       sourcemapESResponseBody(true, validSourcemap),
-			maxSourceMapSize:   maxSourceMapSizeBytes,
-			expectedErrMessage: fmt.Sprintf("decompressed source map (name: %s, version: %s, path: %s) exceeds limit of %d bytes", sourceMapName, sourceMapVersion, sourceMapPath, maxSourceMapSizeBytes),
+			statusCode:       http.StatusOK,
+			responseBody:     sourcemapESResponseBody(true, validSourcemap),
+			maxSourceMapSize: sourceMapMaxSizeBytesSmaller,
+			expectedErrMessage: fmt.Sprintf(
+				"%s : decompressed source map (name: %s, version: %s, path: %s) exceeds limit of %d bytes",
+				errSourcemapSizeExceedsLimit,
+				sourceMapName, sourceMapVersion, sourceMapPath, sourceMapMaxSizeBytesSmaller,
+			),
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -94,10 +98,16 @@ func Test_esFetcher_fetchError(t *testing.T) {
 }
 
 func Test_esFetcher_fetch(t *testing.T) {
+	var (
+		// max allowed size equals test data
+		sourceMapMaxSizeBytesEqual = int64(len(validSourcemap))
+	)
+
 	for name, tc := range map[string]struct {
-		statusCode   int
-		responseBody io.Reader
-		filePath     string
+		statusCode       int
+		responseBody     io.Reader
+		filePath         string
+		maxSourceMapSize int64
 	}{
 		"no sourcemap found": {
 			statusCode:   http.StatusOK,
@@ -108,10 +118,20 @@ func Test_esFetcher_fetch(t *testing.T) {
 			responseBody: sourcemapESResponseBody(true, validSourcemap),
 			filePath:     "bundle.js",
 		},
+		"source map size equals limit": {
+			statusCode:       http.StatusOK,
+			responseBody:     sourcemapESResponseBody(true, validSourcemap),
+			filePath:         "bundle.js",
+			maxSourceMapSize: sourceMapMaxSizeBytesEqual,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
+			if tc.maxSourceMapSize == 0 {
+				tc.maxSourceMapSize = defaultMaxSourceMapSizeBytes
+			}
+
 			client := newMockElasticsearchClient(t, tc.statusCode, tc.responseBody)
-			sourcemapConsumer, err := testESFetcher(t, client, defaultMaxSourceMapSizeBytes).Fetch(context.Background(), "abc", "1.0", "/tmp")
+			sourcemapConsumer, err := testESFetcher(t, client, tc.maxSourceMapSize).Fetch(context.Background(), "abc", "1.0", "/tmp")
 			require.NoError(t, err)
 
 			if tc.filePath == "" {

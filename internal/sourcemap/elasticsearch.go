@@ -133,7 +133,10 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 	}
 
 	if int64(len(uncompressedBody)) > s.maxSourceMapSizeBytes {
-		return nil, fmt.Errorf("decompressed source map (name: %s, version: %s, path: %s) exceeds limit of %d bytes", name, version, path, s.maxSourceMapSizeBytes)
+		return nil, fmt.Errorf(
+			"%w : decompressed source map (name: %s, version: %s, path: %s) exceeds limit of %d bytes",
+			errSourcemapSizeExceedsLimit, name, version, path, s.maxSourceMapSizeBytes,
+		)
 	}
 
 	return parseSourceMap(uncompressedBody)
