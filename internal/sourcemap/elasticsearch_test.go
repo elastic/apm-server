@@ -24,6 +24,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -39,21 +40,38 @@ import (
 )
 
 func Test_esFetcher_fetchError(t *testing.T) {
+	const (
+		sourceMapName    = "abc"
+		sourceMapVersion = "1.0"
+		sourceMapPath    = "/tmp"
+	)
+
+	var (
+		// max allowed size is less than the test data
+		maxSourceMapSizeBytes = int64(len(validSourcemap) / 2)
+	)
+
 	for name, tc := range map[string]struct {
-		statusCode         int
-		clientError        bool
-		responseBody       io.Reader
-		temporary          bool
+		statusCode       int
+		clientError      bool
+		responseBody     io.Reader
+		maxSourceMapSize int64
+
 		expectedErrMessage string
 	}{
 		"es not reachable": {
 			clientError:        true,
-			temporary:          true,
 			expectedErrMessage: "failure querying ES: client error",
 		},
 		"es bad request": {
 			statusCode:         http.StatusBadRequest,
 			expectedErrMessage: "ES returned unknown status code: 400 Bad Request",
+		},
+		"source map size exceeds limit": {
+			statusCode:         http.StatusOK,
+			responseBody:       sourcemapESResponseBody(true, validSourcemap),
+			maxSourceMapSize:   maxSourceMapSizeBytes,
+			expectedErrMessage: fmt.Sprintf("decompressed source map (name: %s, version: %s, path: %s) exceeds limit of %d bytes", sourceMapName, sourceMapVersion, sourceMapPath, maxSourceMapSizeBytes),
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -64,7 +82,11 @@ func Test_esFetcher_fetchError(t *testing.T) {
 				client = newMockElasticsearchClient(t, tc.statusCode, tc.responseBody)
 			}
 
-			consumer, err := testESFetcher(t, client).Fetch(context.Background(), "abc", "1.0", "/tmp")
+			if tc.maxSourceMapSize == 0 {
+				tc.maxSourceMapSize = defaultMaxSourceMapSizeBytes
+			}
+
+			consumer, err := testESFetcher(t, client, tc.maxSourceMapSize).Fetch(context.Background(), sourceMapName, sourceMapVersion, sourceMapPath)
 			assert.Equal(t, tc.expectedErrMessage, err.Error())
 			assert.Empty(t, consumer)
 		})
@@ -89,7 +111,7 @@ func Test_esFetcher_fetch(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			client := newMockElasticsearchClient(t, tc.statusCode, tc.responseBody)
-			sourcemapConsumer, err := testESFetcher(t, client).Fetch(context.Background(), "abc", "1.0", "/tmp")
+			sourcemapConsumer, err := testESFetcher(t, client, defaultMaxSourceMapSizeBytes).Fetch(context.Background(), "abc", "1.0", "/tmp")
 			require.NoError(t, err)
 
 			if tc.filePath == "" {
@@ -102,8 +124,13 @@ func Test_esFetcher_fetch(t *testing.T) {
 	}
 }
 
-func testESFetcher(t *testing.T, client *elasticsearch.Client) *esFetcher {
-	return &esFetcher{client: client, index: "apm-sourcemap", logger: logptest.NewTestingLogger(t, logs.Sourcemap)}
+func testESFetcher(t *testing.T, client *elasticsearch.Client, maxSourceMapSize int64) *esFetcher {
+	return &esFetcher{
+		client:                client,
+		index:                 "apm-sourcemap",
+		logger:                logptest.NewTestingLogger(t, logs.Sourcemap),
+		maxSourceMapSizeBytes: maxSourceMapSize,
+	}
 }
 
 func sourcemapESResponseBody(found bool, s string) io.Reader {

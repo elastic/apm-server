@@ -38,10 +38,18 @@ import (
 	"github.com/elastic/apm-server/internal/logs"
 )
 
+const (
+	// defaultMaxSourceMapSizeBytes default max is 10MB.
+	// 10MB will be 10x the default max payload size allowed by Kibana:
+	// https://www.elastic.co/docs/api/doc/kibana/v9/operation/operation-uploadsourcemap
+	defaultMaxSourceMapSizeBytes = 10 << 20
+)
+
 type esFetcher struct {
-	client *elasticsearch.Client
-	index  string
-	logger *logp.Logger
+	client                *elasticsearch.Client
+	index                 string
+	logger                *logp.Logger
+	maxSourceMapSizeBytes int64
 }
 
 type esGetSourcemapResponse struct {
@@ -61,7 +69,12 @@ type esGetSourcemapResponse struct {
 
 // NewElasticsearchFetcher returns a Fetcher for fetching source maps stored in Elasticsearch.
 func NewElasticsearchFetcher(c *elasticsearch.Client, index string, logger *logp.Logger) Fetcher {
-	return &esFetcher{c, index, logger.Named(logs.Sourcemap)}
+	return &esFetcher{
+		client:                c,
+		index:                 index,
+		logger:                logger.Named(logs.Sourcemap),
+		maxSourceMapSizeBytes: defaultMaxSourceMapSizeBytes,
+	}
 }
 
 // Fetch fetches a source map from Elasticsearch.
@@ -113,9 +126,14 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 	}
 	defer r.Close()
 
-	uncompressedBody, err := io.ReadAll(r)
+	limitReader := io.LimitReader(r, s.maxSourceMapSizeBytes+1)
+	uncompressedBody, err := io.ReadAll(limitReader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read sourcemap content: %w", err)
+	}
+
+	if int64(len(uncompressedBody)) > s.maxSourceMapSizeBytes {
+		return nil, fmt.Errorf("decompressed source map (name: %s, version: %s, path: %s) exceeds limit of %d bytes", name, version, path, s.maxSourceMapSizeBytes)
 	}
 
 	return parseSourceMap(uncompressedBody)
