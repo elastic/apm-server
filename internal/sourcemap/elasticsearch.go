@@ -39,10 +39,8 @@ import (
 )
 
 const (
-	// defaultMaxSourceMapSizeBytes default max is 10MB.
-	// 10MB will be 10x the default max payload size allowed by Kibana:
-	// https://www.elastic.co/docs/api/doc/kibana/v9/operation/operation-uploadsourcemap
-	defaultMaxSourceMapSizeBytes = 10 << 20
+	// defaultMaxSourceMapSizeBytes default max is 100MB.
+	defaultMaxSourceMapSizeBytes = 100 * 1024 * 1024
 )
 
 type esFetcher struct {
@@ -68,12 +66,15 @@ type esGetSourcemapResponse struct {
 }
 
 // NewElasticsearchFetcher returns a Fetcher for fetching source maps stored in Elasticsearch.
-func NewElasticsearchFetcher(c *elasticsearch.Client, index string, logger *logp.Logger) Fetcher {
+func NewElasticsearchFetcher(c *elasticsearch.Client, index string, maxSourceMapSizeBytes int64, logger *logp.Logger) Fetcher {
+	if maxSourceMapSizeBytes <= 0 {
+		maxSourceMapSizeBytes = defaultMaxSourceMapSizeBytes
+	}
 	return &esFetcher{
 		client:                c,
 		index:                 index,
 		logger:                logger.Named(logs.Sourcemap),
-		maxSourceMapSizeBytes: defaultMaxSourceMapSizeBytes,
+		maxSourceMapSizeBytes: maxSourceMapSizeBytes,
 	}
 }
 

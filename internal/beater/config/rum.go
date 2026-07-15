@@ -23,11 +23,12 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/dustin/go-humanize"
+
+	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-ucfg"
-
-	"github.com/elastic/apm-server/internal/elasticsearch"
 )
 
 const (
@@ -35,6 +36,14 @@ const (
 	defaultExcludeFromGrouping = "^/webpack"
 	defaultLibraryPattern      = "node_modules|bower_components|~"
 	defaultSourcemapTimeout    = 5 * time.Second
+	// defaultMaxSourceMapSizeBytes is the default max decompressed source map size (100 MB).
+	// 100 MB is ~100x the default max payload size allowed by Kibana:
+	// https://www.elastic.co/docs/api/doc/kibana/v9/operation/operation-uploadsourcemap
+	defaultMaxSourceMapSizeBytes = 100 * 1024 * 1024
+)
+
+var (
+	errParseSourceMapMaxSize = errors.New("error parsing sourcemap max size")
 )
 
 // RumConfig holds config information related to the RUM endpoint
@@ -50,9 +59,15 @@ type RumConfig struct {
 
 // SourceMapping holds sourcemap config information
 type SourceMapping struct {
-	Enabled              bool                  `config:"enabled"`
-	ESConfig             *elasticsearch.Config `config:"elasticsearch"`
-	Timeout              time.Duration         `config:"timeout" validate:"positive"`
+	Enabled  bool                  `config:"enabled"`
+	ESConfig *elasticsearch.Config `config:"elasticsearch"`
+	Timeout  time.Duration         `config:"timeout" validate:"positive"`
+
+	// MaxSourcemapSize is the user-configured max size for decompressed source maps.
+	MaxSourcemapSize string `config:"max_sourcemap_size"`
+	// MaxSourceMapSizeParsed is the parsed byte value of MaxSourcemapSize.
+	MaxSourceMapSizeParsed uint64
+
 	esOverrideConfigured bool
 	es                   *config.C
 }
@@ -104,23 +119,53 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 
 func (s *SourceMapping) Unpack(inp *config.C) error {
 	type underlyingSourceMapping SourceMapping
-	if err := inp.Unpack((*underlyingSourceMapping)(s)); err != nil {
+	cfg := underlyingSourceMapping(defaultSourcemapping())
+	if err := inp.Unpack(&cfg); err != nil {
 		return fmt.Errorf("error unpacking sourcemapping config: %w", err)
 	}
+
+	parsed, err := parseUserDefinedBytesConfig(cfg.MaxSourcemapSize, defaultMaxSourceMapSizeBytes)
+	if err != nil {
+		return fmt.Errorf("%w - %q : %w", errParseSourceMapMaxSize, cfg.MaxSourcemapSize, err)
+	}
+	cfg.MaxSourceMapSizeParsed = parsed
+
+	*s = SourceMapping(cfg)
+
 	s.esOverrideConfigured = inp.HasField("elasticsearch")
-	var err error
-	var e ucfg.Error
+	var (
+		e ucfg.Error
+	)
 	if s.es, err = inp.Child("elasticsearch", -1); err != nil && (!errors.As(err, &e) || e.Reason() != ucfg.ErrMissing) {
 		return fmt.Errorf("error storing sourcemap elasticsearch config: %w", err)
 	}
 	return nil
 }
 
+// parseUserDefinedBytesConfig parses the provided size configuration to bytes.
+// The default is used for empty values.
+func parseUserDefinedBytesConfig(configValue string, defaultValue uint64) (uint64, error) {
+	if configValue == "" {
+		return defaultValue, nil
+	}
+
+	bytes, err := humanize.ParseBytes(configValue)
+	if err != nil {
+		return 0, err
+	}
+	if bytes == 0 {
+		return 0, fmt.Errorf("max source map size must be positive")
+	}
+	return bytes, nil
+}
+
 func defaultSourcemapping() SourceMapping {
 	return SourceMapping{
-		Enabled:  true,
-		ESConfig: elasticsearch.DefaultConfig(),
-		Timeout:  defaultSourcemapTimeout,
+		Enabled:                true,
+		ESConfig:               elasticsearch.DefaultConfig(),
+		Timeout:                defaultSourcemapTimeout,
+		MaxSourceMapSizeParsed: defaultMaxSourceMapSizeBytes,
+		// MaxSourcemapSize left empty; the const-derived parsed default above is authoritative.
 	}
 }
 

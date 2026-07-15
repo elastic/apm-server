@@ -49,3 +49,80 @@ func TestDefaultRum(t *testing.T) {
 	c := DefaultConfig()
 	assert.Equal(t, defaultRum(), c.RumConfig)
 }
+
+func TestRumConfigMaxSourcemapSize(t *testing.T) {
+	tests := []struct {
+		name             string
+		sourceMappingCfg map[string]interface{} // nil means use defaultRum()
+		wantSize         uint64
+		wantErr          error
+	}{
+		{
+			name:     "default",
+			wantSize: defaultMaxSourceMapSizeBytes,
+		},
+		{
+			name:             "parse_mib_string",
+			sourceMappingCfg: map[string]interface{}{"max_sourcemap_size": "5mib"},
+			wantSize:         uint64(5 * 1024 * 1024),
+		},
+		{
+			name:             "parse_mb_string",
+			sourceMappingCfg: map[string]interface{}{"max_sourcemap_size": "5mb"},
+			wantSize:         uint64(5 * 1000 * 1000),
+		},
+		{
+			name:             "parse_integer",
+			sourceMappingCfg: map[string]interface{}{"max_sourcemap_size": 2048},
+			wantSize:         uint64(2048),
+		},
+		{
+			name:             "parse_invalid_string",
+			sourceMappingCfg: map[string]interface{}{"max_sourcemap_size": "invalid_size"},
+			wantErr:          errParseSourceMapMaxSize,
+		},
+		{
+			name:             "parse_zero_integer",
+			sourceMappingCfg: map[string]interface{}{"max_sourcemap_size": 0},
+			wantErr:          errParseSourceMapMaxSize,
+		},
+		{
+			name:             "parse_zero_string",
+			sourceMappingCfg: map[string]interface{}{"max_sourcemap_size": "0"},
+			wantErr:          errParseSourceMapMaxSize,
+		},
+		{
+			name:             "parse_negative_integer",
+			sourceMappingCfg: map[string]interface{}{"max_sourcemap_size": -10},
+			wantErr:          errParseSourceMapMaxSize,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.sourceMappingCfg == nil {
+				c := defaultRum()
+				assert.Equal(t, tt.wantSize, c.SourceMapping.MaxSourceMapSizeParsed)
+				return
+			}
+
+			cfgMap := map[string]interface{}{
+				"enabled":        true,
+				"source_mapping": tt.sourceMappingCfg,
+			}
+			c, err := config.NewConfigFrom(cfgMap)
+			require.NoError(t, err)
+			var rum RumConfig
+			err = c.Unpack(&rum)
+
+			if tt.wantErr != nil {
+				t.Logf("source map error: %s", err)
+				require.Error(t, err)
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.wantSize, rum.SourceMapping.MaxSourceMapSizeParsed)
+			}
+		})
+	}
+}

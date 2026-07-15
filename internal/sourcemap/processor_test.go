@@ -44,7 +44,7 @@ func TestBatchProcessor(t *testing.T) {
 	close(ch)
 
 	client := newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, validSourcemap))
-	esFetcher := NewElasticsearchFetcher(client, "index", logptest.NewTestingLogger(t, ""))
+	esFetcher := NewElasticsearchFetcher(client, "index", defaultMaxSourceMapSizeBytes, logptest.NewTestingLogger(t, ""))
 	fetcher, err := NewBodyCachingFetcher(esFetcher, 100, ch, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
@@ -231,7 +231,7 @@ func TestBatchProcessor(t *testing.T) {
 
 func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	client := newUnavailableElasticsearchClient(t)
-	fetcher := NewElasticsearchFetcher(client, "index", logptest.NewTestingLogger(t, ""))
+	fetcher := NewElasticsearchFetcher(client, "index", defaultMaxSourceMapSizeBytes, logptest.NewTestingLogger(t, ""))
 
 	nonMatchingFrame := modelpb.StacktraceFrame{
 		AbsPath:  "bundle.js",
@@ -342,7 +342,7 @@ func TestBatchProcessorTimeout(t *testing.T) {
 		Logger:    logptest.NewTestingLogger(t, ""),
 	})
 	require.NoError(t, err)
-	fetcher := NewElasticsearchFetcher(client, "index", logptest.NewTestingLogger(t, ""))
+	fetcher := NewElasticsearchFetcher(client, "index", defaultMaxSourceMapSizeBytes, logptest.NewTestingLogger(t, ""))
 
 	frame := modelpb.StacktraceFrame{
 		AbsPath:  "bundle.js",

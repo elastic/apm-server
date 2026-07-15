@@ -192,7 +192,7 @@ func testCachingFetcher(t *testing.T, client *elasticsearch.Client) *BodyCaching
 	ch := make(chan []identifier)
 	close(ch)
 
-	esFetcher := NewElasticsearchFetcher(client, "apm-*sourcemap*", logptest.NewTestingLogger(t, ""))
+	esFetcher := NewElasticsearchFetcher(client, "apm-*sourcemap*", defaultMaxSourceMapSizeBytes, logptest.NewTestingLogger(t, ""))
 	cachingFetcher, err := NewBodyCachingFetcher(esFetcher, 100, ch, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	return cachingFetcher
