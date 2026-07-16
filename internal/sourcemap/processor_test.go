@@ -275,7 +275,7 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	// we are running the processor twice for a batch of two spans with 2 stacktraceframe each
 	entries := observedLogs.All()
 	require.Len(t, entries, 8)
-	assert.Equal(t, "failed to fetch sourcemap with path (bundle.js): failure querying ES: client error", entries[0].Message)
+	assert.Equal(t, "failed to fetch sourcemap with name (service_name), version (service_version), path (bundle.js): failure querying ES: client error", entries[0].Message)
 }
 
 func TestBatchProcessorSourcemapSizeExceedsLimit(t *testing.T) {
@@ -319,13 +319,13 @@ func TestBatchProcessorSourcemapSizeExceedsLimit(t *testing.T) {
 
 	// SourcemapError should have been set, but the frames should otherwise be unmodified.
 	expectedFrame := proto.Clone(&nonMatchingFrame).(*modelpb.StacktraceFrame)
-	expectedFrame.SourcemapError = "sourcemap size exceeds limit : decompressed source map (name: service_name, version: service_version, path: bundle.js) exceeds limit of 5 bytes"
+	expectedFrame.SourcemapError = "sourcemap size exceeds limit : decompressed source map exceeds limit of 5 bytes"
 	assert.Empty(t, cmp.Diff([]*modelpb.StacktraceFrame{expectedFrame}, span.Span.Stacktrace, protocmp.Transform()))
 
 	// we should have 1 log message (1 span with 1 stacktraceframe)
 	entries := observedLogs.All()
 	require.Len(t, entries, 1)
-	assert.Equal(t, "failed to fetch sourcemap with path (bundle.js): sourcemap size exceeds limit : decompressed source map (name: service_name, version: service_version, path: bundle.js) exceeds limit of 5 bytes", entries[0].Message)
+	assert.Equal(t, "failed to fetch sourcemap with name (service_name), version (service_version), path (bundle.js): sourcemap size exceeds limit : decompressed source map exceeds limit of 5 bytes", entries[0].Message)
 }
 
 func TestBatchProcessorTimeout(t *testing.T) {

@@ -38,11 +38,6 @@ import (
 	"github.com/elastic/apm-server/internal/logs"
 )
 
-const (
-	// defaultMaxSourceMapSizeBytes default max is 100MB.
-	defaultMaxSourceMapSizeBytes = 100 * 1024 * 1024
-)
-
 type esFetcher struct {
 	client                *elasticsearch.Client
 	index                 string
@@ -67,9 +62,6 @@ type esGetSourcemapResponse struct {
 
 // NewElasticsearchFetcher returns a Fetcher for fetching source maps stored in Elasticsearch.
 func NewElasticsearchFetcher(c *elasticsearch.Client, index string, maxSourceMapSizeBytes int64, logger *logp.Logger) Fetcher {
-	if maxSourceMapSizeBytes <= 0 {
-		maxSourceMapSizeBytes = defaultMaxSourceMapSizeBytes
-	}
 	return &esFetcher{
 		client:                c,
 		index:                 index,
@@ -121,23 +113,9 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 		return nil, fmt.Errorf("failed to base64 decode string: %w", err)
 	}
 
-	r, err := zlib.NewReader(bytes.NewReader(decodedBody))
+	uncompressedBody, err := s.decompressBody(decodedBody)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create zlib reader: %w", err)
-	}
-	defer r.Close()
-
-	limitReader := io.LimitReader(r, s.maxSourceMapSizeBytes+1)
-	uncompressedBody, err := io.ReadAll(limitReader)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read sourcemap content: %w", err)
-	}
-
-	if int64(len(uncompressedBody)) > s.maxSourceMapSizeBytes {
-		return nil, fmt.Errorf(
-			"%w : decompressed source map (name: %s, version: %s, path: %s) exceeds limit of %d bytes",
-			errSourcemapSizeExceedsLimit, name, version, path, s.maxSourceMapSizeBytes,
-		)
+		return nil, err
 	}
 
 	return parseSourceMap(uncompressedBody)
@@ -163,4 +141,45 @@ func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) 
 	}
 
 	return esSourcemapResponse.Source.Sourcemap, nil
+}
+
+func (s *esFetcher) decompressBody(decodedBody []byte) ([]byte, error) {
+	r, err := zlib.NewReader(bytes.NewReader(decodedBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create zlib reader: %w", err)
+	}
+	defer r.Close()
+
+	decompress := func(r io.Reader) ([]byte, error) {
+		uncompressedBody, err := io.ReadAll(r)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read sourcemap content: %w", err)
+		}
+		return uncompressedBody, nil
+	}
+
+	if s.maxSourceMapSizeBytes <= 0 {
+		// decompress the entire source map
+		return decompress(r)
+	}
+
+	// Use a limit reader only when maxSourceMapSizeBytes is valid.
+	// The reader will read N+1 bytes. This will allow the fetcher to determine if
+	// the source map is greater than the configured max size.
+	limitReader := io.LimitReader(r, s.maxSourceMapSizeBytes+1)
+	uncompressedBody, err := decompress(limitReader)
+	if err != nil {
+		return nil, err
+	}
+
+	// The limit reader has read maxSourceMapSizeBytes+1 bytes,
+	// if the uncompressed body is greater than maxSourceMapSizeBytes,
+	// this indicates the source map size is too large.
+	if int64(len(uncompressedBody)) > s.maxSourceMapSizeBytes {
+		return nil, fmt.Errorf(
+			"%w : decompressed source map exceeds limit of %d bytes",
+			errSourcemapSizeExceedsLimit, s.maxSourceMapSizeBytes,
+		)
+	}
+	return uncompressedBody, nil
 }

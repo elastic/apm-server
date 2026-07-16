@@ -39,6 +39,10 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
+const (
+	defaultMaxSourceMapSizeBytes = 1024 * 1024
+)
+
 func Test_esFetcher_fetchError(t *testing.T) {
 	const (
 		sourceMapName    = "abc"
@@ -72,9 +76,9 @@ func Test_esFetcher_fetchError(t *testing.T) {
 			responseBody:     sourcemapESResponseBody(true, validSourcemap),
 			maxSourceMapSize: sourceMapMaxSizeBytesSmaller,
 			expectedErrMessage: fmt.Sprintf(
-				"%s : decompressed source map (name: %s, version: %s, path: %s) exceeds limit of %d bytes",
+				"%s : decompressed source map exceeds limit of %d bytes",
 				errSourcemapSizeExceedsLimit,
-				sourceMapName, sourceMapVersion, sourceMapPath, sourceMapMaxSizeBytesSmaller,
+				sourceMapMaxSizeBytesSmaller,
 			),
 		},
 	} {
@@ -124,12 +128,14 @@ func Test_esFetcher_fetch(t *testing.T) {
 			filePath:         "bundle.js",
 			maxSourceMapSize: sourceMapMaxSizeBytesEqual,
 		},
+		"zero max sourcemap size": {
+			statusCode:       http.StatusOK,
+			responseBody:     sourcemapESResponseBody(true, validSourcemap),
+			filePath:         "bundle.js",
+			maxSourceMapSize: 0,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			if tc.maxSourceMapSize == 0 {
-				tc.maxSourceMapSize = defaultMaxSourceMapSizeBytes
-			}
-
 			client := newMockElasticsearchClient(t, tc.statusCode, tc.responseBody)
 			sourcemapConsumer, err := testESFetcher(t, client, tc.maxSourceMapSize).Fetch(context.Background(), "abc", "1.0", "/tmp")
 			require.NoError(t, err)
