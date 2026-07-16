@@ -39,6 +39,7 @@ const (
 	// defaultMaxSourceMapSizeBytes is the default max decompressed source map size (100 MB).
 	// 100 MB is ~100x the default max payload size allowed by Kibana:
 	// https://www.elastic.co/docs/api/doc/kibana/v9/operation/operation-uploadsourcemap
+	defaultMaxSourceMapSizeStr   = "100MiB"
 	defaultMaxSourceMapSizeBytes = 100 * 1024 * 1024
 )
 
@@ -124,7 +125,7 @@ func (s *SourceMapping) Unpack(inp *config.C) error {
 		return fmt.Errorf("error unpacking sourcemapping config: %w", err)
 	}
 
-	parsed, err := parseUserDefinedBytesConfig(cfg.MaxSourcemapSize, defaultMaxSourceMapSizeBytes)
+	parsed, err := parseUserDefinedBytesConfig(cfg.MaxSourcemapSize)
 	if err != nil {
 		return fmt.Errorf("%w - %q : %w", errParseSourceMapMaxSize, cfg.MaxSourcemapSize, err)
 	}
@@ -143,10 +144,9 @@ func (s *SourceMapping) Unpack(inp *config.C) error {
 }
 
 // parseUserDefinedBytesConfig parses the provided size configuration to bytes.
-// The default is used for empty values.
-func parseUserDefinedBytesConfig(configValue string, defaultValue uint64) (uint64, error) {
+func parseUserDefinedBytesConfig(configValue string) (uint64, error) {
 	if configValue == "" {
-		return defaultValue, nil
+		return 0, fmt.Errorf("configuration value is empty")
 	}
 
 	bytes, err := humanize.ParseBytes(configValue)
@@ -154,19 +154,24 @@ func parseUserDefinedBytesConfig(configValue string, defaultValue uint64) (uint6
 		return 0, err
 	}
 	if bytes == 0 {
-		return 0, fmt.Errorf("max source map size must be positive")
+		return 0, fmt.Errorf("parsed size must be positive")
 	}
 	return bytes, nil
 }
 
 func defaultSourcemapping() SourceMapping {
-	return SourceMapping{
-		Enabled:                true,
-		ESConfig:               elasticsearch.DefaultConfig(),
-		Timeout:                defaultSourcemapTimeout,
-		MaxSourceMapSizeParsed: defaultMaxSourceMapSizeBytes,
-		// MaxSourcemapSize left empty; the const-derived parsed default above is authoritative.
+	cfg := SourceMapping{
+		Enabled:          true,
+		ESConfig:         elasticsearch.DefaultConfig(),
+		Timeout:          defaultSourcemapTimeout,
+		MaxSourcemapSize: defaultMaxSourceMapSizeStr,
 	}
+	parsed, err := humanize.ParseBytes(cfg.MaxSourcemapSize)
+	if err != nil {
+		panic(err)
+	}
+	cfg.MaxSourceMapSizeParsed = parsed
+	return cfg
 }
 
 func defaultRum() RumConfig {

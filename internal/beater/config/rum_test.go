@@ -96,6 +96,11 @@ func TestRumConfigMaxSourcemapSize(t *testing.T) {
 			sourceMappingCfg: map[string]interface{}{"max_sourcemap_size": -10},
 			wantErr:          errParseSourceMapMaxSize,
 		},
+		{
+			name:             "parse_empty_string",
+			sourceMappingCfg: map[string]interface{}{"max_sourcemap_size": ""},
+			wantErr:          errParseSourceMapMaxSize,
+		},
 	}
 
 	for _, tt := range tests {
