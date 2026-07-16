@@ -167,7 +167,7 @@ apm-server:
       #timeout: 5s
 
       # Maximum allowed size of a decompressed source map.
-      #max_sourcemap_size: 100mb
+      #max_sourcemap_size: 100mib
 
       # The `cache.expiration` determines how long a source map should be cached in memory.
       # Note that values configured without a time unit will be interpreted as seconds.
