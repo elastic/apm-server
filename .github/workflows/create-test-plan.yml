@@ -28,13 +28,13 @@ jobs:
 
       - name: Generate test plan
         id: generate-test-plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.upcoming_release }}
         run: |
-          VERSION="${{ inputs.upcoming_release }}"
           bash .ci/scripts/generate-test-plan.sh "$VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "test_plan_file=build/test-plan-$VERSION.md" >> $GITHUB_OUTPUT
-        env:
-          GH_TOKEN: ${{ github.token }}
 
       - name: Create GitHub issue
         id: create-issue
