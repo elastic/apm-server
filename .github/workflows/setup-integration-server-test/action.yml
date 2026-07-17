@@ -2,12 +2,6 @@
 name: setup-integration-server-test
 description: Setup Integration Server Test
 
-inputs:
-  target:
-    description: Elastic Cloud target environment
-    required: false
-    default: qa
-
 runs:
   using: composite
   steps:
@@ -24,11 +18,11 @@ runs:
         project-id: 'elastic-observability-ci'
     - name: Configure Elastic Cloud target
       shell: bash
-      env:
-        EC_TARGET: ${{ inputs.target }}
-      run: echo "EC_TARGET=${EC_TARGET}" >> "${GITHUB_ENV}"
+      run: |
+        # EC_TARGET must correspond to the EC_API_KEY target below.
+        echo "EC_TARGET=qa" >> "${GITHUB_ENV}"
     - uses: google-github-actions/get-secretmanager-secrets@bc9c54b29fdffb8a47776820a7d26e77b379d262 # v3.0.0
       with:
         export_to_environment: true
         secrets: |-
-          EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-${{ inputs.target }}-api-key
+          EC_API_KEY:elastic-observability-ci/elastic-cloud-observability-team-qa-api-key
