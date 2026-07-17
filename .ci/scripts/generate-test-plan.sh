@@ -17,13 +17,27 @@ MAJOR="${BASH_REMATCH[1]}"
 MINOR="${BASH_REMATCH[2]}"
 PATCH="${BASH_REMATCH[3]}"
 
+BRANCH="${MAJOR}.${MINOR}"
+RELEASE_TYPE="patch"
+
 if (( PATCH == 0 )); then
-  echo "Error: Cannot infer previous tag for x.y.0 releases. Patch version must be >= 1"
-  exit 1
+  if (( MINOR == 0 )); then
+    echo "Error: Cannot generate a test plan for x.0.0 releases"
+    exit 1
+  fi
+
+  RELEASE_TYPE="minor"
+  PREVIOUS_MINOR=$((MINOR - 1))
+  PREVIOUS_BRANCH="${MAJOR}.${PREVIOUS_MINOR}"
+  PREVIOUS_TAG="$(git tag -l "v${MAJOR}.${PREVIOUS_MINOR}.*" | sort -V | tail -n 1)"
+  if [[ -z "${PREVIOUS_TAG}" ]]; then
+    echo "Error: Could not find a release tag for ${PREVIOUS_BRANCH}"
+    exit 1
+  fi
+else
+  PREVIOUS_TAG="v${MAJOR}.${MINOR}.$((PATCH - 1))"
 fi
 
-BRANCH="${MAJOR}.${MINOR}"
-PREVIOUS_TAG="v${MAJOR}.${MINOR}.$((PATCH - 1))"
 OUTPUT_FILE="build/test-plan-${VERSION}.md"
 REPO_CACHE_DIR="build/test-plan-repos"
 
@@ -34,9 +48,20 @@ if ! git rev-parse "${PREVIOUS_TAG}" >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! git rev-parse "origin/${BRANCH}" >/dev/null 2>&1; then
+if ! git rev-parse "origin/${BRANCH}^{commit}" >/dev/null 2>&1; then
   echo "Error: Release branch origin/${BRANCH} does not exist in this repository"
   exit 1
+fi
+
+if [[ "${RELEASE_TYPE}" == "minor" ]]; then
+  if ! git rev-parse "origin/${PREVIOUS_BRANCH}^{commit}" >/dev/null 2>&1; then
+    echo "Error: Previous release branch origin/${PREVIOUS_BRANCH} does not exist in this repository"
+    exit 1
+  fi
+  if ! git rev-parse "origin/main^{commit}" >/dev/null 2>&1; then
+    echo "Error: Main branch origin/main does not exist in this repository"
+    exit 1
+  fi
 fi
 
 echo "Upcoming release: v${VERSION}"
@@ -56,8 +81,97 @@ DEP_OTEL_FILE="build/test-plan-other-deps-otel.txt"
 DEP_DOCKER_FILE="build/test-plan-other-deps-docker.txt"
 DEP_WOLFI_FILE="build/test-plan-other-deps-wolfi.txt"
 DEP_MISC_FILE="build/test-plan-other-deps-misc.txt"
+PGO_FILE="build/test-plan-other-pgo.txt"
+BACKPORTED_CHANGES_FILE="build/test-plan-backported-changes.txt"
+BACKPORTED_OTHER_FILE="build/test-plan-backported-other.txt"
+BACKPORTED_DEP_FILE="build/test-plan-backported-deps.txt"
+BACKPORTED_FUNC_FILE="build/test-plan-backported-functions.txt"
+BACKPORTED_PGO_FILE="build/test-plan-backported-pgo.txt"
+BACKPORTED_DEP_ACTIONS_FILE="build/test-plan-backported-deps-github-actions.txt"
+BACKPORTED_DEP_GOLANG_FILE="build/test-plan-backported-deps-golang.txt"
+BACKPORTED_DEP_ELASTIC_STACK_FILE="build/test-plan-backported-deps-elastic-stack.txt"
+BACKPORTED_DEP_BEATS_FILE="build/test-plan-backported-deps-beats.txt"
+BACKPORTED_DEP_OTEL_FILE="build/test-plan-backported-deps-otel.txt"
+BACKPORTED_DEP_DOCKER_FILE="build/test-plan-backported-deps-docker.txt"
+BACKPORTED_DEP_WOLFI_FILE="build/test-plan-backported-deps-wolfi.txt"
+BACKPORTED_DEP_MISC_FILE="build/test-plan-backported-deps-misc.txt"
 
-git log --pretty=format:'%H|%an|%ad|%s' --date=short "${PREVIOUS_TAG}..origin/${BRANCH}" > "${COMMITS_FILE}"
+: > "${BACKPORTED_CHANGES_FILE}"
+
+collect_minor_commits() {
+  local feature_freeze_commit
+  local branch_fork_commit
+  local pre_freeze_commits
+  local post_freeze_commits
+  local merged_backport_prs
+  local released_backported_prs
+
+  feature_freeze_commit="$(git merge-base "origin/main" "origin/${BRANCH}")"
+  branch_fork_commit="$(git merge-base "origin/${PREVIOUS_BRANCH}" "${feature_freeze_commit}")"
+  pre_freeze_commits="${COMMITS_FILE}.pre-freeze"
+  post_freeze_commits="${COMMITS_FILE}.post-freeze"
+  merged_backport_prs="${COMMITS_FILE}.merged-backport-prs"
+  released_backported_prs="${COMMITS_FILE}.released-backported-prs"
+
+  echo "Feature freeze commit: ${feature_freeze_commit}"
+  echo "Previous release branch: ${PREVIOUS_BRANCH}"
+
+  git log --pretty=format:'%H|%an|%ad|%s' --date=short \
+    "${branch_fork_commit}..${feature_freeze_commit}" > "${pre_freeze_commits}"
+  git log --pretty=format:'%H|%an|%ad|%s' --date=short \
+    "${feature_freeze_commit}..origin/${BRANCH}" > "${post_freeze_commits}"
+
+  if ! gh api --paginate \
+    "repos/elastic/apm-server/pulls?state=closed&base=${PREVIOUS_BRANCH}&per_page=100" |
+    jq -s -r '
+      .[][] |
+      select(.merged_at != null and .merge_commit_sha != null) |
+      . as $backport |
+      (
+        (($backport.body // "" | try (capture("automatic backport of pull request #(?<number>[0-9]+)"; "i").number) catch null) //
+        ($backport.title | try (capture("\\(backport #(?<number>[0-9]+)\\)"; "i").number) catch null))
+      ) as $original_pr |
+      select($original_pr != null) |
+      "\($original_pr)|\($backport.merge_commit_sha)"
+    ' > "${merged_backport_prs}"; then
+    echo "Error: Could not query backport PRs targeting ${PREVIOUS_BRANCH}" >&2
+    exit 1
+  fi
+
+  : > "${released_backported_prs}"
+  while IFS='|' read -r original_pr backport_commit; do
+    if git rev-parse --verify "${backport_commit}^{commit}" >/dev/null 2>&1 &&
+      git merge-base --is-ancestor "${backport_commit}" "${PREVIOUS_TAG}"; then
+      printf '%s\n' "${original_pr}" >> "${released_backported_prs}"
+    fi
+  done < "${merged_backport_prs}"
+
+  awk -F'|' -v excluded_file="${released_backported_prs}" -v skipped_file="${BACKPORTED_CHANGES_FILE}" '
+    BEGIN {
+      while ((getline pr < excluded_file) > 0) {
+        excluded[pr] = 1
+      }
+      close(excluded_file)
+    }
+    {
+      if (match($4, /\(#[0-9]+\)/)) {
+        pr = substr($4, RSTART + 2, RLENGTH - 3)
+        if (pr in excluded) {
+          print "backported|" $0 > skipped_file
+          next
+        }
+      }
+      print
+    }
+  ' "${pre_freeze_commits}" > "${COMMITS_FILE}"
+  cat "${post_freeze_commits}" >> "${COMMITS_FILE}"
+}
+
+if [[ "${RELEASE_TYPE}" == "minor" ]]; then
+  collect_minor_commits
+else
+  git log --pretty=format:'%H|%an|%ad|%s' --date=short "${PREVIOUS_TAG}..origin/${BRANCH}" > "${COMMITS_FILE}"
+fi
 
 echo "Commits analyzed: $(awk 'END{print NR}' "${COMMITS_FILE}")"
 
@@ -178,40 +292,108 @@ dep_group_for_message() {
   fi
 }
 
-while IFS='|' read -r category short_hash author date message; do
-  [[ -z "${category}" ]] && continue
-  if is_dep_message "${message}"; then
-    printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_OTHER_FILE}"
-    case "$(dep_group_for_message "${message}")" in
-      "github actions")
-        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_ACTIONS_FILE}"
-        ;;
-      "golang")
-        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_GOLANG_FILE}"
-        ;;
-      "elastic stack")
-        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_ELASTIC_STACK_FILE}"
-        ;;
-      "elastic beats")
-        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_BEATS_FILE}"
-        ;;
-      "opentelemetry")
-        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_OTEL_FILE}"
-        ;;
-      "docker")
-        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_DOCKER_FILE}"
-        ;;
-      "wolfi")
-        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_WOLFI_FILE}"
-        ;;
-      *)
-        printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${DEP_MISC_FILE}"
-        ;;
-    esac
-  else
-    printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${FUNC_OTHER_FILE}"
-  fi
-done < "${OTHER_FILE}"
+is_pgo_message() {
+  local author="$1"
+  local message="$2"
+  [[ "${author}" == "elastic-observability-automation[bot]" ]] &&
+    [[ "${message}" =~ ^PGO:\ Update\ default\.pgo\ from\ benchmarks ]]
+}
+
+split_other_commits() {
+  local source="$1"
+  local dep_file="$2"
+  local func_file="$3"
+  local pgo_file="$4"
+  local actions_file="$5"
+  local golang_file="$6"
+  local elastic_stack_file="$7"
+  local beats_file="$8"
+  local otel_file="$9"
+  local docker_file="${10}"
+  local wolfi_file="${11}"
+  local misc_file="${12}"
+
+  : > "${dep_file}"
+  : > "${func_file}"
+  : > "${pgo_file}"
+  : > "${actions_file}"
+  : > "${golang_file}"
+  : > "${elastic_stack_file}"
+  : > "${beats_file}"
+  : > "${otel_file}"
+  : > "${docker_file}"
+  : > "${wolfi_file}"
+  : > "${misc_file}"
+
+  while IFS='|' read -r category short_hash author date message; do
+    [[ -z "${category}" ]] && continue
+    if is_pgo_message "${author}" "${message}"; then
+      printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${pgo_file}"
+    elif is_dep_message "${message}"; then
+      printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${dep_file}"
+      case "$(dep_group_for_message "${message}")" in
+        "github actions")
+          printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${actions_file}"
+          ;;
+        "golang")
+          printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${golang_file}"
+          ;;
+        "elastic stack")
+          printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${elastic_stack_file}"
+          ;;
+        "elastic beats")
+          printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${beats_file}"
+          ;;
+        "opentelemetry")
+          printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${otel_file}"
+          ;;
+        "docker")
+          printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${docker_file}"
+          ;;
+        "wolfi")
+          printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${wolfi_file}"
+          ;;
+        *)
+          printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${misc_file}"
+          ;;
+      esac
+    else
+      printf '%s|%s|%s|%s|%s\n' "${category}" "${short_hash}" "${author}" "${date}" "${message}" >> "${func_file}"
+    fi
+  done < "${source}"
+}
+
+split_other_commits \
+  "${OTHER_FILE}" \
+  "${DEP_OTHER_FILE}" \
+  "${FUNC_OTHER_FILE}" \
+  "${PGO_FILE}" \
+  "${DEP_ACTIONS_FILE}" \
+  "${DEP_GOLANG_FILE}" \
+  "${DEP_ELASTIC_STACK_FILE}" \
+  "${DEP_BEATS_FILE}" \
+  "${DEP_OTEL_FILE}" \
+  "${DEP_DOCKER_FILE}" \
+  "${DEP_WOLFI_FILE}" \
+  "${DEP_MISC_FILE}"
+
+if [[ "${RELEASE_TYPE}" == "minor" ]]; then
+  awk -F'|' '{ printf "other|%s|%s|%s|%s\n", substr($2, 1, 8), $3, $4, $5 }' \
+    "${BACKPORTED_CHANGES_FILE}" > "${BACKPORTED_OTHER_FILE}"
+  split_other_commits \
+    "${BACKPORTED_OTHER_FILE}" \
+    "${BACKPORTED_DEP_FILE}" \
+    "${BACKPORTED_FUNC_FILE}" \
+    "${BACKPORTED_PGO_FILE}" \
+    "${BACKPORTED_DEP_ACTIONS_FILE}" \
+    "${BACKPORTED_DEP_GOLANG_FILE}" \
+    "${BACKPORTED_DEP_ELASTIC_STACK_FILE}" \
+    "${BACKPORTED_DEP_BEATS_FILE}" \
+    "${BACKPORTED_DEP_OTEL_FILE}" \
+    "${BACKPORTED_DEP_DOCKER_FILE}" \
+    "${BACKPORTED_DEP_WOLFI_FILE}" \
+    "${BACKPORTED_DEP_MISC_FILE}"
+fi
 
 append_by_category() {
   local wanted="$1"
@@ -452,6 +634,8 @@ EOF
   echo >> "${OUTPUT_FILE}"
 fi
 
+append_dep_subgroup "PGO" "${PGO_FILE}" "true"
+
 if [[ -s "${DEP_OTHER_FILE}" ]]; then
   cat >> "${OUTPUT_FILE}" <<EOF
 ### dependency updates
@@ -462,9 +646,54 @@ EOF
   append_dep_subgroup "Golang" "${DEP_GOLANG_FILE}" "true"
   append_dep_subgroup "OpenTelemetry" "${DEP_OTEL_FILE}" "true"
   append_dep_subgroup "Docker" "${DEP_DOCKER_FILE}" "true"
-  append_dep_subgroup "GitHub Actions" "${DEP_ACTIONS_FILE}"
+  append_dep_subgroup "GitHub Actions" "${DEP_ACTIONS_FILE}" "true"
   append_dep_subgroup "Wolfi/Chainguard" "${DEP_WOLFI_FILE}" "true"
   append_dep_subgroup "Other dependencies" "${DEP_MISC_FILE}"
+fi
+
+if [[ "${RELEASE_TYPE}" == "minor" ]]; then
+  cat >> "${OUTPUT_FILE}" <<EOF
+<details>
+<summary>Backported changes (can be ignored)</summary>
+
+These main changes are omitted because their merged backport PR is included in ${PREVIOUS_TAG} on ${PREVIOUS_BRANCH}:
+
+EOF
+
+  if [[ ! -s "${BACKPORTED_CHANGES_FILE}" ]]; then
+    echo "_No changes were skipped as backports included in ${PREVIOUS_TAG}._" >> "${OUTPUT_FILE}"
+  fi
+
+  if [[ -s "${BACKPORTED_FUNC_FILE}" ]]; then
+    cat >> "${OUTPUT_FILE}" <<EOF
+### function changes
+
+EOF
+    append_from_file "${BACKPORTED_FUNC_FILE}"
+    echo >> "${OUTPUT_FILE}"
+  fi
+
+  append_dep_subgroup "PGO" "${BACKPORTED_PGO_FILE}" "true"
+
+  if [[ -s "${BACKPORTED_DEP_FILE}" ]]; then
+    cat >> "${OUTPUT_FILE}" <<EOF
+### dependency updates
+
+EOF
+    append_dep_subgroup "Elastic stack" "${BACKPORTED_DEP_ELASTIC_STACK_FILE}" "true"
+    append_dep_subgroup "Elastic Beats" "${BACKPORTED_DEP_BEATS_FILE}" "true"
+    append_dep_subgroup "Golang" "${BACKPORTED_DEP_GOLANG_FILE}" "true"
+    append_dep_subgroup "OpenTelemetry" "${BACKPORTED_DEP_OTEL_FILE}" "true"
+    append_dep_subgroup "Docker" "${BACKPORTED_DEP_DOCKER_FILE}" "true"
+    append_dep_subgroup "GitHub Actions" "${BACKPORTED_DEP_ACTIONS_FILE}" "true"
+    append_dep_subgroup "Wolfi/Chainguard" "${BACKPORTED_DEP_WOLFI_FILE}" "true"
+    append_dep_subgroup "Other dependencies" "${BACKPORTED_DEP_MISC_FILE}"
+  fi
+
+  cat >> "${OUTPUT_FILE}" <<EOF
+</details>
+
+EOF
 fi
 
 cat >> "${OUTPUT_FILE}" <<EOF
