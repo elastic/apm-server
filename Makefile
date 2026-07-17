@@ -355,7 +355,7 @@ endif
 ifndef SCENARIO
 	$(error SCENARIO is not set)
 endif
-	@cd integrationservertest && go test -run=TestUpgrade/.*/$(SCENARIO) -v -timeout=90m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
+	@cd integrationservertest && go test -run=TestUpgrade/.*/$(SCENARIO) -v -timeout=90m -cleanup-on-failure=true -target="qa" -upgrade-path="$(UPGRADE_PATH)" ./
 
 # Run integration server upgrade test on all scenarios
 .PHONY: integration-server-test/upgrade-all
@@ -363,7 +363,7 @@ integration-server-test/upgrade-all:
 ifndef UPGRADE_PATH
 	$(error UPGRADE_PATH is not set)
 endif
-	@cd integrationservertest && go test -run=TestUpgrade -v -timeout=90m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
+	@cd integrationservertest && go test -run=TestUpgrade -v -timeout=90m -cleanup-on-failure=true -target="qa" -upgrade-path="$(UPGRADE_PATH)" ./
 
 ##############################################################################
 # Generating and linting API documentation
