@@ -37,10 +37,10 @@ const (
 	defaultLibraryPattern      = "node_modules|bower_components|~"
 	defaultSourcemapTimeout    = 5 * time.Second
 	// defaultMaxSourceMapSizeBytes is the default max decompressed source map size (100 MB).
-	// 100 MB is ~100x the default max payload size allowed by Kibana:
+	// 100 MB is ~500x the default max payload size allowed by Kibana:
 	// https://www.elastic.co/docs/api/doc/kibana/v9/operation/operation-uploadsourcemap
-	defaultMaxSourceMapSizeStr   = "100MiB"
-	defaultMaxSourceMapSizeBytes = 100 * 1024 * 1024
+	defaultMaxSourceMapSizeStr   = "500MiB"
+	defaultMaxSourceMapSizeBytes = 500 * 1024 * 1024
 )
 
 var (
