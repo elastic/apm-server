@@ -43,7 +43,7 @@ REPO_CACHE_DIR="build/test-plan-repos"
 
 mkdir -p build
 
-if ! git rev-parse "${PREVIOUS_TAG}" >/dev/null 2>&1; then
+if ! git rev-parse "refs/tags/${PREVIOUS_TAG}^{commit}" >/dev/null 2>&1; then
   echo "Error: Previous tag ${PREVIOUS_TAG} does not exist in this repository"
   exit 1
 fi
