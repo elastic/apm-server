@@ -29,7 +29,7 @@ if (( PATCH == 0 )); then
   RELEASE_TYPE="minor"
   PREVIOUS_MINOR=$((MINOR - 1))
   PREVIOUS_BRANCH="${MAJOR}.${PREVIOUS_MINOR}"
-  PREVIOUS_TAG="$(git tag -l "v${MAJOR}.${PREVIOUS_MINOR}.*" | sort -V | tail -n 1)"
+  PREVIOUS_TAG="$(git tag -l "v${MAJOR}.${PREVIOUS_MINOR}.*" --sort=version:refname | tail -n 1)"
   if [[ -z "${PREVIOUS_TAG}" ]]; then
     echo "Error: Could not find a release tag for ${PREVIOUS_BRANCH}"
     exit 1
@@ -105,6 +105,9 @@ collect_minor_commits() {
   local post_freeze_commits
   local merged_backport_prs
   local released_backported_prs
+
+  command -v gh >/dev/null 2>&1 || { echo "Error: gh CLI is required to generate minor-release test plans" >&2; exit 1; }
+  command -v jq >/dev/null 2>&1 || { echo "Error: jq is required to generate minor-release test plans" >&2; exit 1; }
 
   feature_freeze_commit="$(git merge-base "origin/main" "origin/${BRANCH}")"
   branch_fork_commit="$(git merge-base "origin/${PREVIOUS_BRANCH}" "${feature_freeze_commit}")"
