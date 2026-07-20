@@ -22,9 +22,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0  # Fetch all history for all branches and tags
-
-      - name: Fetch release branches
-        run: git fetch origin --force --tags '+refs/heads/*:refs/remotes/origin/*'
+          fetch-tags: true
 
       - name: Generate test plan
         id: generate-test-plan
