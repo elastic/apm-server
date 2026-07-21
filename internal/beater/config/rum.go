@@ -18,17 +18,14 @@
 package config
 
 import (
+	"fmt"
 	"regexp"
 	"time"
 
-<<<<<<< HEAD
+	"github.com/dustin/go-humanize"
 	"github.com/pkg/errors"
 
-=======
-	"github.com/dustin/go-humanize"
-
 	"github.com/elastic/apm-server/internal/elasticsearch"
->>>>>>> f6d28833 (Add max sourcemap size configurable limit (#21520))
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-ucfg"
@@ -123,14 +120,9 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 
 func (s *SourceMapping) Unpack(inp *config.C) error {
 	type underlyingSourceMapping SourceMapping
-<<<<<<< HEAD
-	if err := inp.Unpack((*underlyingSourceMapping)(s)); err != nil {
-		return errors.Wrap(err, "error unpacking sourcemapping config")
-=======
 	cfg := underlyingSourceMapping(defaultSourcemapping())
 	if err := inp.Unpack(&cfg); err != nil {
 		return fmt.Errorf("error unpacking sourcemapping config: %w", err)
->>>>>>> f6d28833 (Add max sourcemap size configurable limit (#21520))
 	}
 
 	parsed, err := parseUserDefinedBytesConfig(cfg.MaxSourcemapSize)

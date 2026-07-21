@@ -23,11 +23,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-<<<<<<< HEAD
-=======
-	"errors"
 	"fmt"
->>>>>>> f6d28833 (Add max sourcemap size configurable limit (#21520))
 	"io"
 	"net/http"
 	"net/http/httptest"
