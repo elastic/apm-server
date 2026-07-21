@@ -26,6 +26,9 @@ outputs:
   slack-thread:
     description: "Slack thread id"
     value: ${{ steps.slack-thread.outputs.thread-timestamp }}
+  skip:
+    description: "Whether release steps should be skipped because they already ran"
+    value: ${{ steps.check-branch.outputs.skip || steps.check-minor-pr.outputs.skip || steps.check-patch-pr.outputs.skip }}
 
 runs:
   using: "composite"
@@ -74,17 +77,44 @@ runs:
       shell: 'bash'
 
     - name: validate if branch already exists (major or minor only)
+      id: check-branch
       if: ${{ inputs.type == 'major' || inputs.type == 'minor' }}
       run: |-
         if git ls-remote --exit-code --heads https://github.com/${{ github.repository }}.git "$BRANCH" > /dev/null ; then
-          FAILURE_MESSAGE="Branch already exists. This is not a ${RELEASE_TYPE} release."
-          echo "FAILURE_MESSAGE=${FAILURE_MESSAGE}" >> "$GITHUB_ENV"
-          echo "::error::${FAILURE_MESSAGE}" ; exit 1
+          echo "Branch $BRANCH already exists, release steps will be skipped."
+          echo "skip=true" >> "$GITHUB_OUTPUT"
         fi
       shell: 'bash'
       env:
         BRANCH: ${{ steps.generate.outputs.release-branch }}
-        RELEASE_TYPE: ${{ inputs.type }}
+
+    - name: check if minor main bump PR already exists
+      id: check-minor-pr
+      if: ${{ inputs.type == 'minor' }}
+      run: |-
+        BRANCH="update-${{ steps.generate.outputs.release-version }}"
+        PR_COUNT=$(gh pr list --head "$BRANCH" --base main --label release --state all --json number --jq 'length' --repo "${{ github.repository }}")
+        if [ "$PR_COUNT" -gt 0 ]; then
+          echo "Main bump PR for $BRANCH already exists, release steps will be skipped."
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+        fi
+      shell: 'bash'
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: check if patch PR already exists
+      id: check-patch-pr
+      if: ${{ inputs.type == 'patch' }}
+      run: |-
+        BRANCH="update-${{ steps.generate.outputs.release-version }}"
+        PR_COUNT=$(gh pr list --head "$BRANCH" --base "${{ steps.generate.outputs.release-branch }}" --label release --state all --json number --jq 'length' --repo "${{ github.repository }}")
+        if [ "$PR_COUNT" -gt 0 ]; then
+          echo "Patch PR for $BRANCH already exists, release steps will be skipped."
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+        fi
+      shell: 'bash'
+      env:
+        GH_TOKEN: ${{ github.token }}
 
     - name: validate if tag already exists
       run: |-

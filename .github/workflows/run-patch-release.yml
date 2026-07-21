@@ -15,6 +15,7 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read
 
 env:
   JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -28,6 +29,7 @@ jobs:
       release-type: ${{ steps.prepare.outputs.release-type }}
       release-version: ${{ steps.prepare.outputs.release-version }}
       slack-thread: ${{ steps.prepare.outputs.slack-thread }}
+      skip: ${{ steps.prepare.outputs.skip }}
     steps:
       - uses: actions/checkout@v7
 
@@ -77,11 +79,12 @@ jobs:
           git_commit_gpgsign: true
 
       - run: make patch-release
+        if: needs.prepare.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.get_token.outputs.token }}
           BUMP_VERSION: ${{ needs.prepare.outputs.release-version }}
 
-      - if: success()
+      - if: success() && needs.prepare.outputs.skip != 'true'
         uses: elastic/oblt-actions/slack/send@v1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
