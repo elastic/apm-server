@@ -194,8 +194,9 @@ type RUMConfig struct {
 
 // RUMSourcemapConfig holds APM Server RUM sourcemap configuration.
 type RUMSourcemapConfig struct {
-	Enabled  bool                       `json:"enabled"`
-	ESConfig *ElasticsearchOutputConfig `json:"elasticsearch"`
+	Enabled          bool                       `json:"enabled"`
+	ESConfig         *ElasticsearchOutputConfig `json:"elasticsearch"`
+	MaxSourcemapSize string                     `json:"max_sourcemap_size,omitempty"`
 }
 
 // APIKeyConfig holds agent auth configuration.
