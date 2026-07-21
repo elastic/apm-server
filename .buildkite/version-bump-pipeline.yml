@@ -23,13 +23,13 @@ steps:
   - label: "Validate WORKFLOW and NEW_VERSION consistency"
     command: |
       if [ "$${WORKFLOW}" = "minor" ]; then
-        if ! echo "$${NEW_VERSION}" | grep -q '0$$'; then
+        if ! echo "$${NEW_VERSION}" | grep -q '.0$$'; then
           echo "❌ Error: WORKFLOW is 'minor' but NEW_VERSION ($${NEW_VERSION}) does not end with 0"
           exit 1
         fi
         echo "✅ Valid: WORKFLOW is 'minor' and NEW_VERSION ($${NEW_VERSION}) ends with 0"
       elif [ "$${WORKFLOW}" = "patch" ]; then
-        if echo "$${NEW_VERSION}" | grep -q '0$$'; then
+        if echo "$${NEW_VERSION}" | grep -q '.0$$'; then
           echo "❌ Error: WORKFLOW is 'patch' but NEW_VERSION ($${NEW_VERSION}) ends with 0"
           exit 1
         fi
