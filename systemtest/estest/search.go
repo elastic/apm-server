@@ -121,10 +121,12 @@ func ExpectSourcemapError(t testing.TB, es *espoll.Client, index string, minDocs
 // searchSourcemapDocs polls index until at least minDocs documents are found,
 // returning an espoll.SearchResult with RawSource populated for each hit.
 //
-// Unlike ExpectMinDocs, this function requests only _source (not fields) from
-// Elasticsearch. This avoids a failure in espoll.SearchHit.UnmarshalJSON when
-// the fields key is absent from search response hits, which can happen when a
-// data stream is freshly created after deletion.
+// This is used by ExpectSourcemapError instead of ExpectMinDocs because it
+// requests only _source (not fields) from Elasticsearch. This avoids a failure
+// in espoll.SearchHit.UnmarshalJSON when the fields key is absent from search
+// response hits, which can happen when a data stream is freshly created after
+// deletion. Since isFetcherAvailable and assertSourcemapUpdated only inspect
+// RawSource, requesting fields is unnecessary for this code path.
 func searchSourcemapDocs(t testing.TB, es *espoll.Client, index string, minDocs int, query interface{}) espoll.SearchResult {
 	t.Helper()
 
@@ -162,6 +164,9 @@ func searchSourcemapDocs(t testing.TB, es *espoll.Client, index string, minDocs 
 		t.Fatalf("failed refreshing indices: %s: %s", index, err.Error())
 	}
 	rsp.Body.Close()
+	if rsp.IsError() {
+		t.Fatalf("failed refreshing indices: %s: %s", index, rsp.String())
+	}
 
 	var out customResult
 	_, err = es.Do(context.Background(), &esapi.SearchRequest{
