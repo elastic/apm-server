@@ -44,7 +44,7 @@ func TestBatchProcessor(t *testing.T) {
 	close(ch)
 
 	client := newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, validSourcemap))
-	esFetcher := NewElasticsearchFetcher(client, "index", logptest.NewTestingLogger(t, ""))
+	esFetcher := NewElasticsearchFetcher(client, "index", defaultMaxSourceMapSizeBytes, logptest.NewTestingLogger(t, ""))
 	fetcher, err := NewBodyCachingFetcher(esFetcher, 100, ch, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
@@ -231,7 +231,7 @@ func TestBatchProcessor(t *testing.T) {
 
 func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	client := newUnavailableElasticsearchClient(t)
-	fetcher := NewElasticsearchFetcher(client, "index", logptest.NewTestingLogger(t, ""))
+	fetcher := NewElasticsearchFetcher(client, "index", defaultMaxSourceMapSizeBytes, logptest.NewTestingLogger(t, ""))
 
 	nonMatchingFrame := modelpb.StacktraceFrame{
 		AbsPath:  "bundle.js",
@@ -275,7 +275,57 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	// we are running the processor twice for a batch of two spans with 2 stacktraceframe each
 	entries := observedLogs.All()
 	require.Len(t, entries, 8)
-	assert.Equal(t, "failed to fetch sourcemap with path (bundle.js): failure querying ES: client error", entries[0].Message)
+	assert.Equal(t, "failed to fetch sourcemap with name (service_name), version (service_version), path (bundle.js): failure querying ES: client error", entries[0].Message)
+}
+
+func TestBatchProcessorSourcemapSizeExceedsLimit(t *testing.T) {
+	client := newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, validSourcemap))
+	fetcher := &esFetcher{
+		client:                client,
+		index:                 "apm-*sourcemap*",
+		logger:                logptest.NewTestingLogger(t, ""),
+		maxSourceMapSizeBytes: 5,
+	}
+
+	nonMatchingFrame := modelpb.StacktraceFrame{
+		AbsPath:  "bundle.js",
+		Lineno:   newInt(0),
+		Colno:    newInt(0),
+		Function: "original function",
+	}
+
+	clone := proto.Clone(&nonMatchingFrame).(*modelpb.StacktraceFrame)
+
+	span := modelpb.APMEvent{
+		Service: &modelpb.Service{
+			Name:    "service_name",
+			Version: "service_version",
+		},
+		Span: &modelpb.Span{
+			Stacktrace: []*modelpb.StacktraceFrame{clone},
+		},
+	}
+
+	observedCore, observedLogs := observer.New(zapcore.DebugLevel)
+
+	processor := BatchProcessor{
+		Fetcher: fetcher,
+		Logger: logptest.NewTestingLogger(t, logs.Stacktrace, zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+			return observedCore
+		})),
+	}
+	err := processor.ProcessBatch(context.Background(), &modelpb.Batch{&span})
+	assert.NoError(t, err)
+
+	// SourcemapError should have been set, but the frames should otherwise be unmodified.
+	expectedFrame := proto.Clone(&nonMatchingFrame).(*modelpb.StacktraceFrame)
+	expectedFrame.SourcemapError = "sourcemap size exceeds limit : decompressed source map exceeds limit of 5 bytes"
+	assert.Empty(t, cmp.Diff([]*modelpb.StacktraceFrame{expectedFrame}, span.Span.Stacktrace, protocmp.Transform()))
+
+	// we should have 1 log message (1 span with 1 stacktraceframe)
+	entries := observedLogs.All()
+	require.Len(t, entries, 1)
+	assert.Equal(t, "failed to fetch sourcemap with name (service_name), version (service_version), path (bundle.js): sourcemap size exceeds limit : decompressed source map exceeds limit of 5 bytes", entries[0].Message)
 }
 
 func TestBatchProcessorTimeout(t *testing.T) {
@@ -292,7 +342,7 @@ func TestBatchProcessorTimeout(t *testing.T) {
 		Logger:    logptest.NewTestingLogger(t, ""),
 	})
 	require.NoError(t, err)
-	fetcher := NewElasticsearchFetcher(client, "index", logptest.NewTestingLogger(t, ""))
+	fetcher := NewElasticsearchFetcher(client, "index", defaultMaxSourceMapSizeBytes, logptest.NewTestingLogger(t, ""))
 
 	frame := modelpb.StacktraceFrame{
 		AbsPath:  "bundle.js",
