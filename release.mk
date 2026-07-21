@@ -213,8 +213,6 @@ create-pull-request: BRANCH=$${BRANCH} TITLE=$${TITLE} TARGET_BRANCH=$${TARGET_B
 
 create-pull-request:
 	@echo "::group::create-pull-request $(BRANCH) -> $(TARGET_BRANCH)"
-	git push origin $(BRANCH)
-	echo "--label $(BACKPORT_LABEL)"
 	@PR_COUNT=0 ; \
 	if [ "$(FORCE_PR_CREATION)" != "true" ]; then \
 		PR_COUNT=$$(gh pr list --head "$(BRANCH)" --base "$(TARGET_BRANCH)" --label release --state all --json number --jq 'length' --repo $(PROJECT_OWNER)/apm-server) ; \
@@ -222,6 +220,8 @@ create-pull-request:
 	if [ "$$PR_COUNT" -gt 0 ]; then \
 		echo "PR for $(BRANCH) -> $(TARGET_BRANCH) already exists, skipping." ; \
 	else \
+		echo "--label $(BACKPORT_LABEL)" ; \
+		git push origin $(BRANCH) ; \
 		gh pr create \
 			--title "$(TITLE)" \
 			--body "$(BODY)" \
