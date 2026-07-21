@@ -20,6 +20,7 @@ package estest
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 	"testing"
@@ -61,7 +62,7 @@ func ExpectMinDocs(t testing.TB, es *espoll.Client, min int, index string, query
 
 	// Refresh the indices before issuing the search request.
 	refreshReq := esapi.IndicesRefreshRequest{
-		Index:           strings.Split(",", index),
+		Index:           strings.Split(index, ","),
 		ExpandWildcards: "all",
 	}
 	rsp, err := refreshReq.Do(context.Background(), es.Transport)
@@ -107,7 +108,7 @@ func ExpectSourcemapError(t testing.TB, es *espoll.Client, index string, minDocs
 
 			retry()
 
-			result := ExpectMinDocs(t, es, minDocs, index, query)
+			result := searchSourcemapDocs(t, es, index, minDocs, query)
 
 			if isFetcherAvailable(t, result) {
 				assertSourcemapUpdated(t, result, updated)
@@ -115,6 +116,71 @@ func ExpectSourcemapError(t testing.TB, es *espoll.Client, index string, minDocs
 			}
 		}
 	}
+}
+
+// searchSourcemapDocs polls index until at least minDocs documents are found,
+// returning an espoll.SearchResult with RawSource populated for each hit.
+//
+// Unlike ExpectMinDocs, this function requests only _source (not fields) from
+// Elasticsearch. This avoids a failure in espoll.SearchHit.UnmarshalJSON when
+// the fields key is absent from search response hits, which can happen when a
+// data stream is freshly created after deletion.
+func searchSourcemapDocs(t testing.TB, es *espoll.Client, index string, minDocs int, query interface{}) espoll.SearchResult {
+	t.Helper()
+
+	// customHit only parses _source, bypassing the espoll.SearchHit.UnmarshalJSON
+	// logic that fails when the fields key is absent from the ES response.
+	type customHit struct {
+		Source json.RawMessage `json:"_source"`
+	}
+	type customResult struct {
+		Hits struct {
+			Total struct {
+				Value int `json:"value"`
+			} `json:"total"`
+			Hits []customHit `json:"hits"`
+		} `json:"hits"`
+	}
+
+	// Build request body requesting only _source (no fields).
+	var reqBody struct {
+		Source bool        `json:"_source"`
+		Query  interface{} `json:"query,omitempty"`
+	}
+	reqBody.Source = true
+	reqBody.Query = query
+
+	bodyBytes, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	// Refresh the index before searching to make recently indexed documents visible.
+	rsp, err := (&esapi.IndicesRefreshRequest{
+		Index:           strings.Split(index, ","),
+		ExpandWildcards: "all",
+	}).Do(context.Background(), es.Transport)
+	if err != nil {
+		t.Fatalf("failed refreshing indices: %s: %s", index, err.Error())
+	}
+	rsp.Body.Close()
+
+	var out customResult
+	_, err = es.Do(context.Background(), &esapi.SearchRequest{
+		Index:           strings.Split(index, ","),
+		ExpandWildcards: "open,hidden",
+		Body:            bytes.NewReader(bodyBytes),
+	}, &out, espoll.WithCondition(func(*esapi.Response) bool {
+		return len(out.Hits.Hits) >= minDocs
+	}))
+	require.NoError(t, err)
+
+	var result espoll.SearchResult
+	result.Hits.Total.Value = out.Hits.Total.Value
+	for _, h := range out.Hits.Hits {
+		result.Hits.Hits = append(result.Hits.Hits, espoll.SearchHit{
+			RawSource: h.Source,
+		})
+	}
+	return result
 }
 
 func isFetcherAvailable(t testing.TB, result espoll.SearchResult) bool {
