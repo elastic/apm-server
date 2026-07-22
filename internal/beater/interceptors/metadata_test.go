@@ -78,7 +78,7 @@ func TestClientMetadata(t *testing.T) {
 		}
 		var got ClientMetadataValues
 		var ok bool
-		interceptor(ctx, nil, nil, func(ctx context.Context, req interface{}) (interface{}, error) {
+		interceptor(ctx, nil, nil, func(ctx context.Context, req any) (any, error) {
 			got, ok = ClientMetadataFromContext(ctx)
 			return nil, nil
 		})

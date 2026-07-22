@@ -86,7 +86,7 @@ func TestPublisherStopShutdownInactive(t *testing.T) {
 
 func newBlockingPipeline(t testing.TB) (*pipeline.Pipeline, *mockClient) {
 	client := &mockClient{unblock: make(chan struct{})}
-	conf, err := config.NewConfigFrom(map[string]interface{}{
+	conf, err := config.NewConfigFrom(map[string]any{
 		"mem.events":           32,
 		"mem.flush.min_events": 1,
 	})

@@ -60,16 +60,16 @@ func TestMetrics(t *testing.T) {
 
 		for _, tc := range []struct {
 			name          string
-			f             func(ctx context.Context, req interface{}) (interface{}, error)
+			f             func(ctx context.Context, req any) (any, error)
 			monitoringInt map[request.ResultID]int64
-			expectedOtel  map[string]interface{}
+			expectedOtel  map[string]any
 		}{
 			{
 				name: "with an error",
-				f: func(ctx context.Context, req interface{}) (interface{}, error) {
+				f: func(ctx context.Context, req any) (any, error) {
 					return nil, errors.New("error")
 				},
-				expectedOtel: map[string]interface{}{
+				expectedOtel: map[string]any{
 					string(request.IDRequestCount):        1,
 					string(request.IDResponseCount):       1,
 					string(request.IDResponseErrorsCount): 1,
@@ -79,10 +79,10 @@ func TestMetrics(t *testing.T) {
 			},
 			{
 				name: "with an unauthenticated error",
-				f: func(ctx context.Context, req interface{}) (interface{}, error) {
+				f: func(ctx context.Context, req any) (any, error) {
 					return nil, status.Error(codes.Unauthenticated, "error")
 				},
-				expectedOtel: map[string]interface{}{
+				expectedOtel: map[string]any{
 					string(request.IDRequestCount):               1,
 					string(request.IDResponseCount):              1,
 					string(request.IDResponseErrorsCount):        1,
@@ -93,10 +93,10 @@ func TestMetrics(t *testing.T) {
 			},
 			{
 				name: "with a deadline exceeded error",
-				f: func(ctx context.Context, req interface{}) (interface{}, error) {
+				f: func(ctx context.Context, req any) (any, error) {
 					return nil, status.Error(codes.DeadlineExceeded, "request timed out")
 				},
-				expectedOtel: map[string]interface{}{
+				expectedOtel: map[string]any{
 					string(request.IDRequestCount):          1,
 					string(request.IDResponseCount):         1,
 					string(request.IDResponseErrorsCount):   1,
@@ -107,10 +107,10 @@ func TestMetrics(t *testing.T) {
 			},
 			{
 				name: "with a canceled error",
-				f: func(ctx context.Context, req interface{}) (interface{}, error) {
+				f: func(ctx context.Context, req any) (any, error) {
 					return nil, status.Error(codes.Canceled, "request timed out")
 				},
-				expectedOtel: map[string]interface{}{
+				expectedOtel: map[string]any{
 					string(request.IDRequestCount):          1,
 					string(request.IDResponseCount):         1,
 					string(request.IDResponseErrorsCount):   1,
@@ -121,10 +121,10 @@ func TestMetrics(t *testing.T) {
 			},
 			{
 				name: "with a resource exhausted error",
-				f: func(ctx context.Context, req interface{}) (interface{}, error) {
+				f: func(ctx context.Context, req any) (any, error) {
 					return nil, status.Error(codes.ResourceExhausted, "rate limit exceeded")
 				},
-				expectedOtel: map[string]interface{}{
+				expectedOtel: map[string]any{
 					string(request.IDRequestCount):            1,
 					string(request.IDResponseCount):           1,
 					string(request.IDResponseErrorsCount):     1,
@@ -135,10 +135,10 @@ func TestMetrics(t *testing.T) {
 			},
 			{
 				name: "with a success",
-				f: func(ctx context.Context, req interface{}) (interface{}, error) {
+				f: func(ctx context.Context, req any) (any, error) {
 					return nil, nil
 				},
-				expectedOtel: map[string]interface{}{
+				expectedOtel: map[string]any{
 					string(request.IDRequestCount):       1,
 					string(request.IDResponseCount):      1,
 					string(request.IDResponseValidCount): 1,
@@ -193,12 +193,12 @@ func TestMetrics_ConcurrentSafe(t *testing.T) {
 		FullMethod: "/opentelemetry.proto.collector.trace.v1.TraceService/Export",
 	}
 
-	doNothing := func(ctx context.Context, req interface{}) (interface{}, error) {
+	doNothing := func(ctx context.Context, req any) (any, error) {
 		return req, nil
 	}
 
 	type respAndErr struct {
-		resp interface{}
+		resp any
 		err  error
 	}
 
@@ -206,12 +206,10 @@ func TestMetrics_ConcurrentSafe(t *testing.T) {
 	ch := make(chan respAndErr, numG)
 	var wg sync.WaitGroup
 	for range numG {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			resp, err := interceptor(ctx, "hello", info, doNothing)
 			ch <- respAndErr{resp: resp, err: err}
-		}()
+		})
 	}
 
 	wg.Wait()

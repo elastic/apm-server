@@ -41,7 +41,7 @@ func TestFlattenAndFormat(t *testing.T) {
 	flat = format(flat)
 	assert.Contains(t, flat, "schema")
 
-	flat = flat["schema"].(map[string]interface{})
+	flat = flat["schema"].(map[string]any)
 	for k, v := range flat {
 		assert.NotContains(t, k, "elasticsearch")
 		assert.NotContains(t, k, "kibana")

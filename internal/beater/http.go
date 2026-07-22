@@ -23,6 +23,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/libp2p/go-reuseport"
@@ -83,11 +84,8 @@ func newHTTPServer(
 func (h *httpServer) start() error {
 	if h.cfg.RumConfig.Enabled {
 		h.logger.Info("RUM endpoints enabled!")
-		for _, s := range h.cfg.RumConfig.AllowOrigins {
-			if s == "*" {
-				h.logger.Warn("CORS related setting `apm-server.rum.allow_origins` allows all origins. Consider more restrictive setting for production use.")
-				break
-			}
+		if slices.Contains(h.cfg.RumConfig.AllowOrigins, "*") {
+			h.logger.Warn("CORS related setting `apm-server.rum.allow_origins` allows all origins. Consider more restrictive setting for production use.")
 		}
 	} else {
 		h.logger.Info("RUM endpoints disabled.")

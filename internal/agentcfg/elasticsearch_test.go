@@ -38,9 +38,9 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
-var sampleHits = []map[string]interface{}{
-	{"_id": "h_KmzYQBfJ4l0GgqXgKA", "_index": ".apm-agent-configuration", "_score": 1, "_source": map[string]interface{}{"@timestamp": 1.669897543296e+12, "applied_by_agent": false, "etag": "ef12bf5e879c38e931d2894a9c90b2cb1b5fa190", "service": map[string]interface{}{"name": "first"}, "settings": map[string]interface{}{"sanitize_field_names": "foo,bar,baz", "transaction_sample_rate": "0.1"}}},
-	{"_id": "hvKmzYQBfJ4l0GgqXgJt", "_index": ".apm-agent-configuration", "_score": 1, "_source": map[string]interface{}{"@timestamp": 1.669897543277e+12, "applied_by_agent": false, "etag": "2da2f86251165ccced5c5e41100a216b0c880db4", "service": map[string]interface{}{"name": "second"}, "settings": map[string]interface{}{"sanitize_field_names": "foo,bar,baz", "transaction_sample_rate": "0.1"}}},
+var sampleHits = []map[string]any{
+	{"_id": "h_KmzYQBfJ4l0GgqXgKA", "_index": ".apm-agent-configuration", "_score": 1, "_source": map[string]any{"@timestamp": 1.669897543296e+12, "applied_by_agent": false, "etag": "ef12bf5e879c38e931d2894a9c90b2cb1b5fa190", "service": map[string]any{"name": "first"}, "settings": map[string]any{"sanitize_field_names": "foo,bar,baz", "transaction_sample_rate": "0.1"}}},
+	{"_id": "hvKmzYQBfJ4l0GgqXgJt", "_index": ".apm-agent-configuration", "_score": 1, "_source": map[string]any{"@timestamp": 1.669897543277e+12, "applied_by_agent": false, "etag": "2da2f86251165ccced5c5e41100a216b0c880db4", "service": map[string]any{"name": "second"}, "settings": map[string]any{"sanitize_field_names": "foo,bar,baz", "transaction_sample_rate": "0.1"}}},
 }
 
 func newMockElasticsearchClient(t testing.TB, handler func(http.ResponseWriter, *http.Request)) *elasticsearch.Client {
@@ -62,23 +62,23 @@ func newMockElasticsearchClient(t testing.TB, handler func(http.ResponseWriter, 
 
 func newElasticsearchFetcher(
 	t testing.TB,
-	hits []map[string]interface{},
+	hits []map[string]any,
 	searchSize int,
 	tp trace.TracerProvider,
 ) *ElasticsearchFetcher {
-	var maxScore = func(hits []map[string]interface{}) interface{} {
+	var maxScore = func(hits []map[string]any) any {
 		if len(hits) == 0 {
 			return nil
 		}
 		return 1
 	}
-	var respTmpl = map[string]interface{}{
+	var respTmpl = map[string]any{
 		"_scroll_id": "FGluY2x1ZGVfY29udGV4dF91dWlkDXF1ZXJ5QW5kRmV0Y2gBFkJUT0Z5bFUtUXRXM3NTYno0dkM2MlEAAAAAAABnRBY5OUxYalAwUFFoS1NfLV9lWjlSYTRn",
-		"_shards":    map[string]interface{}{"failed": 0, "skipped": 0, "successful": 1, "total": 1},
-		"hits": map[string]interface{}{
-			"hits":      []map[string]interface{}{},
+		"_shards":    map[string]any{"failed": 0, "skipped": 0, "successful": 1, "total": 1},
+		"hits": map[string]any{
+			"hits":      []map[string]any{},
 			"max_score": maxScore(hits),
-			"total":     map[string]interface{}{"relation": "eq", "value": len(hits)},
+			"total":     map[string]any{"relation": "eq", "value": len(hits)},
 		},
 		"timed_out": false,
 		"took":      1,
@@ -101,9 +101,9 @@ func newElasticsearchFetcher(
 			assert.Failf(t, "unexpected path", "path: %s", r.URL.Path)
 		}
 		if i < len(hits) {
-			respTmpl["hits"].(map[string]interface{})["hits"] = hits[i : i+searchSize]
+			respTmpl["hits"].(map[string]any)["hits"] = hits[i : i+searchSize]
 		} else {
-			respTmpl["hits"].(map[string]interface{})["hits"] = []map[string]interface{}{}
+			respTmpl["hits"].(map[string]any)["hits"] = []map[string]any{}
 		}
 
 		b, err := json.Marshal(respTmpl)
@@ -144,8 +144,7 @@ func TestRun(t *testing.T) {
 
 	fetcher := newElasticsearchFetcher(t, sampleHits, 2, tp)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	go func() {
 		err := fetcher.Run(ctx)
 		assert.Equal(t, context.Canceled, err)
@@ -188,7 +187,7 @@ func TestRefreshCacheScroll(t *testing.T) {
 }
 
 func TestFetchOnCacheNotReady(t *testing.T) {
-	fetcher := newElasticsearchFetcher(t, []map[string]interface{}{}, 1, tracenoop.NewTracerProvider())
+	fetcher := newElasticsearchFetcher(t, []map[string]any{}, 1, tracenoop.NewTracerProvider())
 
 	_, err := fetcher.Fetch(context.Background(), Query{Service: Service{Name: ""}, Etag: ""})
 	require.EqualError(t, err, ErrInfrastructureNotReady)

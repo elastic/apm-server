@@ -126,10 +126,3 @@ func removeRUMGlobalLabels(event *modelpb.APMEvent) {
 		v.Global = false
 	}
 }
-
-func max(x, y int) int {
-	if x < y {
-		return y
-	}
-	return x
-}

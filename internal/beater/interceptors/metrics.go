@@ -46,10 +46,10 @@ type metricsInterceptor struct {
 func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
-		req interface{},
+		req any,
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
-	) (interface{}, error) {
+	) (any, error) {
 		var legacyMetricsPrefix string
 
 		switch info.FullMethod {
