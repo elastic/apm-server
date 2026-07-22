@@ -217,7 +217,7 @@ create-pull-request:
 	@echo "::group::create-pull-request $(BRANCH) -> $(TARGET_BRANCH)"
 	@PR_COUNT=0 ; \
 	if [ "$(FORCE_PR_CREATION)" != "true" ]; then \
-		PR_COUNT=$$(gh pr list --head "$(BRANCH)" --base "$(TARGET_BRANCH)" --label release --state all --json number --jq 'length' --repo $(PROJECT_OWNER)/apm-server) ; \
+		PR_COUNT=$$(gh pr list --head "$(BRANCH)" --base "$(TARGET_BRANCH)" --label release --state all --json number,headRefName --jq '[.[] | select(.headRefName == "$(BRANCH)")] | length' --repo $(PROJECT_OWNER)/apm-server) ; \
 	fi ; \
 	if [ "$$PR_COUNT" -gt 0 ]; then \
 		echo "PR for $(BRANCH) -> $(TARGET_BRANCH) already exists, skipping." ; \
