@@ -73,27 +73,23 @@ endif
 #
 .PHONY: minor-release
 minor-release:
-	@if git ls-remote --exit-code --heads https://github.com/$(PROJECT_OWNER)/apm-server.git "$(RELEASE_BRANCH)" > /dev/null 2>&1; then \
-		echo "WARNING: Release branch $(RELEASE_BRANCH) already exists. Skipping." ; \
-	else \
-		echo "INFO: Create GitHub label backport for the version $(RELEASE_VERSION)" ; \
-		$(MAKE) create-github-label NAME=backport-$(RELEASE_BRANCH) ; \
-		echo "INFO: Create release branch and update new version $(RELEASE_VERSION)" ; \
-		$(MAKE) create-branch NAME=$(RELEASE_BRANCH) BASE=$(BASE_BRANCH) ; \
-		$(MAKE) update-version VERSION=$(RELEASE_VERSION) ; \
-		$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION) ; \
-		$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)" ; \
-		echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)" ; \
-		$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH) ; \
-		$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH) ; \
-		$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION) ; \
-		$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)" ; \
-		$(MAKE) update-changelog VERSION=$(RELEASE_VERSION) ; \
-		$(MAKE) create-commit COMMIT_MESSAGE="[Release] update changelogs for $(RELEASE_BRANCH) release" ; \
-		echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests" ; \
-		git push origin $(RELEASE_BRANCH) ; \
-		$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs" BODY="Merge as soon as the GitHub checks are green." ; \
-	fi
+	@echo "INFO: Create GitHub label backport for the version $(RELEASE_VERSION)"
+	$(MAKE) create-github-label NAME=backport-$(RELEASE_BRANCH)
+	@echo "INFO: Create release branch and update new version $(RELEASE_VERSION)"
+	$(MAKE) create-branch NAME=$(RELEASE_BRANCH) BASE=$(BASE_BRANCH)
+	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
+	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
+	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)"
+	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
+	$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH)
+	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
+	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
+	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
+	$(MAKE) update-changelog VERSION=$(RELEASE_VERSION)
+	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update changelogs for $(RELEASE_BRANCH) release"
+	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
+	git push origin $(RELEASE_BRANCH)
+	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs" BODY="Merge as soon as the GitHub checks are green."
 
 # This is the contract with the GitHub action .github/workflows/run-major-release.yml.
 # The GitHub action will provide the below environment variables:
@@ -172,14 +168,20 @@ update-version-makefile:
 ############################################
 
 ## Create a new branch
-## It will delete the branch if it already exists before the creation.
+## If the branch already exists on the remote, fetch and check it out instead.
 .PHONY: create-branch
 create-branch: NAME=$${NAME} BASE=$${BASE}
 create-branch:
 	@echo "::group::create-branch $(NAME)"
-	git checkout $(BASE)
-	git branch -D $(NAME) &>/dev/null || true
-	git checkout $(BASE) -b $(NAME)
+	@if git ls-remote --exit-code --heads origin "$(NAME)" > /dev/null 2>&1; then \
+		echo "WARNING: Branch $(NAME) already exists. Fetching and checking out." ; \
+		git fetch origin $(NAME):$(NAME) ; \
+		git checkout $(NAME) ; \
+	else \
+		git branch -D $(NAME) &>/dev/null || true ; \
+		git checkout $(BASE) ; \
+		git checkout $(BASE) -b $(NAME) ; \
+	fi
 	@echo "::endgroup::"
 
 ## Create a new commit only if there is a diff.
