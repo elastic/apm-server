@@ -38,6 +38,7 @@ PROJECT_MINOR_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f2 -d.)
 PROJECT_PATCH_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f3 -d.)
 PROJECT_OWNER ?= elastic
 RELEASE_TYPE ?= minor
+FORCE_PR_CREATION ?=
 
 # if gh is installed only
 ifneq ($(shell command -v gh 2>/dev/null),)
@@ -74,13 +75,11 @@ endif
 minor-release:
 	@echo "INFO: Create GitHub label backport for the version $(RELEASE_VERSION)"
 	$(MAKE) create-github-label NAME=backport-$(RELEASE_BRANCH)
-
 	@echo "INFO: Create release branch and update new version $(RELEASE_VERSION)"
 	$(MAKE) create-branch NAME=$(RELEASE_BRANCH) BASE=$(BASE_BRANCH)
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)"
-
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
 	$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH)
 	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
@@ -88,7 +87,6 @@ minor-release:
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
 	$(MAKE) update-changelog VERSION=$(RELEASE_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update changelogs for $(RELEASE_BRANCH) release"
-
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
 	git push origin $(RELEASE_BRANCH)
 	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs" BODY="Merge as soon as the GitHub checks are green."
@@ -170,14 +168,21 @@ update-version-makefile:
 ############################################
 
 ## Create a new branch
-## It will delete the branch if it already exists before the creation.
+## If the branch already exists on the remote, fetch and check it out instead.
+## Otherwise, delete the local branch if it exists and recreate it from BASE.
 .PHONY: create-branch
 create-branch: NAME=$${NAME} BASE=$${BASE}
 create-branch:
 	@echo "::group::create-branch $(NAME)"
-	git checkout $(BASE)
-	git branch -D $(NAME) &>/dev/null || true
-	git checkout $(BASE) -b $(NAME)
+	@if git ls-remote --exit-code --heads origin "$(NAME)" > /dev/null 2>&1; then \
+		echo "WARNING: Branch $(NAME) already exists. Fetching and checking out." ; \
+		git fetch origin $(NAME):$(NAME) ; \
+		git checkout $(NAME) ; \
+	else \
+		git branch -D $(NAME) &>/dev/null || true ; \
+		git checkout $(BASE) ; \
+		git checkout $(BASE) -b $(NAME) ; \
+	fi
 	@echo "::endgroup::"
 
 ## Create a new commit only if there is a diff.
@@ -211,17 +216,25 @@ create-pull-request: BRANCH=$${BRANCH} TITLE=$${TITLE} TARGET_BRANCH=$${TARGET_B
 
 create-pull-request:
 	@echo "::group::create-pull-request $(BRANCH) -> $(TARGET_BRANCH)"
-	git push origin $(BRANCH)
-	echo "--label $(BACKPORT_LABEL)"
-	gh pr create \
-		--title "$(TITLE)" \
-		--body "$(BODY)" \
-		--base $(TARGET_BRANCH) \
-		--head $(BRANCH) \
-		--label 'release' \
-		--label "$(BACKPORT_LABEL)" \
-		--reviewer "$(PROJECT_REVIEWERS)" \
-		--repo $(PROJECT_OWNER)/apm-server || echo "There is no changes"
+	@PR_COUNT=0 ; \
+	if [ "$(FORCE_PR_CREATION)" != "true" ]; then \
+		PR_COUNT=$$(gh pr list --head "$(BRANCH)" --base "$(TARGET_BRANCH)" --label release --state all --json number,headRefName --jq '[.[] | select(.headRefName == "$(BRANCH)")] | length' --repo $(PROJECT_OWNER)/apm-server) ; \
+	fi ; \
+	if [ "$$PR_COUNT" -gt 0 ]; then \
+		echo "PR for $(BRANCH) -> $(TARGET_BRANCH) already exists, skipping." ; \
+	else \
+		echo "--label $(BACKPORT_LABEL)" ; \
+		git push origin $(BRANCH) ; \
+		gh pr create \
+			--title "$(TITLE)" \
+			--body "$(BODY)" \
+			--base $(TARGET_BRANCH) \
+			--head $(BRANCH) \
+			--label 'release' \
+			--label "$(BACKPORT_LABEL)" \
+			--reviewer "$(PROJECT_REVIEWERS)" \
+			--repo $(PROJECT_OWNER)/apm-server || echo "There is no changes" ; \
+	fi
 	@echo "::endgroup::"
 
 ## Diff output
