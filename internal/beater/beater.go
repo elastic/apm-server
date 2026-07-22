@@ -940,7 +940,7 @@ func newSourcemapFetcher(
 		<-invalidationChan
 	}
 
-	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, sourcemapIndex, logger)
+	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, sourcemapIndex, int64(cfg.MaxSourceMapSizeParsed), logger)
 	size := 128
 	cachingFetcher, err := sourcemap.NewBodyCachingFetcher(esFetcher, size, invalidationChan, logger)
 	if err != nil {
