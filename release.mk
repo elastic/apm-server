@@ -169,6 +169,7 @@ update-version-makefile:
 
 ## Create a new branch
 ## If the branch already exists on the remote, fetch and check it out instead.
+## Otherwise, delete the local branch if it exists and recreate it from BASE.
 .PHONY: create-branch
 create-branch: NAME=$${NAME} BASE=$${BASE}
 create-branch:
