@@ -71,10 +71,7 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 		_ = unsupportedHTTPMetricRegistration.Unregister()
 	}
 	unsupportedHTTPMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
-		stats := consumer.Stats()
-		if stats.UnsupportedMetricsDropped > 0 {
-			o.ObserveInt64(httpMetricsConsumerUnsupportedDropped, stats.UnsupportedMetricsDropped)
-		}
+		o.ObserveInt64(httpMetricsConsumerUnsupportedDropped, consumer.Stats().UnsupportedMetricsDropped)
 		return nil
 	}, httpMetricsConsumerUnsupportedDropped)
 

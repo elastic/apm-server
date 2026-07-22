@@ -160,14 +160,24 @@ func TestMetrics(t *testing.T) {
 
 				interceptor(ctx, nil, info, tc.f)
 
-				expectedMetrics := make(map[string]any, 2*len(tc.expectedOtel))
-
+				// Metrics() eagerly zero-initializes the cross product of
+				// these prefixes and request.AllResultIDs. Build the full
+				// expected map starting from those zeros, then override
+				// with the non-zero values the test fires.
+				expectedMetrics := make(map[string]any)
+				for _, prefix := range []string{
+					"grpc.server.",
+					"apm-server.otlp.grpc.metrics.",
+					"apm-server.otlp.grpc.traces.",
+					"apm-server.otlp.grpc.logs.",
+				} {
+					for _, id := range request.AllResultIDs {
+						expectedMetrics[prefix+string(id)] = int64(0)
+					}
+				}
 				for k, v := range tc.expectedOtel {
-					// add otel metrics
 					expectedMetrics["grpc.server."+k] = v
-
 					if k != "request.duration" {
-						// add legacy metrics
 						expectedMetrics[metrics.prefix+k] = v
 					}
 				}
@@ -224,4 +234,24 @@ func TestMetrics_ConcurrentSafe(t *testing.T) {
 	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
 		"grpc.server.request.count": numG,
 	})
+}
+
+func BenchmarkInterceptor(b *testing.B) {
+	reader := sdkmetric.NewManualReader()
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+	logger := logptest.NewTestingLogger(b, "interceptor.metrics.bench")
+	interceptor := Metrics(logger, mp)
+
+	ctx := context.Background()
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "/opentelemetry.proto.collector.trace.v1.TraceService/Export",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return req, nil
+	}
+
+	b.ReportAllocs()
+	for b.Loop() {
+		_, _ = interceptor(ctx, "hello", info, handler)
+	}
 }
