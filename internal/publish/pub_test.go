@@ -19,11 +19,14 @@ package publish_test
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/outputs"
@@ -95,9 +98,31 @@ func newBlockingPipeline(t testing.TB) (*pipeline.Pipeline, *mockClient) {
 	err = conf.Unpack(&namespace)
 	require.NoError(t, err)
 
+	// Wrap the test logger with a safeCoreWrapper that drops log entries
+	// after the pipeline has been disconnected. This prevents panics caused
+	// by pipeline-internal goroutines (e.g. queueReader.run) that are
+	// intentionally excluded from the pipeline's shutdown WaitGroup and
+	// may still be running — and logging — when Disconnect returns.
+	//
+	// LIFO cleanup ordering ensures done=true is set AFTER Disconnect:
+	//   1. t.Cleanup(done=true) registered first  → runs last  (LIFO)
+	//   2. t.Cleanup(Disconnect) registered second → runs first (LIFO)
+	sc := &safeCoreWrapper{state: &safeCoreState{}}
+	t.Cleanup(func() {
+		sc.state.mu.Lock()
+		sc.state.done = true
+		sc.state.mu.Unlock()
+	})
+	logger := logptest.NewTestingLogger(t, "beat",
+		zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+			sc.Core = core
+			return sc
+		}),
+	)
+
 	pipe, err := pipeline.New(
 		beat.Info{
-			Logger: logptest.NewTestingLogger(t, "beat"),
+			Logger: logger,
 		},
 		pipeline.Monitors{},
 		namespace,
@@ -109,6 +134,57 @@ func newBlockingPipeline(t testing.TB) (*pipeline.Pipeline, *mockClient) {
 		require.NoError(t, pipe.Disconnect(context.Background()))
 	})
 	return pipe, client
+}
+
+// safeCoreWrapper is a zapcore.Core wrapper that silently drops log entries
+// once done is set to true. All derived cores (created via With) share the
+// same safeCoreState, so setting done=true on the root also suppresses writes
+// from loggers that were augmented with additional fields. This allows a test
+// to shut down pipeline goroutines that outlive the test's cleanup phase
+// without triggering a panic from zaptest's TestingWriter which panics on
+// writes after test completion.
+type safeCoreWrapper struct {
+	zapcore.Core
+	state *safeCoreState
+}
+
+type safeCoreState struct {
+	mu   sync.RWMutex
+	done bool
+}
+
+func (c *safeCoreWrapper) With(fields []zapcore.Field) zapcore.Core {
+	return &safeCoreWrapper{Core: c.Core.With(fields), state: c.state}
+}
+
+func (c *safeCoreWrapper) Check(entry zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
+	c.state.mu.RLock()
+	defer c.state.mu.RUnlock()
+	if c.state.done {
+		return ce
+	}
+	if c.Core.Enabled(entry.Level) {
+		return ce.AddCore(entry, c)
+	}
+	return ce
+}
+
+func (c *safeCoreWrapper) Write(entry zapcore.Entry, fields []zapcore.Field) error {
+	c.state.mu.RLock()
+	defer c.state.mu.RUnlock()
+	if c.state.done {
+		return nil
+	}
+	return c.Core.Write(entry, fields)
+}
+
+func (c *safeCoreWrapper) Sync() error {
+	c.state.mu.RLock()
+	defer c.state.mu.RUnlock()
+	if c.state.done {
+		return nil
+	}
+	return c.Core.Sync()
 }
 
 func makeTransformable(events ...beat.Event) publish.Transformer {
