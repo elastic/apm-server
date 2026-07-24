@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.1
 	github.com/elastic/apm-data v1.22.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260722131710-f68c074bca8f
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260723125418-65d08c873107
 	github.com/elastic/elastic-agent-client/v7 v7.18.1
 	github.com/elastic/elastic-agent-libs v0.46.1
 	github.com/elastic/elastic-agent-system-metrics v0.14.4
@@ -168,7 +168,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kamstrup/intmap v0.5.1 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
-	github.com/klauspost/compress v1.18.6 // indirect
+	github.com/klauspost/compress v1.18.7 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
@@ -204,7 +204,7 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.68.1 // indirect
+	github.com/prometheus/common v0.69.0 // indirect
 	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20250401214520-65e299d6c5c9 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
