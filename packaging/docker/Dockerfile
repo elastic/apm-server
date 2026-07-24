@@ -25,7 +25,7 @@ FROM cgr.dev/chainguard/static:latest@sha256:60582b2ae6074f641094af0f370d4ab241a
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM registry.access.redhat.com/ubi10-micro:latest@sha256:6cc8b042384757a5dc8ee0adfa4ff7a3f37467d43c2ca42b24d928929536d579
+FROM registry.access.redhat.com/ubi10-micro:latest@sha256:af12ec115e0b0c19432cea2b826dea5b8d0d06f77f7c318aed93915b3233abea
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION
