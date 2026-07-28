@@ -20,26 +20,34 @@ package middleware
 import (
 	"context"
 	"net/http"
-	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel/metric"
 
+	"github.com/elastic/elastic-agent-libs/logp"
+
 	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/internal/otelmetric"
 )
 
 const (
 	requestDurationHistogram = "request.duration"
+	httpServerPrefix         = "http.server."
 )
 
 type monitoringMiddleware struct {
-	meter               metric.Meter
+	logger              *logp.Logger
 	legacyMetricsPrefix string
-
-	counters   sync.Map
-	histograms sync.Map
+	serverCounters      map[request.ResultID]metric.Int64Counter
+	legacyCounters      map[request.ResultID]metric.Int64Counter
+	requestDurationHist metric.Int64Histogram
 }
 
+// Middleware returns the request.Middleware that increments per-request
+// counters and records the request-duration histogram. Any counter or
+// histogram it touches must already exist in the maps populated by
+// MonitoringMiddleware(); a missing entry is an apm-server bug logged
+// by inc().
 func (m *monitoringMiddleware) Middleware() Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
@@ -48,7 +56,7 @@ func (m *monitoringMiddleware) Middleware() Middleware {
 			start := time.Now()
 			h(c)
 			duration := time.Since(start)
-			m.getHistogram(requestDurationHistogram, metric.WithUnit("ms")).Record(context.Background(), duration.Milliseconds())
+			m.requestDurationHist.Record(context.Background(), duration.Milliseconds())
 
 			m.inc(request.IDResponseCount)
 			if c.Result.StatusCode >= http.StatusBadRequest {
@@ -62,41 +70,55 @@ func (m *monitoringMiddleware) Middleware() Middleware {
 	}
 }
 
+// inc increments the http.server.<id> and <legacyMetricsPrefix><id>
+// counters. A missing entry is an apm-server bug: MonitoringMiddleware()
+// must eagerly create every counter inc() can use.
 func (m *monitoringMiddleware) inc(id request.ResultID) {
-	m.getCounter("http.server.", string(id)).Add(context.Background(), 1)
-	m.getCounter(m.legacyMetricsPrefix, string(id)).Add(context.Background(), 1)
+	m.incOne(m.serverCounters, httpServerPrefix, id)
+	m.incOne(m.legacyCounters, m.legacyMetricsPrefix, id)
 }
 
-func (m *monitoringMiddleware) getCounter(prefix, name string) metric.Int64Counter {
-	name = prefix + name
-	if met, ok := m.counters.Load(name); ok {
-		return met.(metric.Int64Counter)
+// incOne adds 1 to counters[id]. A missing entry logs the BUG (with
+// prefix only used to build the full metric name) and is otherwise a
+// no-op.
+func (m *monitoringMiddleware) incOne(counters map[request.ResultID]metric.Int64Counter, prefix string, id request.ResultID) {
+	c, ok := counters[id]
+	if !ok {
+		m.logger.With("name", prefix+string(id)).
+			Error("BUG: monitoring counter missing from eager registration")
+		return
 	}
-	nm, _ := m.meter.Int64Counter(name)
-	met, _ := m.counters.LoadOrStore(name, nm)
-	return met.(metric.Int64Counter)
+	c.Add(context.Background(), 1)
 }
 
-func (m *monitoringMiddleware) getHistogram(n string, opts ...metric.Int64HistogramOption) metric.Int64Histogram {
-	name := "http.server." + n
-	if met, ok := m.histograms.Load(name); ok {
-		return met.(metric.Int64Histogram)
+// MonitoringMiddleware returns a middleware that increments monitoring
+// counters for collecting metrics about request processing.
+//
+// All counters for the canonical request.AllResultIDs set are created
+// eagerly; the maps are read-only after construction so plain map access
+// is safe across concurrent requests. Any new ResultID introduced into
+// Middleware()'s inc() paths must be added to AllResultIDs (or
+// MapResultIDToStatus, which feeds it).
+func MonitoringMiddleware(legacyMetricsPrefix string, mp metric.MeterProvider, logger *logp.Logger) Middleware {
+	meter := mp.Meter("github.com/elastic/apm-server/internal/beater/middleware")
+	requestDurationHist, _ := meter.Int64Histogram(
+		httpServerPrefix+requestDurationHistogram,
+		metric.WithUnit("ms"),
+	)
+
+	serverCounters := make(map[request.ResultID]metric.Int64Counter, len(request.AllResultIDs))
+	legacyCounters := make(map[request.ResultID]metric.Int64Counter, len(request.AllResultIDs))
+	for _, id := range request.AllResultIDs {
+		serverCounters[id] = otelmetric.NewInt64Counter(meter, httpServerPrefix+string(id))
+		legacyCounters[id] = otelmetric.NewInt64Counter(meter, legacyMetricsPrefix+string(id))
 	}
 
-	nm, _ := m.meter.Int64Histogram(name, opts...)
-	met, _ := m.histograms.LoadOrStore(name, nm)
-	return met.(metric.Int64Histogram)
-}
-
-// MonitoringMiddleware returns a middleware that increases monitoring counters for collecting metrics
-// about request processing. As input parameter it takes a map capable of mapping a request.ResultID to a counter.
-func MonitoringMiddleware(legacyMetricsPrefix string, mp metric.MeterProvider) Middleware {
 	mid := &monitoringMiddleware{
-		meter:               mp.Meter("github.com/elastic/apm-server/internal/beater/middleware"),
+		logger:              logger,
 		legacyMetricsPrefix: legacyMetricsPrefix,
-		counters:            sync.Map{},
-		histograms:          sync.Map{},
+		serverCounters:      serverCounters,
+		legacyCounters:      legacyCounters,
+		requestDurationHist: requestDurationHist,
 	}
-
 	return mid.Middleware()
 }

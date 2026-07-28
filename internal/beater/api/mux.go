@@ -269,7 +269,7 @@ func apmMiddleware(mp metric.MeterProvider, tp trace.TracerProvider, metricsPref
 		middleware.TracingMiddleware(tp),
 		middleware.LogMiddleware(logger),
 		middleware.RecoverPanicMiddleware(),
-		middleware.MonitoringMiddleware(metricsPrefix, mp),
+		middleware.MonitoringMiddleware(metricsPrefix, mp, logger),
 	}
 }
 

@@ -25,6 +25,7 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 
 	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/internal/otelmetric"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
@@ -94,12 +95,12 @@ func NewProcessor(params ProcessorParams) (*Processor, error) {
 		stopped:           make(chan struct{}),
 	}
 
-	p.eventMetrics.processed, _ = meter.Int64Counter("apm-server.sampling.tail.events.processed")
-	p.eventMetrics.dropped, _ = meter.Int64Counter("apm-server.sampling.tail.events.dropped")
-	p.eventMetrics.stored, _ = meter.Int64Counter("apm-server.sampling.tail.events.stored")
-	p.eventMetrics.sampled, _ = meter.Int64Counter("apm-server.sampling.tail.events.sampled")
-	p.eventMetrics.headUnsampled, _ = meter.Int64Counter("apm-server.sampling.tail.events.head_unsampled")
-	p.eventMetrics.failedWrites, _ = meter.Int64Counter("apm-server.sampling.tail.events.failed_writes")
+	p.eventMetrics.processed = otelmetric.NewInt64Counter(meter, "apm-server.sampling.tail.events.processed")
+	p.eventMetrics.dropped = otelmetric.NewInt64Counter(meter, "apm-server.sampling.tail.events.dropped")
+	p.eventMetrics.stored = otelmetric.NewInt64Counter(meter, "apm-server.sampling.tail.events.stored")
+	p.eventMetrics.sampled = otelmetric.NewInt64Counter(meter, "apm-server.sampling.tail.events.sampled")
+	p.eventMetrics.headUnsampled = otelmetric.NewInt64Counter(meter, "apm-server.sampling.tail.events.head_unsampled")
+	p.eventMetrics.failedWrites = otelmetric.NewInt64Counter(meter, "apm-server.sampling.tail.events.failed_writes")
 
 	return p, nil
 }

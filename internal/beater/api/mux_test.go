@@ -146,6 +146,10 @@ func testMonitoringMiddleware(t *testing.T, urlPath string, expectedMetrics map[
 	req := httptest.NewRequest(http.MethodGet, urlPath, nil)
 	h.ServeHTTP(httptest.NewRecorder(), req)
 
+	// The full mux eagerly initializes counters across many prefixes
+	// (every MonitoringMiddleware instance plus the gRPC interceptor,
+	// intake handler, sampling, agentcfg, …). Subset semantics keep
+	// the test focused on this handler's counters.
 	monitoringtest.ExpectContainOtelMetrics(t, reader, expectedMetrics)
 }
 
