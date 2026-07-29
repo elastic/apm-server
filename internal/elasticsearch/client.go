@@ -108,18 +108,18 @@ func NewClient(args ClientParams) (*Client, error) {
 
 	transport = WrapRoundTripper(transport, args.TracerProvider)
 
-	return elastictransport.New(elastictransport.Config{
-		APIKey:        apikey,
-		Username:      args.Config.Username,
-		Password:      args.Config.Password,
-		URLs:          addrs,
-		Header:        headers,
-		Transport:     transport,
-		MaxRetries:    args.Config.MaxRetries,
-		RetryBackoff:  exponentialBackoff(args.Config.Backoff),
-		RetryOnError:  args.RetryOnError,
-		RetryOnStatus: retryableStatuses,
-	})
+	opts := []elastictransport.Option{
+		elastictransport.WithURLs(addrs...),
+		elastictransport.WithHeader(headers),
+		elastictransport.WithTransport(transport),
+		elastictransport.WithMaxRetries(args.Config.MaxRetries),
+		elastictransport.WithRetryBackoff(exponentialBackoff(args.Config.Backoff)),
+		elastictransport.WithRetryOnError(args.RetryOnError),
+		elastictransport.WithRetryOnStatus(retryableStatuses...),
+		elastictransport.WithBasicAuth(args.Config.Username, args.Config.Password),
+		elastictransport.WithAPIKey(apikey),
+	}
+	return elastictransport.NewClient(opts...)
 }
 
 func doRequest(client *elastictransport.Client, req *http.Request, out interface{}) error {

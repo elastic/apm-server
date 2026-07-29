@@ -386,9 +386,9 @@ func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval
 	u, err := url.Parse(srv.URL)
 	require.NoError(t, err)
 
-	client, err := elastictransport.New(elastictransport.Config{
-		URLs: []*url.URL{u},
-	})
+	client, err := elastictransport.NewClient(
+		elastictransport.WithURLs(u),
+	)
 	require.NoError(t, err)
 
 	if logger == nil {

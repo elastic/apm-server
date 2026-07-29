@@ -140,6 +140,37 @@ func TestStore_Fetch(t *testing.T) {
 		}
 	})
 
+	t.Run("exceedsLimitFromES", func(t *testing.T) {
+		client := newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, validSourcemap))
+		ch := make(chan []identifier)
+		close(ch)
+
+		esFetcher := &esFetcher{
+			client:                client,
+			index:                 "apm-*sourcemap*",
+			logger:                logptest.NewTestingLogger(t, ""),
+			maxSourceMapSizeBytes: 5,
+		}
+		store, err := NewBodyCachingFetcher(esFetcher, 100, ch, logptest.NewTestingLogger(t, ""))
+		require.NoError(t, err)
+
+		// source map has not yet been fetched, so it should not be present in cache
+		cached, found := store.cache.Get(key)
+		require.False(t, found)
+		require.Nil(t, cached)
+
+		// attempt to read the source map
+		mapper, err := store.Fetch(context.Background(), serviceName, serviceVersion, path)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, errSourcemapSizeExceedsLimit)
+		require.Nil(t, mapper)
+
+		// validate negative caching for source maps that are too large
+		cached, found = store.cache.Get(key)
+		assert.True(t, found)
+		assert.Nil(t, cached)
+	})
+
 	t.Run("noConnectionToES", func(t *testing.T) {
 		store := testCachingFetcher(t, newUnavailableElasticsearchClient(t))
 		//not cached
@@ -161,7 +192,7 @@ func testCachingFetcher(t *testing.T, client *elasticsearch.Client) *BodyCaching
 	ch := make(chan []identifier)
 	close(ch)
 
-	esFetcher := NewElasticsearchFetcher(client, "apm-*sourcemap*", logptest.NewTestingLogger(t, ""))
+	esFetcher := NewElasticsearchFetcher(client, "apm-*sourcemap*", defaultMaxSourceMapSizeBytes, logptest.NewTestingLogger(t, ""))
 	cachingFetcher, err := NewBodyCachingFetcher(esFetcher, 100, ch, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	return cachingFetcher

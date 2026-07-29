@@ -166,12 +166,12 @@ func BuildServerBinary(goos, goarch string) (string, error) {
 			log.Println(err)
 			return
 		}
-		name := "apm-server"
-		abspath := filepath.Join(repoRoot, "build", fmt.Sprintf("apm-server-%s-%s", goos, goarch))
+		suffix := ""
 		if fips140.Enabled() {
-			abspath += "-fips"
-			name += "-fips"
+			suffix = "-fips"
 		}
+		name := "apm-server" + suffix
+		abspath := filepath.Join(repoRoot, "build", fmt.Sprintf("apm-server%s-%s-%s", suffix, goos, goarch))
 		if goos == "windows" {
 			abspath += ".exe"
 		}

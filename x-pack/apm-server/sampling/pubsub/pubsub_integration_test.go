@@ -274,11 +274,13 @@ func newElasticsearchClient(tb testing.TB) *elastictransport.Client {
 	)
 	u, err := url.Parse(esHost)
 	require.NoError(tb, err)
-	client, err := elastictransport.New(elastictransport.Config{
-		URLs:     []*url.URL{u},
-		Username: getenvDefault("ES_USER", defaultElasticsearchUser),
-		Password: getenvDefault("ES_PASS", defaultElasticsearchPass),
-	})
+	client, err := elastictransport.NewClient(
+		elastictransport.WithURLs(u),
+		elastictransport.WithBasicAuth(
+			getenvDefault("ES_USER", defaultElasticsearchUser),
+			getenvDefault("ES_PASS", defaultElasticsearchPass),
+		),
+	)
 	require.NoError(tb, err)
 	return client
 }

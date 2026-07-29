@@ -101,12 +101,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: 'go.mod'
           cache: false
 
-      - uses: rlespinasse/github-slug-action@e6f261660910b273384c5c42b17a0217881b217a # v5.6.0
+      - uses: rlespinasse/github-slug-action@ef93b2ea4b6405d06fd8684fc3ff795d262ecae8 # v5.7.0
 
       - name: Set up env
         run: |
@@ -142,7 +142,7 @@ jobs:
           echo "BENCHMARK_RUN=Benchmark[^T]" >> "$GITHUB_ENV"
 
       - name: Log in to the Elastic Container registry
-        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4.5.1
         with:
           registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
           username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}

@@ -92,7 +92,7 @@ func (s *BodyCachingFetcher) Fetch(ctx context.Context, name, version, path stri
 	// fetch from the store and ensure caching for all non-temporary results
 	consumer, err := s.backend.Fetch(ctx, name, version, path)
 	if err != nil {
-		if errors.Is(err, errMalformedSourcemap) {
+		if errors.Is(err, errMalformedSourcemap) || errors.Is(err, errSourcemapSizeExceedsLimit) {
 			s.add(key, nil)
 		}
 		return nil, err

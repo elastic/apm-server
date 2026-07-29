@@ -27,6 +27,7 @@ steps:
         artifact_paths:
           - "build/distributions/**/*"
           - "build/dependencies*.csv"
+        timeout_in_minutes: 120
         retry:
           automatic:
             - limit: 1
@@ -43,6 +44,7 @@ steps:
           - "staging"
         artifact_paths:
           - "build/distributions/**/*"
+        timeout_in_minutes: 120
         retry:
           automatic:
             - limit: 1
@@ -57,6 +59,7 @@ steps:
     matrix:
       - "snapshot"
       - "staging"
+    timeout_in_minutes: 120
     depends_on:
       - step: "package"
         allow_failure: false
