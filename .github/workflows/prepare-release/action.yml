@@ -73,29 +73,18 @@ runs:
         echo "::error::${FAILURE_MESSAGE}" ; exit 1
       shell: 'bash'
 
-    - name: validate if branch already exists (major only)
-      if: ${{ inputs.type == 'major' }}
-      run: |-
-        if git ls-remote --exit-code --heads "https://github.com/${GITHUB_REPOSITORY}.git" "$BRANCH" > /dev/null ; then
-          echo "FAILURE_MESSAGE=${FAILURE_MESSAGE}" >> "$GITHUB_ENV"
-          echo "::error::${FAILURE_MESSAGE}" ; exit 1
-        fi
-      shell: 'bash'
-      env:
-        BRANCH: ${{ steps.generate.outputs.release-branch }}
-        FAILURE_MESSAGE: Branch already exists. This is not a major release.
-
-    - name: validate if branch already exists (minor only)
-      if: ${{ inputs.type == 'minor' }}
+    - name: validate if branch already exists (major or minor only)
+      if: ${{ inputs.type == 'major' || inputs.type == 'minor' }}
       run: |-
         if git ls-remote --exit-code --heads https://github.com/${{ github.repository }}.git "$BRANCH" > /dev/null ; then
-          FAILURE_MESSAGE='Branch already exists. This is not a minor release.'
+          FAILURE_MESSAGE="Branch already exists. This is not a ${RELEASE_TYPE} release."
           echo "FAILURE_MESSAGE=${FAILURE_MESSAGE}" >> "$GITHUB_ENV"
           echo "::error::${FAILURE_MESSAGE}" ; exit 1
         fi
       shell: 'bash'
       env:
         BRANCH: ${{ steps.generate.outputs.release-branch }}
+        RELEASE_TYPE: ${{ inputs.type }}
 
     - name: validate if tag already exists
       run: |-
