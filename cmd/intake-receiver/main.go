@@ -35,6 +35,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -187,7 +188,10 @@ func (h *requestHandler) handleRequest(r *http.Request) (int, error) {
 		return http.StatusBadRequest, errors.New("agent not found in metadata")
 	}
 
-	fileName := filepath.Join(h.basePath, agentFileName(meta))
+	fileName, err := safeAgentPath(h.basePath, meta)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid agent metadata for file path: %v", err)
+	}
 	f, err := h.agentFileMap.Get(fileName)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf(
@@ -244,14 +248,59 @@ func (h *requestHandler) processBatch(body io.ReadCloser, buf io.Writer, meta *m
 	return err
 }
 
+func safeAgentPath(basePath string, meta metadata) (string, error) {
+	baseAbs, err := filepath.Abs(basePath)
+	if err != nil {
+		return "", err
+	}
+
+	fileName := agentFileName(meta)
+	fullPath, err := filepath.Abs(filepath.Join(baseAbs, fileName))
+	if err != nil {
+		return "", err
+	}
+
+	rel, err := filepath.Rel(baseAbs, fullPath)
+	if err != nil {
+		return "", err
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) || filepath.IsAbs(rel) {
+		return "", fmt.Errorf("resolved path escapes base directory")
+	}
+	return fullPath, nil
+}
+
+func sanitizePathComponent(s string) string {
+	if s == "" {
+		return "unknown"
+	}
+	var b strings.Builder
+	b.Grow(len(s))
+	for _, r := range s {
+		if (r >= 'a' && r <= 'z') ||
+			(r >= 'A' && r <= 'Z') ||
+			(r >= '0' && r <= '9') ||
+			r == '.' || r == '_' || r == '-' {
+			b.WriteRune(r)
+			continue
+		}
+		b.WriteByte('_')
+	}
+	out := b.String()
+	if out == "" {
+		return "unknown"
+	}
+	return out
+}
+
 func agentFileName(meta metadata) string {
 	const format = "%s-%s.ndjson"
 	if meta.V2.Service.Agent != nil {
 		agent := meta.V2.Service.Agent
-		return fmt.Sprintf(format, agent.Name, agent.Version)
+		return fmt.Sprintf(format, sanitizePathComponent(agent.Name), sanitizePathComponent(agent.Version))
 	}
 	agent := meta.V3RUM.Service.Agent
-	return fmt.Sprintf(format, agent.Name, agent.Version)
+	return fmt.Sprintf(format, sanitizePathComponent(agent.Name), sanitizePathComponent(agent.Version))
 }
 
 func logHandler(h http.HandlerFunc) http.Handler {
