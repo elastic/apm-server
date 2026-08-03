@@ -60,7 +60,7 @@ func TestElasticsearchIntegration_PublishSampledTraceIDs(t *testing.T) {
 	require.NoError(t, err)
 
 	var input []string
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		input = append(input, uuid.Must(uuid.NewV4()).String())
 	}
 	ids := make(chan string, len(input))
@@ -155,8 +155,7 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 
 	var g errgroup.Group
 	out := make(chan string)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	g.Go(func() error {
 		return es.SubscribeSampledTraceIDs(ctx, pubsub.SubscriberPosition{}, out, nil)
 	})
@@ -197,7 +196,7 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 	// Index some local observations. These should not be reported
 	// by the local subscriber.
 	var input []string
-	for i := 0; i < 500; i++ {
+	for range 500 {
 		input = append(input, uuid.Must(uuid.NewV4()).String())
 	}
 	indexTraceID(localServerID, input...)
@@ -205,9 +204,9 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 
 	// Index some remote observations. Repeat twice, to ensure that the
 	// subscriber does not report old trace IDs the second time around.
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		var input []string
-		for i := 0; i < 500; i++ {
+		for range 500 {
 			input = append(input, uuid.Must(uuid.NewV4()).String())
 		}
 		indexTraceID(remoteServerID, input...)

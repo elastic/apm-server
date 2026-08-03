@@ -649,6 +649,7 @@ func TestStorageGC(t *testing.T) {
 	go processor.Run()
 	defer processor.Stop(context.Background())
 
+<<<<<<< HEAD
 	// Wait for the first value log file to be garbage collected.
 	var vlogs []string
 	assert.Eventually(t, func() bool {
@@ -672,6 +673,20 @@ func TestStorageGCConcurrency(t *testing.T) {
 	g := errgroup.Group{}
 	for i := 0; i < 2; i++ {
 		processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
+=======
+	for range 100 {
+		traceID := uuid.Must(uuid.NewV4()).String()
+		batch := modelpb.Batch{{
+			Trace: &modelpb.Trace{Id: traceID},
+			Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
+			Transaction: &modelpb.Transaction{
+				Type:    "type",
+				Id:      traceID,
+				Sampled: true,
+			},
+		}}
+		err := processor.ProcessBatch(t.Context(), &batch)
+>>>>>>> ceb18363 (refactor: run go fix during fmt step (#21457))
 		require.NoError(t, err)
 		g.Go(processor.Run)
 		go func() {
@@ -698,7 +713,7 @@ func TestStorageLimit(t *testing.T) {
 		go processor.Run()
 		defer processor.Stop(context.Background())
 		batch := make(modelpb.Batch, 0, n)
-		for i := 0; i < n; i++ {
+		for range n {
 			traceID := uuid.Must(uuid.NewV4()).String()
 			batch = append(batch, &modelpb.APMEvent{
 				Trace: &modelpb.Trace{Id: traceID},
@@ -974,7 +989,7 @@ func TestGracefulShutdown(t *testing.T) {
 	traceIDGen := func(i int) string { return fmt.Sprintf("trace%d", i) }
 
 	var batch modelpb.Batch
-	for i := 0; i < totalTraces; i++ {
+	for i := range totalTraces {
 		batch = append(batch, &modelpb.APMEvent{
 			Trace: &modelpb.Trace{Id: traceIDGen(i)},
 			Transaction: &modelpb.Transaction{
@@ -994,7 +1009,7 @@ func TestGracefulShutdown(t *testing.T) {
 	defer reader.Close()
 
 	var count int
-	for i := 0; i < totalTraces; i++ {
+	for i := range totalTraces {
 		if ok, _ := reader.IsTraceSampled(traceIDGen(i)); ok {
 			count++
 		}
@@ -1002,7 +1017,161 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.Equal(t, int(sampleRate*float64(totalTraces)), count)
 }
 
+<<<<<<< HEAD
 func newTempdirConfig(tb testing.TB) (sampling.Config, sdkmetric.Reader) {
+=======
+func TestPotentialRaceConditionConcurrent(t *testing.T) {
+	flushInterval := 1 * time.Second
+	tempdirConfig := newTempdirConfig(t)
+	tempdirConfig.Config.FlushInterval = flushInterval
+	tempdirConfig.Config.Policies = []sampling.Policy{
+		{SampleRate: 1.0},
+	}
+
+	var reportedMu sync.Mutex
+	reported := map[string]struct{}{}
+	tempdirConfig.Config.BatchProcessor = modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+		reportedMu.Lock()
+		defer reportedMu.Unlock()
+		for _, b := range batch.Clone() {
+			reported[b.Transaction.Id] = struct{}{}
+		}
+		return nil
+	})
+
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         tempdirConfig.Config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: noopStatusReport{},
+	})
+	require.NoError(t, err)
+	go processor.Run()
+	defer processor.Stop(context.Background())
+
+	var processed atomic.Int64
+	var lateArrivals atomic.Int64
+	eg, ctx := errgroup.WithContext(context.Background())
+	for i := range 1000 {
+		eg.Go(func() error {
+			first := true
+			index := i * 100000000
+
+			timer := time.NewTimer(flushInterval * 2)
+			defer timer.Stop()
+
+			for {
+				select {
+				case <-timer.C:
+					return nil
+				case <-ctx.Done():
+					return ctx.Err()
+				default:
+				}
+
+				batch := modelpb.Batch{{
+					Trace: &modelpb.Trace{Id: "trace1"},
+					Transaction: &modelpb.Transaction{
+						Type:    "type",
+						Id:      fmt.Sprintf("transaction%08d", index),
+						Sampled: true,
+					},
+				}}
+
+				if first {
+					first = false
+				} else {
+					batch[0].ParentId = fmt.Sprintf("bar%08d", index)
+				}
+
+				if err := processor.ProcessBatch(ctx, &batch); err != nil {
+					return err
+				}
+				index++
+				processed.Add(1)
+				lateArrivals.Add(int64(len(batch)))
+				time.Sleep(time.Duration(rand.Intn(5)) * time.Millisecond)
+			}
+		})
+	}
+
+	require.NoError(t, eg.Wait())
+	require.NoError(t, processor.Stop(context.Background()))
+
+	reportedMu.Lock()
+	defer reportedMu.Unlock()
+	reportedPlusLateArrivals := int64(len(reported)) + lateArrivals.Load()
+	assert.Equal(t, processed.Load(), reportedPlusLateArrivals)
+}
+
+type statusUpdate struct {
+	state status.Status
+	msg   string
+}
+
+type mockStatusReporter struct {
+	mutex   sync.RWMutex
+	updates []statusUpdate
+}
+
+func (m *mockStatusReporter) UpdateStatus(status status.Status, msg string) {
+	m.mutex.Lock()
+	m.updates = append(m.updates, statusUpdate{status, msg})
+	m.mutex.Unlock()
+}
+
+func (m *mockStatusReporter) GetUpdates() []statusUpdate {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return append([]statusUpdate{}, m.updates...)
+}
+
+func TestProcessStatusReporter(t *testing.T) {
+	expectedErrMsg := "forced error"
+
+	var statusReporter mockStatusReporter
+	tempdirConfig := newTempdirConfig(t)
+	tempdirConfig.Config.Storage = errorRW{err: errors.New(expectedErrMsg)}
+
+	processor, err := sampling.NewProcessor(sampling.ProcessorParams{
+		Config:         tempdirConfig.Config,
+		Logger:         logptest.NewTestingLogger(t, ""),
+		StatusReporter: &statusReporter,
+	})
+	require.NoError(t, err)
+	go processor.Run()
+	defer processor.Stop(context.Background())
+
+	in := modelpb.Batch{{
+		Trace: &modelpb.Trace{
+			Id: "0102030405060708090a0b0c0d0e0f10",
+		},
+		Transaction: &modelpb.Transaction{
+			Type:    "type",
+			Id:      "0102030405060708",
+			Sampled: true,
+		},
+	}}
+	err = processor.ProcessBatch(context.Background(), &in)
+	require.NoError(t, err)
+
+	statusUpdates := statusReporter.GetUpdates()
+	require.Equal(t, len(statusUpdates), 1)
+	assert.Equal(t, status.Degraded, statusUpdates[0].state)
+	assert.Contains(t, statusUpdates[0].msg, expectedErrMsg)
+}
+
+type testConfig struct {
+	sampling.Config
+	tempDir      string
+	metricReader sdkmetric.Reader
+}
+
+func newTempdirConfig(tb testing.TB) testConfig {
+	return newTempdirConfigLogger(tb, logptest.NewTestingLogger(tb, ""))
+}
+
+func newTempdirConfigLogger(tb testing.TB, logger *logp.Logger) testConfig {
+>>>>>>> ceb18363 (refactor: run go fix during fmt step (#21457))
 	tempdir, err := os.MkdirTemp("", "samplingtest")
 	require.NoError(tb, err)
 	tb.Cleanup(func() { os.RemoveAll(tempdir) })

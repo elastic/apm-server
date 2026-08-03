@@ -95,11 +95,9 @@ func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer) (*Publisher, error
 
 	var wg sync.WaitGroup
 	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			p.run()
-		}()
+		})
 	}
 	go func() {
 		defer close(p.stopped)

@@ -122,7 +122,7 @@ func NewClientParams(args ClientParams) (*Client, error) {
 	)
 }
 
-func doRequest(client *elastictransport.Client, req *http.Request, out interface{}) error {
+func doRequest(client *elastictransport.Client, req *http.Request, out any) error {
 	resp, err := client.Perform(req)
 	if err != nil {
 		return err
