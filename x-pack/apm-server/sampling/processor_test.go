@@ -679,7 +679,7 @@ func TestStorageMonitoring(t *testing.T) {
 	go processor.Run()
 	defer processor.Stop(context.Background())
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		batch := modelpb.Batch{{
 			Trace: &modelpb.Trace{Id: traceID},
@@ -739,7 +739,7 @@ func TestStorageLimit(t *testing.T) {
 		go processor.Run()
 		defer processor.Stop(context.Background())
 		batch := make(modelpb.Batch, 0, n)
-		for i := 0; i < n; i++ {
+		for range n {
 			traceID := uuid.Must(uuid.NewV4()).String()
 			batch = append(batch, &modelpb.APMEvent{
 				Trace: &modelpb.Trace{Id: traceID},
@@ -888,7 +888,7 @@ func TestGracefulShutdown(t *testing.T) {
 	traceIDGen := func(i int) string { return fmt.Sprintf("trace%d", i) }
 
 	var batch modelpb.Batch
-	for i := 0; i < totalTraces; i++ {
+	for i := range totalTraces {
 		batch = append(batch, &modelpb.APMEvent{
 			Trace: &modelpb.Trace{Id: traceIDGen(i)},
 			Transaction: &modelpb.Transaction{
@@ -906,7 +906,7 @@ func TestGracefulShutdown(t *testing.T) {
 	reader := newUnlimitedReadWriter(config.DB)
 
 	var count int
-	for i := 0; i < totalTraces; i++ {
+	for i := range totalTraces {
 		if ok, _ := reader.IsTraceSampled(traceIDGen(i)); ok {
 			count++
 		}
@@ -945,7 +945,7 @@ func TestPotentialRaceConditionConcurrent(t *testing.T) {
 	var processed atomic.Int64
 	var lateArrivals atomic.Int64
 	eg, ctx := errgroup.WithContext(context.Background())
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		eg.Go(func() error {
 			first := true
 			index := i * 100000000

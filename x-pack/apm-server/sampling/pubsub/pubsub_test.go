@@ -57,7 +57,7 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 	pub := newPubsub(t, ms.srv, time.Millisecond, time.Minute, nil)
 
 	input := make([]string, 20)
-	for i := 0; i < len(input); i++ {
+	for i := range input {
 		input[i] = uuid.Must(uuid.NewV4()).String()
 	}
 
@@ -92,27 +92,27 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 		case body := <-requestBodies:
 			d := json.NewDecoder(bytes.NewReader([]byte(body)))
 			for {
-				action := make(map[string]interface{})
+				action := make(map[string]any)
 				err := d.Decode(&action)
 				if err == io.EOF {
 					break
 				}
 				assert.NoError(t, err)
-				assert.Equal(t, map[string]interface{}{"create": map[string]interface{}{
+				assert.Equal(t, map[string]any{"create": map[string]any{
 					"_index": dataStream.String(),
 				}}, action)
 
-				doc := make(map[string]interface{})
+				doc := make(map[string]any)
 				assert.NoError(t, d.Decode(&doc))
 				assert.Contains(t, doc, "@timestamp")
-				assert.Equal(t, map[string]interface{}{"ephemeral_id": serverID}, doc["agent"])
-				ds, ok := doc["data_stream"].(map[string]interface{})
+				assert.Equal(t, map[string]any{"ephemeral_id": serverID}, doc["agent"])
+				ds, ok := doc["data_stream"].(map[string]any)
 				require.True(t, ok)
 				assert.Equal(t, dataStream.Type, ds["type"])
 				assert.Equal(t, dataStream.Dataset, ds["dataset"])
 				assert.Equal(t, dataStream.Namespace, ds["namespace"])
 
-				trace := doc["trace"].(map[string]interface{})
+				trace := doc["trace"].(map[string]any)
 				traceID := trace["id"].(string)
 				received = append(received, traceID)
 				delete(trace, "id")
@@ -343,7 +343,7 @@ func TestSubscribeSampledTraceIDsError(t *testing.T) {
 			// Show that failed requests to Elasticsearch are not fatal, and
 			// that the subscriber will retry.
 			timeout := time.After(10 * time.Second)
-			for i := 0; i < N; i++ {
+			for range N {
 				select {
 				case <-req:
 				case <-timeout:
@@ -486,7 +486,7 @@ func (m *mockElasticsearchServer) handleStats(w http.ResponseWriter, r *http.Req
 	checkpoint := m.statsGlobalCheckpoint
 	m.statsGlobalCheckpointMu.RUnlock()
 
-	w.Write([]byte(fmt.Sprintf(`{
+	w.Write(fmt.Appendf(nil, `{
           "indices": {
 	    "index_name": {
               "shards": {
@@ -501,7 +501,7 @@ func (m *mockElasticsearchServer) handleStats(w http.ResponseWriter, r *http.Req
 	      }
 	    }
 	  }
-	}`, checkpoint)))
+	}`, checkpoint))
 }
 
 func (m *mockElasticsearchServer) handleRefresh(w http.ResponseWriter, r *http.Request) {
