@@ -347,6 +347,8 @@ testing/rally/corpora:
 # Integration Server Tests -- Upgrade tests for APM Server in ECH.
 ##############################################################################
 
+EC_TARGET ?= pro
+
 # Run integration server upgrade test on one scenario - Default / Reroute
 .PHONY: integration-server-test/upgrade
 integration-server-test/upgrade:
@@ -356,7 +358,7 @@ endif
 ifndef SCENARIO
 	$(error SCENARIO is not set)
 endif
-	@cd integrationservertest && go test -run=TestUpgrade/.*/$(SCENARIO) -v -timeout=90m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
+	@cd integrationservertest && go test -run=TestUpgrade/.*/$(SCENARIO) -v -timeout=90m -cleanup-on-failure=true -target="$(EC_TARGET)" -upgrade-path="$(UPGRADE_PATH)" ./
 
 # Run integration server upgrade test on all scenarios
 .PHONY: integration-server-test/upgrade-all
@@ -364,7 +366,7 @@ integration-server-test/upgrade-all:
 ifndef UPGRADE_PATH
 	$(error UPGRADE_PATH is not set)
 endif
-	@cd integrationservertest && go test -run=TestUpgrade -v -timeout=90m -cleanup-on-failure=true -target="pro" -upgrade-path="$(UPGRADE_PATH)" ./
+	@cd integrationservertest && go test -run=TestUpgrade -v -timeout=90m -cleanup-on-failure=true -target="$(EC_TARGET)" -upgrade-path="$(UPGRADE_PATH)" ./
 
 ##############################################################################
 # Generating and linting API documentation
@@ -374,8 +376,3 @@ endif
 api-docs: ## Generate bundled OpenAPI documents
 	@npx @redocly/cli bundle "docs/spec/openapi/apm-openapi.yaml" --ext yaml --output "docs/spec/openapi/bundled.yaml"
 	@npx @redocly/cli bundle "docs/spec/openapi/apm-openapi.yaml" --ext json --output "docs/spec/openapi/bundled.json"
-
-.PHONY: api-docs-lint
-api-docs-lint: ## Run spectral API docs linter
-	@npx @stoplight/spectral-cli lint "docs/spec/openapi/bundled.yaml" --ruleset "docs/spec/openapi/.spectral.yaml"
-

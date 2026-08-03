@@ -1,17 +1,18 @@
 ---
-name: create-test-plan-patch
+name: create-test-plan
 
 on:
   workflow_dispatch:
     inputs:
       upcoming_release:
-        description: 'Upcoming release version (e.g., 9.2.6)'
+        description: 'Upcoming release version (e.g., 9.2.6 for patch or 9.3.0 for minor)'
         required: true
         type: string
 
 permissions:
   contents: read
   issues: write
+  pull-requests: read
 
 jobs:
   analyze-commits:
@@ -21,11 +22,14 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0  # Fetch all history for all branches and tags
+          fetch-tags: true
 
       - name: Generate test plan
         id: generate-test-plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.upcoming_release }}
         run: |
-          VERSION="${{ inputs.upcoming_release }}"
           bash .ci/scripts/generate-test-plan.sh "$VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "test_plan_file=build/test-plan-$VERSION.md" >> $GITHUB_OUTPUT
@@ -34,13 +38,13 @@ jobs:
         id: create-issue
         run: |
           VERSION="${{ steps.generate-test-plan.outputs.version }}"
-          
+
           # Create the issue
           ISSUE_URL=$(gh issue create \
             --title "$VERSION Test Plan" \
             --body-file "${{ steps.generate-test-plan.outputs.test_plan_file }}" \
             --label "test-plan")
-          
+
           echo "issue_url=$ISSUE_URL" >> $GITHUB_OUTPUT
           echo "Created test plan issue: $ISSUE_URL"
         env:
@@ -54,10 +58,10 @@ jobs:
           **Issue URL:** ${{ steps.create-issue.outputs.issue_url }}
 
           **Version:** ${{ steps.generate-test-plan.outputs.version }}
-    
+
           ## Test Plan Preview
-    
+
           $(head -n 50 "${{ steps.generate-test-plan.outputs.test_plan_file }}")
-    
+
           _Full test plan available in the issue above_
           EOF

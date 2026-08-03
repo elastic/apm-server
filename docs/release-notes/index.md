@@ -36,6 +36,10 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 % _No new fixes_ 
 
+## 9.4.4 [apm-9.4.4-release-notes]
+
+_No new features, enhancements, or fixes._
+
 ## 9.4.3 [apm-9.4.3-release-notes]
 
 _No new features, enhancements, or fixes._
@@ -59,6 +63,10 @@ _No new features, enhancements, or fixes._
 ### Fixes [apm-9.4.0-fixes]
 
 * Fixed HTTP/2 connections being dropped by strict clients and browser-based RUM agents due to APM Server sending inconsistent SETTINGS frames at connection start. ([#20913](https://github.com/elastic/apm-server/pull/20913)). For more details, refer to our known issues [page](https://www.elastic.co/docs/release-notes/apm/known-issues)
+
+## 9.3.8 [apm-9.3.8-release-notes]
+
+_No new features, enhancements, or fixes._
 
 ## 9.3.7 [apm-9.3.7-release-notes]
 
