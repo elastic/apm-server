@@ -94,8 +94,8 @@ func (s *BodyCachingFetcher) Fetch(ctx context.Context, name, version, path stri
 	if err != nil {
 		if errors.Is(err, errMalformedSourcemap) || errors.Is(err, errSourcemapSizeExceedsLimit) {
 			s.logger.Warnf(
-				"caching empty sourcemap due to permanent error: %s for sourcemap with name (%s), version (%s), path (%s)",
-				err.Error(), name, version, path,
+				"caching empty sourcemap for name (%s), version (%s), path (%s) due to permanent error: %s",
+				name, version, path, err.Error(),
 			)
 			s.add(key, nil)
 		}
