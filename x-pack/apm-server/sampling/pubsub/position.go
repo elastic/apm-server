@@ -4,7 +4,10 @@
 
 package pubsub
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"maps"
+)
 
 // SubscriberPosition holds information for the subscriber to resume after the
 // recently observed sampled trace IDs.
@@ -27,9 +30,7 @@ func (p *SubscriberPosition) UnmarshalJSON(data []byte) error {
 
 func copyPosition(pos SubscriberPosition) SubscriberPosition {
 	observedSeqnos := make(map[string]int64, len(pos.observedSeqnos))
-	for index, seqno := range pos.observedSeqnos {
-		observedSeqnos[index] = seqno
-	}
+	maps.Copy(observedSeqnos, pos.observedSeqnos)
 	pos.observedSeqnos = observedSeqnos
 	return pos
 }

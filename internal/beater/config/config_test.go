@@ -175,16 +175,16 @@ func TestUnpackConfig(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		inpCfg         map[string]interface{}
-		inpOutputESCfg map[string]interface{}
+		inpCfg         map[string]any
+		inpOutputESCfg map[string]any
 		outCfg         *Config
 	}{
 		"default config": {
-			inpCfg: map[string]interface{}{},
+			inpCfg: map[string]any{},
 			outCfg: DefaultConfig(),
 		},
 		"overwrite default": {
-			inpCfg: map[string]interface{}{
+			inpCfg: map[string]any{
 				"host":                    "localhost:3000",
 				"max_header_size":         8,
 				"max_event_size":          100,
@@ -194,43 +194,43 @@ func TestUnpackConfig(t *testing.T) {
 				"shutdown_timeout":        9 * time.Second,
 				"capture_personal_data":   true,
 				"max_concurrent_decoders": 100,
-				"auth": map[string]interface{}{
+				"auth": map[string]any{
 					"secret_token": "1234random",
-					"api_key": map[string]interface{}{
+					"api_key": map[string]any{
 						"enabled":             true,
 						"limit":               200,
 						"elasticsearch.hosts": []string{"localhost:9201", "localhost:9202"},
 					},
-					"anonymous": map[string]interface{}{
+					"anonymous": map[string]any{
 						"enabled":       true,
 						"allow_service": []string{"opbeans-rum"},
-						"rate_limit": map[string]interface{}{
+						"rate_limit": map[string]any{
 							"event_limit": 7200,
 							"ip_limit":    2000,
 						},
 					},
 				},
-				"output": map[string]interface{}{
+				"output": map[string]any{
 					"backoff.init": time.Second,
 					"backoff.max":  time.Minute,
 				},
-				"ssl": map[string]interface{}{
+				"ssl": map[string]any{
 					"enabled":                 true,
 					"key":                     "../../testdata/tls/key.pem",
 					"certificate":             "../../testdata/tls/certificate.pem",
 					"certificate_authorities": []string{"../../testdata/tls/ca.crt.pem"},
 					"client_authentication":   "required",
 				},
-				"expvar": map[string]interface{}{
+				"expvar": map[string]any{
 					"enabled": true,
 					"url":     "/debug/vars",
 				},
-				"rum": map[string]interface{}{
+				"rum": map[string]any{
 					"enabled":       true,
 					"allow_origins": []string{"example*"},
 					"allow_headers": []string{"Authorization"},
-					"source_mapping": map[string]interface{}{
-						"cache": map[string]interface{}{
+					"source_mapping": map[string]any{
+						"cache": map[string]any{
 							"expiration": 8 * time.Minute,
 						},
 						"elasticsearch.hosts": []string{"localhost:9201", "localhost:9202"},
@@ -239,29 +239,29 @@ func TestUnpackConfig(t *testing.T) {
 					"library_pattern":       "^custom",
 					"exclude_from_grouping": "^grouping",
 				},
-				"register": map[string]interface{}{
-					"ingest": map[string]interface{}{
-						"pipeline": map[string]interface{}{
+				"register": map[string]any{
+					"ingest": map[string]any{
+						"pipeline": map[string]any{
 							"overwrite": false,
 							"path":      filepath.Join("tmp", "definition.json"),
 						},
 					},
 				},
-				"kibana":                        map[string]interface{}{"enabled": "true"},
+				"kibana":                        map[string]any{"enabled": "true"},
 				"agent.config.cache.expiration": "2m",
-				"agent.config.elasticsearch": map[string]interface{}{
+				"agent.config.elasticsearch": map[string]any{
 					"api_key": "id:api_key",
 				},
-				"aggregation": map[string]interface{}{
+				"aggregation": map[string]any{
 					"max_services": 111,
-					"transactions": map[string]interface{}{
+					"transactions": map[string]any{
 						"rollup_intervals": []string{"10s", "10m"},
 						"max_groups":       123,
 					},
-					"service_destinations": map[string]interface{}{
+					"service_destinations": map[string]any{
 						"max_groups": 456,
 					},
-					"service_transactions": map[string]interface{}{
+					"service_transactions": map[string]any{
 						"max_groups": 457,
 					},
 				},
@@ -304,7 +304,7 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				TLS: &tlscommon.ServerConfig{
-					Enabled:     newBool(true),
+					Enabled:     new(true),
 					Certificate: testdataCertificateConfig,
 					ClientAuth:  &requireClientAuth,
 					CAs:         []string{"../../testdata/tls/ca.crt.pem"},
@@ -388,49 +388,49 @@ func TestUnpackConfig(t *testing.T) {
 			},
 		},
 		"merge config with default": {
-			inpCfg: map[string]interface{}{
+			inpCfg: map[string]any{
 				"host": "localhost:3000",
-				"auth": map[string]interface{}{
+				"auth": map[string]any{
 					"api_key.enabled": true,
 					"secret_token":    "1234random",
 				},
-				"ssl": map[string]interface{}{
+				"ssl": map[string]any{
 					"enabled":     true,
 					"certificate": "../../testdata/tls/certificate.pem",
 					"key":         "../../testdata/tls/key.pem",
 				},
-				"expvar": map[string]interface{}{
+				"expvar": map[string]any{
 					"enabled": true,
 					"url":     "/debug/vars",
 				},
-				"pprof": map[string]interface{}{
+				"pprof": map[string]any{
 					"enabled": true,
 				},
-				"rum": map[string]interface{}{
+				"rum": map[string]any{
 					"enabled": true,
-					"source_mapping": map[string]interface{}{
-						"cache": map[string]interface{}{
+					"source_mapping": map[string]any{
+						"cache": map[string]any{
 							"expiration": 7,
 						},
 					},
 					"library_pattern": "rum",
 				},
-				"register": map[string]interface{}{
-					"ingest": map[string]interface{}{
-						"pipeline": map[string]interface{}{
+				"register": map[string]any{
+					"ingest": map[string]any{
+						"pipeline": map[string]any{
 							"enabled": false,
 						},
 					},
 				},
-				"sampling.tail": map[string]interface{}{
+				"sampling.tail": map[string]any{
 					"enabled":              false,
-					"policies":             []map[string]interface{}{{"sample_rate": 0.5}},
+					"policies":             []map[string]any{{"sample_rate": 0.5}},
 					"interval":             "2m",
 					"ingest_rate_decay":    1.0,
 					"storage_limit":        "1GB",
 					"disk_usage_threshold": 0.8,
 				},
-				"data_streams": map[string]interface{}{
+				"data_streams": map[string]any{
 					"namespace": "foo",
 				},
 			},
@@ -460,7 +460,7 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				TLS: &tlscommon.ServerConfig{
-					Enabled:     newBool(true),
+					Enabled:     new(true),
 					Certificate: testdataCertificateConfig,
 				},
 				AugmentEnabled: true,
@@ -522,8 +522,8 @@ func TestUnpackConfig(t *testing.T) {
 			},
 		},
 		"kibana trailing slash": {
-			inpCfg: map[string]interface{}{
-				"kibana": map[string]interface{}{
+			inpCfg: map[string]any{
+				"kibana": map[string]any{
 					"enabled": "true",
 					"host":    "kibanahost:5601/proxy/",
 				},
@@ -531,10 +531,10 @@ func TestUnpackConfig(t *testing.T) {
 			outCfg: kibanaNoSlashConfig,
 		},
 		"kibana headers": {
-			inpCfg: map[string]interface{}{
-				"kibana": map[string]interface{}{
+			inpCfg: map[string]any{
+				"kibana": map[string]any{
 					"enabled": "true",
-					"headers": map[string]interface{}{
+					"headers": map[string]any{
 						"foo": "bar",
 					},
 				},
@@ -542,13 +542,13 @@ func TestUnpackConfig(t *testing.T) {
 			outCfg: kibanaHeadersConfig,
 		},
 		"response headers": {
-			inpCfg: map[string]interface{}{
-				"response_headers": map[string]interface{}{
+			inpCfg: map[string]any{
+				"response_headers": map[string]any{
 					"k1": "v1",
 					"k2": []string{"v2", "v3"},
 				},
-				"rum": map[string]interface{}{
-					"response_headers": map[string]interface{}{
+				"rum": map[string]any{
+					"response_headers": map[string]any{
 						"k4": []string{"v4"},
 					},
 				},
@@ -556,10 +556,10 @@ func TestUnpackConfig(t *testing.T) {
 			outCfg: responseHeadersConfig,
 		},
 		"agentcfg and rum sourcemapping reuse output es config": {
-			inpCfg: map[string]interface{}{
+			inpCfg: map[string]any{
 				"rum.enabled": true,
 			},
-			inpOutputESCfg: map[string]interface{}{
+			inpOutputESCfg: map[string]any{
 				"hosts":    []string{"localhost:9200"},
 				"username": "output_username",
 				"password": "output_password",
@@ -568,16 +568,16 @@ func TestUnpackConfig(t *testing.T) {
 			outCfg: reuseOutputESConfig,
 		},
 		"agentcfg and rum sourcemapping override host output es config ": {
-			inpCfg: map[string]interface{}{
+			inpCfg: map[string]any{
 				"rum.enabled": true,
-				"rum.source_mapping.elasticsearch": map[string]interface{}{
+				"rum.source_mapping.elasticsearch": map[string]any{
 					"hosts": []string{"localhost:9201"},
 				},
-				"agent.config.elasticsearch": map[string]interface{}{
+				"agent.config.elasticsearch": map[string]any{
 					"hosts": []string{"localhost:9202"},
 				},
 			},
-			inpOutputESCfg: map[string]interface{}{
+			inpOutputESCfg: map[string]any{
 				"hosts":    []string{"localhost:9200"},
 				"username": "output_username",
 				"password": "output_password",
@@ -586,20 +586,20 @@ func TestUnpackConfig(t *testing.T) {
 			outCfg: overrideHostOutputESConfig,
 		},
 		"agentcfg and rum sourcemapping override credentials output es config ": {
-			inpCfg: map[string]interface{}{
+			inpCfg: map[string]any{
 				"rum.enabled": true,
-				"rum.source_mapping.elasticsearch": map[string]interface{}{
+				"rum.source_mapping.elasticsearch": map[string]any{
 					"hosts":   []string{"localhost:9201"},
 					"api_key": "id:api_key",
 					"invalid": "invalid",
 				},
-				"agent.config.elasticsearch": map[string]interface{}{
+				"agent.config.elasticsearch": map[string]any{
 					"hosts":   []string{"localhost:9202"},
 					"api_key": "id2:api_key2",
 					"invalid": "invalid",
 				},
 			},
-			inpOutputESCfg: map[string]interface{}{
+			inpOutputESCfg: map[string]any{
 				"hosts":    []string{"localhost:9200"},
 				"username": "output_username",
 				"password": "output_password",
@@ -608,20 +608,20 @@ func TestUnpackConfig(t *testing.T) {
 			outCfg: overrideCredentialsOutputESConfig,
 		},
 		"agentcfg and rum sourcemapping override credentials output es config malformed": {
-			inpCfg: map[string]interface{}{
+			inpCfg: map[string]any{
 				"rum.enabled": true,
-				"rum.source_mapping.elasticsearch": map[string]interface{}{
+				"rum.source_mapping.elasticsearch": map[string]any{
 					"hosts":    []string{"localhost:9201"},
 					"password": "foo",
 					"invalid":  "invalid",
 				},
-				"agent.config.elasticsearch": map[string]interface{}{
+				"agent.config.elasticsearch": map[string]any{
 					"hosts":   []string{"localhost:9202"},
 					"api_key": "id2:api_key2",
 					"invalid": "invalid",
 				},
 			},
-			inpOutputESCfg: map[string]interface{}{
+			inpOutputESCfg: map[string]any{
 				"hosts":    []string{"localhost:9200"},
 				"username": "output_username",
 				"password": "output_password",
@@ -657,12 +657,12 @@ func TestUnpackConfig(t *testing.T) {
 func TestTLSSettings(t *testing.T) {
 	t.Run("ClientAuthentication", func(t *testing.T) {
 		for name, tc := range map[string]struct {
-			config map[string]interface{}
+			config map[string]any
 
 			tls *tlscommon.ServerConfig
 		}{
 			"Defaults": {
-				config: map[string]interface{}{"ssl": map[string]interface{}{
+				config: map[string]any{"ssl": map[string]any{
 					"enabled":     true,
 					"key":         "../../testdata/tls/key.pem",
 					"certificate": "../../testdata/tls/certificate.pem",
@@ -670,7 +670,7 @@ func TestTLSSettings(t *testing.T) {
 				tls: &tlscommon.ServerConfig{Certificate: testdataCertificateConfig},
 			},
 			"ConfiguredToRequired": {
-				config: map[string]interface{}{"ssl": map[string]interface{}{
+				config: map[string]any{"ssl": map[string]any{
 					"client_authentication": "required",
 					"key":                   "../../testdata/tls/key.pem",
 					"certificate":           "../../testdata/tls/certificate.pem",
@@ -678,7 +678,7 @@ func TestTLSSettings(t *testing.T) {
 				tls: &tlscommon.ServerConfig{ClientAuth: &requireClientAuth, Certificate: testdataCertificateConfig},
 			},
 			"ConfiguredToOptional": {
-				config: map[string]interface{}{"ssl": map[string]interface{}{
+				config: map[string]any{"ssl": map[string]any{
 					"client_authentication": "optional",
 					"key":                   "../../testdata/tls/key.pem",
 					"certificate":           "../../testdata/tls/certificate.pem",
@@ -686,7 +686,7 @@ func TestTLSSettings(t *testing.T) {
 				tls: &tlscommon.ServerConfig{ClientAuth: &optionalClientAuth, Certificate: testdataCertificateConfig},
 			},
 			"DefaultRequiredByCA": {
-				config: map[string]interface{}{"ssl": map[string]interface{}{
+				config: map[string]any{"ssl": map[string]any{
 					"certificate_authorities": []string{"../../testdata/tls/ca.crt.pem"},
 					"key":                     "../../testdata/tls/key.pem",
 					"certificate":             "../../testdata/tls/certificate.pem",
@@ -694,7 +694,7 @@ func TestTLSSettings(t *testing.T) {
 				tls: &tlscommon.ServerConfig{ClientAuth: &requireClientAuth, Certificate: testdataCertificateConfig},
 			},
 			"ConfiguredWithCA": {
-				config: map[string]interface{}{"ssl": map[string]interface{}{
+				config: map[string]any{"ssl": map[string]any{
 					"client_authentication":   "none",
 					"certificate_authorities": []string{"../../testdata/tls/ca.crt.pem"},
 					"key":                     "../../testdata/tls/key.pem",
@@ -723,8 +723,8 @@ func TestTLSSettings(t *testing.T) {
 			"SSL":               {tlsServerCfg: &tlscommon.ServerConfig{Enabled: nil}, expected: true},
 			"WithCert":          {tlsServerCfg: &tlscommon.ServerConfig{Certificate: tlscommon.CertificateConfig{Certificate: "Cert"}}, expected: true},
 			"WithCertAndKey":    {tlsServerCfg: &tlscommon.ServerConfig{Certificate: tlscommon.CertificateConfig{Certificate: "Cert", Key: "key"}}, expected: true},
-			"ConfiguredToFalse": {tlsServerCfg: &tlscommon.ServerConfig{Certificate: tlscommon.CertificateConfig{Certificate: "Cert", Key: "key"}, Enabled: newBool(false)}, expected: false},
-			"ConfiguredToTrue":  {tlsServerCfg: &tlscommon.ServerConfig{Enabled: newBool(true)}, expected: true},
+			"ConfiguredToFalse": {tlsServerCfg: &tlscommon.ServerConfig{Certificate: tlscommon.CertificateConfig{Certificate: "Cert", Key: "key"}, Enabled: new(false)}, expected: false},
+			"ConfiguredToTrue":  {tlsServerCfg: &tlscommon.ServerConfig{Enabled: new(true)}, expected: true},
 		} {
 			t.Run(name, func(t *testing.T) {
 				b := tc.expected
@@ -760,10 +760,6 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.Sampling.Tail.ESConfig.Hosts))
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.AgentConfig.ESConfig.Hosts))
 
-}
-
-func newBool(v bool) *bool {
-	return &v
 }
 
 func ignoreUnexported() cmp.Option {
