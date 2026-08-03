@@ -35,7 +35,7 @@ func debugVarsHandler(statsRegistry *monitoring.Registry) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 		first := true
-		report := func(key string, value interface{}) {
+		report := func(key string, value any) {
 			if !first {
 				fmt.Fprintf(w, ",\n")
 			}

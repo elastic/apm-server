@@ -92,7 +92,7 @@ func TestContext_Reset(t *testing.T) {
 	require.True(t, os.IsNotExist(err))
 
 	// use reflection to ensure all fields of `context` are tested
-	cType := reflect.TypeOf(c)
+	cType := reflect.TypeFor[Context]()
 	cVal := reflect.ValueOf(c)
 	for i := 0; i < cVal.NumField(); i++ {
 		switch name := cType.Field(i).Name; name {
@@ -382,7 +382,7 @@ func TestContext_Write(t *testing.T) {
 
 	t.Run("DoNotWrapOtherBodyInMap", func(t *testing.T) {
 		c, w := mockContextAccept("application/text")
-		body := map[string]interface{}{"xyz": "bar"}
+		body := map[string]any{"xyz": "bar"}
 		c.Result = Result{StatusCode: http.StatusBadRequest, Body: body}
 		c.WriteResult()
 
@@ -394,12 +394,12 @@ func TestContext_Write(t *testing.T) {
 	t.Run("Accept", func(t *testing.T) {
 		for name, tc := range map[string]struct {
 			acceptHeader                 string
-			body                         interface{}
+			body                         any
 			expectedHeader, expectedBody string
 		}{
 			"application/json": {
 				acceptHeader:   "application/json",
-				body:           map[string]interface{}{"xyz": "bar"},
+				body:           map[string]any{"xyz": "bar"},
 				expectedHeader: "application/json",
 				expectedBody: `{
   "xyz": "bar"
@@ -408,7 +408,7 @@ func TestContext_Write(t *testing.T) {
 			},
 			"*/*": {
 				acceptHeader:   "*/*",
-				body:           map[string]interface{}{"xyz": "bar"},
+				body:           map[string]any{"xyz": "bar"},
 				expectedHeader: "application/json",
 				expectedBody: `{
   "xyz": "bar"
@@ -417,7 +417,7 @@ func TestContext_Write(t *testing.T) {
 			},
 			"jsonBody": {
 				acceptHeader:   "application/text",
-				body:           map[string]interface{}{"xyz": "bar"},
+				body:           map[string]any{"xyz": "bar"},
 				expectedHeader: "text/plain; charset=utf-8",
 				expectedBody:   `{"xyz":"bar"}` + "\n",
 			},

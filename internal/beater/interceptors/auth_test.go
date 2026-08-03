@@ -47,7 +47,7 @@ func TestUnaryAuthenticator(t *testing.T) {
 	authenticator := &auth.Authenticator{}
 	interceptor := interceptors.Auth(authenticator)
 
-	call := func(t *testing.T, authnErr, authzErr error) (interface{}, error) {
+	call := func(t *testing.T, authnErr, authzErr error) (any, error) {
 		details := auth.AuthenticationDetails{
 			Method: auth.MethodAPIKey,
 			APIKey: &auth.APIKeyAuthenticationDetails{ID: "whatever"},
@@ -58,7 +58,7 @@ func TestUnaryAuthenticator(t *testing.T) {
 
 		var authFunc unaryAuthenticatorFunc = func(
 			ctx context.Context,
-			req interface{},
+			req any,
 			fullMethod string,
 			authenticatorArg *auth.Authenticator,
 		) (auth.AuthenticationDetails, auth.Authorizer, error) {
@@ -69,7 +69,7 @@ func TestUnaryAuthenticator(t *testing.T) {
 			return details, authz, authnErr
 		}
 
-		handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		handler := func(ctx context.Context, req any) (any, error) {
 			assert.Equal(t, 123, ctx.Value(contextKey{}))
 			ctxDetails, ok := interceptors.AuthenticationDetailsFromContext(ctx)
 			assert.True(t, ok)
@@ -128,7 +128,7 @@ func TestAuthorizationMetadataAuthenticator(t *testing.T) {
 	// Call with a valid authorization header.
 	resp, err := interceptor(authContext, nil, &grpc.UnaryServerInfo{
 		Server: nil, // Server does not implement UnaryAuthenticator
-	}, func(ctx context.Context, req interface{}) (interface{}, error) {
+	}, func(ctx context.Context, req any) (any, error) {
 		details, ok := interceptors.AuthenticationDetailsFromContext(ctx)
 		assert.True(t, ok)
 		assert.Equal(t, auth.MethodSecretToken, details.Method)
@@ -141,7 +141,7 @@ func TestAuthorizationMetadataAuthenticator(t *testing.T) {
 	// fails and the handler is never invoked.
 	resp, err = interceptor(ctx, nil, &grpc.UnaryServerInfo{
 		Server: nil, // Server does not implement UnaryAuthenticator
-	}, func(ctx context.Context, req interface{}) (interface{}, error) {
+	}, func(ctx context.Context, req any) (any, error) {
 		panic("unexpected")
 	})
 	assert.Equal(t, codes.Unauthenticated, status.Code(err))
@@ -150,14 +150,14 @@ func TestAuthorizationMetadataAuthenticator(t *testing.T) {
 
 type unaryAuthenticatorFunc func(
 	ctx context.Context,
-	req interface{},
+	req any,
 	fullMethod string,
 	authenticator *auth.Authenticator,
 ) (auth.AuthenticationDetails, auth.Authorizer, error)
 
 func (f unaryAuthenticatorFunc) AuthenticateUnaryCall(
 	ctx context.Context,
-	req interface{},
+	req any,
 	fullMethod string,
 	authenticator *auth.Authenticator,
 ) (auth.AuthenticationDetails, auth.Authorizer, error) {
