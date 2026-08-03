@@ -88,8 +88,8 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 	}))
 
 	options := options{
-		config: []*agentconfig.C{agentconfig.MustNewConfigFrom(map[string]interface{}{
-			"apm-server": map[string]interface{}{
+		config: []*agentconfig.C{agentconfig.MustNewConfigFrom(map[string]any{
+			"apm-server": map[string]any{
 				"host": "localhost:0",
 			},
 		})},
