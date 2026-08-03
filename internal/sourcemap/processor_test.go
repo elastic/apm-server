@@ -289,8 +289,8 @@ func TestBatchProcessorSourcemapSizeExceedsLimit(t *testing.T) {
 
 	nonMatchingFrame := modelpb.StacktraceFrame{
 		AbsPath:  "bundle.js",
-		Lineno:   newInt(0),
-		Colno:    newInt(0),
+		Lineno:   new(0),
+		Colno:    new(0),
 		Function: "original function",
 	}
 
