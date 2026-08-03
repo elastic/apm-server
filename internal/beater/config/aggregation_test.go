@@ -28,7 +28,7 @@ import (
 )
 
 func TestAggregationConfigDefault(t *testing.T) {
-	cfg, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{}), nil, logptest.NewTestingLogger(t, ""))
+	cfg, err := NewConfig(config.MustNewConfigFrom(map[string]any{}), nil, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 	assert.Equal(t, defaultAggregationConfig(), cfg.Aggregation)
 }
