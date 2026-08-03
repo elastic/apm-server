@@ -54,17 +54,17 @@ func TestLogging(t *testing.T) {
 
 	for _, tc := range []struct {
 		statusCode codes.Code
-		f          func(ctx context.Context, req interface{}) (interface{}, error)
+		f          func(ctx context.Context, req any) (any, error)
 	}{
 		{
 			statusCode: codes.Internal,
-			f: func(ctx context.Context, req interface{}) (interface{}, error) {
+			f: func(ctx context.Context, req any) (any, error) {
 				return nil, status.New(codes.Internal, "internal server error").Err()
 			},
 		},
 		{
 			statusCode: codes.OK,
-			f: func(ctx context.Context, req interface{}) (interface{}, error) {
+			f: func(ctx context.Context, req any) (any, error) {
 				return nil, nil
 			},
 		},
