@@ -33,10 +33,10 @@ import (
 func Timeout() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
-		req interface{},
+		req any,
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
-	) (interface{}, error) {
+	) (any, error) {
 		resp, err := handler(ctx, req)
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			if s, ok := status.FromError(err); !ok || s.Code() == codes.OK {

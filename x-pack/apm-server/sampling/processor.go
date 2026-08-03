@@ -323,10 +323,7 @@ func (p *Processor) Run() error {
 	// but cannot directly control the bulk indexing flush interval. The
 	// bulk indexing is expected to complete soon after the tail-sampling
 	// flush interval.
-	bulkIndexerFlushInterval := 5 * time.Second
-	if bulkIndexerFlushInterval > p.config.FlushInterval {
-		bulkIndexerFlushInterval = p.config.FlushInterval
-	}
+	bulkIndexerFlushInterval := min(5*time.Second, p.config.FlushInterval)
 
 	initialSubscriberPosition := readSubscriberPosition(p.logger, p.config.DB)
 	subscriberPositions := make(chan pubsub.SubscriberPosition)

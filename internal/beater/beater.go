@@ -837,10 +837,7 @@ func docappenderConfig(
 ) docappender.Config {
 	const logMessage = "%s set to %d based on %0.1fgb of memory"
 	// Use 80% of the total memory limit to calculate buffer size
-	opts.DocumentBufferSize = int(1024 * memLimit * 0.8)
-	if opts.DocumentBufferSize >= 61440 {
-		opts.DocumentBufferSize = 61440
-	}
+	opts.DocumentBufferSize = min(int(1024*memLimit*0.8), 61440)
 	logger.Infof(logMessage,
 		"docappender.DocumentBufferSize", opts.DocumentBufferSize, memLimit,
 	)
@@ -859,11 +856,8 @@ func docappenderConfig(
 	} else {
 		multiplier = 1.5
 	}
-	maxRequests := int(float64(10) + memLimit*multiplier)
-	if maxRequests > 60 {
-		maxRequests = 60
-	}
-	opts.MaxRequests = maxRequests
+	maxRequests := min(10+memLimit*multiplier, 60)
+	opts.MaxRequests = int(maxRequests)
 	logger.Infof(logMessage,
 		"docappender.MaxRequests", opts.MaxRequests, memLimit,
 	)

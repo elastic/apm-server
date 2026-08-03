@@ -333,15 +333,15 @@ func TestInvalidation(t *testing.T) {
 const scrollID = "FGluY2x1ZGVfY29udGV4dF91dWlkDXF1ZXJ5QW5kRmV0Y2gBFkJUT0Z5bFUtUXRXM3NTYno0dkM2MlEAAAAAAABnRBY5OUxYalAwUFFoS1NfLV9lWjlSYTRn"
 
 func sourcemapSearchResponseBody(ids []metadata) []byte {
-	m := make([]map[string]interface{}, 0, len(ids))
+	m := make([]map[string]any, 0, len(ids))
 	for _, id := range ids {
-		m = append(m, map[string]interface{}{
-			"_source": map[string]interface{}{
-				"service": map[string]interface{}{
+		m = append(m, map[string]any{
+			"_source": map[string]any{
+				"service": map[string]any{
 					"name":    id.name,
 					"version": id.version,
 				},
-				"file": map[string]interface{}{
+				"file": map[string]any{
 					"path": id.path,
 				},
 				"content_sha256": id.contentHash,
@@ -349,9 +349,9 @@ func sourcemapSearchResponseBody(ids []metadata) []byte {
 		})
 	}
 
-	result := map[string]interface{}{
-		"hits": map[string]interface{}{
-			"total": map[string]interface{}{
+	result := map[string]any{
+		"hits": map[string]any{
+			"total": map[string]any{
 				"value": len(ids),
 			},
 			"hits": m,

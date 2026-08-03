@@ -31,7 +31,7 @@ import (
 func TestMonitoringHandler(t *testing.T) {
 	checkMonitoring := func(t *testing.T,
 		h func(*request.Context),
-		expectedOtel map[string]interface{},
+		expectedOtel map[string]any,
 	) {
 		reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
 			func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
@@ -49,7 +49,7 @@ func TestMonitoringHandler(t *testing.T) {
 	t.Run("Error", func(t *testing.T) {
 		checkMonitoring(t,
 			Handler403,
-			map[string]interface{}{
+			map[string]any{
 				"http.server." + string(request.IDRequestCount):            1,
 				"http.server." + string(request.IDResponseCount):           1,
 				"http.server." + string(request.IDResponseErrorsCount):     1,
@@ -67,7 +67,7 @@ func TestMonitoringHandler(t *testing.T) {
 	t.Run("Accepted", func(t *testing.T) {
 		checkMonitoring(t,
 			Handler202,
-			map[string]interface{}{
+			map[string]any{
 				"http.server." + string(request.IDRequestCount):          1,
 				"http.server." + string(request.IDResponseCount):         1,
 				"http.server." + string(request.IDResponseValidCount):    1,
@@ -85,7 +85,7 @@ func TestMonitoringHandler(t *testing.T) {
 	t.Run("Idle", func(t *testing.T) {
 		checkMonitoring(t,
 			HandlerIdle,
-			map[string]interface{}{
+			map[string]any{
 				"http.server." + string(request.IDRequestCount):       1,
 				"http.server." + string(request.IDResponseCount):      1,
 				"http.server." + string(request.IDResponseValidCount): 1,
@@ -103,7 +103,7 @@ func TestMonitoringHandler(t *testing.T) {
 	t.Run("Panic", func(t *testing.T) {
 		checkMonitoring(t,
 			Apply(RecoverPanicMiddleware(), HandlerPanic),
-			map[string]interface{}{
+			map[string]any{
 				"http.server." + string(request.IDRequestCount):           1,
 				"http.server." + string(request.IDResponseCount):          1,
 				"http.server." + string(request.IDResponseErrorsCount):    1,
@@ -121,7 +121,7 @@ func TestMonitoringHandler(t *testing.T) {
 	t.Run("Nil", func(t *testing.T) {
 		checkMonitoring(t,
 			HandlerIdle,
-			map[string]interface{}{
+			map[string]any{
 				"http.server." + string(request.IDRequestCount):       1,
 				"http.server." + string(request.IDResponseCount):      1,
 				"http.server." + string(request.IDResponseValidCount): 1,
@@ -148,14 +148,12 @@ func TestMonitoringHandler(t *testing.T) {
 		c, _ := DefaultContextWithResponseRecorder()
 		var wg sync.WaitGroup
 		for range i {
-			wg.Add(1)
-			go func() {
+			wg.Go(func() {
 				Apply(m, HandlerIdle)(c)
-				wg.Done()
-			}()
+			})
 		}
 		wg.Wait()
-		monitoringtest.ExpectOtelMetrics(t, reader, map[string]interface{}{
+		monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
 			"http.server." + string(request.IDRequestCount):       i,
 			"http.server." + string(request.IDResponseCount):      i,
 			"http.server." + string(request.IDResponseValidCount): i,

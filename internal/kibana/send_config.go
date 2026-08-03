@@ -56,11 +56,11 @@ func SendConfig(ctx context.Context, client *Client, conf *ucfg.Config) error {
 	return nil
 }
 
-func format(m map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{"schema": m}
+func format(m map[string]any) map[string]any {
+	return map[string]any{"schema": m}
 }
 
-func flattenAndClean(conf *ucfg.Config) (map[string]interface{}, error) {
+func flattenAndClean(conf *ucfg.Config) (map[string]any, error) {
 	m := mapstr.M{}
 	if err := conf.Unpack(m); err != nil {
 		return nil, err
