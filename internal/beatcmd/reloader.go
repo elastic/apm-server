@@ -243,7 +243,7 @@ func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C)
 	default:
 	}
 
-	wrappedOutputConfig := config.MustNewConfigFrom(map[string]interface{}{
+	wrappedOutputConfig := config.MustNewConfigFrom(map[string]any{
 		"output": outputConfig,
 	})
 
@@ -256,7 +256,7 @@ func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C)
 		}
 		// set enabled manually as APMConfig doesn't contain it.
 		c.SetBool("enabled", -1, true)
-		wrappedApmTracingConfig = config.MustNewConfigFrom(map[string]interface{}{
+		wrappedApmTracingConfig = config.MustNewConfigFrom(map[string]any{
 			"instrumentation": c,
 		})
 	} else {
