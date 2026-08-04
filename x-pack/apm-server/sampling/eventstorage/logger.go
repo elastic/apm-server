@@ -21,7 +21,7 @@ type LogpAdaptor struct {
 
 // Errorf prints the log message when the current message isn't the same as the
 // previously logged message.
-func (a *LogpAdaptor) Errorf(format string, args ...interface{}) {
+func (a *LogpAdaptor) Errorf(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	if a.setLast(msg) {
 		a.Logger.Errorf(format, args...)
@@ -45,6 +45,6 @@ func (a *LogpAdaptor) setLast(msg string) bool {
 }
 
 // Warningf adapts badger.Logger.Warningf to logp.Logger.Warngf.
-func (a *LogpAdaptor) Warningf(format string, args ...interface{}) {
+func (a *LogpAdaptor) Warningf(format string, args ...any) {
 	a.Warnf(format, args...)
 }

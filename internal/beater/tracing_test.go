@@ -37,7 +37,7 @@ func TestServerTracingEnabled(t *testing.T) {
 		t.Run(fmt.Sprint(enabled), func(t *testing.T) {
 			escfg, docs := beatertest.ElasticsearchOutputConfig(t)
 			srv := beatertest.NewServer(t, beatertest.WithConfig(escfg,
-				agentconfig.MustNewConfigFrom(map[string]interface{}{
+				agentconfig.MustNewConfigFrom(map[string]any{
 					"instrumentation.enabled": enabled,
 				}),
 			))

@@ -240,8 +240,8 @@ func TestConfigAgentHandler_DirectConfiguration(t *testing.T) {
 	}})
 	h := NewHandler(fetcher, time.Nanosecond, "", nil)
 
-	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(map[string]interface{}{
-		"service": map[string]interface{}{
+	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(map[string]any{
+		"service": map[string]any{
 			"name": "service1",
 		},
 	})))
@@ -255,8 +255,8 @@ func TestAgentConfigHandler_PostOk(t *testing.T) {
 	})
 	h := NewHandler(f, time.Nanosecond, "", nil)
 
-	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(map[string]interface{}{
-		"service": map[string]interface{}{
+	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(map[string]any{
+		"service": map[string]any{
 			"name": "opbeans-node",
 		},
 	})))
@@ -272,8 +272,8 @@ func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
 	})
 	h := NewHandler(f, time.Nanosecond, "default", nil)
 
-	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(map[string]interface{}{"service": map[string]interface{}{"name": "opbeans-node", "environment": "specified"}})))
-	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(map[string]interface{}{"service": map[string]interface{}{"name": "opbeans-node"}})))
+	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(map[string]any{"service": map[string]any{"name": "opbeans-node", "environment": "specified"}})))
+	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(map[string]any{"service": map[string]any{"name": "opbeans-node"}})))
 
 	assert.Equal(t, []string{
 		`{"service":{"name":"opbeans-node","environment":"specified"},"etag":""}` + "\n",
@@ -283,8 +283,8 @@ func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
 
 func TestAgentConfigRum(t *testing.T) {
 	h := getHandler(t, "rum-js")
-	r := httptest.NewRequest(http.MethodPost, "/rum", jsonReader(map[string]interface{}{
-		"service": map[string]interface{}{"name": "opbeans"}}))
+	r := httptest.NewRequest(http.MethodPost, "/rum", jsonReader(map[string]any{
+		"service": map[string]any{"name": "opbeans"}}))
 	ctx, w := newRequestContext(r)
 	ctx.Authentication.Method = "" // unauthenticated
 	h(ctx)
@@ -305,8 +305,8 @@ func TestAgentConfigRumEtag(t *testing.T) {
 
 func TestAgentConfigNotRum(t *testing.T) {
 	h := getHandler(t, "node-js")
-	r := httptest.NewRequest(http.MethodPost, "/backend", jsonReader(map[string]interface{}{
-		"service": map[string]interface{}{"name": "opbeans"}}))
+	r := httptest.NewRequest(http.MethodPost, "/backend", jsonReader(map[string]any{
+		"service": map[string]any{"name": "opbeans"}}))
 	ctx, w := newRequestContext(r)
 	ctx.Request = withAuthorizer(ctx.Request,
 		authorizerFunc(func(context.Context, auth.Action, auth.Resource) error {
@@ -322,8 +322,8 @@ func TestAgentConfigNotRum(t *testing.T) {
 
 func TestAgentConfigNoLeak(t *testing.T) {
 	h := getHandler(t, "node-js")
-	r := httptest.NewRequest(http.MethodPost, "/rum", jsonReader(map[string]interface{}{
-		"service": map[string]interface{}{"name": "opbeans"}}))
+	r := httptest.NewRequest(http.MethodPost, "/rum", jsonReader(map[string]any{
+		"service": map[string]any{"name": "opbeans"}}))
 	ctx, w := newRequestContext(r)
 	ctx.Authentication.Method = "" // unauthenticated
 	h(ctx)
@@ -335,10 +335,10 @@ func TestAgentConfigNoLeak(t *testing.T) {
 
 func getHandler(t testing.TB, agent string) request.Handler {
 	f := newSanitizingKibanaFetcher(t, func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		json.NewEncoder(w).Encode(map[string]any{
 			"_id": "1",
-			"_source": map[string]interface{}{
-				"settings": map[string]interface{}{
+			"_source": map[string]any{
+				"settings": map[string]any{
 					"transaction_sample_rate": 0.5,
 					"capture_body":            "transactions",
 				},
@@ -370,7 +370,7 @@ func TestIfNoneMatch(t *testing.T) {
 func TestAgentConfigContext(t *testing.T) {
 	// The request context should be passed to Fetch.
 	type contextKey struct{}
-	var contextValue interface{}
+	var contextValue any
 	var fetcher fetcherFunc = func(ctx context.Context, query agentcfg.Query) (agentcfg.Result, error) {
 		contextValue = ctx.Value(contextKey{})
 		return agentcfg.Result{}, nil
@@ -447,7 +447,7 @@ func (f authorizerFunc) Authorize(ctx context.Context, action auth.Action, resou
 	return f(ctx, action, resource)
 }
 
-func jsonReader(v interface{}) io.Reader {
+func jsonReader(v any) io.Reader {
 	data, err := json.Marshal(v)
 	if err != nil {
 		panic(err)

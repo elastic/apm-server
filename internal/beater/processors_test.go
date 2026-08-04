@@ -37,7 +37,7 @@ func TestRateLimitBatchProcessor(t *testing.T) {
 	for i := range batch {
 		batch[i] = &modelpb.APMEvent{Transaction: &modelpb.Transaction{}}
 	}
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		err := rateLimitBatchProcessor(ctx, &batch)
 		require.NoError(t, err)
 	}
