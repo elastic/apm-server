@@ -156,12 +156,12 @@ func BenchmarkPublisher(b *testing.B) {
 		},
 		nil,
 		"elasticsearch",
-		config.MustNewConfigFrom(map[string]interface{}{
-			"hosts": []interface{}{srv.URL},
+		config.MustNewConfigFrom(map[string]any{
+			"hosts": []any{srv.URL},
 		}),
 	)
 	require.NoError(b, err)
-	conf, err := config.NewConfigFrom(map[string]interface{}{
+	conf, err := config.NewConfigFrom(map[string]any{
 		"mem.events":           4096,
 		"mem.flush.min_events": 2048,
 		"mem.flush.timeout":    "1s",

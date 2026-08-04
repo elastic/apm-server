@@ -240,8 +240,8 @@ func TestConfigAgentHandler_DirectConfiguration(t *testing.T) {
 	}})
 	h := NewHandler(fetcher, time.Nanosecond, "", nil)
 
-	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(map[string]interface{}{
-		"service": map[string]interface{}{
+	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(map[string]any{
+		"service": map[string]any{
 			"name": "service1",
 		},
 	})))

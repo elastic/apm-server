@@ -54,7 +54,7 @@ func testWriteEvents(t *testing.T, numSpans int) {
 	assert.NoError(t, readWriter.WriteTraceEvent(traceID, transactionID, &transaction, wOpts))
 
 	var spanEvents []*modelpb.APMEvent
-	for i := 0; i < numSpans; i++ {
+	for range numSpans {
 		spanID := uuid.Must(uuid.NewV4()).String()
 		span := modelpb.APMEvent{
 			Span: &modelpb.Span{Id: spanID},

@@ -422,22 +422,12 @@ func TestUnpackConfig(t *testing.T) {
 						},
 					},
 				},
-<<<<<<< HEAD
-				"sampling.tail": map[string]interface{}{
+				"sampling.tail": map[string]any{
 					"enabled":           false,
-					"policies":          []map[string]interface{}{{"sample_rate": 0.5}},
+					"policies":          []map[string]any{{"sample_rate": 0.5}},
 					"interval":          "2m",
 					"ingest_rate_decay": 1.0,
 					"storage_limit":     "1GB",
-=======
-				"sampling.tail": map[string]any{
-					"enabled":              false,
-					"policies":             []map[string]any{{"sample_rate": 0.5}},
-					"interval":             "2m",
-					"ingest_rate_decay":    1.0,
-					"storage_limit":        "1GB",
-					"disk_usage_threshold": 0.8,
->>>>>>> ceb18363 (refactor: run go fix during fmt step (#21457))
 				},
 				"data_streams": map[string]any{
 					"namespace": "foo",

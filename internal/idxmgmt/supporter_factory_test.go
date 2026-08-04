@@ -34,7 +34,7 @@ import (
 )
 
 func TestNewSupporter(t *testing.T) {
-	supporter := NewSupporter(logptest.NewTestingLogger(t, ""), config.MustNewConfigFrom(map[string]interface{}{}))
+	supporter := NewSupporter(logptest.NewTestingLogger(t, ""), config.MustNewConfigFrom(map[string]any{}))
 
 	// The data streams supporter does not set up templates or ILM. These
 	// are expected to be set up externally, typically by Fleet.
@@ -66,11 +66,11 @@ func TestNewSupporterWarnings(t *testing.T) {
 		return zapcore.NewTee(in, core)
 	}))
 
-	attrs := map[string]interface{}{
+	attrs := map[string]any{
 		"apm-server.data_streams.enabled":             "true",
 		"apm-server.ilm.enabled":                      "auto",
 		"apm-server.register.ingest.pipeline.enabled": "true",
-		"output.elasticsearch.indices":                map[string]interface{}{},
+		"output.elasticsearch.indices":                map[string]any{},
 		"setup.template.name":                         "custom",
 		"setup.template.pattern":                      "custom",
 	}
