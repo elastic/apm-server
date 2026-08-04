@@ -26,10 +26,6 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ## 9.5.0 [apm-9.5.0-release-notes]
 
-### Features and enhancements [apm-9.5.0-features-enhancements]
-
-_No new features or enhancements_
-
 ### Fixes [apm-9.5.0-fixes]
 
 * Skip loading and applying source maps that exceed the configured `max_sourcemap_size` limit (default 500MiB) to prevent excessive memory usage. ([#21520](https://github.com/elastic/apm-server/pull/21520))
