@@ -36,11 +36,11 @@ func query(name string) Query {
 	return Query{Service: Service{Name: name}, Etag: "123"}
 }
 
-func mockDoc(sampleRate float64) map[string]interface{} {
-	return map[string]interface{}{
+func mockDoc(sampleRate float64) map[string]any {
+	return map[string]any{
 		"_id": "1",
-		"_source": map[string]interface{}{
-			"settings": map[string]interface{}{
+		"_source": map[string]any{
+			"settings": map[string]any{
 				"sampling_rate": sampleRate,
 			},
 			"etag":       "123",
@@ -51,7 +51,7 @@ func mockDoc(sampleRate float64) map[string]interface{} {
 
 func TestKibanaFetcher(t *testing.T) {
 	var statusCode int
-	var response map[string]interface{}
+	var response map[string]any
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(statusCode)
 		json.NewEncoder(w).Encode(response)
@@ -62,7 +62,7 @@ func TestKibanaFetcher(t *testing.T) {
 
 	t.Run("ExpectationFailed", func(t *testing.T) {
 		statusCode = http.StatusExpectationFailed
-		response = map[string]interface{}{"error": "an error"}
+		response = map[string]any{"error": "an error"}
 
 		kf, err := NewKibanaFetcher(client, testExpiration, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
@@ -73,7 +73,7 @@ func TestKibanaFetcher(t *testing.T) {
 
 	t.Run("NotFound", func(t *testing.T) {
 		statusCode = http.StatusNotFound
-		response = map[string]interface{}{}
+		response = map[string]any{}
 
 		kf, err := NewKibanaFetcher(client, testExpiration, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
