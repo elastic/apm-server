@@ -618,7 +618,7 @@ func TestStorageGC(t *testing.T) {
 		require.NoError(t, err)
 		go processor.Run()
 		defer processor.Stop(context.Background())
-		for i := 0; i < n; i++ {
+		for range n {
 			traceID := uuid.Must(uuid.NewV4()).String()
 			// Create a larger event to fill up the vlog faster, especially when it is above ValueThreshold
 			batch := modelpb.Batch{{
@@ -670,7 +670,7 @@ func TestStorageGCConcurrency(t *testing.T) {
 	config.StorageGCInterval = 10 * time.Millisecond
 
 	g := errgroup.Group{}
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		processor, err := sampling.NewProcessor(config, logptest.NewTestingLogger(t, ""))
 		require.NoError(t, err)
 		g.Go(processor.Run)
@@ -698,7 +698,7 @@ func TestStorageLimit(t *testing.T) {
 		go processor.Run()
 		defer processor.Stop(context.Background())
 		batch := make(modelpb.Batch, 0, n)
-		for i := 0; i < n; i++ {
+		for range n {
 			traceID := uuid.Must(uuid.NewV4()).String()
 			batch = append(batch, &modelpb.APMEvent{
 				Trace: &modelpb.Trace{Id: traceID},
@@ -792,7 +792,7 @@ func TestDropLoop(t *testing.T) {
 
 	makeBatch := func(n int) modelpb.Batch {
 		batch := make(modelpb.Batch, 0, n)
-		for i := 0; i < n; i++ {
+		for range n {
 			traceID := uuid.Must(uuid.NewV4()).String()
 			batch = append(batch, &modelpb.APMEvent{
 				Trace: &modelpb.Trace{Id: traceID},
@@ -974,7 +974,7 @@ func TestGracefulShutdown(t *testing.T) {
 	traceIDGen := func(i int) string { return fmt.Sprintf("trace%d", i) }
 
 	var batch modelpb.Batch
-	for i := 0; i < totalTraces; i++ {
+	for i := range totalTraces {
 		batch = append(batch, &modelpb.APMEvent{
 			Trace: &modelpb.Trace{Id: traceIDGen(i)},
 			Transaction: &modelpb.Transaction{
@@ -994,7 +994,7 @@ func TestGracefulShutdown(t *testing.T) {
 	defer reader.Close()
 
 	var count int
-	for i := 0; i < totalTraces; i++ {
+	for i := range totalTraces {
 		if ok, _ := reader.IsTraceSampled(traceIDGen(i)); ok {
 			count++
 		}

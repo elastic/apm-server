@@ -34,7 +34,7 @@ func TestContextPool(t *testing.T) {
 	p := NewContextPool()
 
 	// mockhHandler adds the context and its request to dedicated slices
-	var contexts, requests []interface{}
+	var contexts, requests []any
 	var mu sync.Mutex
 	mockHandler := func(c *Context) {
 		mu.Lock()
@@ -46,16 +46,14 @@ func TestContextPool(t *testing.T) {
 	// runs 3 parallel go routines with 5 requests per go routine
 	var wg sync.WaitGroup
 	concRuns, runs := 10, 300
-	for i := 0; i < concRuns; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for j := 0; j < runs; j++ {
+	for range concRuns {
+		wg.Go(func() {
+			for range runs {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/", nil)
 				p.HTTPHandler(mockHandler).ServeHTTP(w, r)
 			}
-		}()
+		})
 	}
 	wg.Wait()
 
@@ -65,8 +63,8 @@ func TestContextPool(t *testing.T) {
 
 	// but only concRuns unique contexts should have been used,
 	// while all requests must be unique.
-	countUnique := func(s []interface{}) int {
-		l := make(map[interface{}]struct{})
+	countUnique := func(s []any) int {
+		l := make(map[any]struct{})
 		for _, item := range s {
 			if _, set := l[item]; !set {
 				l[item] = struct{}{}

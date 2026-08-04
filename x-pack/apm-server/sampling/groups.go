@@ -238,10 +238,7 @@ func (g *traceGroup) finalizeSampledTraces(traceIDs []string, ingestRateDecayFac
 
 	// Resize the reservoir, so that it can hold the desired fraction of
 	// the observed ingest rate.
-	newReservoirSize := int(math.Ceil(g.samplingFraction * g.ingestRate))
-	if newReservoirSize < minReservoirSize {
-		newReservoirSize = minReservoirSize
-	}
+	newReservoirSize := max(int(math.Ceil(g.samplingFraction*g.ingestRate)), minReservoirSize)
 	g.reservoir.Reset()
 	g.reservoir.Resize(newReservoirSize)
 	return oldTotal, traceIDs

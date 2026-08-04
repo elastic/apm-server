@@ -86,7 +86,7 @@ type grpcCollector struct {
 // AuthenticateUnaryCall authenticates CollectorService calls.
 func (c *grpcCollector) AuthenticateUnaryCall(
 	ctx context.Context,
-	req interface{},
+	req any,
 	fullMethodName string,
 	authenticator *auth.Authenticator,
 ) (auth.AuthenticationDetails, auth.Authorizer, error) {
@@ -220,7 +220,7 @@ func init() {
 // not rate limit the request.
 func (s *grpcSampler) AuthenticateUnaryCall(
 	ctx context.Context,
-	req interface{},
+	req any,
 	fullMethodName string,
 	authenticator *auth.Authenticator,
 ) (auth.AuthenticationDetails, auth.Authorizer, error) {

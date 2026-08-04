@@ -220,7 +220,7 @@ func makeAPIKeyRun(json *bool, f apikeyRunFunc) cobraRunFunc {
 // apm-server.api_key.enabled is implicitly true
 func bootstrap() (*es.Client, *config.Config, error) {
 	cfg, _, _, err := LoadConfig(WithMergeConfig(
-		agentconfig.MustNewConfigFrom(map[string]interface{}{
+		agentconfig.MustNewConfigFrom(map[string]any{
 			"apm-server.auth.api_key.enabled": true,
 		}),
 	))
@@ -312,7 +312,7 @@ PUT /_security/role/my_role {
 				},
 			},
 		},
-		Metadata: map[string]interface{}{"application": "apm"},
+		Metadata: map[string]any{"application": "apm"},
 	}
 	if expiry != "" {
 		apikeyRequest.Expiration = &expiry
@@ -466,17 +466,17 @@ func humanTime(millis *int64) string {
 
 // returns 2 printers, one for text and one for JSON
 // one of them will be a noop based on the boolean argument
-func printers(b bool) (func(string, ...interface{}), func(interface{})) {
+func printers(b bool) (func(string, ...any), func(any)) {
 	var w1 io.Writer = os.Stdout
 	var w2 = io.Discard
 	if b {
 		w1 = io.Discard
 		w2 = os.Stdout
 	}
-	return func(f string, i ...interface{}) {
+	return func(f string, i ...any) {
 			fmt.Fprintf(w1, f, i...)
 			fmt.Fprintln(w1)
-		}, func(i interface{}) {
+		}, func(i any) {
 			data, err := json.MarshalIndent(i, "", "\t")
 			if err != nil {
 				fmt.Fprintln(w2, err)
@@ -489,7 +489,7 @@ func printers(b bool) (func(string, ...interface{}), func(interface{})) {
 func printErr(err error, asJSON bool) {
 	if asJSON {
 		var data []byte
-		var m map[string]interface{}
+		var m map[string]any
 		e := json.Unmarshal([]byte(err.Error()), &m)
 		if e == nil {
 			// err.Error() has JSON shape, likely coming from Elasticsearch

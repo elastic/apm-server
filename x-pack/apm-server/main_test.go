@@ -57,7 +57,7 @@ func TestMonitoring(t *testing.T) {
 
 	// Wrap & run the server twice, to ensure metric registration does not panic.
 	runServerError := errors.New("runServer")
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		serverParams, runServer, err := wrapServer(beater.ServerParams{
 			Config:                 cfg,
 			Logger:                 logptest.NewTestingLogger(t, ""),
@@ -88,7 +88,7 @@ func TestStorageMonitoring(t *testing.T) {
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		batch := modelpb.Batch{{
 			Trace: &modelpb.Trace{Id: traceID},
