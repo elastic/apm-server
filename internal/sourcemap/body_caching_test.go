@@ -141,7 +141,7 @@ func TestStore_Fetch(t *testing.T) {
 
 				// ensure the permanent-error warning is emitted
 				warnings := observed.FilterLevelExact(zapcore.WarnLevel).
-					FilterMessageSnippet("caching empty sourcemap due to permanent error").
+					FilterMessageSnippet("caching empty sourcemap for name").
 					All()
 				require.Len(t, warnings, 1)
 			})
@@ -181,7 +181,7 @@ func TestStore_Fetch(t *testing.T) {
 
 		// ensure the permanent-error warning is emitted
 		warnings := observed.FilterLevelExact(zapcore.WarnLevel).
-			FilterMessageSnippet("caching empty sourcemap due to permanent error").
+			FilterMessageSnippet("caching empty sourcemap for name").
 			All()
 		require.Len(t, warnings, 1)
 	})
