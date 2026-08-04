@@ -20,6 +20,7 @@ package telemetry
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -136,12 +137,7 @@ func (e *MetricExporter) Export(ctx context.Context, rm *metricdata.ResourceMetr
 }
 
 func (e *MetricExporter) isMetricFiltered(n string) bool {
-	for _, v := range e.metricFilter {
-		if v == n {
-			return false
-		}
-	}
-	return true
+	return !slices.Contains(e.metricFilter, n)
 }
 
 func addMetric(sm metricdata.Metrics, ms metricsets) error {
@@ -271,7 +267,7 @@ func (e *MetricExporter) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-func setLabel(key string, event *modelpb.APMEvent, v interface{}) {
+func setLabel(key string, event *modelpb.APMEvent, v any) {
 	switch v := v.(type) {
 	case string:
 		modelpb.Labels(event.Labels).Set(key, v)
@@ -281,7 +277,7 @@ func setLabel(key string, event *modelpb.APMEvent, v interface{}) {
 		modelpb.NumericLabels(event.NumericLabels).Set(key, v)
 	case int64:
 		modelpb.NumericLabels(event.NumericLabels).Set(key, float64(v))
-	case []interface{}:
+	case []any:
 		if len(v) == 0 {
 			return
 		}

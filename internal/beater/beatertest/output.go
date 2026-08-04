@@ -60,8 +60,8 @@ func ElasticsearchOutputConfig(t testing.TB) (*agentconfig.C, <-chan []byte) {
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
 
-	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"output.elasticsearch": map[string]interface{}{
+	cfg := agentconfig.MustNewConfigFrom(map[string]any{
+		"output.elasticsearch": map[string]any{
 			"enabled":        true,
 			"hosts":          []string{srv.URL},
 			"flush_interval": "1ms", // no delay

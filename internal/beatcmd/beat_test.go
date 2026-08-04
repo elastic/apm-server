@@ -78,18 +78,18 @@ func TestRunnerParams(t *testing.T) {
 
 	assert.NotNil(t, args.Logger)
 
-	var m map[string]interface{}
+	var m map[string]any
 	require.NotNil(t, args.Config)
 	err := args.Config.Unpack(&m)
 	require.NoError(t, err)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"name": "my-custom-name",
-		"output": map[string]interface{}{
-			"console": map[string]interface{}{
+		"output": map[string]any{
+			"console": map[string]any{
 				"enabled": true,
 			},
 		},
-		"path": map[string]interface{}{
+		"path": map[string]any{
 			"config": paths.Paths.Config,
 			"logs":   paths.Paths.Logs,
 			"data":   paths.Paths.Data,
@@ -371,20 +371,20 @@ func TestRunManager(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	args := expectRunnerParams(t, calls)
-	var m map[string]interface{}
+	var m map[string]any
 	err = args.Config.Unpack(&m)
 	assert.NoError(t, err)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"revision": uint64(1),
-		"apm-server": map[string]interface{}{
+		"apm-server": map[string]any{
 			"host": "localhost:1234",
 		},
-		"output": map[string]interface{}{
-			"console": map[string]interface{}{
+		"output": map[string]any{
+			"console": map[string]any{
 				"enabled": true,
 			},
 		},
-		"instrumentation": map[string]interface{}{
+		"instrumentation": map[string]any{
 			"enabled":     true,
 			"environment": "testenv",
 		},
@@ -460,7 +460,7 @@ func TestRunManager_Reloader(t *testing.T) {
 						Streams: []*proto.Stream{
 							{
 								Id: "elastic-apm",
-								Source: integration.RequireNewStruct(t, map[string]interface{}{
+								Source: integration.RequireNewStruct(t, map[string]any{
 									"revision": 1,
 								}),
 							},
@@ -494,7 +494,7 @@ func TestRunManager_Reloader(t *testing.T) {
 						Streams: []*proto.Stream{
 							{
 								Id: "elastic-apm",
-								Source: integration.RequireNewStruct(t, map[string]interface{}{
+								Source: integration.RequireNewStruct(t, map[string]any{
 									"revision": 2,
 								}),
 							},
@@ -598,7 +598,7 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 						Streams: []*proto.Stream{
 							{
 								Id: "elastic-apm",
-								Source: integration.RequireNewStruct(t, map[string]interface{}{
+								Source: integration.RequireNewStruct(t, map[string]any{
 									"revision": 1,
 								}),
 							},

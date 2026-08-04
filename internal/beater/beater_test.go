@@ -91,19 +91,19 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 }
 
 func sourcemapSearchResponseBody(name string, version string, bundlePath string) []byte {
-	result := map[string]interface{}{
-		"hits": map[string]interface{}{
-			"total": map[string]interface{}{
+	result := map[string]any{
+		"hits": map[string]any{
+			"total": map[string]any{
 				"value": 1,
 			},
-			"hits": []map[string]interface{}{
+			"hits": []map[string]any{
 				{
-					"_source": map[string]interface{}{
-						"service": map[string]interface{}{
+					"_source": map[string]any{
+						"service": map[string]any{
 							"name":    name,
 							"version": version,
 						},
-						"file": map[string]interface{}{
+						"file": map[string]any{
 							"path": bundlePath,
 						},
 					},
@@ -154,7 +154,7 @@ func TestQueryClusterUUIDRegistriesDoNotExist(t *testing.T) {
 func newMockClusterUUIDClient(t testing.TB, clusterUUID string) *elasticsearch.Client {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-		w.Write([]byte(fmt.Sprintf(`{"cluster_uuid":"%s"}`, clusterUUID)))
+		w.Write(fmt.Appendf(nil, `{"cluster_uuid":"%s"}`, clusterUUID))
 	}))
 	t.Cleanup(srv.Close)
 
@@ -211,7 +211,7 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 		})
 		t.Run(fmt.Sprintf("override/%vgb", c.memSize), func(t *testing.T) {
 			r := Runner{
-				elasticsearchOutputConfig: agentconfig.MustNewConfigFrom(map[string]interface{}{
+				elasticsearchOutputConfig: agentconfig.MustNewConfigFrom(map[string]any{
 					"flush_bytes":    "500 kib",
 					"flush_interval": "2s",
 					"max_requests":   50,
@@ -270,12 +270,12 @@ func TestNewInstrumentation(t *testing.T) {
 	err = pem.Encode(f, &pem.Block{Type: "CERTIFICATE", Bytes: s.Certificate().Raw})
 	assert.NoError(t, err)
 	require.NoError(t, f.Close())
-	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"instrumentation": map[string]interface{}{
+	cfg := agentconfig.MustNewConfigFrom(map[string]any{
+		"instrumentation": map[string]any{
 			"enabled":     true,
 			"hosts":       []string{s.URL},
 			"secrettoken": "secret",
-			"tls": map[string]interface{}{
+			"tls": map[string]any{
 				"servercert": certPath,
 			},
 			"globallabels": "k1=val,k2=new val",
@@ -304,11 +304,11 @@ func TestNewInstrumentationWithSampling(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 		}))
 		defer s.Close()
-		cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
-			"instrumentation": map[string]interface{}{
+		cfg := agentconfig.MustNewConfigFrom(map[string]any{
+			"instrumentation": map[string]any{
 				"enabled": true,
 				"hosts":   []string{s.URL},
-				"tls": map[string]interface{}{
+				"tls": map[string]any{
 					"skipverify": true,
 				},
 				"samplingrate": fmt.Sprintf("%f", rate),
