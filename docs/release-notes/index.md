@@ -28,11 +28,11 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ### Features and enhancements [apm-9.5.0-features-enhancements]
 
-* Add `max_sourcemap_size` configuration option for RUM source mapping with a default limit of 500MiB. ([#21520](https://github.com/elastic/apm-server/pull/21520))
+_No new features or enhancements_
 
 ### Fixes [apm-9.5.0-fixes]
 
-* Skip loading and applying source maps that exceed the configured size limit to prevent excessive memory usage. ([#21520](https://github.com/elastic/apm-server/pull/21520))
+* Skip loading and applying source maps that exceed the configured `max_sourcemap_size` limit (default 500MiB) to prevent excessive memory usage. ([#21520](https://github.com/elastic/apm-server/pull/21520))
 
 ## 9.4.4 [apm-9.4.4-release-notes]
 
