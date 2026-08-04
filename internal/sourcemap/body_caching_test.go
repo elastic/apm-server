@@ -25,6 +25,8 @@ import (
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
@@ -121,7 +123,7 @@ func TestStore_Fetch(t *testing.T) {
 			"unsupportedVersion": newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, unsupportedVersionSourcemap)),
 		} {
 			t.Run(name, func(t *testing.T) {
-				store := testCachingFetcher(t, client)
+				store, observed := testCachingFetcherWithObserver(t, client)
 				//not cached
 				cached, found := store.cache.Get(key)
 				require.False(t, found)
@@ -136,6 +138,12 @@ func TestStore_Fetch(t *testing.T) {
 				cached, found = store.cache.Get(key)
 				assert.True(t, found)
 				assert.Nil(t, cached)
+
+				// ensure the permanent-error warning is emitted
+				warnings := observed.FilterLevelExact(zapcore.WarnLevel).
+					FilterMessageSnippet("caching empty sourcemap for name").
+					All()
+				require.Len(t, warnings, 1)
 			})
 		}
 	})
@@ -145,13 +153,14 @@ func TestStore_Fetch(t *testing.T) {
 		ch := make(chan []identifier)
 		close(ch)
 
+		logger, observed := logptest.NewTestingLoggerWithObserver(t, "")
 		esFetcher := &esFetcher{
 			client:                client,
 			index:                 "apm-*sourcemap*",
-			logger:                logptest.NewTestingLogger(t, ""),
+			logger:                logger,
 			maxSourceMapSizeBytes: 5,
 		}
-		store, err := NewBodyCachingFetcher(esFetcher, 100, ch, logptest.NewTestingLogger(t, ""))
+		store, err := NewBodyCachingFetcher(esFetcher, 100, ch, logger)
 		require.NoError(t, err)
 
 		// source map has not yet been fetched, so it should not be present in cache
@@ -169,6 +178,12 @@ func TestStore_Fetch(t *testing.T) {
 		cached, found = store.cache.Get(key)
 		assert.True(t, found)
 		assert.Nil(t, cached)
+
+		// ensure the permanent-error warning is emitted
+		warnings := observed.FilterLevelExact(zapcore.WarnLevel).
+			FilterMessageSnippet("caching empty sourcemap for name").
+			All()
+		require.Len(t, warnings, 1)
 	})
 
 	t.Run("noConnectionToES", func(t *testing.T) {
@@ -189,11 +204,17 @@ func TestStore_Fetch(t *testing.T) {
 }
 
 func testCachingFetcher(t *testing.T, client *elasticsearch.Client) *BodyCachingFetcher {
+	store, _ := testCachingFetcherWithObserver(t, client)
+	return store
+}
+
+func testCachingFetcherWithObserver(t *testing.T, client *elasticsearch.Client) (*BodyCachingFetcher, *observer.ObservedLogs) {
 	ch := make(chan []identifier)
 	close(ch)
 
-	esFetcher := NewElasticsearchFetcher(client, "apm-*sourcemap*", defaultMaxSourceMapSizeBytes, logptest.NewTestingLogger(t, ""))
-	cachingFetcher, err := NewBodyCachingFetcher(esFetcher, 100, ch, logptest.NewTestingLogger(t, ""))
+	logger, observed := logptest.NewTestingLoggerWithObserver(t, "")
+	esFetcher := NewElasticsearchFetcher(client, "apm-*sourcemap*", defaultMaxSourceMapSizeBytes, logger)
+	cachingFetcher, err := NewBodyCachingFetcher(esFetcher, 100, ch, logger)
 	require.NoError(t, err)
-	return cachingFetcher
+	return cachingFetcher, observed
 }
