@@ -93,6 +93,10 @@ func (s *BodyCachingFetcher) Fetch(ctx context.Context, name, version, path stri
 	consumer, err := s.backend.Fetch(ctx, name, version, path)
 	if err != nil {
 		if errors.Is(err, errMalformedSourcemap) || errors.Is(err, errSourcemapSizeExceedsLimit) {
+			s.logger.Warnf(
+				"caching empty sourcemap for name (%s), version (%s), path (%s) due to permanent error: %s",
+				name, version, path, err.Error(),
+			)
 			s.add(key, nil)
 		}
 		return nil, err
