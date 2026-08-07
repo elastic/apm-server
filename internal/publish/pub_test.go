@@ -19,6 +19,7 @@ package publish_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -30,6 +31,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
 	"github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
@@ -97,7 +99,7 @@ func newBlockingPipeline(t testing.TB) (*pipeline.Pipeline, *mockClient) {
 
 	pipe, err := pipeline.New(
 		beat.Info{
-			Logger: logptest.NewTestingLogger(t, "beat"),
+			Logger: newTestLogger(t, "beat"),
 		},
 		pipeline.Monitors{},
 		namespace,
@@ -137,4 +139,19 @@ func (c *mockClient) Publish(ctx context.Context, batch publisher.Batch) error {
 	}
 	batch.ACK()
 	return nil
+}
+
+// newTestLogger uses logp utilities to create an in memory
+// logger that is safer to use with go tests and go routines.
+// Outputs the logs on failure
+func newTestLogger(t testing.TB, selector string) *logp.Logger {
+	logger, logs := logptest.NewTestingLoggerWithObserver(t, selector)
+	t.Cleanup(func() {
+		if t.Failed() {
+			for _, entry := range logs.All() {
+				fmt.Printf("%s\t%s\t%s\n", entry.Time.Format(time.RFC3339), entry.Level, entry.Message)
+			}
+		}
+	})
+	return logger
 }
