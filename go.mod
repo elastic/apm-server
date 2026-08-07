@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.1
 	github.com/elastic/apm-data v1.22.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260805152756-6c8a4cf9c792
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260807142900-50ef57e75fbd
 	github.com/elastic/elastic-agent-client/v7 v7.18.1
 	github.com/elastic/elastic-agent-libs v0.46.3
 	github.com/elastic/elastic-agent-system-metrics v0.14.4
@@ -226,7 +226,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zclconf/go-cty v1.15.0 // indirect
 	gitlab.com/digitalxero/go-conventional-commit v1.0.7 // indirect
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.3 // indirect
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.12 // indirect
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.10.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
