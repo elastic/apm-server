@@ -23,7 +23,7 @@ RUN rm -f empty && touch empty
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM cgr.dev/chainguard/static:latest@sha256:399c8cb4858f05aaa33f43f02a2e75f28d40f016c0f86e5ba6075769e3303791
+FROM cgr.dev/chainguard/static:latest@sha256:24dd7ff8788fdfadda39eeeaefefb6d1cec6002a545935a5f7e017484053734f
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION
