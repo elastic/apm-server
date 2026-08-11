@@ -1,5 +1,6 @@
 [[apm-release-notes-8.19]]
 == APM version 8.19
+* <<apm-release-notes-8.19.20>>
 * <<apm-release-notes-8.19.19>>
 * <<apm-release-notes-8.19.18>>
 * <<apm-release-notes-8.19.17>>
@@ -20,6 +21,16 @@
 * <<apm-release-notes-8.19.2>>
 * <<apm-release-notes-8.19.1>>
 * <<apm-release-notes-8.19.0>>
+
+[float]
+[[apm-release-notes-8.19.20]]
+=== APM version 8.19.20
+
+https://github.com/elastic/apm-server/compare/v8.19.19\...v8.19.20[View commits]
+
+[float]
+==== Bug fixes
+- Skip loading and applying source maps that exceed the configured `max_sourcemap_size` limit (default 500MiB) to prevent excessive memory usage. ([#21520](https://github.com/elastic/apm-server/pull/21520))
 
 [float]
 [[apm-release-notes-8.19.19]]
