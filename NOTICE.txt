@@ -604,11 +604,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.22.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20260811142156-d8272167aa4f
+Version: v7.0.0-alpha2.0.20260811210340-ada4ac71c519
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20260811142156-d8272167aa4f/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20260811210340-ada4ac71c519/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -7348,11 +7348,11 @@ Contents of probable licence file $GOMODCACHE/github.com/!radu!berinde/btreemap@
 
 --------------------------------------------------------------------------------
 Dependency : github.com/apache/thrift
-Version: v0.23.1-0.20260429145742-d2acd3c49e58
+Version: v0.24.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/apache/thrift@v0.23.1-0.20260429145742-d2acd3c49e58/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/apache/thrift@v0.24.0/LICENSE:
 
 
                                  Apache License
