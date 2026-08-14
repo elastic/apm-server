@@ -24,7 +24,7 @@ require (
 	github.com/gofrs/uuid/v5 v5.5.1
 	github.com/google/go-cmp v0.7.0
 	github.com/gorilla/mux v1.8.1
-	github.com/jaegertracing/jaeger-idl v0.9.0
+	github.com/jaegertracing/jaeger-idl v0.10.0
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901
 	github.com/libp2p/go-reuseport v0.4.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.158.0
@@ -56,7 +56,7 @@ require (
 	golang.org/x/term v0.45.0
 	golang.org/x/time v0.15.0
 	google.golang.org/grpc v1.83.0
-	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
+	google.golang.org/protobuf v1.36.12
 )
 
 require (
