@@ -68,8 +68,8 @@ TRIG
 )
     # Annotator reads the manifest artifact uploaded by dra-prep-${workflow} and
     # posts a link to the summary at dractl's temp upload path. We link the temp
-    # path (not the post-processing "clean" URL that manifest.PackageURL embeds)
-    # so the annotation is live the moment dra-prep finishes — the clean URL
+    # path (not the post-processing "clean" URL that dractL embeds)
+    # so the annotation is live the moment dra-prep finishes. The clean URL
     # would 404 until unified-release-dra-processing finishes moving files.
     annotate_step=$(cat <<ANN
 
