@@ -8,13 +8,8 @@ require (
 	github.com/cockroachdb/pebble/v2 v2.1.6
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.1
-<<<<<<< HEAD
-	github.com/elastic/apm-data v1.22.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260708075415-9058f70ba630
-=======
 	github.com/elastic/apm-data v1.22.1
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260602145145-24b3ef55f923
->>>>>>> e0769b13 (build(deps): bump github.com/elastic/apm-data from 1.22.0 to 1.22.1 (#21703))
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260708075415-9058f70ba630
 	github.com/elastic/elastic-agent-client/v7 v7.18.1
 	github.com/elastic/elastic-agent-libs v0.46.0
 	github.com/elastic/elastic-agent-system-metrics v0.14.4
