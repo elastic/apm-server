@@ -22,12 +22,12 @@ source .buildkite/scripts/utils.sh
 DRA_BRANCH="$BUILDKITE_BRANCH"
 VERSION=$(make get-version-only)
 BRANCHES_URL=https://storage.googleapis.com/artifacts-api/snapshots/branches.json
-curl -s "${BRANCHES_URL}" > active-branches.json
+curl -fsS "${BRANCHES_URL}" > active-branches.json
 # Publish to DRA GCS only on active release branches. Non-active branches run
 # the plugin in dry-run mode (upload: false) so PRs and feature branches can
 # still validate their packaging without publishing.
 DRA_UPLOAD=true
-if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
+if ! grep -Fq "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
   DRA_UPLOAD=false
 fi
 
@@ -68,7 +68,7 @@ TRIG
 )
     # Annotator reads the manifest artifact uploaded by dra-prep-${workflow} and
     # posts a link to the summary at dractl's temp upload path. We link the temp
-    # path (not the post-processing "clean" URL that dractL embeds)
+    # path (not the post-processing "clean" URL that dractl embeds)
     # so the annotation is live the moment dra-prep finishes. The clean URL
     # would 404 until unified-release-dra-processing finishes moving files.
     annotate_step=$(cat <<ANN
