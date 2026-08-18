@@ -13,7 +13,7 @@ set -euo pipefail
 WORKFLOW="${DRA_WORKFLOW:?DRA_WORKFLOW is required}"
 
 echo "--- Restoring Artifacts"
-buildkite-agent artifact download "build/distributions/**/*" .
+buildkite-agent artifact download "build/**/*" .
 buildkite-agent artifact download "build/dependencies*.csv" .
 
 echo "--- Prepare ${WORKFLOW} artifacts"
