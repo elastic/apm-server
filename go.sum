@@ -169,8 +169,8 @@ github.com/ebitengine/purego v0.10.0 h1:QIw4xfpWT6GWTzaW5XEKy3HXoqrJGx1ijYHzTF0/
 github.com/ebitengine/purego v0.10.0/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
 github.com/elastic/apm-aggregation v1.5.1 h1:PBXwhSrSPsg2JR5C7Zrq+jSSfZ5CVuu72Xp1/5h1QNQ=
 github.com/elastic/apm-aggregation v1.5.1/go.mod h1:8D/GafHCcd16SlfFgxwHfIU4EVhjNpDDqFMA/alE21o=
-github.com/elastic/apm-data v1.22.0 h1:Edbpi1LZEKQdFXUsoCKQfll+u2bPMcJssIZm59hqApI=
-github.com/elastic/apm-data v1.22.0/go.mod h1:O1wJJdDo7twUzzNk8ZOzUC8BIdLj+TayhyaLfAKxdn4=
+github.com/elastic/apm-data v1.22.1 h1:Lsyxt1Y//igzVHswipBYp46vzHBZ3iUSfgca2xPtb2Y=
+github.com/elastic/apm-data v1.22.1/go.mod h1:VVPugO2TOSksJoJ8VsttWL5NttvqQQHDYEo03dxO8Rk=
 github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 h1:br+XeQOcxNFSv+HzO3jC0bjIBgG6FJeBn7oXQFQvKtM=
 github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22/go.mod h1:gE+FV7xXv0/nBenviCvpvnvTpUkjJXtuOWs2UT+ZRtw=
 github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe h1:LDtn/A8Tsfz8DQlbXtmDud9ha9oOGriwJGB7V0Ozik8=
