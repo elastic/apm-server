@@ -50,7 +50,7 @@ steps:
             - limit: 1
 
   - label: ":pipeline: Generate DRA steps ({{matrix}})"
-    key: "dra-gen-{{matrix}}"
+    key: "dra-step-generator"
     command: ".buildkite/scripts/dra.sh {{matrix}}"
     agents:
       provider: "gcp"
