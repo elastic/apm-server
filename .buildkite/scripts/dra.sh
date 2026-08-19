@@ -66,24 +66,12 @@ dra() {
         DRA_WORKFLOW: "${workflow}"
 TRIG
 )
-    # Annotator reads the manifest artifact uploaded by dra-prep-${workflow} and
-    # posts a link to the summary at dractl's temp upload path. We link the temp
-    # path (not the post-processing "clean" URL that dractl embeds)
-    # so the annotation is live the moment dra-prep finishes. The clean URL
-    # would 404 until unified-release-dra-processing finishes moving files.
     annotate_step=$(cat <<ANN
 
   - label: ":memo: Annotate DRA summary (${workflow})"
     key: "dra-annotate-${workflow}"
     depends_on: "dra-prep-${workflow}"
-    command: |
-      set -euo pipefail
-      buildkite-agent artifact download "artifacts/dra/apm-server/*/manifest-*.json" . --step "dra-prep-${workflow}"
-      manifest=\$(find artifacts/dra/apm-server -name "manifest-*.json" | head -1)
-      build_id=\$(jq -r '.build_id' "\${manifest}")
-      version=\$(jq -r '.version' "\${manifest}")
-      url="https://artifacts-${workflow}.elastic.co/dra-builds/\${BUILDKITE_PIPELINE_SLUG}/\${BUILDKITE_BUILD_NUMBER}/\${build_id}/summary-\${version}.html"
-      printf "**${workflow} summary link:** [%s](%s)\n" "\${url}" "\${url}" | buildkite-agent annotate --style=success --append
+    command: ".buildkite/scripts/dra-annotate.sh ${workflow}"
     agents:
       provider: "gcp"
       image: "${IMAGE_UBUNTU_X86_64}"
