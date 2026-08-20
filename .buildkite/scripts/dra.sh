@@ -27,9 +27,9 @@ curl -fsS "${BRANCHES_URL}" > active-branches.json
 # the plugin in dry-run mode (upload: false) so PRs and feature branches can
 # still validate their packaging without publishing.
 DRA_UPLOAD=true
-# if ! grep -Fq "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
-#   DRA_UPLOAD=false
-# fi
+if ! grep -Fq "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
+  DRA_UPLOAD=false
+fi
 
 echo "--- :arrow_right: DRA context"
 echo "BUILDKITE_BRANCH=$BUILDKITE_BRANCH"
