@@ -56,7 +56,7 @@ dra() {
   if [[ "${DRA_UPLOAD}" == "true" ]]; then
     trigger_step=$(cat <<TRIG
 
-  - label: ":pipeline: Trigger DRA processing (${workflow})"
+  - label: ":pipeline: DRA processing for apm-server (${workflow})"
     trigger: "unified-release-dra-processing"
     depends_on: "dra-prep-${workflow}"
     build:
