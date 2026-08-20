@@ -7,7 +7,7 @@
 ##  triggers unified-release-dra-processing. On non-active branches (feature branches)
 ##  the plugin runs in dry-run mode (upload: false) so contributors can validate 
 ##  classification and manifest generation without publishing to GCS.
-##  test
+##
 
 set -eo pipefail
 
