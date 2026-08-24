@@ -18,6 +18,8 @@
 package middleware
 
 import (
+	"slices"
+
 	"github.com/elastic/apm-server/internal/beater/request"
 )
 
@@ -27,9 +29,9 @@ type Middleware func(request.Handler) (request.Handler, error)
 // Wrap wraps a request.Handler into given middleware functions,
 // maintaining order from the last to the first middleware
 func Wrap(h request.Handler, m ...Middleware) (request.Handler, error) {
-	for i := len(m) - 1; i >= 0; i-- {
+	for _, v := range slices.Backward(m) {
 		var e error
-		h, e = m[i](h)
+		h, e = v(h)
 		if e != nil {
 			return nil, e
 		}
