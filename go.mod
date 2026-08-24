@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.1
 	github.com/elastic/apm-data v1.22.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260821150012-1d05a80f05c0
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260821205107-7c3b340eab51
 	github.com/elastic/elastic-agent-client/v7 v7.18.1
 	github.com/elastic/elastic-agent-libs v0.46.3
 	github.com/elastic/elastic-agent-system-metrics v0.14.5
@@ -93,7 +93,7 @@ require (
 	github.com/ebitengine/purego v0.10.2 // indirect
 	github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 // indirect
 	github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe // indirect
-	github.com/elastic/go-concert v0.3.0 // indirect
+	github.com/elastic/go-concert v0.3.1 // indirect
 	github.com/elastic/go-elasticsearch/v8 v8.19.6 // indirect
 	github.com/elastic/go-licenser v0.4.2 // indirect
 	github.com/elastic/go-lumber v0.2.0 // indirect
