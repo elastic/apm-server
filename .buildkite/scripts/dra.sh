@@ -96,7 +96,7 @@ steps:
     artifact_paths:
       - "artifacts/dra/apm-server/*/manifest-*.json"
     plugins:
-      - elastic/dra-prep#v0.1.5:
+      - elastic/dra-prep#v0.1.6:
           product_id: "apm-server"
           stack_version: "${stack_version}"
           workflow: "${workflow}"
