@@ -785,8 +785,8 @@ func (s *Runner) newDocappenderConfig(tp trace.TracerProvider, mp metric.MeterPr
 		FlushBytes:    "1 mib",
 		FlushInterval: time.Second,
 		Config:        elasticsearch.DefaultConfig(),
-	}
-	esConfig.MaxIdleConnsPerHost = 10
+
+		MaxIdleConnsPerHost: 10}
 
 	if err := s.elasticsearchOutputConfig.Unpack(&esConfig); err != nil {
 		return docappender.Config{}, nil, err

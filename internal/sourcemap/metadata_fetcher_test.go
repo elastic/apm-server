@@ -37,11 +37,9 @@ import (
 
 func TestMetadataFetcher(t *testing.T) {
 	defaultID := metadata{
-		identifier: identifier{
-			name:    "app",
-			version: "1.0",
-			path:    "/bundle/path",
-		},
+		name:        "app",
+		version:     "1.0",
+		path:        "/bundle/path",
 		contentHash: "foo",
 	}
 
@@ -177,11 +175,9 @@ type metadata struct {
 
 func TestInvalidation(t *testing.T) {
 	defaultID := metadata{
-		identifier: identifier{
-			name:    "app",
-			version: "1.0",
-			path:    "/bundle/path",
-		},
+		name:        "app",
+		version:     "1.0",
+		path:        "/bundle/path",
 		contentHash: "foo",
 	}
 
@@ -221,11 +217,9 @@ func TestInvalidation(t *testing.T) {
 			set:  map[identifier]string{{name: "example", version: "1.0", path: "/"}: "bar"},
 			searchReponse: func(w http.ResponseWriter, r *http.Request) {
 				bar := metadata{
-					identifier: identifier{
-						name:    "example",
-						version: "1.0",
-						path:    "/",
-					},
+					name:        "example",
+					version:     "1.0",
+					path:        "/",
 					contentHash: "bar",
 				}
 				m := sourcemapSearchResponseBody([]metadata{defaultID, bar})
