@@ -19,7 +19,7 @@ COPY --chmod=0644 apm-server.yml ./apm-server.yml
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 
-FROM cgr.dev/chainguard/static:latest@sha256:24dd7ff8788fdfadda39eeeaefefb6d1cec6002a545935a5f7e017484053734f AS builder-certs
+FROM cgr.dev/chainguard/static:latest@sha256:96d02f455d5a73b817c0602910748609cf8471b1cc9522f78c75cedb1f67d072 AS builder-certs
 
 ################################################################################
 # Build stage 1
