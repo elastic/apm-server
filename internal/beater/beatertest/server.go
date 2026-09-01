@@ -39,6 +39,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beatmonitoring"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/elastic-agent-libs/paths"
 
 	"github.com/elastic/apm-server/internal/beater"
 )
@@ -116,6 +117,7 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 
 	runner, err := beater.NewRunner(beater.RunnerParams{
 		Config:         cfg,
+		Paths:          &paths.Path{Data: t.TempDir()},
 		Logger:         logger,
 		WrapServer:     options.wrapServer,
 		TracerProvider: options.tracerProvider,
