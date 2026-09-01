@@ -142,7 +142,7 @@ jobs:
           echo "BENCHMARK_RUN=Benchmark[^T]" >> "$GITHUB_ENV"
 
       - name: Log in to the Elastic Container registry
-        uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4.5.1
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
           username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
@@ -268,7 +268,7 @@ jobs:
         id: get_token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
+          client-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
           private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
           permission-contents: write
           permission-pull-requests: write
