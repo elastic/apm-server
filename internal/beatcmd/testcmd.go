@@ -44,7 +44,7 @@ var testConfigCommand = &cobra.Command{
 	Use:   "config",
 	Short: "Test configuration settings",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg, _, _, err := LoadConfig()
+		cfg, _, _, _, err := LoadConfig()
 		if err != nil {
 			return err
 		}

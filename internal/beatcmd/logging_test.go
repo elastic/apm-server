@@ -19,12 +19,14 @@ package beatcmd
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/paths"
 )
 
 var environments = []logp.Environment{
@@ -37,6 +39,10 @@ var environments = []logp.Environment{
 }
 
 func TestBuildLoggingConfigPerEnvironment(t *testing.T) {
+	logsDir := t.TempDir()
+	absDir := t.TempDir()
+	beatPaths := &paths.Path{Logs: logsDir}
+
 	for _, env := range environments {
 		for _, tt := range []struct {
 			name           string
@@ -96,6 +102,32 @@ func TestBuildLoggingConfigPerEnvironment(t *testing.T) {
 				},
 			},
 			{
+				name: fmt.Sprintf("with a relative files.path and %s environment", env),
+				cfg: &Config{
+					Logging: config.MustNewConfigFrom(map[string]interface{}{"files.path": "rel"}),
+				},
+
+				buildExpectedConfig: func() logp.Config {
+					cfg := logp.DefaultConfig(env)
+					cfg.Beat = "apm-server"
+					cfg.Files.Path = filepath.Join(logsDir, "rel")
+					return cfg
+				},
+			},
+			{
+				name: fmt.Sprintf("with an absolute files.path and %s environment", env),
+				cfg: &Config{
+					Logging: config.MustNewConfigFrom(map[string]interface{}{"files.path": absDir}),
+				},
+
+				buildExpectedConfig: func() logp.Config {
+					cfg := logp.DefaultConfig(env)
+					cfg.Beat = "apm-server"
+					cfg.Files.Path = absDir
+					return cfg
+				},
+			},
+			{
 				name: fmt.Sprintf("with options and %s environment", env),
 				cfg:  &Config{},
 				opts: []logp.Option{
@@ -111,7 +143,7 @@ func TestBuildLoggingConfigPerEnvironment(t *testing.T) {
 			},
 		} {
 			t.Run(tt.name, func(t *testing.T) {
-				cfg, err := buildLoggingConfig(tt.cfg, env, tt.logStderr, tt.debugSelectors, tt.opts...)
+				cfg, err := buildLoggingConfig(tt.cfg, beatPaths, env, tt.logStderr, tt.debugSelectors, tt.opts...)
 
 				if tt.expectedErr == nil {
 					assert.NoError(t, err)
@@ -119,7 +151,11 @@ func TestBuildLoggingConfigPerEnvironment(t *testing.T) {
 					assert.Equal(t, tt.expectedErr, err)
 				}
 
-				assert.Equal(t, tt.buildExpectedConfig(), cfg)
+				expected := tt.buildExpectedConfig()
+				if expected.Files.Path == "" {
+					expected.Files.Path = logsDir
+				}
+				assert.Equal(t, expected, cfg)
 			})
 		}
 	}

@@ -45,7 +45,7 @@ func init() {
 }
 
 func exportConfig(w io.Writer) error {
-	_, rawConfig, _, err := LoadConfig(WithDisableConfigResolution())
+	_, rawConfig, _, _, err := LoadConfig(WithDisableConfigResolution())
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
