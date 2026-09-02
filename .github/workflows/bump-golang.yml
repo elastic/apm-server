@@ -63,20 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-<<<<<<< HEAD
           ref: '7.17'
-=======
-          ref: '8.19'
-
-      - name: Get token
-        id: get_token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
-          private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
-          permission-contents: write
-          permission-pull-requests: write
->>>>>>> a1d31ef (Switch create-github-app-token input to client-id (#21748))
 
       - uses: elastic/oblt-actions/updatecli/run@v1
         with:

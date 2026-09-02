@@ -22,7 +22,6 @@ jobs:
         id: get_token
         uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
         with:
-<<<<<<< HEAD
           app_id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
           private_key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
           permissions: >-
@@ -30,15 +29,6 @@ jobs:
               "contents": "write",
               "pull_requests": "write"
             }
-=======
-          client-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
-          private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
-          owner: ${{ github.repository_owner }}
-          repositories: |
-            apm-server
-          permission-contents: write
-          permission-pull-requests: write
->>>>>>> a1d31ef (Switch create-github-app-token input to client-id (#21748))
 
       - uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
         with:
