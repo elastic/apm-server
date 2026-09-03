@@ -57,10 +57,7 @@ steps:
     matrix:
       - "snapshot"
       - "staging"
-<<<<<<< HEAD
-=======
     timeout_in_minutes: 10
->>>>>>> 43b4430 (Migrate DRA GCS publishing from Release manager to dra-prep-plugin (#21702))
     depends_on:
       - step: "package"
         allow_failure: false
