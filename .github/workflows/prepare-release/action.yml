@@ -73,6 +73,7 @@ runs:
         echo "::error::${FAILURE_MESSAGE}" ; exit 1
       shell: 'bash'
 
+<<<<<<< HEAD
     - name: validate if branch already exists (major only)
       if: ${{ inputs.type == 'major' }}
       run: |-
@@ -97,6 +98,8 @@ runs:
       env:
         BRANCH: ${{ steps.generate.outputs.release-branch }}
 
+=======
+>>>>>>> 40a9d9e (Version bump idempotency (#21555))
     - name: validate if tag already exists
       run: |-
         if git ls-remote --exit-code https://github.com/${{ github.repository }}.git "$TAG" > /dev/null ; then
