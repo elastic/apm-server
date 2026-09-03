@@ -179,8 +179,8 @@ create-branch:
 		git fetch origin $(NAME):$(NAME) ; \
 		git checkout $(NAME) ; \
 	else \
-		git branch -D $(NAME) &>/dev/null || true ; \
 		git checkout $(BASE) ; \
+		git branch -D $(NAME) &>/dev/null || true ; \
 		git checkout $(BASE) -b $(NAME) ; \
 	fi
 	@echo "::endgroup::"
