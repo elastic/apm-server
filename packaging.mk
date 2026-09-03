@@ -48,7 +48,7 @@ build/docker/%.txt: DOCKER_IMAGE_TAG := docker.elastic.co/apm/apm-server:%
 build/docker/%.txt: VERSION := $(APM_SERVER_VERSION)
 build/docker/%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile
 build/docker/%-SNAPSHOT.txt: VERSION := $(APM_SERVER_VERSION)-SNAPSHOT
-build/docker/apm-server-ubi-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=registry.access.redhat.com/ubi10-micro:latest@sha256:551f8ee81be3dbabd45a9c197f3724b9724c1edb05d68d10bfe85a5c9e46a458
+build/docker/apm-server-ubi-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=registry.access.redhat.com/ubi10-micro:latest@sha256:cabedb588644e9da2c95ebb173a67b78d58aaedcb0eaa42a86f880bcef8a0b2f
 build/docker/apm-server-wolfi-%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile.wolfi
 build/docker/apm-server-fips-%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile.fips
 
