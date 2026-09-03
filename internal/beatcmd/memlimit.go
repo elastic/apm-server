@@ -25,30 +25,27 @@ import (
 	"github.com/KimMachineGun/automemlimit/memlimit"
 )
 
+// adjustMemlimit sets Go's soft memory limit (GOMEMLIMIT) to 90% of the
+// process's cgroup or system memory limit, refreshing every d until ctx is
+// canceled.
 func adjustMemlimit(ctx context.Context, d time.Duration, logger *slog.Logger) error {
-	setMemLimit := func() {
-		memlimit.SetGoMemLimitWithOpts(
-			memlimit.WithProvider(
-				memlimit.ApplyFallback(
-					memlimit.FromCgroup,
-					memlimit.FromSystem,
-				),
+	if _, err := memlimit.Set(
+		memlimit.WithProvider(
+			memlimit.ApplyFallback(
+				memlimit.FromCgroup,
+				memlimit.FromSystem,
 			),
-			memlimit.WithLogger(logger),
-			memlimit.WithRefreshInterval(0),
-			memlimit.WithRatio(0.9),
-		)
+		),
+		memlimit.WithLogger(logger),
+		memlimit.WithRefreshInterval(ctx, d),
+		memlimit.WithRatio(0.9),
+	); err != nil {
+		// automemlimit already logs this via the configured logger, and a
+		// failed adjustment is non-fatal, so don't re-log or return early:
+		// the refresh loop stays running and may recover on a later tick.
+		_ = err
 	}
 
-	setMemLimit()
-	ticker := time.NewTicker(d)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-ticker.C:
-			setMemLimit()
-		}
-	}
+	<-ctx.Done()
+	return ctx.Err()
 }
