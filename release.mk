@@ -128,8 +128,6 @@ minor-release:
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)"
-<<<<<<< HEAD
-
 	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
 # NOTE: as long as 8.x is the branch to run releases, then the base branch is 8.x
 # when 8.x is not available the we should use main as the base branch.
@@ -151,8 +149,6 @@ ifeq ($(UPDATE_MERGIFY),true)
 	$(MAKE) create-commit COMMIT_MESSAGE="mergify: update backports for $(RELEASE_BRANCH)"
 endif
 
-=======
->>>>>>> 40a9d9e (Version bump idempotency (#21555))
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
 	$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH)
 # NOTE: as long as main is the branch to run releases, then we update mergify
@@ -342,20 +338,6 @@ create-github-label:
 create-pull-request: BRANCH=$${BRANCH} TITLE=$${TITLE} TARGET_BRANCH=$${TARGET_BRANCH} BODY=$${BODY} BACKPORT_LABEL=$${BACKPORT_LABEL}
 
 create-pull-request:
-<<<<<<< HEAD
-	@echo "::group::create-pull-request"
-	git push origin $(BRANCH)
-	echo "--label $(BACKPORT_LABEL)"
-	gh pr create \
-		--title "$(TITLE)" \
-		--body "$(BODY)" \
-		--base $(TARGET_BRANCH) \
-		--head $(BRANCH) \
-		--label 'release' \
-		--label "$(BACKPORT_LABEL)" \
-		--reviewer "$(PROJECT_REVIEWERS)" \
-		--repo $(PROJECT_OWNER)/apm-server || echo "There is no changes"
-=======
 	@echo "::group::create-pull-request $(BRANCH) -> $(TARGET_BRANCH)"
 	@PR_COUNT=0 ; \
 	if [ "$(FORCE_PR_CREATION)" != "true" ]; then \
@@ -376,7 +358,6 @@ create-pull-request:
 			--reviewer "$(PROJECT_REVIEWERS)" \
 			--repo $(PROJECT_OWNER)/apm-server || echo "There is no changes" ; \
 	fi
->>>>>>> 40a9d9e (Version bump idempotency (#21555))
 	@echo "::endgroup::"
 
 ## Diff output
