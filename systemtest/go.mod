@@ -12,6 +12,7 @@ require (
 	github.com/elastic/go-sysinfo v1.15.4
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
 	github.com/hashicorp/go-multierror v1.1.1
+<<<<<<< HEAD
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.41.0
 	github.com/tidwall/gjson v1.18.0
@@ -33,6 +34,31 @@ require (
 	golang.org/x/sys v0.42.0
 	golang.org/x/time v0.15.0
 	google.golang.org/grpc v1.80.0
+=======
+	github.com/moby/moby/api v1.55.0
+	github.com/stretchr/testify v1.12.1
+	github.com/testcontainers/testcontainers-go v0.44.0
+	github.com/tidwall/gjson v1.19.0
+	go.elastic.co/apm/v2 v2.7.12
+	go.elastic.co/fastjson v1.5.1
+	go.opentelemetry.io/collector/pdata v1.65.0
+	go.opentelemetry.io/otel v1.46.0
+	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.46.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.46.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.46.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.46.0
+	go.opentelemetry.io/otel/metric v1.46.0
+	go.opentelemetry.io/otel/sdk v1.46.0
+	go.opentelemetry.io/otel/sdk/metric v1.46.0
+	go.opentelemetry.io/otel/trace v1.46.0
+	go.uber.org/zap v1.28.0
+	go.yaml.in/yaml/v3 v3.0.5
+	golang.org/x/net v0.58.0
+	golang.org/x/sync v0.22.0
+	golang.org/x/sys v0.47.0
+	golang.org/x/time v0.15.0
+	google.golang.org/grpc v1.83.1
+>>>>>>> b20cbb7 (build(deps): bump the dependencies group across 1 directory with 13 updates (#21732))
 )
 
 require (
@@ -48,7 +74,6 @@ require (
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/platforms v0.2.1 // indirect
 	github.com/cpuguy83/dockercfg v0.3.2 // indirect
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
@@ -60,7 +85,11 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+<<<<<<< HEAD
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0 // indirect
+=======
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
+>>>>>>> b20cbb7 (build(deps): bump the dependencies group across 1 directory with 13 updates (#21732))
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-version v1.8.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -80,7 +109,6 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.2 // indirect
@@ -92,6 +120,7 @@ require (
 	github.com/tklauser/numcpus v0.11.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
+<<<<<<< HEAD
 	go.opentelemetry.io/collector/featuregate v1.55.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.9.0 // indirect
@@ -103,5 +132,16 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+=======
+	go.opentelemetry.io/collector/featuregate v1.65.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0 // indirect
+	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+	golang.org/x/crypto v0.55.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260819154853-08b0e4226688 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260819154853-08b0e4226688 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
+>>>>>>> b20cbb7 (build(deps): bump the dependencies group across 1 directory with 13 updates (#21732))
 	howett.net/plist v1.0.0 // indirect
 )
