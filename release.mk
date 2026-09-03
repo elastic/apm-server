@@ -38,6 +38,7 @@ PROJECT_MINOR_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f2 -d.)
 PROJECT_PATCH_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f3 -d.)
 PROJECT_OWNER ?= elastic
 RELEASE_TYPE ?= minor
+FORCE_PR_CREATION ?=
 
 # if gh is installed only
 ifneq ($(shell command -v gh 2>/dev/null),)
@@ -122,13 +123,11 @@ endef
 minor-release:
 	@echo "INFO: Create GitHub label backport for the version $(RELEASE_VERSION)"
 	$(MAKE) create-github-label NAME=backport-$(RELEASE_BRANCH)
-
 	@echo "INFO: Create release branch and update new version $(RELEASE_VERSION)"
 	$(MAKE) create-branch NAME=$(RELEASE_BRANCH) BASE=$(BASE_BRANCH)
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)"
-
 	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
 # NOTE: as long as 8.x is the branch to run releases, then the base branch is 8.x
 # when 8.x is not available the we should use main as the base branch.
@@ -161,7 +160,6 @@ endif
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
 	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update changelogs for $(RELEASE_BRANCH) release"
-
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
 	git push origin $(RELEASE_BRANCH)
 ifeq ($(UPDATE_MERGIFY),true)
@@ -293,14 +291,21 @@ update-version-makefile:
 ############################################
 
 ## Create a new branch
-## It will delete the branch if it already exists before the creation.
+## If the branch already exists on the remote, fetch and check it out instead.
+## Otherwise, delete the local branch if it exists and recreate it from BASE.
 .PHONY: create-branch
 create-branch: NAME=$${NAME} BASE=$${BASE}
 create-branch:
 	@echo "::group::create-branch $(NAME)"
-	git checkout $(BASE)
-	git branch -D $(NAME) &>/dev/null || true
-	git checkout $(BASE) -b $(NAME)
+	@if git ls-remote --exit-code --heads origin "$(NAME)" > /dev/null 2>&1; then \
+		echo "WARNING: Branch $(NAME) already exists. Fetching and checking out." ; \
+		git fetch origin $(NAME):$(NAME) ; \
+		git checkout $(NAME) ; \
+	else \
+		git checkout $(BASE) ; \
+		git branch -D $(NAME) &>/dev/null || true ; \
+		git checkout $(BASE) -b $(NAME) ; \
+	fi
 	@echo "::endgroup::"
 
 ## Create a new commit only if there is a diff.
@@ -333,18 +338,26 @@ create-github-label:
 create-pull-request: BRANCH=$${BRANCH} TITLE=$${TITLE} TARGET_BRANCH=$${TARGET_BRANCH} BODY=$${BODY} BACKPORT_LABEL=$${BACKPORT_LABEL}
 
 create-pull-request:
-	@echo "::group::create-pull-request"
-	git push origin $(BRANCH)
-	echo "--label $(BACKPORT_LABEL)"
-	gh pr create \
-		--title "$(TITLE)" \
-		--body "$(BODY)" \
-		--base $(TARGET_BRANCH) \
-		--head $(BRANCH) \
-		--label 'release' \
-		--label "$(BACKPORT_LABEL)" \
-		--reviewer "$(PROJECT_REVIEWERS)" \
-		--repo $(PROJECT_OWNER)/apm-server || echo "There is no changes"
+	@echo "::group::create-pull-request $(BRANCH) -> $(TARGET_BRANCH)"
+	@PR_COUNT=0 ; \
+	if [ "$(FORCE_PR_CREATION)" != "true" ]; then \
+		PR_COUNT=$$(gh pr list --head "$(BRANCH)" --base "$(TARGET_BRANCH)" --label release --state all --json number,headRefName --jq '[.[] | select(.headRefName == "$(BRANCH)")] | length' --repo $(PROJECT_OWNER)/apm-server) ; \
+	fi ; \
+	if [ "$$PR_COUNT" -gt 0 ]; then \
+		echo "PR for $(BRANCH) -> $(TARGET_BRANCH) already exists, skipping." ; \
+	else \
+		echo "--label $(BACKPORT_LABEL)" ; \
+		git push origin $(BRANCH) ; \
+		gh pr create \
+			--title "$(TITLE)" \
+			--body "$(BODY)" \
+			--base $(TARGET_BRANCH) \
+			--head $(BRANCH) \
+			--label 'release' \
+			--label "$(BACKPORT_LABEL)" \
+			--reviewer "$(PROJECT_REVIEWERS)" \
+			--repo $(PROJECT_OWNER)/apm-server || echo "There is no changes" ; \
+	fi
 	@echo "::endgroup::"
 
 ## Diff output
