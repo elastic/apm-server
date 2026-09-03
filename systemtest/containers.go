@@ -38,7 +38,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
-	"github.com/docker/go-connections/nat"
+	mobycontainer "github.com/moby/moby/api/types/container"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -329,7 +329,7 @@ func (c *ElasticAgentContainer) Start() error {
 		}
 		c.Addrs = make(map[string]string)
 		for _, exposedPort := range c.request.ExposedPorts {
-			mappedPort, err := container.MappedPort(ctx, nat.Port(exposedPort))
+			mappedPort, err := container.MappedPort(ctx, exposedPort)
 			if err != nil {
 				return err
 			}
@@ -397,7 +397,7 @@ func (c *ElasticAgentContainer) APMServerLog() (io.ReadCloser, error) {
 }
 
 // Wait waits for the container process to exit, and returns its state.
-func (c *ElasticAgentContainer) Wait(ctx context.Context) (*types.ContainerState, error) {
+func (c *ElasticAgentContainer) Wait(ctx context.Context) (*mobycontainer.State, error) {
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
