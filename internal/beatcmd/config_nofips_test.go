@@ -34,7 +34,7 @@ apm-server:
   auth.secret_token: ${APM_SECRET_TOKEN}
   `)
 
-	cfg, _, _, err := LoadConfig(WithDisableConfigResolution())
+	cfg, _, _, _, err := LoadConfig(WithDisableConfigResolution())
 	require.NoError(t, err)
 	assertConfigEqual(t, map[string]any{
 		"auth": map[string]any{
@@ -42,7 +42,7 @@ apm-server:
 		},
 	}, cfg.APMServer)
 
-	cfg, _, ks, err := LoadConfig()
+	cfg, _, ks, _, err := LoadConfig()
 	require.NoError(t, err)
 
 	err = cfg.APMServer.Unpack(new(map[string]any))

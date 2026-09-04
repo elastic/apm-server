@@ -39,7 +39,7 @@ type locker struct {
 }
 
 func newLocker(b *Beat) *locker {
-	lockfilePath := paths.Resolve(paths.Data, b.Info.Beat+".lock")
+	lockfilePath := b.Info.Paths.Resolve(paths.Data, b.Info.Beat+".lock")
 	return &locker{
 		fl: flock.New(lockfilePath),
 	}

@@ -48,7 +48,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/monitoring"
-	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-docappender/v2/docappendertest"
 
@@ -90,10 +89,10 @@ func TestRunnerParams(t *testing.T) {
 			},
 		},
 		"path": map[string]any{
-			"config": paths.Paths.Config,
-			"logs":   paths.Paths.Logs,
-			"data":   paths.Paths.Data,
-			"home":   paths.Paths.Home,
+			"config": args.Info.Paths.Config,
+			"logs":   args.Info.Paths.Logs,
+			"data":   args.Info.Paths.Data,
+			"home":   args.Info.Paths.Home,
 		},
 	}, m)
 }
