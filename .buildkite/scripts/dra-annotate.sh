@@ -4,11 +4,9 @@
 ##  extracts build_id and version, and annotates the build with a link to
 ##  the workflow's published summary.
 ##
-##  dractl prep never writes a summary-*.html at its temp upload path (only
-##  the manifest) — the rendered summary only exists once
-##  unified-release-dra-processing publishes it to the final location, so
-##  link there instead of the temp path.
-##
+##  The rendered summary only exists once unified-release-dra-processing
+##  publishes it to the final location.
+##  
 ##  Invoked from the generated DRA sub-pipeline. Kept as a standalone script
 ##  because Buildkite interpolates inline command:'s ${VAR} references at
 ##  job pickup, which would eat local variables set inside the command block.
