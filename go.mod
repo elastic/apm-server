@@ -8,7 +8,7 @@ require (
 	github.com/cockroachdb/pebble/v2 v2.1.6
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.1
-	github.com/elastic/apm-data v1.22.1
+	github.com/elastic/apm-data v1.22.2
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260602145145-24b3ef55f923
 	github.com/elastic/elastic-agent-client/v7 v7.18.1
 	github.com/elastic/elastic-agent-libs v0.46.0
@@ -235,7 +235,7 @@ require (
 	go.opentelemetry.io/collector/config/configretry v1.59.0 // indirect
 	go.opentelemetry.io/collector/confmap v1.59.0 // indirect
 	go.opentelemetry.io/collector/confmap/xconfmap v0.153.0 // indirect
-	go.opentelemetry.io/collector/consumer v1.59.0 // indirect
+	go.opentelemetry.io/collector/consumer v1.64.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror v0.153.0 // indirect
 	go.opentelemetry.io/collector/exporter v1.59.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper v0.153.0 // indirect
