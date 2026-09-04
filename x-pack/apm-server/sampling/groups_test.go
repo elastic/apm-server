@@ -38,13 +38,11 @@ func TestTraceGroupsPolicies(t *testing.T) {
 	}
 	makePolicy := func(sampleRate float64, serviceName, serviceEnvironment, traceOutcome, traceName string) Policy {
 		return Policy{
-			SampleRate: sampleRate,
-			PolicyCriteria: PolicyCriteria{
-				ServiceName:        serviceName,
-				ServiceEnvironment: serviceEnvironment,
-				TraceName:          traceName,
-				TraceOutcome:       traceOutcome,
-			},
+			SampleRate:         sampleRate,
+			ServiceName:        serviceName,
+			ServiceEnvironment: serviceEnvironment,
+			TraceName:          traceName,
+			TraceOutcome:       traceOutcome,
 		}
 	}
 
@@ -206,9 +204,9 @@ func TestTraceGroupsRemoval(t *testing.T) {
 		ingestRateCoefficient = 1.0
 	)
 	policies := []Policy{
-		{PolicyCriteria: PolicyCriteria{ServiceName: "defined"}, SampleRate: 0.5},
+		{ServiceName: "defined", SampleRate: 0.5},
 		{SampleRate: 0.5},
-		{PolicyCriteria: PolicyCriteria{ServiceName: "defined_later"}, SampleRate: 0.5},
+		{ServiceName: "defined_later", SampleRate: 0.5},
 	}
 	groups := newTraceGroups(noop.Meter{}, policies, maxDynamicServices, ingestRateCoefficient)
 
