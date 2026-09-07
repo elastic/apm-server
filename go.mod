@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.26.6
+go 1.26.8
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.5
@@ -26,13 +26,13 @@ require (
 	github.com/elastic/go-ucfg v0.9.1
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
 	github.com/gofrs/flock v0.13.0
-	github.com/gofrs/uuid/v5 v5.4.0
+	github.com/gofrs/uuid/v5 v5.5.0
 	github.com/google/go-cmp v0.7.0
 	github.com/libp2p/go-reuseport v0.4.0
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
-	github.com/stretchr/testify v1.12.0
+	github.com/stretchr/testify v1.12.1
 	go.elastic.co/apm/module/apmhttp/v2 v2.7.12
 	go.elastic.co/apm/module/apmotel/v2 v2.7.12
 	go.elastic.co/apm/v2 v2.7.12
@@ -251,7 +251,7 @@ require (
 	go.opentelemetry.io/collector/pipeline/xpipeline v0.153.0 // indirect
 >>>>>>> 60ec555 ((chore) bump apm-data `v1.22.2` (#21792))
 	go.uber.org/multierr v1.11.0 // indirect
-	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/exp v0.0.0-20260527015227-08cc5374adb3 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
