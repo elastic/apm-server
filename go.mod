@@ -8,13 +8,8 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.1
-<<<<<<< HEAD
-	github.com/elastic/apm-data v1.22.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260707190828-8484d9ec0199
-=======
 	github.com/elastic/apm-data v1.22.2
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260602145145-24b3ef55f923
->>>>>>> 60ec555 ((chore) bump apm-data `v1.22.2` (#21792))
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260707190828-8484d9ec0199
 	github.com/elastic/elastic-agent-client/v7 v7.18.1
 	github.com/elastic/elastic-agent-libs v0.46.3
 	github.com/elastic/elastic-agent-system-metrics v0.14.4
@@ -248,21 +243,6 @@ require (
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.7.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-<<<<<<< HEAD
-=======
-	go.opentelemetry.io/collector/client v1.59.0 // indirect
-	go.opentelemetry.io/collector/component v1.59.0 // indirect
-	go.opentelemetry.io/collector/config/configoptional v1.59.0 // indirect
-	go.opentelemetry.io/collector/config/configretry v1.59.0 // indirect
-	go.opentelemetry.io/collector/confmap v1.59.0 // indirect
-	go.opentelemetry.io/collector/confmap/xconfmap v0.153.0 // indirect
-	go.opentelemetry.io/collector/consumer v1.64.0 // indirect
-	go.opentelemetry.io/collector/consumer/consumererror v0.153.0 // indirect
-	go.opentelemetry.io/collector/exporter v1.59.0 // indirect
-	go.opentelemetry.io/collector/exporter/exporterhelper v0.153.0 // indirect
-	go.opentelemetry.io/collector/extension v1.59.0 // indirect
-	go.opentelemetry.io/collector/extension/xextension v0.153.0 // indirect
->>>>>>> 60ec555 ((chore) bump apm-data `v1.22.2` (#21792))
 	go.opentelemetry.io/collector/featuregate v1.64.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.54.0 // indirect
