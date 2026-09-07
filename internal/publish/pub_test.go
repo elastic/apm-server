@@ -30,7 +30,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
 	"github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
 	"github.com/elastic/apm-server/internal/publish"
@@ -95,9 +95,12 @@ func newBlockingPipeline(t testing.TB) (*pipeline.Pipeline, *mockClient) {
 	err = conf.Unpack(&namespace)
 	require.NoError(t, err)
 
+	// TODO: remove noplogger workaround once https://github.com/elastic/beats/issues/52947 is fixed upstream.
+	// The pipeline's internal queueReader goroutine may log after a test completes, causing a
+	// panic when using zaptest's testing logger. A nop logger avoids the race.
 	pipe, err := pipeline.New(
 		beat.Info{
-			Logger: logptest.NewTestingLogger(t, "beat"),
+			Logger: logp.NewNopLogger(),
 		},
 		pipeline.Monitors{},
 		namespace,
