@@ -244,11 +244,11 @@ these terms.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/apm-data
-Version: v1.22.1
+Version: v1.22.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.22.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.22.2/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -2473,11 +2473,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/gofrs/uuid/v5
-Version: v5.4.0
+Version: v5.5.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/gofrs/uuid/v5@v5.4.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/gofrs/uuid/v5@v5.5.0/LICENSE:
 
 Copyright (C) 2013-2018 by Maxim Bublis <b@codemonkey.ru>
 
@@ -15485,11 +15485,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/auto/sdk@v1.2.
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/consumer
-Version: v1.59.0
+Version: v1.64.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.59.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.64.0/LICENSE:
 
 
                                  Apache License
