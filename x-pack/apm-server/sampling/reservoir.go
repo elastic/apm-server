@@ -112,13 +112,13 @@ func (h itemheap) Swap(i, j int) {
 	h.values[i], h.values[j] = h.values[j], h.values[i]
 }
 
-func (h *itemheap) Push(x interface{}) {
+func (h *itemheap) Push(x any) {
 	item := x.(item)
 	h.keys = append(h.keys, item.key)
 	h.values = append(h.values, item.value)
 }
 
-func (h *itemheap) Pop() interface{} {
+func (h *itemheap) Pop() any {
 	n := len(h.keys)
 	item := item{
 		key:   h.keys[n-1],

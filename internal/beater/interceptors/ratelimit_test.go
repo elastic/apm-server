@@ -62,7 +62,7 @@ func TestAnonymousRateLimit(t *testing.T) {
 	}} {
 		store, _ := ratelimit.NewStore(1, 1, test.burst)
 		interceptor := interceptors.AnonymousRateLimit(store)
-		handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		handler := func(ctx context.Context, req any) (any, error) {
 			limiter, ok := ratelimit.FromContext(ctx)
 			if test.anonymous {
 				require.True(t, ok)
@@ -97,7 +97,7 @@ func TestAnonymousRateLimit(t *testing.T) {
 func TestAnonymousRateLimitForIP(t *testing.T) {
 	store, _ := ratelimit.NewStore(2, 1, 1)
 	interceptor := interceptors.AnonymousRateLimit(store)
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) { return nil, nil }
+	handler := func(ctx context.Context, req any) (any, error) { return nil, nil }
 
 	requestWithIP := func(ip string) error {
 		ctx := interceptors.ContextWithClientMetadata(context.Background(),

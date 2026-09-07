@@ -28,23 +28,23 @@ import (
 
 func TestSamplingPoliciesValidation(t *testing.T) {
 	t.Run("MinimallyValid", func(t *testing.T) {
-		_, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
-			"sampling.tail.policies": []map[string]interface{}{{
+		_, err := NewConfig(config.MustNewConfigFrom(map[string]any{
+			"sampling.tail.policies": []map[string]any{{
 				"sample_rate": 0.5,
 			}},
 		}), nil, logptest.NewTestingLogger(t, ""))
 		assert.NoError(t, err)
 	})
 	t.Run("NoPolicies", func(t *testing.T) {
-		c, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
+		c, err := NewConfig(config.MustNewConfigFrom(map[string]any{
 			"sampling.tail.enabled": true,
 		}), nil, logptest.NewTestingLogger(t, ""))
 		assert.EqualError(t, err, "error processing configuration: invalid sampling.tail config: no policies specified accessing 'sampling.tail'")
 		assert.Nil(t, c)
 	})
 	t.Run("NoDefaultPolicies", func(t *testing.T) {
-		c, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
-			"sampling.tail.policies": []map[string]interface{}{{
+		c, err := NewConfig(config.MustNewConfigFrom(map[string]any{
+			"sampling.tail.policies": []map[string]any{{
 				"service.name": "foo",
 				"sample_rate":  0.5,
 			}},

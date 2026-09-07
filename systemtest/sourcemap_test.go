@@ -74,35 +74,59 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 }
 
 func TestRUMSpanSourcemapping(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-
-	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
-	require.NoError(t, err)
-	systemtest.CreateSourceMap(t, sourcemap, "apm-agent-js", "1.0.0",
-		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-	)
-
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	srv.Config.Kibana.Enabled = false
-	err = srv.Start()
-	require.NoError(t, err)
-
-	retry := func() {
-		systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
+	testCases := []struct {
+		name      string
+		rumConfig *apmservertest.RUMConfig
+	}{
+		{
+			name:      "minimal config",
+			rumConfig: &apmservertest.RUMConfig{Enabled: true},
+		},
+		{
+			name: "max source map size specified",
+			rumConfig: &apmservertest.RUMConfig{
+				Enabled: true,
+				Sourcemap: &apmservertest.RUMSourcemapConfig{
+					Enabled:          true,
+					MaxSourcemapSize: "5Mib",
+				},
+			},
+		},
 	}
-	result := estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "traces-apm*", 1, retry, espoll.TermQuery{
-		Field: "processor.event",
-		Value: "span",
-	}, true)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
 
-	approvaltest.ApproveFields(
-		t, t.Name(), result.Hits.Hits,
-		// RUM timestamps are set by the server based on the time the payload is received.
-		"@timestamp", "timestamp.us",
-		// RUM events have the source port recorded, and in the tests it will be dynamic
-		"source.port",
-	)
+			systemtest.CleanupElasticsearch(t)
+
+			sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
+			require.NoError(t, err)
+			systemtest.CreateSourceMap(t, sourcemap, "apm-agent-js", "1.0.0",
+				"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+			)
+
+			srv := apmservertest.NewUnstartedServerTB(t)
+			srv.Config.RUM = tc.rumConfig
+			srv.Config.Kibana.Enabled = false
+			err = srv.Start()
+			require.NoError(t, err)
+
+			retry := func() {
+				systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
+			}
+			result := estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "traces-apm*", 1, retry, espoll.TermQuery{
+				Field: "processor.event",
+				Value: "span",
+			}, true)
+
+			approvaltest.ApproveFields(
+				t, t.Name(), result.Hits.Hits,
+				// RUM timestamps are set by the server based on the time the payload is received.
+				"@timestamp", "timestamp.us",
+				// RUM events have the source port recorded, and in the tests it will be dynamic
+				"source.port",
+			)
+		})
+	}
 }
 
 func TestNoMatchingSourcemap(t *testing.T) {

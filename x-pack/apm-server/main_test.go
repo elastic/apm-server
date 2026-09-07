@@ -68,7 +68,7 @@ func TestMainMonitoring(t *testing.T) {
 
 		return runServerError
 	}
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		serverParams, runServer, err := wrapServer(beater.ServerParams{
 			Config:                 cfg,
 			Logger:                 logptest.NewTestingLogger(t, ""),

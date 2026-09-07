@@ -43,7 +43,7 @@ func TestExpvarEnabled(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, recorder.Code)
 
-	decoded := make(map[string]interface{})
+	decoded := make(map[string]any)
 	err = json.NewDecoder(recorder.Body).Decode(&decoded)
 	assert.NoError(t, err)
 	assert.Contains(t, decoded, "memstats")

@@ -82,7 +82,7 @@ func BenchmarkReadEvents(b *testing.B) {
 				sm := newStorageManagerLogger(b, logp.NewNopLogger(), eventstorage.WithCodec(codec))
 				readWriter := newUnlimitedReadWriter(sm)
 
-				for i := 0; i < count; i++ {
+				for range count {
 					transactionID := uuid.Must(uuid.NewV4()).String()
 					var transaction *modelpb.APMEvent
 					if bigTX {
@@ -158,7 +158,7 @@ func BenchmarkReadEventsCallback(b *testing.B) {
 				sm := newStorageManagerLogger(b, logp.NewNopLogger())
 				readWriter := newUnlimitedReadWriter(sm)
 
-				for i := 0; i < count; i++ {
+				for range count {
 					transactionID := uuid.Must(uuid.NewV4()).String()
 					transaction := makeTransaction(transactionID, traceID)
 					if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
@@ -208,7 +208,7 @@ func BenchmarkReadEventsHit(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 					traceID := uuid.Must(uuid.NewV4()).String()
 					traceIDs[i] = traceID
-					for j := 0; j < txnCountInTrace; j++ {
+					for range txnCountInTrace {
 						transactionID := uuid.Must(uuid.NewV4()).String()
 						var transaction *modelpb.APMEvent
 						if bigTX {

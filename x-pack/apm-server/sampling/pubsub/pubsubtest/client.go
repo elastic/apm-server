@@ -200,7 +200,7 @@ func (rt *channelClientRoundTripper) roundTripBulk(r *http.Request, recorder *ht
 	var results []map[string]docappendertest.BulkIndexerResponseItem
 	dec := json.NewDecoder(r.Body)
 	for {
-		var m map[string]interface{}
+		var m map[string]any
 		if err := dec.Decode(&m); err != nil {
 			if err == io.EOF {
 				break

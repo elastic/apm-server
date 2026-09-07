@@ -37,10 +37,10 @@ import (
 func ClientMetadata() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
-		req interface{},
+		req any,
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
-	) (interface{}, error) {
+	) (any, error) {
 		var values ClientMetadataValues
 		if p, ok := peer.FromContext(ctx); ok {
 			values.SourceAddr = p.Addr

@@ -93,7 +93,7 @@ type Settings map[string]string
 
 // UnmarshalJSON overrides default method to convert any JSON type to string
 func (s Settings) UnmarshalJSON(b []byte) error {
-	in := make(map[string]interface{})
+	in := make(map[string]any)
 	err := json.Unmarshal(b, &in)
 	for k, v := range in {
 		s[k] = fmt.Sprintf("%v", v)

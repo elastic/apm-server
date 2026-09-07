@@ -111,8 +111,8 @@ func TestAddresses(t *testing.T) {
 // TestBeatsConfigSynced helps ensure that our elasticsearch.Config struct is
 // kept in sync with the config defined in libbeat/outputs/elasticsearch.
 func TestBeatsConfigSynced(t *testing.T) {
-	libbeatType := reflect.TypeOf(libbeates.ElasticsearchConfig{})
-	localType := reflect.TypeOf(Config{})
+	libbeatType := reflect.TypeFor[libbeates.ElasticsearchConfig]()
+	localType := reflect.TypeFor[Config]()
 
 	type structField struct {
 		reflect.StructField
@@ -146,7 +146,7 @@ func TestBeatsConfigSynced(t *testing.T) {
 	//
 	// TODO(simitt): take a closer look at ES ouput changes in libbeat
 	// introduced with https://github.com/elastic/beats/pull/25219
-	localStructExceptions := map[string]interface{}{
+	localStructExceptions := map[string]any{
 		"ssl":                 nil,
 		"timeout":             nil,
 		"proxy_disable":       nil,

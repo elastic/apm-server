@@ -27,8 +27,9 @@ import (
 )
 
 var (
-	errFetcherUnvailable  = errors.New("fetcher unavailable")
-	errMalformedSourcemap = errors.New("sourcemap malformed")
+	errFetcherUnvailable         = errors.New("fetcher unavailable")
+	errMalformedSourcemap        = errors.New("sourcemap malformed")
+	errSourcemapSizeExceedsLimit = errors.New("sourcemap size exceeds limit")
 )
 
 // Fetcher is an interface for fetching a source map with a given service name, service version,

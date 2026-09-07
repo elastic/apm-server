@@ -8,7 +8,7 @@ runs:
     - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
       with:
         terraform_version: "${{ env.TERRAFORM_VERSION }}"
-    - uses: actions/setup-go@v6
+    - uses: actions/setup-go@v7
       with:
         go-version-file: 'integrationservertest/go.mod'
         cache: false
@@ -16,6 +16,11 @@ runs:
       with:
         project-number: '911195782929'
         project-id: 'elastic-observability-ci'
+    - name: Configure Elastic Cloud target
+      shell: bash
+      run: |
+        # EC_TARGET must correspond to the EC_API_KEY target below.
+        echo "EC_TARGET=qa" >> "${GITHUB_ENV}"
     - uses: google-github-actions/get-secretmanager-secrets@bc9c54b29fdffb8a47776820a7d26e77b379d262 # v3.0.0
       with:
         export_to_environment: true

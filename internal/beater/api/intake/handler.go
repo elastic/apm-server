@@ -197,7 +197,7 @@ func errStatusCode(errID request.ResultID) int {
 }
 
 func writeResult(c *request.Context, id request.ResultID, statusCode int, result *jsonResult, err error) {
-	var body interface{}
+	var body any
 	if statusCode >= http.StatusBadRequest {
 		// this signals to the client that we're closing the connection
 		// but also signals to http.Server that it should close it:

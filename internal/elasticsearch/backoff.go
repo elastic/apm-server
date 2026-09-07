@@ -40,10 +40,7 @@ func exponentialBackoff(b BackoffConfig) backoffFunc {
 	return func(attempts int) time.Duration {
 		// Attempts starts at 1, after there's already been a failure.
 		// https://github.com/elastic/go-elasticsearch/blob/de2391/estransport/estransport.go#L339
-		next := b.Init * (1 << (attempts - 1))
-		if next > b.Max {
-			next = b.Max
-		}
+		next := min(b.Init*(1<<(attempts-1)), b.Max)
 		return next
 	}
 }

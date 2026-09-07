@@ -196,7 +196,6 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 	g, ctx := errgroup.WithContext(ctx)
 	serverStopped := make(chan struct{})
 	for _, p := range processors {
-		p := p // copy for closure
 		g.Go(func() error {
 			if err := p.Run(); err != nil {
 				args.Logger.With(logp.Error(err)).Errorf("%s aborted", p.name)

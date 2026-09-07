@@ -36,47 +36,47 @@ import (
 
 func TestKibanaFetcher(t *testing.T) {
 	fetcher := newTestKibanaFetcher(t, func(w http.ResponseWriter, r *http.Request) {
-		result := map[string]interface{}{
-			"artifacts": []interface{}{
-				map[string]interface{}{
+		result := map[string]any{
+			"artifacts": []any{
+				map[string]any{
 					"type": "not_a_sourcemap",
-					"body": map[string]interface{}{
+					"body": map[string]any{
 						"serviceName":    "service_name",
 						"serviceVersion": "service_version",
 						"bundleFilepath": "http://another_host:456/path",
 						"sourceMap":      "invalid_sourcemap",
 					},
 				},
-				map[string]interface{}{
+				map[string]any{
 					"type": "sourcemap",
-					"body": map[string]interface{}{
+					"body": map[string]any{
 						"serviceName":    "non_matching_service_name",
 						"serviceVersion": "service_version",
 						"bundleFilepath": "http://another_host:456/path",
 						"sourceMap":      "invalid_sourcemap",
 					},
 				},
-				map[string]interface{}{
+				map[string]any{
 					"type": "sourcemap",
-					"body": map[string]interface{}{
+					"body": map[string]any{
 						"serviceName":    "service_name",
 						"serviceVersion": "non_matching_service_version",
 						"bundleFilepath": "http://another_host:456/path",
 						"sourceMap":      "invalid_sourcemap",
 					},
 				},
-				map[string]interface{}{
+				map[string]any{
 					"type": "sourcemap",
-					"body": map[string]interface{}{
+					"body": map[string]any{
 						"serviceName":    "service_name",
 						"serviceVersion": "service_version",
 						"bundleFilepath": "http://another_host:456/non_matching_path",
 						"sourceMap":      "invalid_sourcemap",
 					},
 				},
-				map[string]interface{}{
+				map[string]any{
 					"type": "sourcemap",
-					"body": map[string]interface{}{
+					"body": map[string]any{
 						"serviceName":    "service_name",
 						"serviceVersion": "service_version",
 						"bundleFilepath": "http://another_host:456/path",
@@ -94,11 +94,11 @@ func TestKibanaFetcher(t *testing.T) {
 
 func TestKibanaFetcherInvalidSourcemap(t *testing.T) {
 	fetcher := newTestKibanaFetcher(t, func(w http.ResponseWriter, r *http.Request) {
-		result := map[string]interface{}{
-			"artifacts": []interface{}{
-				map[string]interface{}{
+		result := map[string]any{
+			"artifacts": []any{
+				map[string]any{
 					"type": "sourcemap",
-					"body": map[string]interface{}{
+					"body": map[string]any{
 						"serviceName":    "service_name",
 						"serviceVersion": "service_version",
 						"bundleFilepath": "http://another_host:456/path",

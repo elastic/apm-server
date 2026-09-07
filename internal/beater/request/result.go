@@ -115,7 +115,7 @@ type Result struct {
 	ID         ResultID
 	StatusCode int
 	Keyword    string
-	Body       interface{}
+	Body       any
 	Err        error
 	Stacktrace string
 }
@@ -147,13 +147,13 @@ func (r *Result) SetWithError(id ResultID, err error) {
 }
 
 // SetWithBody derives information about the result from the given ID. The body is set to the passed value.
-func (r *Result) SetWithBody(id ResultID, body interface{}) {
+func (r *Result) SetWithBody(id ResultID, body any) {
 	r.set(id, body, nil)
 }
 
 // Set allows for the most flexibility in setting a result's properties.
 // The error and body information are derived from the given parameters.
-func (r *Result) Set(id ResultID, statusCode int, keyword string, body interface{}, err error) {
+func (r *Result) Set(id ResultID, statusCode int, keyword string, body any, err error) {
 	if r == nil {
 		return
 	}
@@ -173,7 +173,7 @@ func (r *Result) Set(id ResultID, statusCode int, keyword string, body interface
 	}
 }
 
-func (r *Result) set(id ResultID, body interface{}, err error) {
+func (r *Result) set(id ResultID, body any, err error) {
 	if r == nil {
 		return
 	}

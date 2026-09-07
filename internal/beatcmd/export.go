@@ -49,7 +49,7 @@ func exportConfig(w io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
-	var config map[string]interface{}
+	var config map[string]any
 	if err := rawConfig.Unpack(&config); err != nil {
 		return fmt.Errorf("failed to unpack config: %w", err)
 	}

@@ -97,12 +97,10 @@ func (r Reporter) Run(ctx context.Context) error {
 		// Reset applied map, so that we report only configs applied
 		// during a given iteration.
 		applied = make(map[string]struct{})
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			if err := r.p.ProcessBatch(ctx, &batch); err != nil {
 				r.logger.Errorf("error sending applied agent configs to kibana: %v", err)
 			}
-		}()
+		})
 	}
 }

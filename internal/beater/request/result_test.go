@@ -28,7 +28,7 @@ import (
 )
 
 func assertResultIsEmpty(t *testing.T, r Result) {
-	cType := reflect.TypeOf(r)
+	cType := reflect.TypeFor[Result]()
 	cVal := reflect.ValueOf(r)
 	for i := 0; i < cVal.NumField(); i++ {
 		val := cVal.Field(i).Interface()
@@ -48,7 +48,7 @@ func TestResult_Reset(t *testing.T) {
 		ID:         IDResponseErrorsInternal,
 		StatusCode: http.StatusServiceUnavailable,
 		Keyword:    "some keyword",
-		Body:       []interface{}{1, "foo"},
+		Body:       []any{1, "foo"},
 		Err:        errors.New("foo"),
 		Stacktrace: "bar",
 	}

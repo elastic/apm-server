@@ -240,7 +240,7 @@ func (c *Context) acceptJSON() bool {
 	return false
 }
 
-func (c *Context) writeJSON(body interface{}, pretty bool) error {
+func (c *Context) writeJSON(body any, pretty bool) error {
 	enc := json.NewEncoder(c.ResponseWriter)
 	if pretty {
 		enc.SetIndent("", "  ")
@@ -248,7 +248,7 @@ func (c *Context) writeJSON(body interface{}, pretty bool) error {
 	return enc.Encode(body)
 }
 
-func (c *Context) writePlain(body interface{}) error {
+func (c *Context) writePlain(body any) error {
 	if b, ok := body.(string); ok {
 		_, err := c.ResponseWriter.Write([]byte(b + "\n"))
 		return err

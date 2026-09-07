@@ -34,10 +34,10 @@ import (
 func AnonymousRateLimit(store *ratelimit.Store) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
-		req interface{},
+		req any,
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
-	) (interface{}, error) {
+	) (any, error) {
 		details, ok := AuthenticationDetailsFromContext(ctx)
 		if !ok {
 			return nil, errors.New("authentication details not found in context")

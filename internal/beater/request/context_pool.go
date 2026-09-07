@@ -31,7 +31,7 @@ type ContextPool struct {
 // NewContextPool returns a new ContextPool.
 func NewContextPool() *ContextPool {
 	pool := ContextPool{}
-	pool.p.New = func() interface{} {
+	pool.p.New = func() any {
 		return NewContext()
 	}
 	return &pool

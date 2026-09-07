@@ -35,10 +35,10 @@ import (
 func Logging(logger *logp.Logger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
-		req interface{},
+		req any,
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
-	) (interface{}, error) {
+	) (any, error) {
 		// Shadow the logger param to ensure we don't update the
 		// closure variable, and interfere with logging of other
 		// requests.

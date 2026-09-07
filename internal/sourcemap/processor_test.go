@@ -44,7 +44,7 @@ func TestBatchProcessor(t *testing.T) {
 	close(ch)
 
 	client := newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, validSourcemap))
-	esFetcher := NewElasticsearchFetcher(client, "index", logptest.NewTestingLogger(t, ""))
+	esFetcher := NewElasticsearchFetcher(client, "index", defaultMaxSourceMapSizeBytes, logptest.NewTestingLogger(t, ""))
 	fetcher, err := NewBodyCachingFetcher(esFetcher, 100, ch, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
@@ -57,16 +57,16 @@ func TestBatchProcessor(t *testing.T) {
 
 	nonMatchingFrame := modelpb.StacktraceFrame{
 		AbsPath:  "bundle.js",
-		Lineno:   newInt(0),
-		Colno:    newInt(0),
+		Lineno:   new(uint32(0)),
+		Colno:    new(uint32(0)),
 		Function: "original function",
 	}
 	mappedFrameWithFilename := modelpb.StacktraceFrame{
 		AbsPath:     "bundle.js",
 		Function:    "<anonymous>",
 		Filename:    "webpack:///bundle.js",
-		Lineno:      newInt(1),
-		Colno:       newInt(9),
+		Lineno:      new(uint32(1)),
+		Colno:       new(uint32(9)),
 		ContextLine: "/******/ (function(modules) { // webpackBootstrap",
 		PostContext: []string{
 			"/******/ \t// The module cache",
@@ -87,8 +87,8 @@ func TestBatchProcessor(t *testing.T) {
 	mappedFrameWithoutFilename := proto.Clone(&mappedFrameWithFilename).(*modelpb.StacktraceFrame)
 	mappedFrameWithoutFilename.Original.Lineno = &originalLinenoWithoutFilename
 	mappedFrameWithoutFilename.Original.Colno = &originalColnoWithoutFilename
-	mappedFrameWithoutFilename.Lineno = newInt(5)
-	mappedFrameWithoutFilename.Colno = newInt(0)
+	mappedFrameWithoutFilename.Lineno = new(uint32(5))
+	mappedFrameWithoutFilename.Colno = new(uint32(0))
 	mappedFrameWithoutFilename.Filename = ""
 	mappedFrameWithoutFilename.ContextLine = " \tfunction __webpack_require__(moduleId) {"
 	mappedFrameWithoutFilename.PreContext = []string{
@@ -108,8 +108,8 @@ func TestBatchProcessor(t *testing.T) {
 	mappedFrameWithFunction := proto.Clone(mappedFrameWithoutFilename).(*modelpb.StacktraceFrame)
 	mappedFrameWithFunction.Original.Lineno = &originalLinenoWithFunction
 	mappedFrameWithFunction.Original.Colno = &originalColnoWithFunction
-	mappedFrameWithFunction.Lineno = newInt(13)
-	mappedFrameWithFunction.Colno = newInt(0)
+	mappedFrameWithFunction.Lineno = new(uint32(13))
+	mappedFrameWithFunction.Colno = new(uint32(0))
 	mappedFrameWithFunction.ContextLine = " \t\t\texports: {},"
 	mappedFrameWithFunction.PreContext = []string{
 		" \t\tif(installedModules[moduleId])",
@@ -146,8 +146,8 @@ func TestBatchProcessor(t *testing.T) {
 		Span: &modelpb.Span{
 			Stacktrace: []*modelpb.StacktraceFrame{proto.Clone(&nonMatchingFrame).(*modelpb.StacktraceFrame), {
 				AbsPath:  "bundle.js",
-				Lineno:   newInt(originalLinenoWithFilename),
-				Colno:    newInt(originalColnoWithFilename),
+				Lineno:   new(originalLinenoWithFilename),
+				Colno:    new(originalColnoWithFilename),
 				Function: "original function",
 			}},
 		},
@@ -158,8 +158,8 @@ func TestBatchProcessor(t *testing.T) {
 			Log: &modelpb.ErrorLog{
 				Stacktrace: []*modelpb.StacktraceFrame{{
 					AbsPath:  "bundle.js",
-					Lineno:   newInt(originalLinenoWithoutFilename),
-					Colno:    newInt(originalColnoWithoutFilename),
+					Lineno:   new(originalLinenoWithoutFilename),
+					Colno:    new(originalColnoWithoutFilename),
 					Function: "original function",
 				}},
 			},
@@ -171,20 +171,20 @@ func TestBatchProcessor(t *testing.T) {
 			Exception: &modelpb.Exception{
 				Stacktrace: []*modelpb.StacktraceFrame{{
 					AbsPath:  "bundle.js",
-					Lineno:   newInt(originalLinenoWithFunction),
-					Colno:    newInt(originalColnoWithFunction),
+					Lineno:   new(originalLinenoWithFunction),
+					Colno:    new(originalColnoWithFunction),
 					Function: "original function",
 				}},
 				Cause: []*modelpb.Exception{{
 					Stacktrace: []*modelpb.StacktraceFrame{{
 						AbsPath:  "bundle.js",
-						Lineno:   newInt(originalLinenoWithFunction),
-						Colno:    newInt(originalColnoWithFunction),
+						Lineno:   new(originalLinenoWithFunction),
+						Colno:    new(originalColnoWithFunction),
 						Function: "original function",
 					}, {
 						AbsPath:  "bundle.js",
-						Lineno:   newInt(originalLinenoWithFunction),
-						Colno:    newInt(originalColnoWithFunction),
+						Lineno:   new(originalLinenoWithFunction),
+						Colno:    new(originalColnoWithFunction),
 						Function: "original function",
 					}},
 				}},
@@ -231,12 +231,12 @@ func TestBatchProcessor(t *testing.T) {
 
 func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	client := newUnavailableElasticsearchClient(t)
-	fetcher := NewElasticsearchFetcher(client, "index", logptest.NewTestingLogger(t, ""))
+	fetcher := NewElasticsearchFetcher(client, "index", defaultMaxSourceMapSizeBytes, logptest.NewTestingLogger(t, ""))
 
 	nonMatchingFrame := modelpb.StacktraceFrame{
 		AbsPath:  "bundle.js",
-		Lineno:   newInt(0),
-		Colno:    newInt(0),
+		Lineno:   new(uint32(0)),
+		Colno:    new(uint32(0)),
 		Function: "original function",
 	}
 
@@ -255,7 +255,7 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 
 	observedCore, observedLogs := observer.New(zapcore.DebugLevel)
 
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		processor := BatchProcessor{
 			Fetcher: fetcher,
 			Logger: logptest.NewTestingLogger(t, logs.Stacktrace, zap.WrapCore(func(core zapcore.Core) zapcore.Core {
@@ -275,7 +275,57 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	// we are running the processor twice for a batch of two spans with 2 stacktraceframe each
 	entries := observedLogs.All()
 	require.Len(t, entries, 8)
-	assert.Equal(t, "failed to fetch sourcemap with path (bundle.js): failure querying ES: client error", entries[0].Message)
+	assert.Equal(t, "failed to fetch sourcemap with name (service_name), version (service_version), path (bundle.js): failure querying ES: client error", entries[0].Message)
+}
+
+func TestBatchProcessorSourcemapSizeExceedsLimit(t *testing.T) {
+	client := newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, validSourcemap))
+	fetcher := &esFetcher{
+		client:                client,
+		index:                 "apm-*sourcemap*",
+		logger:                logptest.NewTestingLogger(t, ""),
+		maxSourceMapSizeBytes: 5,
+	}
+
+	nonMatchingFrame := modelpb.StacktraceFrame{
+		AbsPath:  "bundle.js",
+		Lineno:   new(uint32(0)),
+		Colno:    new(uint32(0)),
+		Function: "original function",
+	}
+
+	clone := proto.Clone(&nonMatchingFrame).(*modelpb.StacktraceFrame)
+
+	span := modelpb.APMEvent{
+		Service: &modelpb.Service{
+			Name:    "service_name",
+			Version: "service_version",
+		},
+		Span: &modelpb.Span{
+			Stacktrace: []*modelpb.StacktraceFrame{clone},
+		},
+	}
+
+	observedCore, observedLogs := observer.New(zapcore.DebugLevel)
+
+	processor := BatchProcessor{
+		Fetcher: fetcher,
+		Logger: logptest.NewTestingLogger(t, logs.Stacktrace, zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+			return observedCore
+		})),
+	}
+	err := processor.ProcessBatch(context.Background(), &modelpb.Batch{&span})
+	assert.NoError(t, err)
+
+	// SourcemapError should have been set, but the frames should otherwise be unmodified.
+	expectedFrame := proto.Clone(&nonMatchingFrame).(*modelpb.StacktraceFrame)
+	expectedFrame.SourcemapError = "sourcemap size exceeds limit : decompressed source map exceeds limit of 5 bytes"
+	assert.Empty(t, cmp.Diff([]*modelpb.StacktraceFrame{expectedFrame}, span.Span.Stacktrace, protocmp.Transform()))
+
+	// we should have 1 log message (1 span with 1 stacktraceframe)
+	entries := observedLogs.All()
+	require.Len(t, entries, 1)
+	assert.Equal(t, "failed to fetch sourcemap with name (service_name), version (service_version), path (bundle.js): sourcemap size exceeds limit : decompressed source map exceeds limit of 5 bytes", entries[0].Message)
 }
 
 func TestBatchProcessorTimeout(t *testing.T) {
@@ -292,12 +342,12 @@ func TestBatchProcessorTimeout(t *testing.T) {
 		Logger:    logptest.NewTestingLogger(t, ""),
 	})
 	require.NoError(t, err)
-	fetcher := NewElasticsearchFetcher(client, "index", logptest.NewTestingLogger(t, ""))
+	fetcher := NewElasticsearchFetcher(client, "index", defaultMaxSourceMapSizeBytes, logptest.NewTestingLogger(t, ""))
 
 	frame := modelpb.StacktraceFrame{
 		AbsPath:  "bundle.js",
-		Lineno:   newInt(0),
-		Colno:    newInt(0),
+		Lineno:   new(uint32(0)),
+		Colno:    new(uint32(0)),
 		Function: "original function",
 	}
 	span := modelpb.APMEvent{
@@ -324,10 +374,6 @@ func TestBatchProcessorTimeout(t *testing.T) {
 
 func cloneFrame(frame *modelpb.StacktraceFrame) *modelpb.StacktraceFrame {
 	return proto.Clone(frame).(*modelpb.StacktraceFrame)
-}
-
-func newInt(v uint32) *uint32 {
-	return &v
 }
 
 type roundTripperFunc func(*http.Request) (*http.Response, error)

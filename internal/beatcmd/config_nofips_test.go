@@ -36,8 +36,8 @@ apm-server:
 
 	cfg, _, _, err := LoadConfig(WithDisableConfigResolution())
 	require.NoError(t, err)
-	assertConfigEqual(t, map[string]interface{}{
-		"auth": map[string]interface{}{
+	assertConfigEqual(t, map[string]any{
+		"auth": map[string]any{
 			"secret_token": "${APM_SECRET_TOKEN}",
 		},
 	}, cfg.APMServer)
@@ -45,7 +45,7 @@ apm-server:
 	cfg, _, ks, err := LoadConfig()
 	require.NoError(t, err)
 
-	err = cfg.APMServer.Unpack(new(map[string]interface{}))
+	err = cfg.APMServer.Unpack(new(map[string]any))
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), `missing field accessing 'apm-server.auth'`)
 
@@ -56,8 +56,8 @@ apm-server:
 	err = wks.Save()
 	require.NoError(t, err)
 
-	assertConfigEqual(t, map[string]interface{}{
-		"auth": map[string]interface{}{
+	assertConfigEqual(t, map[string]any{
+		"auth": map[string]any{
 			"secret_token": "abc123",
 		},
 	}, cfg.APMServer)

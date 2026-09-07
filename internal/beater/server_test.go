@@ -124,7 +124,7 @@ func TestServerRoot(t *testing.T) {
 func TestServerRootWithToken(t *testing.T) {
 	token := "verysecret"
 	badToken := "Verysecret"
-	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
+	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]any{
 		"apm-server.auth.secret_token": token,
 	})))
 
@@ -179,7 +179,7 @@ func TestServerOkUnix(t *testing.T) {
 	}
 
 	addr := filepath.Join(t.TempDir(), "apm-server.sock")
-	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
+	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]any{
 		"apm-server.host": "unix:" + addr,
 	})))
 
@@ -201,8 +201,8 @@ func TestServerHealth(t *testing.T) {
 }
 
 func TestServerRumSwitch(t *testing.T) {
-	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"apm-server.rum": map[string]interface{}{
+	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]any{
+		"apm-server.rum": map[string]any{
 			"enabled":       true,
 			"allow_origins": []string{"*"},
 		},
@@ -256,8 +256,8 @@ func TestServerCORS(t *testing.T) {
 
 	for idx, test := range tests {
 		t.Run(fmt.Sprint(idx), func(t *testing.T) {
-			srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
-				"apm-server.rum": map[string]interface{}{
+			srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]any{
+				"apm-server.rum": map[string]any{
 					"enabled":       true,
 					"allow_origins": test.allowedOrigins,
 				},
@@ -287,7 +287,7 @@ func TestServerNoContentType(t *testing.T) {
 }
 
 func TestServerOTLPGRPC(t *testing.T) {
-	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
+	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]any{
 		"apm-server.auth.secret_token": "abc123",
 	})))
 
@@ -322,8 +322,8 @@ func TestServerFailedPreconditionDoesNotIndex(t *testing.T) {
 	}))
 	defer elasticsearchServer.Close()
 
-	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"apm-server": map[string]interface{}{
+	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]any{
+		"apm-server": map[string]any{
 			"wait_ready_interval": "100ms",
 		},
 		"output.elasticsearch.hosts": []string{elasticsearchServer.URL},
@@ -382,12 +382,12 @@ func TestTailSamplingPlatinumLicense(t *testing.T) {
 	elasticsearchServer := httptest.NewServer(mux)
 	defer elasticsearchServer.Close()
 
-	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"apm-server": map[string]interface{}{
+	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]any{
+		"apm-server": map[string]any{
 			"wait_ready_interval": "100ms",
-			"sampling.tail": map[string]interface{}{
+			"sampling.tail": map[string]any{
 				"enabled":  true,
-				"policies": []map[string]interface{}{{"sample_rate": 0.1}},
+				"policies": []map[string]any{{"sample_rate": 0.1}},
 			},
 		},
 		"output.elasticsearch.hosts": []string{elasticsearchServer.URL},
@@ -404,7 +404,7 @@ func TestTailSamplingPlatinumLicense(t *testing.T) {
 	// Wait for two license queries, after which the server should definitely
 	// have processed the first license response, and should have logged an
 	// error message about the license level being invalid.
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		<-licenseReq
 	}
 	logs := srv.Logs.FilterMessageSnippet("invalid license level Basic: tail-based sampling requires license level Platinum")
@@ -469,11 +469,11 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	// there will not be multiple calls to "/_bulk". In this case, we chose the latter solution since it is
 	// more consistent (than relying on flush timing).
 	const maxRequests = 1
-	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"output.elasticsearch": map[string]interface{}{
+	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]any{
+		"output.elasticsearch": map[string]any{
 			"hosts":          []string{elasticsearchServer.URL},
 			"flush_interval": "1ms",
-			"backoff":        map[string]interface{}{"init": "1ms", "max": "1ms"},
+			"backoff":        map[string]any{"init": "1ms", "max": "1ms"},
 			"max_retries":    0,
 			"max_requests":   maxRequests,
 		},
@@ -573,7 +573,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	escfg, docs := beatertest.ElasticsearchOutputConfig(t)
 
 	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
-		map[string]interface{}{
+		map[string]any{
 			"instrumentation.enabled": true,
 		})), beatertest.WithWrapServer(
 		func(args beater.ServerParams, runServer beater.RunServerFunc) (beater.ServerParams, beater.RunServerFunc, error) {
@@ -670,8 +670,8 @@ func makeTransactionRequest(t *testing.T, baseURL string) *http.Request {
 	return req
 }
 
-func decodeJSONMap(t *testing.T, r io.Reader) map[string]interface{} {
-	out := make(map[string]interface{})
+func decodeJSONMap(t *testing.T, r io.Reader) map[string]any {
+	out := make(map[string]any)
 	err := json.NewDecoder(r).Decode(&out)
 	require.NoError(t, err)
 	return out
