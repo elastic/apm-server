@@ -244,11 +244,19 @@ these terms.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/apm-data
+<<<<<<< HEAD
 Version: v1.22.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.22.0/LICENSE:
+=======
+Version: v1.22.2
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.22.2/LICENSE:
+>>>>>>> 60ec555 ((chore) bump apm-data `v1.22.2` (#21792))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -15485,11 +15493,19 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/auto/sdk@v1.2.
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/consumer
+<<<<<<< HEAD
 Version: v1.63.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.63.0/LICENSE:
+=======
+Version: v1.64.0
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.64.0/LICENSE:
+>>>>>>> 60ec555 ((chore) bump apm-data `v1.22.2` (#21792))
 
 
                                  Apache License
