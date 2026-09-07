@@ -8,13 +8,8 @@ require (
 	github.com/cockroachdb/pebble/v2 v2.1.6
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.5.1
-<<<<<<< HEAD
-	github.com/elastic/apm-data v1.22.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260813224100-dc6b95c03756
-=======
 	github.com/elastic/apm-data v1.22.2
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260602145145-24b3ef55f923
->>>>>>> 60ec555 ((chore) bump apm-data `v1.22.2` (#21792))
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260813224100-dc6b95c03756
 	github.com/elastic/elastic-agent-client/v7 v7.18.1
 	github.com/elastic/elastic-agent-libs v0.46.3
 	github.com/elastic/elastic-agent-system-metrics v0.14.4
@@ -32,17 +27,17 @@ require (
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.0
 	go.elastic.co/apm/module/apmhttp/v2 v2.7.12
 	go.elastic.co/apm/module/apmotel/v2 v2.7.12
 	go.elastic.co/apm/v2 v2.7.12
 	go.elastic.co/fastjson v1.5.1
-	go.opentelemetry.io/collector/pdata v1.63.0
-	go.opentelemetry.io/otel v1.44.0
-	go.opentelemetry.io/otel/metric v1.44.0
-	go.opentelemetry.io/otel/sdk v1.44.0
-	go.opentelemetry.io/otel/sdk/metric v1.44.0
-	go.opentelemetry.io/otel/trace v1.44.0
+	go.opentelemetry.io/collector/pdata v1.64.0
+	go.opentelemetry.io/otel v1.45.0
+	go.opentelemetry.io/otel/metric v1.45.0
+	go.opentelemetry.io/otel/sdk v1.45.0
+	go.opentelemetry.io/otel/sdk/metric v1.45.0
+	go.opentelemetry.io/otel/trace v1.45.0
 	go.opentelemetry.io/proto/otlp v1.10.0
 	go.uber.org/zap v1.28.0
 	go.uber.org/zap/exp v0.3.0
@@ -117,7 +112,7 @@ require (
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.8.0 // indirect
 	github.com/go-git/go-git/v5 v5.17.1 // indirect
-	github.com/go-logr/logr v1.4.3 // indirect
+	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
@@ -192,7 +187,6 @@ require (
 	github.com/pjbgf/sha1cd v0.3.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
@@ -235,44 +229,23 @@ require (
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.10.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-<<<<<<< HEAD
 	go.opentelemetry.io/collector/client v1.63.0 // indirect
 	go.opentelemetry.io/collector/component v1.63.0 // indirect
 	go.opentelemetry.io/collector/config/configoptional v1.63.0 // indirect
 	go.opentelemetry.io/collector/config/configretry v1.63.0 // indirect
 	go.opentelemetry.io/collector/confmap v1.63.0 // indirect
-	go.opentelemetry.io/collector/consumer v1.63.0 // indirect
+	go.opentelemetry.io/collector/consumer v1.64.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror v0.157.0 // indirect
 	go.opentelemetry.io/collector/exporter v1.63.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper v0.157.0 // indirect
 	go.opentelemetry.io/collector/extension v1.63.0 // indirect
 	go.opentelemetry.io/collector/extension/xextension v0.157.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.63.0 // indirect
+	go.opentelemetry.io/collector/featuregate v1.64.0 // indirect
 	go.opentelemetry.io/collector/internal/componentalias v0.157.0 // indirect
 	go.opentelemetry.io/collector/pdata/pprofile v0.157.0 // indirect
 	go.opentelemetry.io/collector/pdata/xpdata v0.157.0 // indirect
 	go.opentelemetry.io/collector/pipeline v1.63.0 // indirect
 	go.opentelemetry.io/collector/pipeline/xpipeline v0.157.0 // indirect
-=======
-	go.opentelemetry.io/collector/client v1.59.0 // indirect
-	go.opentelemetry.io/collector/component v1.59.0 // indirect
-	go.opentelemetry.io/collector/config/configoptional v1.59.0 // indirect
-	go.opentelemetry.io/collector/config/configretry v1.59.0 // indirect
-	go.opentelemetry.io/collector/confmap v1.59.0 // indirect
-	go.opentelemetry.io/collector/confmap/xconfmap v0.153.0 // indirect
-	go.opentelemetry.io/collector/consumer v1.64.0 // indirect
-	go.opentelemetry.io/collector/consumer/consumererror v0.153.0 // indirect
-	go.opentelemetry.io/collector/exporter v1.59.0 // indirect
-	go.opentelemetry.io/collector/exporter/exporterhelper v0.153.0 // indirect
-	go.opentelemetry.io/collector/extension v1.59.0 // indirect
-	go.opentelemetry.io/collector/extension/xextension v0.153.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.64.0 // indirect
-	go.opentelemetry.io/collector/internal/componentalias v0.153.0 // indirect
-	go.opentelemetry.io/collector/pdata/pprofile v0.153.0 // indirect
-	go.opentelemetry.io/collector/pdata/xpdata v0.153.0 // indirect
-	go.opentelemetry.io/collector/pipeline v1.59.0 // indirect
-	go.opentelemetry.io/collector/pipeline/xpipeline v0.153.0 // indirect
->>>>>>> 60ec555 ((chore) bump apm-data `v1.22.2` (#21792))
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.54.0 // indirect
