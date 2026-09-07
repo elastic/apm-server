@@ -244,11 +244,11 @@ these terms.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/apm-data
-Version: v1.22.1
+Version: v1.22.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.22.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.22.2/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3444,19 +3444,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/pdata
-<<<<<<< HEAD
-Version: v1.61.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.61.0/LICENSE:
-=======
 Version: v1.65.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.65.0/LICENSE:
->>>>>>> 62e32b8 (build(deps): bump the otel group across 1 directory with 6 updates (#21731))
 
 
                                  Apache License
@@ -3664,19 +3656,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdat
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel
-<<<<<<< HEAD
-Version: v1.44.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.44.0/LICENSE:
-=======
 Version: v1.46.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.46.0/LICENSE:
->>>>>>> 62e32b8 (build(deps): bump the otel group across 1 directory with 6 updates (#21731))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3912,19 +3896,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/metric
-<<<<<<< HEAD
-Version: v1.44.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1.44.0/LICENSE:
-=======
 Version: v1.46.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1.46.0/LICENSE:
->>>>>>> 62e32b8 (build(deps): bump the otel group across 1 directory with 6 updates (#21731))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4160,19 +4136,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/sdk
-<<<<<<< HEAD
-Version: v1.44.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.44.0/LICENSE:
-=======
 Version: v1.46.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.46.0/LICENSE:
->>>>>>> 62e32b8 (build(deps): bump the otel group across 1 directory with 6 updates (#21731))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4408,19 +4376,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/sdk/metric
-<<<<<<< HEAD
-Version: v1.44.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk/metric@v1.44.0/LICENSE:
-=======
 Version: v1.46.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk/metric@v1.46.0/LICENSE:
->>>>>>> 62e32b8 (build(deps): bump the otel group across 1 directory with 6 updates (#21731))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4656,19 +4616,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/trace
-<<<<<<< HEAD
-Version: v1.44.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/trace@v1.44.0/LICENSE:
-=======
 Version: v1.46.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/trace@v1.46.0/LICENSE:
->>>>>>> 62e32b8 (build(deps): bump the otel group across 1 directory with 6 updates (#21731))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -8234,11 +8186,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/go-logr/logr
-Version: v1.4.3
+Version: v1.4.4
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/go-logr/logr@v1.4.3/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/go-logr/logr@v1.4.4/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -12517,11 +12469,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/auto/sdk@v1.2.
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/consumer
-Version: v1.60.0
+Version: v1.64.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.60.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.64.0/LICENSE:
 
 
                                  Apache License
@@ -12729,19 +12681,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/cons
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/featuregate
-<<<<<<< HEAD
-Version: v1.61.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/featuregate@v1.61.0/LICENSE:
-=======
 Version: v1.65.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/featuregate@v1.65.0/LICENSE:
->>>>>>> 62e32b8 (build(deps): bump the otel group across 1 directory with 6 updates (#21731))
 
 
                                  Apache License
