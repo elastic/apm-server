@@ -604,11 +604,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.22.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20260909094634-b103529814b8
+Version: v7.0.0-alpha2.0.20260910220937-264d06e69ef3
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20260909094634-b103529814b8/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20260910220937-264d06e69ef3/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -6491,11 +6491,11 @@ limitations under the License.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.57.0
+Version: v0.58.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.57.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.58.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -17921,11 +17921,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-Version: v0.55.0
+Version: v0.56.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.55.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.56.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
