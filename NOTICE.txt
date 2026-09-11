@@ -455,11 +455,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.22.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20260910122538-a27deb03a7be
+Version: v7.0.0-alpha2.0.20260911144142-33a47a85beb2
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20260910122538-a27deb03a7be/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20260911144142-33a47a85beb2/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -5273,11 +5273,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/grpc
-Version: v1.83.1
+Version: v1.83.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.83.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.83.2/LICENSE:
 
 
                                  Apache License
