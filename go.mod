@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.26.8
+go 1.27.1
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.5
@@ -263,7 +263,7 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	honnef.co/go/tools v0.6.1 // indirect
+	honnef.co/go/tools v0.8.1 // indirect
 	howett.net/plist v1.0.1 // indirect
 	mvdan.cc/xurls/v2 v2.5.0 // indirect
 )

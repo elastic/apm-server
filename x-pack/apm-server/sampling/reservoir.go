@@ -23,11 +23,9 @@ type weightedRandomSample struct {
 // with the given random number generator and reservoir size.
 func newWeightedRandomSample(rng *rand.Rand, reservoirSize int) *weightedRandomSample {
 	return &weightedRandomSample{
-		rng: rng,
-		itemheap: itemheap{
-			keys:   make([]float64, 0, reservoirSize),
-			values: make([]string, 0, reservoirSize),
-		},
+		rng:    rng,
+		keys:   make([]float64, 0, reservoirSize),
+		values: make([]string, 0, reservoirSize),
 	}
 }
 
