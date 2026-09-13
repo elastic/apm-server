@@ -8,10 +8,11 @@ ARG GOLANG_VERSION
 FROM golang:${GOLANG_VERSION} AS builder
 WORKDIR /src
 COPY go.mod go.sum /src/
-RUN --mount=type=cache,target=/root/go/pkg/mod go mod download
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY . .
 
-RUN --mount=type=cache,target=/root/go/pkg/mod \
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
     make apm-server-fips
 
 COPY --chmod=0644 apm-server-fips.yml ./apm-server.yml
