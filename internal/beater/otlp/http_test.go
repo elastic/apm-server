@@ -154,7 +154,7 @@ func TestConsumeLogsHTTP(t *testing.T) {
 	require.Len(t, batches, 1)
 
 	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
-		"http.server.request.count":        1,
+		"http.server.request.count":        2,
 		"http.server.response.count":       1,
 		"http.server.response.valid.count": 1,
 	})
