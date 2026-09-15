@@ -52,6 +52,19 @@ updates:
       docker:
         patterns:
           - "*"
+  # GitHub actions
+  - package-ecosystem: "github-actions"
+    directories:
+      - "/"
+      - "/.github/workflows/*"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "22:00"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
   # go dependencies 8.x branch
   - package-ecosystem: "gomod"
     target-branch: "8.19"
@@ -75,8 +88,9 @@ updates:
       docker:
         patterns:
           - "*"
-  # GitHub actions
+  # GitHub actions 8.x branch
   - package-ecosystem: "github-actions"
+    target-branch: "8.19"
     directories:
       - "/"
       - "/.github/workflows/*"
