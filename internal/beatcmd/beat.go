@@ -105,7 +105,7 @@ type BeatParams struct {
 
 // NewBeat creates a new Beat.
 func NewBeat(args BeatParams) (*Beat, error) {
-	cfg, rawConfig, keystore, err := LoadConfig()
+	cfg, rawConfig, keystore, beatPaths, err := LoadConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -149,6 +149,7 @@ func NewBeat(args BeatParams) (*Beat, error) {
 				StartTime:       time.Now(),
 				EphemeralID:     ephemeralID,
 				Logger:          args.Logger,
+				Paths:           beatPaths,
 			},
 			Keystore:   keystore,
 			Config:     &beat.BeatConfig{Output: cfg.Output},
@@ -172,7 +173,7 @@ func NewBeat(args BeatParams) (*Beat, error) {
 
 // init initializes logging, config management, GOMAXPROCS, and GC percent.
 func (b *Beat) init() error {
-	if err := configureLogging(b.Config); err != nil {
+	if err := configureLogging(b.Config, b.Info.Paths); err != nil {
 		return fmt.Errorf("failed to configure logging: %w", err)
 	}
 	if b.Info.Logger == nil {
@@ -180,10 +181,10 @@ func (b *Beat) init() error {
 	}
 
 	// log paths values to help with troubleshooting
-	b.Info.Logger.Infof("%s", paths.Paths.String())
+	b.Info.Logger.Infof("%s", b.Info.Paths.String())
 
 	// Load the unique ID and "first start" info from meta.json.
-	metaPath := paths.Resolve(paths.Data, "meta.json")
+	metaPath := b.Info.Paths.Resolve(paths.Data, "meta.json")
 	if err := b.loadMeta(metaPath); err != nil {
 		return err
 	}
@@ -776,10 +777,10 @@ func logSystemInfo(info beat.Info) {
 		"type": info.Beat,
 		"uuid": info.ID,
 		"path": mapstr.M{
-			"config": paths.Resolve(paths.Config, ""),
-			"data":   paths.Resolve(paths.Data, ""),
-			"home":   paths.Resolve(paths.Home, ""),
-			"logs":   paths.Resolve(paths.Logs, ""),
+			"config": info.Paths.Resolve(paths.Config, ""),
+			"data":   info.Paths.Resolve(paths.Data, ""),
+			"home":   info.Paths.Resolve(paths.Home, ""),
+			"logs":   info.Paths.Resolve(paths.Logs, ""),
 		},
 	}
 	log.Infow("Beat info", "beat", beat)
