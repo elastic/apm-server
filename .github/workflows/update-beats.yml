@@ -27,20 +27,20 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.filter.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ matrix.branch }}
 
       - name: Get token
         id: get_token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           client-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
           private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
           permission-contents: write
           permission-pull-requests: write
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: false
