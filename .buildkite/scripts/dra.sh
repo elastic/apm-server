@@ -60,6 +60,7 @@ dra() {
     trigger: "unified-release-dra-processing"
     depends_on: "dra-prep-${workflow}"
     build:
+      branch: "fix-windows-sign-apm"
       env:
         DRA_PRODUCT_ID: "apm-server"
         DRA_STACK_VERSION: "${stack_version}"
