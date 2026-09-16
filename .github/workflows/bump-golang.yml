@@ -22,7 +22,7 @@ jobs:
         uses: elastic/oblt-actions/elastic/active-branches@v1
         with:
           exclude-branches: '7.17,main'
-      - uses: actions/github-script@v7
+      - uses: actions/github-script@v9
         id: labels
         env:
           BRANCHES: ${{ steps.generate.outputs.branches }}
@@ -39,11 +39,11 @@ jobs:
     needs: [labels]
     steps:
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Get token
         id: get_token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           client-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
           private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
@@ -61,7 +61,7 @@ jobs:
   bump-7:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: '7.17'
 

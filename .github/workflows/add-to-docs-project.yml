@@ -13,13 +13,13 @@ jobs:
     steps:
       - name: Get token
         id: get_token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           client-id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
           private-key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
           permission-organization-projects: write
           permission-issues: read
-      - uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32 # v2.x
+      - uses: octokit/graphql-action@5d5f4f15ad5dbd016029376622a9bf064f007252 # v2.x
         id: add_to_project
         with:
           query: |

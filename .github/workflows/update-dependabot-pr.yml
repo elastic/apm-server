@@ -26,7 +26,7 @@ jobs:
         id: get_token
         uses: elastic/oblt-actions/github/create-token@v1
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           token: ${{ steps.get_token.outputs.token }}
 
@@ -43,7 +43,7 @@ jobs:
           git_user_signingkey: true
           git_commit_gpgsign: true
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: false
