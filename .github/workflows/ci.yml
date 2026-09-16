@@ -205,6 +205,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
       - run: make publish-docker-images
+<<<<<<< HEAD
 
   # Only for forked PRs/dependabot, when changing the Go version in go.mod, we need to note that the
   # wolfi docker image needs to be validated.
@@ -244,3 +245,5 @@ jobs:
           echo "If they are available you could skip this validation."
           echo "However, we recommend to use an upstream branch to run the CI specialised steps for the packaging system."
           exit 1
+=======
+>>>>>>> 48f4890 (feat: use golang builder image consistently (#21877))
