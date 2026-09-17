@@ -39,6 +39,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beatmonitoring"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/elastic-agent-libs/paths"
 
 	"github.com/elastic/apm-server/internal/beater"
 )
@@ -62,6 +63,10 @@ type Server struct {
 	//
 	// This will be set by Start and newServer.
 	URL string
+
+	// Paths holds the paths the server resolves data and log
+	// locations against.
+	Paths *paths.Path
 }
 
 // NewServer returns a new started APM Server with the given configuration.
@@ -114,8 +119,10 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 		require.NoError(t, err)
 	}
 
+	beatPaths := &paths.Path{Data: t.TempDir()}
 	runner, err := beater.NewRunner(beater.RunnerParams{
 		Config:         cfg,
+		Paths:          beatPaths,
 		Logger:         logger,
 		WrapServer:     options.wrapServer,
 		TracerProvider: options.tracerProvider,
@@ -132,6 +139,7 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 		cancel: cancel,
 		runner: runner,
 		Logs:   observedLogs,
+		Paths:  beatPaths,
 	}
 	t.Cleanup(func() { srv.Close() })
 
