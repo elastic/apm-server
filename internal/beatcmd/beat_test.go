@@ -527,7 +527,10 @@ func TestRunManager_Reloader(t *testing.T) {
 	err = manager.PreInit()
 	manager.PostInit()
 	require.NoError(t, err)
-	defer manager.Stop()
+	// Registered after PreInit so the defer only runs once goroutines are
+	// started. Registered after defer srv.Stop() so defers run LIFO: manager
+	// stops first (draining goroutines), then server.
+	defer manager.WaitForStop(0)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
@@ -631,6 +634,10 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 	err = manager.PreInit()
 	manager.PostInit()
 	require.NoError(t, err)
+	// Registered after PreInit so the defer only runs once goroutines are
+	// started. Registered after defer srv.Stop() so defers run LIFO: manager
+	// stops first (draining goroutines), then server.
+	defer manager.WaitForStop(0)
 
 	select {
 	case msg := <-inputFailedMsg:
@@ -638,16 +645,6 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Fatal("timed out waiting for input failed msg")
 	}
-
-	// Stop manager before test ends to prevent data race.
-	// The manager starts background goroutines that log via t.Log().
-	// If we use defer, the test may finish before Stop() completes,
-	// causing the logger to access test state after the test ends.
-	manager.Stop()
-
-	// Give goroutines time to fully exit after Stop().
-	// Stop() cancels contexts but goroutines may still be logging.
-	time.Sleep(100 * time.Millisecond)
 }
 
 func runBeat(t testing.TB, beat *Beat) (stop func() error) {
