@@ -197,8 +197,8 @@ github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 h1:br+XeQOcxNFSv+
 github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22/go.mod h1:gE+FV7xXv0/nBenviCvpvnvTpUkjJXtuOWs2UT+ZRtw=
 github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe h1:LDtn/A8Tsfz8DQlbXtmDud9ha9oOGriwJGB7V0Ozik8=
 github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe/go.mod h1:SIlGcpTnnosxZ3OvoRC7ADxhHdlsu/nwUdVMF9OkgYc=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260921142044-85d42557b14c h1:XYMDgYDl+GNh3iR0FzXXWKsNRW62pnmHmr7UgLd1xFM=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260921142044-85d42557b14c/go.mod h1:ZUL/YROCKKsY/ykMXM7hBT9rRc56bCjz9tWTnBPABLI=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260921193315-8a8296bb1247 h1:nczXmWZMK9NdchClDjV2n/wiufHSyKl01N2xhRzCJEw=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260921193315-8a8296bb1247/go.mod h1:ZUL/YROCKKsY/ykMXM7hBT9rRc56bCjz9tWTnBPABLI=
 github.com/elastic/elastic-agent-client/v7 v7.18.1 h1:WnM53JjaukeysrAuiTyrhDPmFxJG07ZAByc2TrkcKcs=
 github.com/elastic/elastic-agent-client/v7 v7.18.1/go.mod h1:uDpSGZ+YCKgqgtkwCA0qjwX0gU/wmixDsVbPjY3GkPs=
 github.com/elastic/elastic-agent-libs v0.47.0 h1:fltOh0mETIlW3LYExX62iacL63sHXSTfDB/8Qi+wXso=
