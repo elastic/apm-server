@@ -98,7 +98,7 @@ RUN echo 'apm-server:*:1000:1000::/usr/share/apm-server:/bin/false' >> /etc/pass
 RUN chown -R 1000:1000 /usr/share/apm-server
 
 # remove unnecessary packages in ubuntu-based images
-# skip when dpkg is unavailable (for example ubi10-micro)
+# skip when dpkg is unavailable
 RUN if dpkg --version; then \
       dpkg -P --force-depends libgssapi-krb5-2 libtirpc3 libnsl2 libkrb5-3 libk5crypto3 libkrb5support0 && \
       rm /var/log/dpkg.log; \
