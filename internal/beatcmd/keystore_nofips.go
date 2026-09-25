@@ -141,7 +141,7 @@ func createKeystore(force bool) error {
 }
 
 func getKeystore() (keystore.Keystore, error) {
-	_, _, keystore, err := LoadConfig()
+	_, _, keystore, _, err := LoadConfig()
 	return keystore, err
 }
 
