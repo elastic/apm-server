@@ -148,8 +148,7 @@ func writeStreamResult(c *request.Context, streamResult elasticapm.Result, strea
 func processStreamError(err error) (request.ResultID, jsonError) {
 	errID := request.IDResponseErrorsInternal
 
-	var invalidInput *elasticapm.InvalidInputError
-	if errors.As(err, &invalidInput) {
+	if invalidInput, ok := errors.AsType[*elasticapm.InvalidInputError](err); ok {
 		if invalidInput.TooLarge {
 			errID = request.IDResponseErrorsRequestTooLarge
 		} else {
