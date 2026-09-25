@@ -1,5 +1,9 @@
-ARG BASE_IMAGE=ubuntu:22.04
+ARG BASE_STAGE=ubuntu
 ARG GOLANG_VERSION
+
+# Literal base-image stages so Dependabot can track both Ubuntu and UBI.
+FROM ubuntu:22.04 AS ubuntu
+FROM registry.access.redhat.com/ubi10-micro:latest@sha256:cabedb588644e9da2c95ebb173a67b78d58aaedcb0eaa42a86f880bcef8a0b2f AS ubi
 
 ################################################################################
 # Build stage 0
@@ -16,8 +20,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     make apm-server
 
-# ubi10-micro does not have sed, let's modify the files in the builder stage,
-# so we can copy them to the final image without needing to install sed there.
+# Modify the configuration in the builder stage to keep image variants
+# consistent, including minimal runtime images that do not provide sed.
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 
@@ -27,7 +31,7 @@ FROM cgr.dev/chainguard/static:latest@sha256:bf639cba19ba56329e6907ac26a7afcdde5
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM ${BASE_IMAGE}
+FROM ${BASE_STAGE}
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION
