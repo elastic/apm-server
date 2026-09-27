@@ -1,0 +1,14 @@
+{
+  "entries": {
+    "github/gh-aw-actions/setup@v0.89.17": {
+      "repo": "github/gh-aw-actions/setup",
+      "version": "v0.89.17",
+      "sha": "f3b81cdb3070066a47faa9bdf440f4f1dc78b1f0"
+    },
+    "microsoft/apm-action@v1.10.0": {
+      "repo": "microsoft/apm-action",
+      "version": "v1.10.0",
+      "sha": "d723bb64ed70c135bbaf87d126b721dd2dae0439"
+    }
+  }
+}
