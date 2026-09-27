@@ -23,11 +23,11 @@ most recent failed run of the workflows below.
 | `bump-elastic-stack-snapshot` | `.github/workflows/bump-elastic-stack.yml` | `.ci/updatecli/bump-elastic-stack-snapshot.yml` |
 | `bump-golang` | `.github/workflows/bump-golang.yml` | `.ci/updatecli/bump-golang.yml` |
 | `update-beats` | `.github/workflows/update-beats.yml` | `.ci/updatecli/update-beats.yml` |
-| `update-compose` | `.github/workflows/update-compose.yml` | `updatecli-compose.yaml` (policies, values in `.ci/updatecli/values.d/updatecli-compose.yml`) |
+| `update-compose` | `.github/workflows/update-compose.yml` | `updatecli-compose.yaml` (policies, values in `.ci/updatecli/values.d/updatecli-compose.yml`, `.ci/updatecli/values.d/ironbank.yml` and `.ci/updatecli/values.d/scm.yml`) |
 
 All of them run `elastic/oblt-actions/updatecli/run@v1`, some of them in a matrix over the
-active branches (`main`, `9.x`, `8.19`, ...). Shared SCM values live in
-`.ci/updatecli/values.d/scm.yml`.
+active branches returned by `elastic/oblt-actions/elastic/active-branches` (the `filter` job).
+Shared SCM values live in `.ci/updatecli/values.d/scm.yml`.
 
 ## Step 1 — Inspect the failed run
 
@@ -56,6 +56,8 @@ gh pr view <number> --repo elastic/apm-server --json state,createdAt,headRefName
   creation. The PR is fine; the failure is cosmetic.
 - PR is old and still open → the automation PR is stale (not merged, failing CI, or conflicts).
   Report why it is stuck.
+- PR has since been merged or closed (e.g. superseded by a newer bump) → no action needed.
+  Mention it for completeness.
 
 ### Pattern B — GitHub API transient error
 Log contains `429 (Too Many Requests)`, `503 Service Unavailable`, `unable to query GitHub API rate limit`,
@@ -69,9 +71,12 @@ Failure in a `source` stage, e.g. the snapshot JSON at
 retired: compare against the active branches matrix.
 
 ### Pattern D — updatecli configuration / version error
-Template errors, `requiredEnv` missing, unknown resource kind, or deprecated engine
-(e.g. `Engine "dasel/v1" is deprecated`). Read the updatecli config file for the workflow and
-point to the exact line to change.
+Template errors, `requiredEnv` missing or unknown resource kind. Read the updatecli config file
+for the workflow and point to the exact line to change.
+
+`WARNING:` lines such as `Engine "dasel/v1" is deprecated` show up in successful runs too.
+They are not a root cause unless an `ERROR` line refers to them; mention them only as a
+follow-up clean-up.
 
 ### Pattern E — target / condition failure
 A `target` or `condition` stage fails (file not found, yaml key missing, regex does not match).
@@ -92,8 +97,8 @@ Anything else: quote the relevant log lines and describe it as unclassified.
 List recent runs of the same workflow (default lookback: 14 days):
 
 ```bash
-gh run list --repo elastic/apm-server --workflow <file> --limit 50 \
-  --json databaseId,conclusion,createdAt,url
+gh run list --repo elastic/apm-server --workflow <file> --limit 100 \
+  --created ">=<YYYY-MM-DD>" --json databaseId,conclusion,createdAt,url
 ```
 
 For every failed run in the window, fetch `--log-failed` and classify it with Step 2. Build a

@@ -11,7 +11,8 @@ version: 1.0.0
 #
 # GH AW USAGE — the GitHub Agentic Workflow at .github/workflows/updatecli-failure-report.md
 #   loads skills via `imports: microsoft/apm/.github/workflows/shared/apm.md`.
-#   No lock file is needed for the GH AW; it resolves packages at compile time.
+#   Packages are installed at runtime from the default branch, so skill changes
+#   only take effect in the workflow once merged.
 
 dependencies:
   apm:
