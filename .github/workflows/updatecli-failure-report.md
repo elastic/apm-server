@@ -9,7 +9,7 @@ on:
       - update-compose
     types: [completed]
     branches: [main]
-    conclusion: [failure]
+    conclusion: [failure, timed_out]
   # Can also be triggered on demand to investigate a specific run.
   workflow_dispatch:
     inputs:
@@ -47,13 +47,23 @@ imports:
 tools:
   github:
     mode: gh-proxy
+    toolsets: [default, actions]
+
+# `gh run view --log-failed` is redirected to the Actions log storage domains.
+network:
+  allowed:
+    - defaults
+    - github
+    - github-actions
 
 safe-outputs:
   create-issue:
     title-prefix: "[updatecli] "
     labels: [automation, ci]
     max: 1
+    # Only supersede older issues of the same upstream workflow.
     close-older-issues: true
+    close-older-key: "${{ github.event.workflow_run.name || 'manual' }}"
 
 ---
 
