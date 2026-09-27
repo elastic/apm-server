@@ -37,7 +37,7 @@ permissions:
 # The compiler adds an `apm` job that installs the skill bundle; the agent
 # picks it up via progressive disclosure at runtime.
 imports:
-  - uses: microsoft/apm/.github/workflows/shared/apm.md
+  - uses: microsoft/apm/.github/workflows/shared/apm.md@v0.32.0
     with:
       target: copilot
       packages:
