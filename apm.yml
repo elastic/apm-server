@@ -1,0 +1,18 @@
+name: apm-server
+version: 1.0.0
+
+# Agent Package Manager (https://microsoft.github.io/apm/)
+# Declares agent skills for this repository.
+#
+# Skills live in .skills/ and follow the open Agent Skills spec (agentskills.io).
+#
+# LOCAL USAGE — deploy to your AI tool:
+#   apm install
+#
+# GH AW USAGE — the GitHub Agentic Workflow at .github/workflows/updatecli-failure-report.md
+#   loads skills via `imports: microsoft/apm/.github/workflows/shared/apm.md`.
+#   No lock file is needed for the GH AW; it resolves packages at compile time.
+
+dependencies:
+  apm:
+    - path: .skills/debug-updatecli
