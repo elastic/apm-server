@@ -2,7 +2,7 @@ ARG BASE_STAGE=base-ubuntu
 ARG GOLANG_VERSION
 
 # Literal base-image stages so Dependabot can track both Ubuntu and UBI.
-FROM ubuntu:22.04 AS base-ubuntu
+FROM ubuntu:24.04@sha256:008173c23f95b170204355c12626cb5a965d779a7e1283b09e9cffbb1bf33ca3 AS base-ubuntu
 FROM registry.access.redhat.com/ubi10-micro:latest@sha256:cabedb588644e9da2c95ebb173a67b78d58aaedcb0eaa42a86f880bcef8a0b2f AS base-ubi
 
 ################################################################################
@@ -96,13 +96,6 @@ COPY --chmod=0755 --from=builder /src/apm-server ./apm-server
 RUN mkdir --mode=0777 data
 RUN echo 'apm-server:*:1000:1000::/usr/share/apm-server:/bin/false' >> /etc/passwd
 RUN chown -R 1000:1000 /usr/share/apm-server
-
-# remove unnecessary packages in ubuntu-based images
-# skip when dpkg is unavailable
-RUN if dpkg --version; then \
-      dpkg -P --force-depends libgssapi-krb5-2 libtirpc3 libnsl2 libkrb5-3 libk5crypto3 libkrb5support0 && \
-      rm /var/log/dpkg.log; \
-    fi
 
 USER apm-server
 EXPOSE 8200
