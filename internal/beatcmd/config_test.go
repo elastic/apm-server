@@ -28,7 +28,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/paths"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -36,7 +35,7 @@ func TestLoadConfig(t *testing.T) {
 apm-server:
   host: :8200
   `)
-	cfg, rawConfig, _, err := LoadConfig()
+	cfg, rawConfig, _, beatPaths, err := LoadConfig()
 	require.NoError(t, err)
 	assert.NotNil(t, cfg)
 	assert.NotNil(t, rawConfig)
@@ -46,10 +45,10 @@ apm-server:
 			"host": ":8200",
 		},
 		"path": map[string]any{
-			"config": paths.Paths.Config,
-			"logs":   paths.Paths.Logs,
-			"data":   paths.Paths.Data,
-			"home":   paths.Paths.Home,
+			"config": beatPaths.Config,
+			"logs":   beatPaths.Logs,
+			"data":   beatPaths.Data,
+			"home":   beatPaths.Home,
 		},
 	}, rawConfig)
 
@@ -61,7 +60,7 @@ func TestLoadConfigMerge(t *testing.T) {
 apm-server:
   host: :8200
   `)
-	cfg, _, _, err := LoadConfig(WithMergeConfig(
+	cfg, _, _, _, err := LoadConfig(WithMergeConfig(
 		config.MustNewConfigFrom("apm-server.host: localhost:8200"),
 		config.MustNewConfigFrom("apm-server.shutdown_timeout: 1s"),
 	))
@@ -87,7 +86,7 @@ processors:
   add_cloud_metadata: {}
 `)
 
-	_, _, _, err := LoadConfig()
+	_, _, _, _, err := LoadConfig()
 	assert.EqualError(t, err, "invalid config: libbeat processors are not supported")
 }
 
