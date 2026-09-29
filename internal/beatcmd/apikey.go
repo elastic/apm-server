@@ -219,7 +219,7 @@ func makeAPIKeyRun(json *bool, f apikeyRunFunc) cobraRunFunc {
 
 // apm-server.api_key.enabled is implicitly true
 func bootstrap() (*es.Client, *config.Config, error) {
-	cfg, _, _, err := LoadConfig(WithMergeConfig(
+	cfg, _, _, _, err := LoadConfig(WithMergeConfig(
 		agentconfig.MustNewConfigFrom(map[string]any{
 			"apm-server.auth.api_key.enabled": true,
 		}),
