@@ -22,9 +22,10 @@ package beatcmd
 import (
 	"github.com/elastic/elastic-agent-libs/config"
 	libkeystore "github.com/elastic/elastic-agent-libs/keystore"
+	"github.com/elastic/elastic-agent-libs/paths"
 )
 
 // loadKeystore returns the appropriate keystore based on the configuration.
-func loadKeystore(cfg *config.C) (libkeystore.Keystore, error) {
+func loadKeystore(_ *config.C, _ *paths.Path) (libkeystore.Keystore, error) {
 	return nil, nil
 }

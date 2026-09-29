@@ -64,7 +64,7 @@ type LoadConfigOption func(*loadConfigOptions)
 
 // LoadConfig loads apm-server configuration from apm-server.yml,
 // using command-line flags.
-func LoadConfig(opts ...LoadConfigOption) (*Config, *config.C, libkeystore.Keystore, error) {
+func LoadConfig(opts ...LoadConfigOption) (*Config, *config.C, libkeystore.Keystore, *paths.Path, error) {
 	var loadConfigOptions loadConfigOptions
 	for _, opt := range opts {
 		opt(&loadConfigOptions)
@@ -72,20 +72,21 @@ func LoadConfig(opts ...LoadConfigOption) (*Config, *config.C, libkeystore.Keyst
 
 	cfg, err := cfgfile.Load("", nil)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error loading config file: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("error loading config file: %w", err)
 	}
 	for _, mc := range loadConfigOptions.mergeConfig {
 		if err := cfg.Merge(mc); err != nil {
-			return nil, nil, nil, fmt.Errorf("error merging config: %w", err)
+			return nil, nil, nil, nil, fmt.Errorf("error merging config: %w", err)
 		}
 	}
-	if err := initPaths(cfg); err != nil {
-		return nil, nil, nil, err
+	beatPaths, err := initPaths(cfg)
+	if err != nil {
+		return nil, nil, nil, nil, err
 	}
 
-	keystore, err := loadKeystore(cfg)
+	keystore, err := loadKeystore(cfg, beatPaths)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("could not initialize the keystore: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("could not initialize the keystore: %w", err)
 	}
 
 	configOpts := []ucfg.Option{ucfg.PathSep(".")}
@@ -105,17 +106,17 @@ func LoadConfig(opts ...LoadConfigOption) (*Config, *config.C, libkeystore.Keyst
 	config.OverwriteConfigOpts(configOpts)
 
 	if err := cloudid.OverwriteSettings(cfg); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	var config Config
 	if err := validateConfig(cfg); err != nil {
-		return nil, nil, nil, fmt.Errorf("invalid config: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("invalid config: %w", err)
 	}
 	if err := cfg.Unpack(&config); err != nil {
-		return nil, nil, nil, fmt.Errorf("error unpacking config data: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("error unpacking config data: %w", err)
 	}
-	return &config, cfg, keystore, nil
+	return &config, cfg, keystore, beatPaths, nil
 }
 
 func validateConfig(rawConfig *config.C) error {
@@ -141,7 +142,7 @@ func WithMergeConfig(cfg ...*config.C) LoadConfigOption {
 	}
 }
 
-func initPaths(cfg *config.C) error {
+func initPaths(cfg *config.C) (*paths.Path, error) {
 	// To Fix the chicken-egg problem with the Keystore and the loading of the configuration
 	// files we are doing a partial unpack of the configuration file and only take into consideration
 	// the paths field. After we will unpack the complete configuration and keystore reference
@@ -151,11 +152,12 @@ func initPaths(cfg *config.C) error {
 	}{}
 
 	if err := cfg.Unpack(&partialConfig); err != nil {
-		return fmt.Errorf("error extracting default paths: %w", err)
+		return nil, fmt.Errorf("error extracting default paths: %w", err)
 	}
 
-	if err := paths.InitPaths(&partialConfig.Path); err != nil {
-		return fmt.Errorf("error setting default paths: %w", err)
+	p := paths.New()
+	if err := p.InitPaths(&partialConfig.Path); err != nil {
+		return nil, fmt.Errorf("error setting default paths: %w", err)
 	}
-	return nil
+	return p, nil
 }
