@@ -57,6 +57,7 @@ dra() {
     trigger_step=$(cat <<TRIG
 
   - label: ":pipeline: DRA processing for apm-server (${workflow})"
+    key: "dra-process-${workflow}"
     trigger: "unified-release-dra-processing"
     depends_on: "dra-prep-${workflow}"
     build:
@@ -70,7 +71,7 @@ TRIG
 
   - label: ":memo: Annotate DRA summary (${workflow})"
     key: "dra-annotate-${workflow}"
-    depends_on: "dra-prep-${workflow}"
+    depends_on: "dra-process-${workflow}"
     command: ".buildkite/scripts/dra-annotate.sh ${workflow}"
     agents:
       provider: "gcp"
