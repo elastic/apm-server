@@ -27,8 +27,8 @@ import (
 )
 
 // loadKeystore returns the appropriate keystore based on the configuration.
-func loadKeystore(cfg *config.C) (libkeystore.Keystore, error) {
+func loadKeystore(cfg *config.C, p *paths.Path) (libkeystore.Keystore, error) {
 	keystoreCfg, _ := cfg.Child("keystore", -1)
-	defaultPathConfig := paths.Resolve(paths.Data, "apm-server.keystore")
+	defaultPathConfig := p.Resolve(paths.Data, "apm-server.keystore")
 	return libkeystore.Factory(keystoreCfg, defaultPathConfig, common.IsStrictPerms())
 }
