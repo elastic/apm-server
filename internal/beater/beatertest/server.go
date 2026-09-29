@@ -40,12 +40,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
-<<<<<<< HEAD
-=======
 	"github.com/elastic/elastic-agent-libs/paths"
-
-	"github.com/elastic/apm-server/internal/beater"
->>>>>>> 6512d05 (Remove elastic-agent-libs global paths usage (#21744))
 )
 
 // Server runs the core APM Server that, by default, listens on a system-chosen port
