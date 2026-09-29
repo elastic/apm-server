@@ -42,7 +42,7 @@ dra_process_other_branches() {
   VERSION=$(make get-version-only)
   DRA_BRANCH="$BUILDKITE_BRANCH"
   if [[ $BUILDKITE_BRANCH =~ "feature/" ]]; then
-    buildkite-agent annotate "${BUILDKITE_BRANCH} will list DRA artifacts. Feature branches are not supported. Look for the supported branches in ${BRANCHES_URL}" --style 'info' --context 'ctx-info'
+    buildkite-agent annotate "${BUILDKITE_BRANCH} runs DRA in dry-run mode. Feature branches are not supported. Look for the supported branches in ${BRANCHES_URL}" --style 'info' --context 'ctx-info'
 
     # use a different branch since DRA does not support feature branches but main/release branches
     # for such we will use the VERSION and https://storage.googleapis.com/artifacts-api/snapshots/<major.minor>.json

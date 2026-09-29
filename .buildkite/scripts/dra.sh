@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ##
-##  It relies on the .buildkite/hooks/pre-command so the Vault and other tooling
-##  are prepared automatically by buildkite.
+##  It relies on the .buildkite/hooks/pre-command so the tooling is prepared
+##  automatically by buildkite.
 ##
 ##  It uploads DRA prep pipeline steps and, on active release branches, also
 ##  triggers unified-release-dra-processing. On non-active branches (feature branches)
