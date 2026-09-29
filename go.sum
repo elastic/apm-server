@@ -175,8 +175,8 @@ github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 h1:br+XeQOcxNFSv+
 github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22/go.mod h1:gE+FV7xXv0/nBenviCvpvnvTpUkjJXtuOWs2UT+ZRtw=
 github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe h1:LDtn/A8Tsfz8DQlbXtmDud9ha9oOGriwJGB7V0Ozik8=
 github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe/go.mod h1:SIlGcpTnnosxZ3OvoRC7ADxhHdlsu/nwUdVMF9OkgYc=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260925091917-41c3417d3ec1 h1:P8CEaxJ847nk6LX7k1G65hKNxeAJMTUgQC/70qCtQcU=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260925091917-41c3417d3ec1/go.mod h1:fFm+VHKfIMvqtMrUoH1ifG60OY/BFmOAJEqDYhfZ7bo=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260928161100-b670dd60a0dd h1:6FLUWhdyaI5afgbUemOEfgRw2KEBB1VsM2M6svlm4s0=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260928161100-b670dd60a0dd/go.mod h1:7AsrdRRg8ep0lz+6GXkwa5Y/tcQOMnd8asfdVQdUy8E=
 github.com/elastic/elastic-agent-client/v7 v7.18.1 h1:WnM53JjaukeysrAuiTyrhDPmFxJG07ZAByc2TrkcKcs=
 github.com/elastic/elastic-agent-client/v7 v7.18.1/go.mod h1:uDpSGZ+YCKgqgtkwCA0qjwX0gU/wmixDsVbPjY3GkPs=
 github.com/elastic/elastic-agent-libs v0.47.0 h1:fltOh0mETIlW3LYExX62iacL63sHXSTfDB/8Qi+wXso=
@@ -191,8 +191,8 @@ github.com/elastic/go-concert v0.3.1 h1:dqtq2+xA8w7BZunI7j3Hs43CjWod7/nNRD8ByPx4
 github.com/elastic/go-concert v0.3.1/go.mod h1:bQ/sGkdR0I8IdzLuxDcrczc+caloItvAqw23jISl9sQ=
 github.com/elastic/go-docappender/v2 v2.14.1 h1:Nl3TF9B2Q5vA/P6PKNXjyhLGiJmuOMpIfN6eO7UvOg4=
 github.com/elastic/go-docappender/v2 v2.14.1/go.mod h1:VRq9W2+tHEMKp5rCAVQL1Y+Jbi5jgKVG/OWdGaiyPc0=
-github.com/elastic/go-elasticsearch/v8 v8.19.6 h1:4qa7ecJkr5rLsoHKIVGbaqcFt2o57CnOHQJi9Pts/rk=
-github.com/elastic/go-elasticsearch/v8 v8.19.6/go.mod h1:jeWebApE1oFEW/hKZqx/IRYmP/aa2+WMJkOfk+AduSI=
+github.com/elastic/go-elasticsearch/v8 v8.19.7 h1:fMsWcVgPDJMtyptspSmn4SDHykovo4ppaAbBNLK9mKE=
+github.com/elastic/go-elasticsearch/v8 v8.19.7/go.mod h1:jeWebApE1oFEW/hKZqx/IRYmP/aa2+WMJkOfk+AduSI=
 github.com/elastic/go-freelru v0.16.0 h1:gG2HJ1WXN2tNl5/p40JS/l59HjvjRhjyAa+oFTRArYs=
 github.com/elastic/go-freelru v0.16.0/go.mod h1:bSdWT4M0lW79K8QbX6XY2heQYSCqD7THoYf82pT/H3I=
 github.com/elastic/go-licenser v0.4.2 h1:bPbGm8bUd8rxzSswFOqvQh1dAkKGkgAmrPxbUi+Y9+A=
