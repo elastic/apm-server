@@ -18,10 +18,10 @@ TYPE="$1"
 # shellcheck disable=SC1091
 source .buildkite/scripts/utils.sh
 
-# by default it uses the buildkite branch
-DRA_BRANCH="$BUILDKITE_BRANCH"
-VERSION=$(make get-version-only)
 BRANCHES_URL=https://storage.googleapis.com/artifacts-api/snapshots/branches.json
+# Resolve DRA_BRANCH (PR base branch, feature branch parent) and VERSION as
+# package.sh does, so the staging qualifier matches the packages.
+dra_process_other_branches
 curl -fsS "${BRANCHES_URL}" > active-branches.json
 # Publish to DRA GCS only on active release branches. Non-active branches run
 # the plugin in dry-run mode (upload: false) so PRs and feature branches can
