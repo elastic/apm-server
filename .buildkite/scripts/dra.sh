@@ -89,6 +89,7 @@ steps:
     command: ".buildkite/scripts/stage-dra-artifacts.sh"
     env:
       DRA_WORKFLOW: "${workflow}"
+      DRA_STACK_VERSION: "${stack_version}"
     agents:
       provider: "gcp"
       image: "${IMAGE_UBUNTU_X86_64}"
