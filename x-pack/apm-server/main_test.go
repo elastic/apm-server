@@ -34,15 +34,9 @@ import (
 
 func TestMonitoring(t *testing.T) {
 	home := t.TempDir()
-<<<<<<< HEAD
-	err := paths.InitPaths(&paths.Path{Home: home})
-	require.NoError(t, err)
-	defer closeBadger() // close badger.DB so data dir can be deleted on Windows
-=======
 	beatPaths := paths.New()
 	require.NoError(t, beatPaths.InitPaths(&paths.Path{Home: home}))
-	defer closeDB() // close DB so data dir can be deleted on Windows
->>>>>>> 6512d05 (Remove elastic-agent-libs global paths usage (#21744))
+	defer closeBadger() // close badger.DB so data dir can be deleted on Windows
 
 	cfg := config.DefaultConfig()
 	cfg.Sampling.Tail.Enabled = true

@@ -93,11 +93,7 @@ type Runner struct {
 	metricGatherer *apmotel.Gatherer
 	beatMonitoring beat.Monitoring
 	listener       net.Listener
-<<<<<<< HEAD
-=======
-	statusReporter status.StatusReporter
 	beatPaths      *paths.Path
->>>>>>> 6512d05 (Remove elastic-agent-libs global paths usage (#21744))
 }
 
 // RunnerParams holds parameters for NewRunner.
@@ -188,11 +184,7 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		metricGatherer: args.MetricsGatherer,
 		beatMonitoring: args.BeatMonitoring,
 		listener:       listener,
-<<<<<<< HEAD
-=======
-		statusReporter: args.StatusReporter,
 		beatPaths:      args.Paths,
->>>>>>> 6512d05 (Remove elastic-agent-libs global paths usage (#21744))
 	}, nil
 }
 
