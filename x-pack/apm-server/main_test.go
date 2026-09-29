@@ -34,8 +34,8 @@ import (
 
 func TestMonitoring(t *testing.T) {
 	home := t.TempDir()
-	err := paths.InitPaths(&paths.Path{Home: home})
-	require.NoError(t, err)
+	beatPaths := paths.New()
+	require.NoError(t, beatPaths.InitPaths(&paths.Path{Home: home}))
 	defer closeBadger() // close badger.DB so data dir can be deleted on Windows
 
 	cfg := config.DefaultConfig()
@@ -60,6 +60,7 @@ func TestMonitoring(t *testing.T) {
 	for range 2 {
 		serverParams, runServer, err := wrapServer(beater.ServerParams{
 			Config:                 cfg,
+			Paths:                  beatPaths,
 			Logger:                 logptest.NewTestingLogger(t, ""),
 			Tracer:                 apmtest.DiscardTracer,
 			MeterProvider:          mp,
