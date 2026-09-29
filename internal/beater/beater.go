@@ -55,6 +55,7 @@ import (
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
+	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-ucfg"
 
@@ -92,6 +93,7 @@ type Runner struct {
 	metricGatherer *apmotel.Gatherer
 	beatMonitoring beat.Monitoring
 	listener       net.Listener
+	beatPaths      *paths.Path
 }
 
 // RunnerParams holds parameters for NewRunner.
@@ -99,6 +101,10 @@ type RunnerParams struct {
 	// Config holds the full, raw, configuration, including apm-server.*
 	// and output.* attributes.
 	Config *agentconfig.C
+
+	// Paths holds the per-instance filesystem paths, used to resolve
+	// data/logs locations without relying on a global paths singleton.
+	Paths *paths.Path
 
 	// Logger holds a logger to use for logging throughout the APM Server.
 	Logger *logp.Logger
@@ -178,6 +184,7 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		metricGatherer: args.MetricsGatherer,
 		beatMonitoring: args.BeatMonitoring,
 		listener:       listener,
+		beatPaths:      args.Paths,
 	}, nil
 }
 
@@ -449,6 +456,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	// wrap depending on the configuration in order to inject behaviour.
 	serverParams := ServerParams{
 		Config:                 s.config,
+		Paths:                  s.beatPaths,
 		Namespace:              s.config.DataStreams.Namespace,
 		Logger:                 s.logger,
 		Tracer:                 tracer,
@@ -861,6 +869,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		Hostname:    hostname,
 		Name:        hostname,
 		Logger:      logger,
+		Paths:       s.beatPaths,
 	}
 
 	stateRegistry := s.beatMonitoring.StateRegistry()

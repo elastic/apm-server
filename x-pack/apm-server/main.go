@@ -114,7 +114,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 		return nil, fmt.Errorf("failed to create Elasticsearch client for tail-sampling: %w", err)
 	}
 
-	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
+	storageDir := args.Paths.Resolve(paths.Data, tailSamplingStorageDir)
 	badgerDB, err = getBadgerDB(storageDir, args.MeterProvider)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Badger database: %w", err)
@@ -269,6 +269,7 @@ func Main() error {
 		func(args beatcmd.RunnerParams) (beatcmd.Runner, error) {
 			return beater.NewRunner(beater.RunnerParams{
 				Config:     args.Config,
+				Paths:      args.Info.Paths,
 				Logger:     args.Logger,
 				WrapServer: wrapServer,
 
