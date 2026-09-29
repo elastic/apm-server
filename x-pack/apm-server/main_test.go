@@ -34,9 +34,15 @@ import (
 
 func TestMonitoring(t *testing.T) {
 	home := t.TempDir()
+<<<<<<< HEAD
 	err := paths.InitPaths(&paths.Path{Home: home})
 	require.NoError(t, err)
 	defer closeBadger() // close badger.DB so data dir can be deleted on Windows
+=======
+	beatPaths := paths.New()
+	require.NoError(t, beatPaths.InitPaths(&paths.Path{Home: home}))
+	defer closeDB() // close DB so data dir can be deleted on Windows
+>>>>>>> 6512d05 (Remove elastic-agent-libs global paths usage (#21744))
 
 	cfg := config.DefaultConfig()
 	cfg.Sampling.Tail.Enabled = true
@@ -60,6 +66,7 @@ func TestMonitoring(t *testing.T) {
 	for range 2 {
 		serverParams, runServer, err := wrapServer(beater.ServerParams{
 			Config:                 cfg,
+			Paths:                  beatPaths,
 			Logger:                 logptest.NewTestingLogger(t, ""),
 			Tracer:                 apmtest.DiscardTracer,
 			MeterProvider:          mp,

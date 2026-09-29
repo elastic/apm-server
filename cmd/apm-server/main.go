@@ -35,6 +35,7 @@ func main() {
 			return beater.NewRunner(beater.RunnerParams{
 				Config: args.Config,
 				Logger: args.Logger,
+				Paths:  args.Info.Paths,
 
 				TracerProvider:  args.TracerProvider,
 				MeterProvider:   args.MeterProvider,

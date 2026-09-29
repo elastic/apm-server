@@ -114,8 +114,13 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 		return nil, fmt.Errorf("failed to create Elasticsearch client for tail-sampling: %w", err)
 	}
 
+<<<<<<< HEAD
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
 	badgerDB, err = getBadgerDB(storageDir, args.MeterProvider)
+=======
+	storageDir := args.Paths.Resolve(paths.Data, tailSamplingStorageDir)
+	db, err := getDB(storageDir, tailSamplingConfig.DatabaseCacheSize, args.MeterProvider, args.Logger)
+>>>>>>> 6512d05 (Remove elastic-agent-libs global paths usage (#21744))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Badger database: %w", err)
 	}
@@ -269,6 +274,7 @@ func Main() error {
 		func(args beatcmd.RunnerParams) (beatcmd.Runner, error) {
 			return beater.NewRunner(beater.RunnerParams{
 				Config:     args.Config,
+				Paths:      args.Info.Paths,
 				Logger:     args.Logger,
 				WrapServer: wrapServer,
 
