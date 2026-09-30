@@ -21,6 +21,10 @@ on:
         type: string
         default: "14"
         description: "Days of run history to inspect for recurrence"
+  # The actor of a scheduled run is whoever last edited its cron, often with read-only
+  # access. Only our own main-branch runs trigger workflow_run, and dispatching already
+  # requires write access, so allow every repository role.
+  roles: [admin, maintainer, write, triage, read]
 
 # One slot per analysed run: failures of different runs don't cancel each other.
 concurrency:
