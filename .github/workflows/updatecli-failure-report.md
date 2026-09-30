@@ -33,11 +33,11 @@ permissions:
   pull-requests: read
   copilot-requests: write
 
-# Load the debug-updatecli skill from this repo via APM.
+# Load the debug-updatecli skill from this repo via the vendored APM workflow.
 # The compiler adds an `apm` job that installs the skill bundle; the agent
 # picks it up via progressive disclosure at runtime.
 imports:
-  - uses: microsoft/apm/.github/workflows/shared/apm.md@v0.32.0
+  - uses: shared/apm.md
     with:
       target: copilot
       packages:

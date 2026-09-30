@@ -604,6 +604,7 @@ steps:
     with:
       apm-version: ${{ github.aw.import-inputs.apm-version }}
       bundles-file: /tmp/gh-aw/apm-bundle-list.txt
+source: microsoft/apm/.github/workflows/shared/apm.md@f0509d75f2b35d11c8e983456e90e101768f1ecc
 ---
 
 <!--

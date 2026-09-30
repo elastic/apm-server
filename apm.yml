@@ -10,7 +10,8 @@ version: 1.0.0
 #   apm install
 #
 # GH AW USAGE — the GitHub Agentic Workflow at .github/workflows/updatecli-failure-report.md
-#   loads skills via `imports: microsoft/apm/.github/workflows/shared/apm.md`.
+#   imports the vendored workflow at .github/workflows/shared/apm.md and passes
+#   package references through its `with.packages` input.
 #   Packages are installed at runtime from the default branch, so skill changes
 #   only take effect in the workflow once merged.
 
