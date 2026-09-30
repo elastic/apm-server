@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       run_id:
-        type: string
+        type: number
         required: true
         description: "ID of the failed workflow run to analyse"
       lookback_days:
@@ -22,8 +22,9 @@ on:
         default: "14"
         description: "Days of run history to inspect for recurrence"
   # The actor of a scheduled run is whoever last edited its cron, often with read-only
-  # access. Only our own main-branch runs trigger workflow_run, and dispatching already
-  # requires write access, so allow every repository role.
+  # access. In a public repository `read` matches any GitHub user; this is safe only
+  # because workflow_run fires for our own main-branch runs and dispatching requires
+  # write access. Revisit if triggers are added.
   roles: [admin, maintainer, write, triage, read]
 
 # One slot per analysed run: failures of different runs don't cancel each other.
