@@ -66,9 +66,10 @@ safe-outputs:
     title-prefix: "[updatecli] "
     labels: [automation, ci]
     max: 1
-    # Only supersede older issues of the same upstream workflow.
+    # Only supersede older issues of the same upstream workflow; manual runs never
+    # close issues filed for other runs.
     close-older-issues: true
-    close-older-key: "${{ github.event.workflow_run.name || 'manual' }}"
+    close-older-key: "${{ github.event.workflow_run.name || format('manual-{0}', inputs.run_id) }}"
 
 ---
 
