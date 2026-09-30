@@ -4,7 +4,7 @@ version: 1.0.0
 # Agent Package Manager (https://microsoft.github.io/apm/)
 # Declares agent skills for this repository.
 #
-# Skills live in .skills/ and follow the open Agent Skills spec (agentskills.io).
+# Skills live in .apm/skills/ and follow the APM standard primitive layout.
 #
 # LOCAL USAGE — deploy to your AI tool:
 #   apm install
@@ -16,4 +16,4 @@ version: 1.0.0
 
 dependencies:
   apm:
-    - path: .skills/debug-updatecli
+    - path: .apm/skills/debug-updatecli

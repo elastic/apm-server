@@ -41,7 +41,7 @@ imports:
     with:
       target: copilot
       packages:
-        - elastic/apm-server/.skills/debug-updatecli
+        - elastic/apm-server/.apm/skills/debug-updatecli
 
 # Run logs are read with the pre-authenticated gh CLI; no extra secrets needed.
 tools:
