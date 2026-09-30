@@ -116,4 +116,8 @@ Report:
 5. The specific file(s) and lines to change and what to change, or why no change is needed
 6. Any risk or trade-off of the fix
 
+When filing an issue, follow the issue-reporting instruction file at
+`.apm/instructions/updatecli-failure-issue.instructions.md`, which defines the required
+title, body sections and format.
+
 Do not re-run, cancel or modify workflow runs, and do not close or merge pull requests.

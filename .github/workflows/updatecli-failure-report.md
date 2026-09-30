@@ -42,6 +42,7 @@ imports:
       target: copilot
       packages:
         - elastic/apm-server/.apm/skills/debug-updatecli
+        - elastic/apm-server/.apm/instructions/updatecli-failure-issue.instructions.md
 
 # Run logs are read with the pre-authenticated gh CLI; no extra secrets needed.
 tools:
@@ -70,39 +71,7 @@ safe-outputs:
 # updatecli-failure-report
 
 Use the **debug-updatecli** skill to investigate the failed workflow run
-`${{ github.event.workflow_run.id || inputs.run_id }}` in `${{ github.repository }}`.
-The skill is pre-installed via APM; activate it when you start.
-
-## Instructions
-
-1. Follow the debug-updatecli skill to classify the failure of that run, then check
-   recurrence of the same workflow over the last `${{ inputs.lookback_days || '14' }}` days.
-
-2. Create one GitHub issue with the title:
-   `<workflow name> failed on <branches> — <pattern> (N failures in last D days)`
-
-   The issue must include:
-
-   **Summary** — one paragraph: which workflow and branches failed, the root cause, and
-   whether it is transient or needs action.
-
-   **Failure frequency** — table with one row per run over the lookback window (pass and fail):
-
-   | Date | Run | Branches failed | Conclusion | Pattern |
-   |------|-----|-----------------|------------|---------|
-
-   **Root cause analysis** — the exact error lines (in a code block), the stage that failed
-   (source / condition / target / action), and why it broke now.
-
-   **Timeline** — first failure in the window; correlation with events such as a new or retired
-   branch, a change to the updatecli config or workflow, an updatecli release or a GitHub incident.
-
-   **Recommended fix** — exact files and line references, what to change and trade-offs.
-   If the failure is transient and the next run recovered, say that no change is needed.
-
-   **Links** — the analysed run, the three most recent failing runs, and any related PR.
-
-## Notes
-
-- Keep the scope to this repository only.
-- Do not re-run, cancel or modify any workflow run, and do not close or merge pull requests.
+`${{ github.event.workflow_run.id || inputs.run_id }}` in `${{ github.repository }}`
+and check recurrence of the same workflow over the last
+`${{ inputs.lookback_days || '14' }}` days. Follow the skill and the
+`.apm/instructions/updatecli-failure-issue.instructions.md` output requirements.

@@ -2,9 +2,10 @@ name: apm-server
 version: 1.0.0
 
 # Agent Package Manager (https://microsoft.github.io/apm/)
-# Declares agent skills for this repository.
+# Declares agent skills and instructions for this repository.
 #
-# Skills live in .apm/skills/ and follow the APM standard primitive layout.
+# Skills live in .apm/skills/ and instructions in .apm/instructions/, following
+# the APM standard primitive layout.
 #
 # LOCAL USAGE — deploy to your AI tool:
 #   apm install
