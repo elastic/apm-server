@@ -21,11 +21,12 @@ on:
         type: string
         default: "14"
         description: "Days of run history to inspect for recurrence"
-  # The actor of a scheduled run is whoever last edited its cron, often with read-only
-  # access. In a public repository `read` matches any GitHub user; this is safe only
-  # because workflow_run fires for our own main-branch runs and dispatching requires
-  # write access. Revisit if triggers are added.
-  roles: [admin, maintainer, write, triage, read]
+  # Scheduled runs are attributed to whoever last edited the cron, who may only have
+  # read access, so the default role check would skip the triage. `all` is safe only
+  # because the triggers are our own main-branch workflow_run and write-gated dispatch.
+  # Switch back to an explicit role list if you add an issue/comment/PR trigger
+  # (e.g. a self-remediation command).
+  roles: all
 
 # One slot per analysed run: failures of different runs don't cancel each other.
 concurrency:
