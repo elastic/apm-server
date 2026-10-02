@@ -99,6 +99,64 @@ func TestCache_fetchAndAdd(t *testing.T) {
 	})
 }
 
+func TestCache_Collisions(t *testing.T) {
+	const (
+		svcA  = "a"
+		svcAB = "ab"
+
+		envBC = "bc"
+		envC  = "c"
+	)
+
+	var (
+		serviceAResult  = Result{Source: Source{Agent: "svc_a"}}
+		serviceABResult = Result{Source: Source{Agent: "svc_ab"}}
+	)
+
+	// initialize empty cache
+	cacheTTL := time.Minute
+	testCache, err := newCache(logptest.NewTestingLogger(t, ""), cacheTTL)
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name     string
+		query    Query
+		expected Result
+	}{
+		{
+			name:     "svc ab",
+			query:    Query{Service: Service{Name: svcAB, Environment: envC}},
+			expected: serviceABResult,
+		},
+		{
+			name:     "svc a",
+			query:    Query{Service: Service{Name: svcA, Environment: envBC}},
+			expected: serviceAResult,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// create mock external source
+			mockFetcher := func() (Result, error) {
+				switch {
+				case tc.query.Service.Name == svcAB && tc.query.Service.Environment == envC:
+					return serviceABResult, nil
+				case tc.query.Service.Name == svcA && tc.query.Service.Environment == envBC:
+					return serviceAResult, nil
+				}
+				return Result{Source: Source{Agent: "other_agent"}}, nil
+			}
+
+			got, err := testCache.fetch(tc.query, mockFetcher)
+			require.NoError(t, err)
+
+			if tc.expected.Source.Agent != got.Source.Agent {
+				t.Errorf("Expected %v, instead found %v", tc.expected.Source.Agent, got.Source.Agent)
+			}
+		})
+	}
+}
+
 func BenchmarkFetchAndAdd(b *testing.B) {
 	// this micro benchmark only accounts for the underlying cache
 	// providing some benchmark baseline in case the cache library changes in the future
