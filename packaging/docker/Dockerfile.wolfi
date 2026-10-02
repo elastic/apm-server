@@ -23,7 +23,7 @@ RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM cgr.dev/chainguard/static:latest@sha256:bf639cba19ba56329e6907ac26a7afcdde57a80b6aa66d5100da6883196e6b82
+FROM chainguard/static:latest@sha256:bf639cba19ba56329e6907ac26a7afcdde57a80b6aa66d5100da6883196e6b82
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION
@@ -32,7 +32,7 @@ ARG VCS_REF
 # Statically defined labels.
 LABEL \
   org.opencontainers.image.authors="obs-ds-intake-services" \
-  org.opencontainers.image.base.name="cgr.dev/chainguard/static:latest" \
+  org.opencontainers.image.base.name="docker.io/chainguard/static:latest" \
   org.opencontainers.image.description="Elastic APM Server" \
   org.opencontainers.image.documentation="https://www.elastic.co/docs/solutions/observability/apm/apm-server" \
   org.opencontainers.image.licenses="Elastic-2.0" \
