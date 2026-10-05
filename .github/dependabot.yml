@@ -85,13 +85,15 @@ updates:
     schedule:
       interval: "weekly"
     ignore:
-      # Keep digest bumps of ubuntu:24.04. Ignore newer tags (24.10, 25.10, 26.04, ...).
+      # Same-tag digest refreshes of ubuntu:24.04 still open. Newer tags do not.
       - dependency-name: "ubuntu"
-        versions: [">= 24.10"]
+        versions: ["> 24.04"]
     groups:
       docker:
         patterns:
           - "*"
+        exclude-patterns:
+          - "ubuntu"
   # GitHub actions 8.x branch
   - package-ecosystem: "github-actions"
     target-branch: "8.19"
