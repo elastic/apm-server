@@ -6,7 +6,7 @@ require (
 	github.com/KimMachineGun/automemlimit v0.7.5
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/cockroachdb/pebble/v2 v2.1.7
-	github.com/dustin/go-humanize v1.0.1
+	github.com/dustin/go-humanize v1.1.0
 	github.com/elastic/apm-aggregation v1.5.1
 	github.com/elastic/apm-data v1.22.2
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20260930123747-4edb29d4a1c0
