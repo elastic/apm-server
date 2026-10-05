@@ -92,8 +92,6 @@ updates:
       docker:
         patterns:
           - "*"
-        exclude-patterns:
-          - "ubuntu"
   # GitHub actions 8.x branch
   - package-ecosystem: "github-actions"
     target-branch: "8.19"
