@@ -84,10 +84,15 @@ updates:
     directory: "/packaging/docker/"
     schedule:
       interval: "weekly"
+    ignore:
+      # 8.19 stays on Ubuntu 24.04 LTS. Do not open interim or next-LTS bumps.
+      - dependency-name: "ubuntu"
     groups:
       docker:
         patterns:
           - "*"
+        exclude-patterns:
+          - "ubuntu"
   # GitHub actions 8.x branch
   - package-ecosystem: "github-actions"
     target-branch: "8.19"
