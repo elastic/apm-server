@@ -1,5 +1,6 @@
 [[apm-release-notes-8.19]]
 == APM version 8.19
+* <<apm-release-notes-8.19.23>>
 * <<apm-release-notes-8.19.22>>
 * <<apm-release-notes-8.19.21>>
 * <<apm-release-notes-8.19.20>>
@@ -23,6 +24,14 @@
 * <<apm-release-notes-8.19.2>>
 * <<apm-release-notes-8.19.1>>
 * <<apm-release-notes-8.19.0>>
+
+[float]
+[[apm-release-notes-8.19.23]]
+=== APM version 8.19.23
+
+https://github.com/elastic/apm-server/compare/v8.19.22\...v8.19.23[View commits]
+
+- Update default container base image to Ubuntu 24.04 {pull}21974[21974]
 
 [float]
 [[apm-release-notes-8.19.22]]
