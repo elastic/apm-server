@@ -31,7 +31,7 @@
 
 https://github.com/elastic/apm-server/compare/v8.19.22\...v8.19.23[View commits]
 
-- Update container base image to Ubuntu 24.04 {pull}21974[21974]
+- Update default container base image to Ubuntu 24.04 {pull}21974[21974]
 
 [float]
 [[apm-release-notes-8.19.22]]
