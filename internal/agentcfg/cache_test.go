@@ -20,6 +20,7 @@ package agentcfg
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -186,6 +187,43 @@ func BenchmarkFetchAndAdd(b *testing.B) {
 			setup.cache.fetch(q, testFn)
 		}
 	})
+}
+
+func BenchmarkAddToCache(b *testing.B) {
+	// create initial list of queries
+	const cacheSize = 8000
+	queries := make([]Query, cacheSize)
+	for i := range cacheSize {
+		queries[i] = Query{
+			Service: Service{
+				Environment: "production",
+			},
+		}
+	}
+
+	// create a cache once
+	cache, err := newCache(logp.NewNopLogger(), time.Minute)
+	require.NoError(b, err)
+
+	var adds int64
+	var nextQueryID int
+	for b.Loop() {
+		// update queries with a new service name on each loop iteration
+		b.StopTimer()
+		for i := range queries {
+			queries[i].Service.Name = strconv.Itoa(nextQueryID)
+			nextQueryID++
+		}
+		b.StartTimer()
+
+		// insert queries
+		for _, query := range queries {
+			cache.gocache.Add(query.id(), externalResult)
+		}
+		adds += int64(len(queries))
+	}
+	b.ReportMetric(float64(b.Elapsed().Nanoseconds())/float64(adds), "ns/add")
+	b.ReportMetric(0, "ns/op")
 }
 
 func testFnErr() (Result, error) {
