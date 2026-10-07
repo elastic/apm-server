@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 	"time"
 
@@ -72,11 +71,10 @@ func TestDropAndRecreate_subscriberPositionFile(t *testing.T) {
 	}
 }
 
-// TestDropAndRecreate_DeadlockWithInFlightWrite reproduces the tail-based
-// sampling deadlock: a write holds sm.mu, dropAndRecreate waits in Lock, and
-// the write then calls StorageManager.Size, which RLock's sm.mu again.
-// Go's RWMutex blocks that second RLock while a writer is queued, so neither
-// side proceeds.
+// TestDropAndRecreate_DeadlockWithInFlightWrite holds sm.mu in a write, queues
+// dropAndRecreate on Lock, then lets the write call Size. Size must not take
+// sm.mu again: Go's RWMutex blocks a new RLock while a writer is waiting, and
+// that second lock used to deadlock the drop.
 func TestDropAndRecreate_DeadlockWithInFlightWrite(t *testing.T) {
 	sm, err := NewStorageManager(t.TempDir())
 	require.NoError(t, err)
@@ -92,11 +90,10 @@ func TestDropAndRecreate_DeadlockWithInFlightWrite(t *testing.T) {
 
 	entered := make(chan struct{})
 	release := make(chan struct{})
-	var once sync.Once
 	sm.storage.codec = blockingCodec{
 		Codec: ProtobufCodec{},
 		block: func() {
-			once.Do(func() { close(entered) })
+			close(entered)
 			<-release
 		},
 	}
