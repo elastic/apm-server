@@ -3444,19 +3444,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/pdata
-<<<<<<< HEAD
-Version: v1.67.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.67.0/LICENSE:
-=======
 Version: v1.68.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.68.0/LICENSE:
->>>>>>> e8b1a0d (build(deps): bump the otel group across 1 directory with 7 updates (#22051))
 
 
                                  Apache License
@@ -12689,19 +12681,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/cons
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/featuregate
-<<<<<<< HEAD
-Version: v1.67.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/featuregate@v1.67.0/LICENSE:
-=======
 Version: v1.68.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/featuregate@v1.68.0/LICENSE:
->>>>>>> e8b1a0d (build(deps): bump the otel group across 1 directory with 7 updates (#22051))
 
 
                                  Apache License
@@ -13178,19 +13162,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/exp
-<<<<<<< HEAD
-Version: v0.0.0-20260824195058-e88cd73687aa
-Licence type (autodetected): BSD-3-Clause
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/golang.org/x/exp@v0.0.0-20260824195058-e88cd73687aa/LICENSE:
-=======
 Version: v0.0.0-20260908205506-85c1c2202aba
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/golang.org/x/exp@v0.0.0-20260908205506-85c1c2202aba/LICENSE:
->>>>>>> e8b1a0d (build(deps): bump the otel group across 1 directory with 7 updates (#22051))
 
 Copyright 2009 The Go Authors.
 
