@@ -4,22 +4,17 @@ notify:
         - "#apm-server"
       message: "<!subteam^S07C12216KY|obs-ds-intake-service-team> Version bump to ${NEW_VERSION} — ${BUILDKITE_BUILD_URL}"
     if: (build.branch == 'main' || build.branch =~ /^[0-9]+\.[0-9x]+\$/) && (build.state == 'passed' || build.state == 'failed')
-  - slack:
-      channels:
-        - "#apm-server"
-      message: |
-        <!subteam^S07C12216KY|obs-ds-intake-service-team>
-        🚦 Pipeline waiting for approval 🚦
-        Repo: `${REPO}`
-
-        Ready to fetch DRA artifacts - please unblock when ready.
-        New version: `${NEW_VERSION}`
-        Branch: `${BRANCH}`
-        Workflow: `${WORKFLOW}`
-        ${BUILDKITE_BUILD_URL}
-    if: build.state == "blocked"
 
 steps:
+  - label: ":slack: Notify team version bump started"
+    if: build.branch == 'main' || build.branch =~ /^[0-9]+\.[0-9x]+\$/
+    command: echo "Version bump started"
+    notify:
+      - slack:
+          channels:
+            - "#apm-server"
+          message: "<!subteam^S07C12216KY|obs-ds-intake-service-team> Version bump to ${NEW_VERSION} started — ${BUILDKITE_BUILD_URL}"
+
   - label: "Validate WORKFLOW and NEW_VERSION consistency"
     command: |
       if [ "$${WORKFLOW}" = "minor" ]; then
@@ -65,20 +60,10 @@ steps:
           workflow-inputs:
             version: "${NEW_VERSION}"
 
-  - block: "Ready to fetch for DRA artifacts?"
-    prompt: |
-      Unblock when your team is ready to proceed.
-
-      Trigger parameters:
-      - NEW_VERSION: ${NEW_VERSION}
-      - BRANCH: ${BRANCH}
-      - WORKFLOW: ${WORKFLOW}
-    key: block-get-dra-artifacts
-    blocked_state: running
+  - wait:
 
   - label: "Fetch DRA Artifacts"
     key: fetch-dra-artifacts
-    depends_on: block-get-dra-artifacts
     agents:
       image: docker.elastic.co/release-eng/wolfi-build-essential-release-eng:latest
       cpu: 250m
