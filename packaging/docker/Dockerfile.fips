@@ -5,13 +5,14 @@ ARG GOLANG_VERSION
 # Build the apm-server binary. The golang image version is kept
 # up to date with go.mod by Makefile.
 ################################################################################
-FROM docker.elastic.co/wolfi/go:${GOLANG_VERSION} as builder
+FROM golang:${GOLANG_VERSION} AS builder
 WORKDIR /src
 COPY go.mod go.sum /src/
-RUN --mount=type=cache,target=/root/go/pkg/mod go mod download
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY . .
 
-RUN --mount=type=cache,target=/root/go/pkg/mod \
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
     make apm-server-fips
 
 COPY --chmod=0644 apm-server-fips.yml ./apm-server.yml
@@ -23,7 +24,7 @@ RUN rm -f empty && touch empty
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM cgr.dev/chainguard/static:latest@sha256:f51c2493951313c3ad4069080b2814ffb6ed6fe3909dabeb84a9482f42d5600b
+FROM cgr.dev/chainguard/static:latest@sha256:fe55470f22d3259488d9d3739168d8f04da67755f0b69382bc26eda4a7d3d327
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION

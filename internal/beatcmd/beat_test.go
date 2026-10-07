@@ -48,7 +48,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/monitoring"
-	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-docappender/v2/docappendertest"
 
@@ -90,10 +89,10 @@ func TestRunnerParams(t *testing.T) {
 			},
 		},
 		"path": map[string]any{
-			"config": paths.Paths.Config,
-			"logs":   paths.Paths.Logs,
-			"data":   paths.Paths.Data,
-			"home":   paths.Paths.Home,
+			"config": args.Info.Paths.Config,
+			"logs":   args.Info.Paths.Logs,
+			"data":   args.Info.Paths.Data,
+			"home":   args.Info.Paths.Home,
 		},
 	}, m)
 }
@@ -527,6 +526,9 @@ func TestRunManager_Reloader(t *testing.T) {
 	err = manager.PreInit()
 	manager.PostInit()
 	require.NoError(t, err)
+	// Registered after PreInit so the defer only runs once goroutines are
+	// started. Registered after defer srv.Stop() so defers run LIFO: manager
+	// stops first (draining goroutines), then server.
 	defer manager.Stop()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -631,6 +633,10 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 	err = manager.PreInit()
 	manager.PostInit()
 	require.NoError(t, err)
+	// Registered after PreInit so the defer only runs once goroutines are
+	// started. Registered after defer srv.Stop() so defers run LIFO: manager
+	// stops first (draining goroutines), then server.
+	defer manager.Stop()
 
 	select {
 	case msg := <-inputFailedMsg:
@@ -638,16 +644,6 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Fatal("timed out waiting for input failed msg")
 	}
-
-	// Stop manager before test ends to prevent data race.
-	// The manager starts background goroutines that log via t.Log().
-	// If we use defer, the test may finish before Stop() completes,
-	// causing the logger to access test state after the test ends.
-	manager.Stop()
-
-	// Give goroutines time to fully exit after Stop().
-	// Stop() cancels contexts but goroutines may still be logging.
-	time.Sleep(100 * time.Millisecond)
 }
 
 func runBeat(t testing.TB, beat *Beat) (stop func() error) {
