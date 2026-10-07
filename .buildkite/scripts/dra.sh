@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ##
-##  It relies on the .buildkite/hooks/pre-command so the Vault and other tooling
-##  are prepared automatically by buildkite.
+##  It relies on the .buildkite/hooks/pre-command so the tooling is prepared
+##  automatically by buildkite.
 ##
 ##  It uploads DRA prep pipeline steps and, on active release branches, also
 ##  triggers unified-release-dra-processing. On non-active branches (feature branches)
@@ -18,16 +18,16 @@ TYPE="$1"
 # shellcheck disable=SC1091
 source .buildkite/scripts/utils.sh
 
-# by default it uses the buildkite branch
-DRA_BRANCH="$BUILDKITE_BRANCH"
-VERSION=$(make get-version-only)
 BRANCHES_URL=https://storage.googleapis.com/artifacts-api/snapshots/branches.json
+# Resolve DRA_BRANCH (PR base branch, feature branch parent) and VERSION as
+# package.sh does, so the staging qualifier matches the packages.
+dra_process_other_branches
 curl -fsS "${BRANCHES_URL}" > active-branches.json
 # Publish to DRA GCS only on active release branches. Non-active branches run
 # the plugin in dry-run mode (upload: false) so PRs and feature branches can
 # still validate their packaging without publishing.
 DRA_UPLOAD=true
-if ! grep -Fq "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
+if [[ "${BUILDKITE_PULL_REQUEST:-false}" != "false" ]] || ! grep -Fq "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
   DRA_UPLOAD=false
 fi
 
@@ -57,6 +57,7 @@ dra() {
     trigger_step=$(cat <<TRIG
 
   - label: ":pipeline: DRA processing for apm-server (${workflow})"
+    key: "dra-process-${workflow}"
     trigger: "unified-release-dra-processing"
     depends_on: "dra-prep-${workflow}"
     build:
@@ -70,7 +71,7 @@ TRIG
 
   - label: ":memo: Annotate DRA summary (${workflow})"
     key: "dra-annotate-${workflow}"
-    depends_on: "dra-prep-${workflow}"
+    depends_on: "dra-process-${workflow}"
     command: ".buildkite/scripts/dra-annotate.sh ${workflow}"
     agents:
       provider: "gcp"
@@ -88,6 +89,7 @@ steps:
     command: ".buildkite/scripts/stage-dra-artifacts.sh"
     env:
       DRA_WORKFLOW: "${workflow}"
+      DRA_STACK_VERSION: "${stack_version}"
     agents:
       provider: "gcp"
       image: "${IMAGE_UBUNTU_X86_64}"
