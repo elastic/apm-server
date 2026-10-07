@@ -78,8 +78,16 @@ type Query struct {
 	InsecureAgents []string `json:"-"`
 }
 
-func (q Query) id() string {
-	return q.Service.Name + q.Service.Environment
+type cacheKey struct {
+	service string
+	env     string
+}
+
+func (q Query) id() cacheKey {
+	return cacheKey{
+		service: q.Service.Name,
+		env:     q.Service.Environment,
+	}
 }
 
 // Service holds supported attributes for querying configuration
