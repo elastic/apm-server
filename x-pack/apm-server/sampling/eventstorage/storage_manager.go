@@ -115,7 +115,10 @@ func (s *StorageManager) reset() error {
 		return err
 	}
 	s.db = db
-	s.storage = New(s, ProtobufCodec{})
+	// Pass the badger DB. StorageManager.Size takes sm.mu, and an in-flight
+	// write already holds that lock, so routing Size and NewTransaction back
+	// through StorageManager deadlocks with dropAndRecreate.
+	s.storage = New(db, ProtobufCodec{})
 	s.rw = s.storage.NewShardedReadWriter()
 	return nil
 }
@@ -136,12 +139,6 @@ func (s *StorageManager) Size() (lsm, vlog int64) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.db.Size()
-}
-
-func (s *StorageManager) NewTransaction(update bool) *badger.Txn {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.db.NewTransaction(update)
 }
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.

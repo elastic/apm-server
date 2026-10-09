@@ -81,7 +81,7 @@ func (s *Storage) NewReadWriter() *ReadWriter {
 	s.pendingSize.Add(baseTransactionSize)
 	return &ReadWriter{
 		s:           s,
-		txn:         nil, // lazy init to avoid deadlock in storage manager
+		txn:         nil, // lazyInit opens the transaction on first use
 		pendingSize: baseTransactionSize,
 	}
 }
