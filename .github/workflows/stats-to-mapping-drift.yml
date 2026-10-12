@@ -1,0 +1,145 @@
+---
+name: stats-to-mapping-drift
+
+# Weekly cron that detects drift between apm-server's /stats endpoint and the
+# upstream mapping files in elastic/elasticsearch, elastic/beats, and
+# elastic/integrations. The orchestration lives in
+# script/stats-to-mapping-drift.sh (also runnable as `make
+# stats-to-mapping-drift`); this workflow wraps the script with
+# GitHub-Actions-specific concerns: artifact upload and drift-issue
+# creation.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays at 06:00 UTC.
+    - cron: '0 6 * * MON'
+
+permissions:
+  contents: read
+
+jobs:
+  drift-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      issues: write
+    env:
+      DRIFT_LABEL: stats-to-mapping-drift
+      WORK: ${{ github.workspace }}/.drift
+    steps:
+      - name: Checkout apm-server
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # Continues on drift so the artifact upload and issue-creation steps
+      # below can run. The script exits 1 only when drift is detected;
+      # genuine errors (build failure, /stats unreachable) surface as the
+      # script aborting before producing a drift.diff.
+      - name: Run drift check
+        id: drift
+        continue-on-error: true
+        run: make stats-to-mapping-drift
+
+      # If drift.diff exists and is non-empty, the script detected drift.
+      # If it doesn't exist, an earlier step in the script failed and the
+      # workflow should fail too.
+      - name: Classify outcome
+        id: classify
+        run: |
+          set -euo pipefail
+          if [ ! -f "$WORK/drift.diff" ]; then
+            echo "Drift script aborted before producing a diff; failing the job"
+            exit 1
+          fi
+          if [ -s "$WORK/drift.diff" ]; then
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload drift artifact
+        if: steps.classify.outputs.drifted == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-diff
+          path: |
+            ${{ env.WORK }}/drift.diff
+            ${{ env.WORK }}/drift.summary.md
+            ${{ env.WORK }}/stats.json
+          retention-days: 30
+
+      # File a single tracking issue with the per-file change summary, the
+      # workflow-run URL, and a copy-pasteable local reproduction recipe.
+      # Skipped if any open issue already carries the drift label, so a
+      # sustained drift event produces one issue, not a weekly stream.
+      - name: Open drift issue if none exists
+        if: steps.classify.outputs.drifted == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list --repo "$REPO" --label "$DRIFT_LABEL" \
+            --state open --json number --jq 'length')
+          if [ "$existing" -gt 0 ]; then
+            echo "Open drift issue already exists; not opening another"
+            exit 0
+          fi
+
+          today=$(date -u +%Y-%m-%d)
+          # The script's drift.summary.md is the per-file bullet list.
+          drifted_files=$(wc -l < "$WORK/drift.summary.md" | tr -d ' ')
+
+          BODY=$WORK/issue-body.md
+          {
+            cat <<HEADER
+          The weekly drift-check workflow detected drift in **$drifted_files file(s)** between apm-server's \`/stats\` endpoint and the upstream mapping files in \`elastic/elasticsearch\`, \`elastic/beats\`, and \`elastic/integrations\`.
+
+          Detected on $today by [workflow run]($RUN_URL). The full \`git diff\` of every drifted file is attached to that run as the \`drift-diff\` artifact, alongside the captured \`stats.json\`.
+
+          ## Files that drifted
+
+          HEADER
+            cat "$WORK/drift.summary.md"
+            cat <<'RECIPE'
+
+          ## Reproduce locally
+
+          From an apm-server checkout:
+
+          ```shell
+          make stats-to-mapping-drift
+          ```
+
+          The Makefile target wraps `script/stats-to-mapping-drift.sh`. It builds apm-server, captures `/stats` with TBS enabled, sparse-clones the three upstream repos under `.drift/upstream/`, runs the regen tool, and prints the per-file diff. Inspect `.drift/upstream/<repo>` and prepare a PR per repo.
+
+          ## Manual intervention required for new EA fields
+
+          The Elastic Agent integration package data stream is TSDB (`elasticsearch.index_mode: time_series`). Numeric fields on a TSDB stream need a `metric_type: gauge|counter` annotation so Fleet/EPM emits the corresponding `time_series_metric` ES mapping parameter, which drives downsampling semantics.
+
+          The regen tool cannot derive `gauge` vs `counter` from `/stats` (which carries values only). It retains existing `metric_type:` annotations by name match, but every newly added field appears in the integrations diff with `metric_type: FIXME`. **Search the integrations diff for `FIXME` and replace each with `gauge` or `counter` (and a `description:`) before opening the upstream PR.**
+
+          ## Resolution
+
+          Open a PR in each upstream repo with the diffs above, then close this issue. The workflow will not open another drift issue while this one stays open.
+          RECIPE
+          } > "$BODY"
+          gh issue create --repo "$REPO" \
+            --title "stats-to-mapping drift in $drifted_files file(s) ($today)" \
+            --label bug \
+            --label "$DRIFT_LABEL" \
+            --body-file "$BODY"
+
+      # Surface the script's exit status as the job's exit status. The
+      # script exits 1 on drift; without this step, the job would always
+      # be green because of continue-on-error above.
+      - name: Fail job if drift detected
+        if: steps.classify.outputs.drifted == 'true'
+        run: exit 1
