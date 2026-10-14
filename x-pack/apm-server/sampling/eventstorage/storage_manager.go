@@ -246,6 +246,9 @@ type partitionerMeta struct {
 
 // loadPartitionID loads the last saved partition ID from database,
 // such that partitioner resumes from where it left off before an apm-server restart.
+//
+// It returns 0 and an error if the saved ID cannot be used as a partition in the
+// current ring, e.g. corrupt metadata or one saved by a build with more partitions.
 func (sm *StorageManager) loadPartitionID() (int, error) {
 	item, closer, err := sm.decisionDB.Get([]byte(partitionerMetaKey))
 	if errors.Is(err, pebble.ErrNotFound) {
@@ -255,8 +258,13 @@ func (sm *StorageManager) loadPartitionID() (int, error) {
 	}
 	defer closer.Close()
 	var pid partitionerMeta
-	err = json.Unmarshal(item, &pid)
-	return pid.ID, err
+	if err := json.Unmarshal(item, &pid); err != nil {
+		return 0, err
+	}
+	if pid.ID < 0 || pid.ID >= partitionRingSize {
+		return 0, fmt.Errorf("saved partition ID %d is out of range [0, %d)", pid.ID, partitionRingSize)
+	}
+	return pid.ID, nil
 }
 
 // savePartitionID saves the partition ID to database to be loaded by loadPartitionID later.
@@ -447,14 +455,26 @@ func (sm *StorageManager) runTTLGCLoop(stopping <-chan struct{}, ttl time.Durati
 }
 
 // RotatePartitions rotates the partitions to clean up TTL-expired entries.
+//
+// The new current partition is persisted before waiting for in-flight users of
+// the outgoing one, so a crash during the wait restarts on the partition that
+// is already receiving writes. See the package documentation.
+//
+// TODO(@lahsivjar): cleanup of the outgoing partition is not retried. If the
+// process crashes or a delete fails after the new current is persisted, the
+// outgoing partition stays dirty and, once it becomes current again, its
+// TTL-expired entries are readable until it is next cleared. Clear the inactive
+// partition on startup and before each rotation so it is always empty before it
+// becomes current.
 func (sm *StorageManager) RotatePartitions() error {
 	newCurrentPID, newInactivePID := sm.partitioner.Rotate()
-
 	if err := sm.savePartitionID(newCurrentPID); err != nil {
+		// The ring has already advanced in memory. Keep the outgoing partition:
+		// after a restart, the persisted (old) ring still treats it as active.
 		return err
 	}
+	sm.partitioner.WaitInactive(newInactivePID)
 
-	// No lock is needed here as the only writer to sm.partitioner is exactly this function.
 	lbPrefix := byte(newInactivePID)
 
 	lb := []byte{lbPrefix}
