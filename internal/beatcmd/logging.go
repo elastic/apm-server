@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/paths"
 )
 
 var (
@@ -31,7 +32,7 @@ var (
 	logOptions        []logp.Option
 )
 
-func buildLoggingConfig(cfg *Config, env logp.Environment, stderr bool, debugSelectors []string, opts ...logp.Option) (logp.Config, error) {
+func buildLoggingConfig(cfg *Config, beatPaths *paths.Path, env logp.Environment, stderr bool, debugSelectors []string, opts ...logp.Option) (logp.Config, error) {
 	logpConfig := logp.DefaultConfig(env)
 	logpConfig.Beat = "apm-server"
 	if cfg.Logging != nil {
@@ -57,11 +58,14 @@ func buildLoggingConfig(cfg *Config, env logp.Environment, stderr bool, debugSel
 		opt(&logpConfig)
 	}
 
+	// logp does not resolve a relative file output path itself.
+	logpConfig.Files.Path = beatPaths.Resolve(paths.Logs, logpConfig.Files.Path)
+
 	return logpConfig, nil
 }
 
-func configureLogging(cfg *Config) error {
-	logpConfig, err := buildLoggingConfig(cfg, logEnvironment.env, logStderr, logDebugSelectors, logOptions...)
+func configureLogging(cfg *Config, beatPaths *paths.Path) error {
+	logpConfig, err := buildLoggingConfig(cfg, beatPaths, logEnvironment.env, logStderr, logDebugSelectors, logOptions...)
 	if err != nil {
 		return err
 	}

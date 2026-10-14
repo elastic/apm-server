@@ -84,6 +84,10 @@ updates:
     directory: "/packaging/docker/"
     schedule:
       interval: "weekly"
+    ignore:
+      # Stay on ubuntu:24.04 tag but bump digests.
+      - dependency-name: "ubuntu"
+        versions: ["> 24.04"]
     groups:
       docker:
         patterns:

@@ -32,6 +32,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/management/status"
 	"github.com/elastic/beats/v7/libbeat/version"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/paths"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -72,6 +73,10 @@ type RunServerFunc func(context.Context, ServerParams) error
 type ServerParams struct {
 	// Config is the configuration used for running the APM Server.
 	Config *config.Config
+
+	// Paths holds the per-instance filesystem paths for the server, used to
+	// resolve data/logs locations without relying on a global paths singleton.
+	Paths *paths.Path
 
 	// Namespace holds the data stream namespace for the server.
 	Namespace string
