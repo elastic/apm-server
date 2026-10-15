@@ -538,5 +538,5 @@ As a workaround, use APM Server or Elastic Agent with APM Integration with a ver
 On ECH, it is not possible to keep a previous version of the Integration Server. In that case:
 
 - we suggest to temporarily disable TBS, with the drawback of an increased throughput to Elasticsearch (so it might require the Elasticsearch cluster to be upscaled)
-- reduce the number of instances of Integration Server / APM Server to 1, with the drawback of no more have an High-Available setup, and it might be not viable depending on your APM intake
+- reduce the number of instances of Integration Server / APM Server to 1, with the drawback of not having a High-Available setup, and it might be not viable depending on your APM intake
 :::
