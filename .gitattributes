@@ -1,2 +1,4 @@
 CHANGELOG.asciidoc merge=union
 **.ndjson text eol=lf
+
+.github/workflows/*.lock.yml linguist-generated=true
