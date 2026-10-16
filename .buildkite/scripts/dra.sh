@@ -74,8 +74,10 @@ TRIG
     depends_on: "dra-process-${workflow}"
     command: ".buildkite/scripts/dra-annotate.sh ${workflow}"
     agents:
-      provider: "gcp"
-      image: "${IMAGE_UBUNTU_X86_64}"
+      image: "docker.elastic.co/release-eng/wolfi-build-essential-release-eng:latest"
+      cpu: "250m"
+      memory: "512Mi"
+      ephemeralStorage: "1Gi"
     timeout_in_minutes: 5
 ANN
 )
