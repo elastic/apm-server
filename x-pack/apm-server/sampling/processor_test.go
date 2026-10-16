@@ -351,11 +351,11 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 	config := newTempdirConfig(t).Config
 	config.Policies = []sampling.Policy{{
-		PolicyCriteria: sampling.PolicyCriteria{TraceName: "trace_name"},
-		SampleRate:     0.5,
+		TraceName:  "trace_name",
+		SampleRate: 0.5,
 	}, {
-		PolicyCriteria: sampling.PolicyCriteria{ServiceName: "service_name"},
-		SampleRate:     0.1,
+		ServiceName: "service_name",
+		SampleRate:  0.1,
 	}, {
 		PolicyCriteria: sampling.PolicyCriteria{},
 		SampleRate:     0,
@@ -1081,34 +1081,28 @@ func newTempdirConfigLogger(tb testing.TB, logger *logp.Logger) testConfig {
 	tb.Cleanup(func() { db.Close() })
 
 	return testConfig{
-		tempDir:      tempdir,
-		metricReader: reader,
-		Config: sampling.Config{
-			BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
-			MeterProvider:  mp,
-			LocalSamplingConfig: sampling.LocalSamplingConfig{
-				FlushInterval:         time.Second,
-				MaxDynamicServices:    1000,
-				IngestRateDecayFactor: 0.9,
-				Policies: []sampling.Policy{
-					{SampleRate: 0.1},
-				},
-			},
-			RemoteSamplingConfig: sampling.RemoteSamplingConfig{
-				Elasticsearch: pubsubtest.Client(nil, nil),
-				SampledTracesDataStream: sampling.DataStreamConfig{
-					Type:      "traces",
-					Dataset:   "sampled",
-					Namespace: "testing",
-				},
-				UUID: "local-apm-server",
-			},
-			StorageConfig: sampling.StorageConfig{
-				DB:                   db,
-				Storage:              newUnlimitedReadWriter(db),
-				TTL:                  30 * time.Minute,
-				ReadBatchMemoryLimit: 10 << 20, // 10MB
-			},
+		tempDir:               tempdir,
+		metricReader:          reader,
+		BatchProcessor:        modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
+		MeterProvider:         mp,
+		FlushInterval:         time.Second,
+		MaxDynamicServices:    1000,
+		IngestRateDecayFactor: 0.9,
+		Policies: []sampling.Policy{
+			{SampleRate: 0.1},
+		},
+		Elasticsearch: pubsubtest.Client(nil, nil),
+		SampledTracesDataStream: sampling.DataStreamConfig{
+			Type:      "traces",
+			Dataset:   "sampled",
+			Namespace: "testing",
+		},
+		UUID: "local-apm-server",
+		StorageConfig: sampling.StorageConfig{
+			DB:                   db,
+			Storage:              newUnlimitedReadWriter(db),
+			TTL:                  30 * time.Minute,
+			ReadBatchMemoryLimit: 10 << 20, // 10MB
 		},
 	}
 }

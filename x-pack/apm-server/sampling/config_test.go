@@ -41,7 +41,7 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 
 	assertInvalidConfigError("invalid local sampling config: Policies unspecified")
 	config.Policies = []sampling.Policy{{
-		PolicyCriteria: sampling.PolicyCriteria{ServiceName: "foo"},
+		ServiceName: "foo",
 	}}
 	assertInvalidConfigError("invalid local sampling config: Policies does not contain a default (empty criteria) policy")
 	config.Policies[0].PolicyCriteria = sampling.PolicyCriteria{}
