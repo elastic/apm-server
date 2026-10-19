@@ -510,9 +510,7 @@ A fix will be released in 8.14.3: [elastic/apm-server#13576](https://github.com/
 
 :::{dropdown} APM Server with tail-based sampling can deadlock and stop accepting data
 
-*APM Server versions: >=9.3.5, >=9.4.1, >=9.5.0 <br>*
-
-A fix will be released in 9.4.9 and 9.5.6
+*APM Server versions: >=9.3.5, >=9.4.1 < 9.4.9, >=9.5.0 < 9.5.6 <br>*
 
 When tail-based sampling is enabled and multiple APM Server instances share the same Elasticsearch cluster, 
 the server can enter a permanent deadlock if a TTL GC rotation occurs while a remotely sampled trace is being processed.
