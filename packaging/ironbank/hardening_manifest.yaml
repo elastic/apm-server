@@ -46,6 +46,6 @@ resources:
       value: 93dcc18adc78c65a028a84799ecf8ad40c936fdfc5f2a57b1acda5a8117fa82c
 # List of project maintainers
 maintainers:
-  - email: "victor.martinez@elastic.co"
-    name: "Victor Martinez"
-    username: "v1v"
+  #- email: "<your_email>"
+  #  name: "<your name>"
+  #  username: "<your_gitlab_user>"
