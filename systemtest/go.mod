@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server/systemtest
 
-go 1.26.8
+go 1.26.9
 
 require (
 	github.com/docker/docker v27.5.1+incompatible
