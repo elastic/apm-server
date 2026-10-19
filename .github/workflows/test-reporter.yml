@@ -16,7 +16,7 @@ jobs:
   system-test-results:
     runs-on: ubuntu-latest
     steps:
-      - uses: elastic/oblt-actions/test-report@aa92cc2fa3275da3b2feeb2e5c67a0cdbb816fc6 # v1
+      - uses: elastic/oblt-actions/test-report@fd3d4bb6f88d0f957f474764b7648cd652a9fcba # v1
         with:
           artifact: /test-results-(.*)/     # artifact name pattern
           name: 'Test Results $1'        # Name of the check run which will be created
