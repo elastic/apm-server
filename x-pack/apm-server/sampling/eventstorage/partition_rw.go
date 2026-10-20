@@ -17,10 +17,8 @@ type PartitionReadWriter struct {
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
 func (rw *PartitionReadWriter) WriteTraceSampled(traceID string, sampled bool) (err error) {
-	rw.s.partitioner.CurrentIDFunc(func(pid int) {
-		err = NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceSampled(traceID, sampled)
-	})
-	return
+	pid := rw.s.partitioner.CurrentID()
+	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceSampled(traceID, sampled)
 }
 
 // IsTraceSampled reports whether traceID belongs to a trace that is sampled
@@ -49,10 +47,8 @@ func (rw *PartitionReadWriter) IsTraceSampled(traceID string) (bool, error) {
 
 // WriteTraceEvent writes a trace event to storage.
 func (rw *PartitionReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) (err error) {
-	rw.s.partitioner.CurrentIDFunc(func(pid int) {
-		err = NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceEvent(traceID, id, event)
-	})
-	return
+	pid := rw.s.partitioner.CurrentID()
+	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceEvent(traceID, id, event)
 }
 
 // DeleteTraceEvent deletes the trace event from storage.
