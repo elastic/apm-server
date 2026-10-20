@@ -114,6 +114,14 @@ patch-release:
 ## Internal make goals to bump versions
 ############################################
 
+# Manual changelog update. Not invoked by minor-release or major-release.
+# Generates something similar to https://github.com/elastic/apm-server/pull/12220
+.PHONY: update-changelog
+update-changelog: VERSION=$${VERSION}
+update-changelog:
+	@echo ">> update-changelog"
+	bash ./tools/scripts/changelog.sh $(VERSION)
+
 ## Update the references on .mergify.yml with the new minor release.
 .PHONY: update-mergify
 update-mergify: VERSION=$${VERSION}
