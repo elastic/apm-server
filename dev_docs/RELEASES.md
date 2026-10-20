@@ -27,8 +27,7 @@ This documentation is for 9.x releases. If you are releasing a 8.x look [here](.
 1. Create a *Test Plan*.
 2. Run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the minor release version the release is for). This workflow will:
     - Create a new release branch using the stack version (X.Y).
-    - Update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`.
-    - Create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`.
+    - Create a PR on `main` titled `<major>.<minor>: update mergify and versions`.
     - Automated minor version bumps are typically done on Feature Freeze day.
 
 ## Major Release
@@ -36,10 +35,9 @@ This documentation is for 9.x releases. If you are releasing a 8.x look [here](.
 1. Create a *Test Plan*.
 2. Run the [`run-major-release`](https://github.com/elastic/apm-server/actions/workflows/run-major-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the major release version the release is for). This workflow will:
     - Create a new release branch using the stack version (X.Y).
-    - Update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`.
-    - Create a PR on `main` titled `<major>.0: update docs, mergify, versions and changelogs`.
+    - Create a PR on `main` titled `<major>.0: update mergify and versions`.
 
-Before merging them compare commits between latest minor and the new major versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging. After it's merged add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2895)).
+Request and wait a PR review from the team before merging the version bump.
 
 ## Update Dependencies
 

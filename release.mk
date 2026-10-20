@@ -50,7 +50,6 @@ endif
 # BASE_BRANCH select by release type (default patch)
 ifeq ($(RELEASE_TYPE),minor)
 	BASE_BRANCH ?= main
-	CHANGELOG_BRANCH = main
 endif
 
 ifeq ($(RELEASE_TYPE),patch)
@@ -85,11 +84,9 @@ minor-release:
 	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
 	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
-	$(MAKE) update-changelog VERSION=$(RELEASE_VERSION)
-	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update changelogs for $(RELEASE_BRANCH) release"
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
 	git push origin $(RELEASE_BRANCH)
-	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs" BODY="Merge as soon as the GitHub checks are green."
+	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update mergify and versions" BODY="Merge as soon as the GitHub checks are green."
 
 # This is the contract with the GitHub action .github/workflows/run-major-release.yml.
 # The GitHub action will provide the below environment variables:
@@ -116,13 +113,6 @@ patch-release:
 ############################################
 ## Internal make goals to bump versions
 ############################################
-
-# Update changelog file to generate something similar to https://github.com/elastic/apm-server/pull/12220
-.PHONY: update-changelog
-update-changelog: VERSION=$${VERSION}
-update-changelog:
-	@echo ">> update-changelog"
-	bash ./tools/scripts/changelog.sh $(VERSION)
 
 ## Update the references on .mergify.yml with the new minor release.
 .PHONY: update-mergify
