@@ -29,6 +29,8 @@ This documentation is for 9.x releases. If you are releasing a 8.x look [here](.
     - Create a new release branch using the stack version (X.Y).
     - Create a PR on `main` titled `<major>.<minor>: update mergify and versions`.
     - Automated minor version bumps are typically done on Feature Freeze day.
+3. Changelogs should be prepared and merged separately by release day.
+    - Add the changelog pull request to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/3572)).
 
 ## Major Release
 
@@ -36,6 +38,8 @@ This documentation is for 9.x releases. If you are releasing a 8.x look [here](.
 2. Run the [`run-major-release`](https://github.com/elastic/apm-server/actions/workflows/run-major-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the major release version the release is for). This workflow will:
     - Create a new release branch using the stack version (X.Y).
     - Create a PR on `main` titled `<major>.0: update mergify and versions`.
+3. Changelogs should be prepared and merged separately by release day.
+    - Add the changelog pull request to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/3572)).
 
 Request and wait a PR review from the team before merging the version bump.
 
