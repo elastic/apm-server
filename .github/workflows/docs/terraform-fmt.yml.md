@@ -1,40 +1,45 @@
 # terraform-fmt
 
-Checks that Terraform files are formatted.
+Checks that all Terraform files in the repository are formatted with `terraform fmt`, and fails when any file needs changes.
 
 ## At a glance
 
 | Item | Value |
 |------|-------|
-| Definition | [`terraform-fmt.yml`](../terraform-fmt.yml) |
-| Triggers | `push` and `pull_request` when `**.tf` files change; `merge_group` |
-| Token permissions | `contents: read` (workflow level) |
-| Secrets | None |
+| Platform | GitHub Actions |
+| Source | [`terraform-fmt.yml`](../terraform-fmt.yml) (workflow name `Terraform Format`) |
+| Trigger | `push` and `pull_request` when a `**.tf` file changes; `merge_group` |
 | Runner | `ubuntu-latest` |
 
 ## Purpose
 
-Fails when Terraform files are not formatted with `terraform fmt`.
+Enforces `terraform fmt` formatting on Terraform files before they merge.
 
 ## When it runs
 
-- On push or pull request that changes a `.tf` file.
-- On merge group events. The path filter does not apply to merge groups, so this job runs for every merge group.
+- On a push or pull request that changes a `.tf` file.
+- On every merge group event. The path filter is not set for `merge_group`.
 
-## Jobs and steps
+## Execution flow
 
-| Job | Steps |
-|-----|-------|
-| `terraform-fmt` | Checks out the repository, installs Terraform with `hashicorp/setup-terraform`, runs `terraform fmt -recursive -check -diff`. |
+| Job | Runs when | Depends on | What it does |
+|-----|-----------|------------|--------------|
+| `terraform-fmt` | Every matching event | None | Checks out the repository, installs Terraform with `hashicorp/setup-terraform` (pinned to a commit SHA, no version set), and runs `terraform fmt -recursive -check -diff` on the whole repository. |
 
 ## Inputs, outputs, and access
 
 | Area | Details |
 |------|---------|
 | Inputs | Terraform files in the repository. |
-| Outputs | Pass or fail with the formatting diff in the log. |
-| Permissions | Read-only. |
+| Outputs | Pass or fail. The diff of unformatted files is printed in the log. |
+| Permissions | Workflow token `contents: read`. |
 | Secrets | None. |
+
+## Operational notes
+
+- The `-check` flag makes the command fail without rewriting files.
+- The path filter `**.tf` matches only files ending in `.tf`. Other Terraform-related files, such as `.tftpl`, do not trigger a push or pull request run.
+- Source gap: the Terraform version installed by default is set by the external `hashicorp/setup-terraform` action and is not verified here.
 
 ## Sources
 

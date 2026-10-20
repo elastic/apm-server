@@ -1,47 +1,49 @@
 # update-dependabot-pr
 
-Regenerates `NOTICE.txt` and `NOTICE-fips.txt` on Dependabot Go module branches and commits the result back to the branch.
+Regenerates `NOTICE.txt` and `NOTICE-fips.txt` on Dependabot Go module branches and pushes any changes back to the branch.
 
 ## At a glance
 
 | Item | Value |
 |------|-------|
-| Definition | [`update-dependabot-pr.yml`](../update-dependabot-pr.yml) |
-| Triggers | `push` to `dependabot/go_modules/**`, ignoring pushes that only touch `NOTICE.txt` or `NOTICE-fips.txt` |
-| Token permissions | `contents: read` (workflow level). `contents: write` at job level. |
-| Secrets | None declared. Uses the built-in `GITHUB_TOKEN`. |
+| Platform | GitHub Actions |
+| Source | [`update-dependabot-pr.yml`](../update-dependabot-pr.yml) |
+| Trigger | `push` to `dependabot/go_modules/**`, excluding pushes that touch only the notice files |
 | Runner | `ubuntu-latest` |
 
 ## Purpose
 
-Dependabot pull requests do not update the notice files, so the lint job fails. This workflow fixes that automatically.
+Dependabot pull requests do not update the notice files, which makes the lint job fail. This workflow regenerates the notices and pushes the result to the Dependabot branch.
 
 ## When it runs
 
-On every push to a `dependabot/go_modules/**` branch that changes files other than the two notice files.
+- On every push to a `dependabot/go_modules/**` branch, unless every changed file is `NOTICE.txt` or `NOTICE-fips.txt`.
 
-## Jobs and steps
+## Execution flow
 
-| Job | Steps |
-|-----|-------|
-| `update-dependabot-pr` | Checks out the branch, sets up Go from `go.mod`, runs `make notice`, detects changes in the notice files, and commits each changed file with the GitHub contents API so the commit is signed. |
+| Job | Runs when | Depends on | What it does |
+|-----|-----------|------------|--------------|
+| `update-dependabot-pr` | Every matching push | None | Gets a token with `elastic/oblt-actions/github/create-token@v1`, checks out the branch with that token, configures git with `elastic/oblt-actions/git/setup@v1`, imports a GPG key, sets up Go from `go.mod`, and runs `make notice`. If `git status` shows changes to `NOTICE.txt` or `NOTICE-fips.txt`, it runs `git add`, `git commit -m "Update NOTICE.txt and NOTICE-fips.txt"`, and `git push`. |
 
 ## Inputs, outputs, and access
 
 | Area | Details |
 |------|---------|
-| Inputs | The pushed branch and `go.mod`. |
+| Inputs | The pushed Dependabot branch and `go.mod`. |
 | Outputs | A commit on the Dependabot branch that updates `NOTICE.txt` and `NOTICE-fips.txt`, only when they changed. |
-| Permissions | Job token with `contents: write`. |
-| Secrets | None declared. |
+| Permissions | Workflow token `contents: read`. The job requests `contents: read` and `id-token: write`. The checkout and push use the token from `create-token`. |
+| Secrets | `GPG_PRIVATE_KEY` and `GPG_PASSPHRASE` (names only). |
 
 ## Operational notes
 
-- The commit uses `gh api` with the contents endpoint, so GitHub signs it. A local `git commit` would not be signed.
-- The step commits `NOTICE.txt` and `NOTICE-fips.txt` as separate API calls, each reading the current blob SHA.
-- Source gap: the `make notice` target in the [`Makefile`](../../../Makefile) is not inspected in this pass.
+- The GPG import step enables commit signing (`git_commit_gpgsign: true`), so the commit is signed without a `-S` flag.
+- `make notice` runs `go-licence-detector` against the modules in `go.mod`, using `tools/notice/overrides.json` and `tools/notice/rules.json` (see [`Makefile`](../../../Makefile)).
+- The token policy for `create-token` is defined in an external catalog repository, linked from the workflow comments. It is not verified here.
+- Source gap: the `elastic/oblt-actions` actions, `crazy-max/ghaction-import-gpg`, and `actions/setup-go` are external. Their behavior is not verified here.
 
 ## Sources
 
 - [`.github/workflows/update-dependabot-pr.yml`](../update-dependabot-pr.yml)
-- [`Makefile`](../../../Makefile): `notice` target not inspected in this pass.
+- [`Makefile`](../../../Makefile) (`notice` target)
+- [`tools/notice/overrides.json`](../../../tools/notice/overrides.json)
+- [`tools/notice/rules.json`](../../../tools/notice/rules.json)

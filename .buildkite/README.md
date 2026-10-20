@@ -34,5 +34,6 @@ go to the [catalog-info.yaml](../catalog-info.yaml) file.
 | Pipeline | Definition | Page |
 |----------|------------|------|
 | `apm-server-package` | [`package.yml`](./package.yml), trigger settings in [`pull-requests.json`](./pull-requests.json) | [apm-server-package](./docs/apm-server-package.md) |
+| `version-bump` | [`version-bump-pipeline.yml`](./version-bump-pipeline.yml) | [version-bump-pipeline](./docs/version-bump-pipeline.md) |
 
 The trigger summary in the section above describes merged pull requests. The current `pull-requests.json` triggers on commits and `/package` comments. The [apm-server-package](./docs/apm-server-package.md) page describes the configuration.

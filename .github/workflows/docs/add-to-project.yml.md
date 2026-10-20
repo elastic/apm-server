@@ -4,42 +4,40 @@ Adds newly opened or transferred issues to the team project board.
 
 ## At a glance
 
-| Item | Value |
-|------|-------|
-| Definition | [`add-to-project.yml`](../add-to-project.yml) |
-| Triggers | `issues`: `opened`, `transferred` |
-| Token permissions | `contents: read` (workflow level) |
-| Secrets | `OBS_AUTOMATION_APP_ID`, `OBS_AUTOMATION_APP_PEM` |
-| Runner | `ubuntu-latest` |
+| | |
+| --- | --- |
+| Platform | GitHub Actions |
+| Source | [`.github/workflows/add-to-project.yml`](../add-to-project.yml) |
+| Trigger | `issues`, activity types `opened`, `transferred` |
 
 ## Purpose
 
-Keeps the team project board in sync with new issues without manual triage.
+Adds new issues to the team project board so they are tracked without manual triage. The file does not state further rationale.
 
 ## When it runs
 
-Runs for each issue that is opened or transferred into this repository.
+- Each time an issue is opened or transferred into this repository. The file declares no label or actor filters and no job condition.
 
-## Jobs and steps
+## Execution flow
 
-| Job | Steps |
-|-----|-------|
-| `add-to-project` | Creates a GitHub App token with organization projects write and issues read, then adds the issue to the project with `actions/add-to-project`. |
+| Job | Runs when | Depends on | What it does |
+| --- | --- | --- | --- |
+| `add-to-project` | Issue opened or transferred | None declared | Runs on `ubuntu-latest`. Creates a GitHub App token with organization projects write and issues read, then runs `actions/add-to-project` against the hard-coded project URL using that token. |
 
 ## Inputs, outputs, and access
 
-| Area | Details |
-|------|---------|
-| Inputs | Issue event payload only. |
+| Item | Details |
+| --- | --- |
+| Inputs | Issue event payload. |
 | Outputs | None. The issue is added to the project. |
-| Permissions | Job token from the GitHub App. The workflow token is read-only. |
-| Secrets | Names only: `OBS_AUTOMATION_APP_ID`, `OBS_AUTOMATION_APP_PEM`. |
+| Permissions | Workflow level: `contents: read`. The job uses a GitHub App token with organization projects write and issues read. |
+| Secrets | `OBS_AUTOMATION_APP_ID`, `OBS_AUTOMATION_APP_PEM` (names only). |
 
 ## Operational notes
 
 - The target project is hard-coded in the workflow. Changing the board requires editing the workflow.
-- The GitHub App must be installed with organization projects write access.
+- The GitHub App must be installed with organization projects write access. The installation is not verifiable from this repository.
 
 ## Sources
 
-- [`.github/workflows/add-to-project.yml`](../add-to-project.yml)
+- Workflow: [`.github/workflows/add-to-project.yml`](../add-to-project.yml)

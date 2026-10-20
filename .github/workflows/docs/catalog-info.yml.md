@@ -1,41 +1,43 @@
 # catalog-info
 
-Validates the `catalog-info.yaml` file on pull requests that change it.
+Validates the repository's `catalog-info.yaml` on pull requests to `main` that change it.
 
 ## At a glance
 
-| Item | Value |
-|------|-------|
-| Definition | [`catalog-info.yml`](../catalog-info.yml) |
-| Triggers | `pull_request` to `main` when `catalog-info.yaml` changes |
-| Token permissions | `contents: read`, `packages: read` (job level) |
-| Secrets | None |
-| Runner | `ubuntu-latest` |
+| | |
+| --- | --- |
+| Platform | GitHub Actions |
+| Source | [`.github/workflows/catalog-info.yml`](../catalog-info.yml) |
+| Trigger | `pull_request` to `main` with a path filter on `catalog-info.yaml` |
 
 ## Purpose
 
-Prevents an invalid service catalog entry from merging into `main`.
+Validates the service catalog entry in [`catalog-info.yaml`](../../../catalog-info.yaml) before it changes on `main`. The validation is performed by the external action `elastic/oblt-actions/elastic/validate-catalog@v1`; its rules are not in this repository.
 
 ## When it runs
 
-Only for pull requests targeting `main` that change `catalog-info.yaml`.
+- On `pull_request` events targeting `main` when the pull request changes `catalog-info.yaml`. The path filter is the only filter declared.
 
-## Jobs and steps
+## Execution flow
 
-| Job | Steps |
-|-----|-------|
-| `validate` | Checks out the repository, then runs `elastic/oblt-actions/elastic/validate-catalog@v1`. |
+| Job | Runs when | Depends on | What it does |
+| --- | --- | --- | --- |
+| `validate` | Pull request to `main` changing `catalog-info.yaml` | None declared | Runs on `ubuntu-latest`. Checks out the repository with `actions/checkout@v7`, then runs `elastic/oblt-actions/elastic/validate-catalog@v1`. |
 
 ## Inputs, outputs, and access
 
-| Area | Details |
-|------|---------|
-| Inputs | The changed `catalog-info.yaml`. |
-| Outputs | Validation result only. |
-| Permissions | Read-only. |
-| Secrets | None. |
+| Item | Details |
+| --- | --- |
+| Inputs | The changed `catalog-info.yaml` in the checked-out repository. |
+| Outputs | Validation result only. The file declares no artifacts. |
+| Permissions | Job level: `contents: read`, `packages: read`. |
+| Secrets | None passed explicitly. |
+
+## Operational notes
+
+- Source gap: the validation rules and any extra access used by `elastic/oblt-actions/elastic/validate-catalog@v1` are external and not verifiable here.
 
 ## Sources
 
-- [`.github/workflows/catalog-info.yml`](../catalog-info.yml)
-- `catalog-info.yaml` at the repository root is the validated file.
+- Workflow: [`.github/workflows/catalog-info.yml`](../catalog-info.yml)
+- Validated file: [`catalog-info.yaml`](../../../catalog-info.yaml)

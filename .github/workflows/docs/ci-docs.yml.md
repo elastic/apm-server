@@ -1,52 +1,62 @@
-# ci-docs
+# CI (docs-only)
 
-Mirror of the [ci](./ci.yml.md) workflow for documentation-only changes. It runs for pull requests that change only Markdown, AsciiDoc, PNG, or SVG files, so required checks are reported without running the full build.
+A placeholder CI workflow for pull requests that change only documentation or image files. It reports the same check names as [`ci.yml`](ci.yml.md) without running any tests or lint.
 
 ## At a glance
 
-| Item | Value |
-|------|-------|
+| Field | Value |
+|---|---|
 | Definition | [`ci-docs.yml`](../ci-docs.yml) |
-| Workflow name | `ci` (same name as `ci.yml`) |
-| Triggers | `pull_request` with a paths-ignore filter that matches docs-only changes; `merge_group` |
-| Concurrency | None |
-| Token permissions | `contents: read` (workflow level) |
+| Triggers | Pull requests that change only `**.md`, `**.asciidoc`, `**.png`, or `**.svg` files; merge queue (`merge_group`) |
+| Path filter | Negated `paths-ignore`: runs only when every changed file matches an exception |
+| Token permissions | `contents: read` |
 | Secrets | None |
-| Runner | `macos-latest` and `windows-latest` for the `test` job; `ubuntu-latest` for `system-test` and `lint` |
+| Runners | `macos-latest`, `windows-latest`, `ubuntu-latest` |
 
 ## Purpose
 
-Lets pull requests that change only documentation pass the same required check names that [ci](./ci.yml.md) reports, without running the code build.
+Lets required status checks from [`ci.yml`](ci.yml.md) pass on documentation-only changes. The jobs only print a message and do not run tests, system tests, or linters.
 
 ## When it runs
 
-- On pull requests where every changed file is Markdown, AsciiDoc, PNG, or SVG.
-- On merge group events.
+- On pull requests whose changes match only the documentation and image patterns above.
+- On merge queue checks.
 
-The paths filter is a negated list: it ignores all files except `**.md`, `**.asciidoc`, `**.png`, and `**.svg`. The source comment says this avoids a run when code and docs change together. It must match the ignore list in `ci.yml`.
+## Execution flow
 
-## Jobs and steps
+```mermaid
+flowchart LR
+    test[test<br/>macOS and Windows matrix]
+    sys[system-test<br/>Ubuntu]
+    lint[lint<br/>Ubuntu]
+    test ~~~ sys ~~~ lint
+```
 
-| Job | Runs on | Steps |
-|-----|---------|-------|
-| `test` | `macos-latest`, `windows-latest` (matrix) | Prints that no tests are required. |
-| `system-test` | `ubuntu-latest` | Prints that no tests are required. |
-| `lint` | `ubuntu-latest` | Prints that no lint is required. |
+All three jobs start in parallel. Each one runs a single `echo` step.
+
+| Job | Runs when | Depends on | What it does |
+|---|---|---|---|
+| `test` | Always | None | Prints `No tests required to run` on a macOS and Windows matrix. |
+| `system-test` | Always | None | Prints `No tests required to run` on Ubuntu. |
+| `lint` | Always | None | Prints `No lint required to run` on Ubuntu. |
 
 ## Inputs, outputs, and access
 
-| Area | Details |
-|------|---------|
-| Outputs | Passing check results with the same job names as `ci.yml`. |
-| Permissions | Read-only for the workflow token. |
+| Item | Details |
+|---|---|
+| Inputs | Pull request or merge group context only. |
+| Outputs | Placeholder status checks. No artifacts. |
+| Permissions | Workflow token: `contents: read`. |
 | Secrets | None. |
 
 ## Operational notes
 
-- The jobs are placeholders. They do not build or test anything.
-- Keep the paths list in sync with `ci.yml`. A mismatch can leave a required check missing for some changes.
+- The `paths-ignore` expression must match the one in [`ci.yml`](../ci.yml). Otherwise a change could skip both workflows or run both.
+- The job names match `ci.yml` (`test`, `system-test`, `lint`) so that the same required checks are reported for docs-only changes.
+- This workflow has no `ci.yml` jobs for FIPS, packaging, or integration server tests. Those checks are not reported here.
 
 ## Sources
 
-- [`.github/workflows/ci-docs.yml`](../ci-docs.yml)
-- [`.github/workflows/ci.yml`](../ci.yml)
+- Workflow: [`ci-docs.yml`](../ci-docs.yml)
+- Companion workflow: [`ci.yml`](../ci.yml)
+- Source gaps: none for this workflow. Branch protection and required-check settings were not in the checked-in files and were not verified.

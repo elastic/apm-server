@@ -1,44 +1,43 @@
 # add-to-docs-project
 
-Adds an issue to the docs project board when it receives the `Team:Docs` label.
+Adds an issue to the docs project board when the issue is labeled `Team:Docs`.
 
 ## At a glance
 
-| Item | Value |
-|------|-------|
-| Definition | [`add-to-docs-project.yml`](../add-to-docs-project.yml) |
-| Triggers | `issues`: `labeled` (runs only when the label is `Team:Docs`) |
-| Token permissions | `contents: read` (workflow level) |
-| Secrets | `OBS_AUTOMATION_APP_ID`, `OBS_AUTOMATION_APP_PEM` |
-| Runner | `ubuntu-latest` |
+| | |
+| --- | --- |
+| Platform | GitHub Actions |
+| Source | [`.github/workflows/add-to-docs-project.yml`](../add-to-docs-project.yml) |
+| Trigger | `issues`, activity type `labeled`; the job runs only when the added label is `Team:Docs` |
 
 ## Purpose
 
-Routes documentation requests to the docs project board using the `Team:Docs` label as the signal.
+Routes documentation requests to the docs project board, using the `Team:Docs` label as the signal. The file does not state further rationale.
 
 ## When it runs
 
-Runs when any label is added to an issue. The job's `if` condition skips every label except `Team:Docs`.
+- When a label is added to an issue. The job's `if` condition runs it only when `github.event.label.name` is `Team:Docs`.
 
-## Jobs and steps
+## Execution flow
 
-| Job | Steps |
-|-----|-------|
-| `add_to_project` | Creates a GitHub App token, then runs a GraphQL `addProjectV2ItemById` mutation with the issue node ID and a hard-coded project ID. |
+| Job | Runs when | Depends on | What it does |
+| --- | --- | --- | --- |
+| `add_to_project` | Issue labeled `Team:Docs` | None declared | Runs on `ubuntu-latest`. Creates a GitHub App token with organization projects write and issues read, then runs a GraphQL `addProjectV2ItemById` mutation that adds the issue (`github.event.issue.node_id`) to the hard-coded project node ID in the job `env`. |
 
 ## Inputs, outputs, and access
 
-| Area | Details |
-|------|---------|
-| Inputs | Issue event payload only. |
-| Outputs | None. |
-| Permissions | GitHub App token with organization projects write and issues read. |
-| Secrets | Names only: `OBS_AUTOMATION_APP_ID`, `OBS_AUTOMATION_APP_PEM`. |
+| Item | Details |
+| --- | --- |
+| Inputs | Issue event payload. |
+| Outputs | None. The issue is added to the project. |
+| Permissions | Workflow level: `contents: read`. The GitHub App token carries organization projects write and issues read. |
+| Secrets | `OBS_AUTOMATION_APP_ID`, `OBS_AUTOMATION_APP_PEM` (names only). |
 
 ## Operational notes
 
-- The project ID is hard-coded in the workflow's `env` block.
+- The target project is hard-coded in the workflow's `env` block. Changing the board requires editing the workflow.
+- The GitHub App must be installed with organization projects write access. The installation is not verifiable from this repository.
 
 ## Sources
 
-- [`.github/workflows/add-to-docs-project.yml`](../add-to-docs-project.yml)
+- Workflow: [`.github/workflows/add-to-docs-project.yml`](../add-to-docs-project.yml)

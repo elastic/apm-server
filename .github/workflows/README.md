@@ -60,7 +60,6 @@ Each workflow in this directory has a page under [`docs/`](./docs/) with its tri
 | `add-to-docs-project.yml` | [add-to-docs-project](./docs/add-to-docs-project.yml.md) |
 | `add-to-project.yml` | [add-to-project](./docs/add-to-project.yml.md) |
 | `backport-active.yml` | [backport-active](./docs/backport-active.yml.md) |
-| `benchmarks-matrix.yml` | [benchmarks-matrix](./docs/benchmarks-matrix.yml.md) |
 | `benchmarks.yml` | [benchmarks](./docs/benchmarks.yml.md) |
 | `bump-elastic-stack.yml` | [bump-elastic-stack](./docs/bump-elastic-stack.yml.md) |
 | `bump-golang.yml` | [bump-golang](./docs/bump-golang.yml.md) |
@@ -68,8 +67,10 @@ Each workflow in this directory has a page under [`docs/`](./docs/) with its tri
 | `check-docker-compose.yml` | [check-docker-compose](./docs/check-docker-compose.yml.md) |
 | `ci-docs.yml` | [ci-docs](./docs/ci-docs.yml.md) |
 | `ci.yml` | [ci](./docs/ci.yml.md) |
+| `create-test-plan.yml` | [create-test-plan](./docs/create-test-plan.yml.md) |
 | `docs-build.yml` | [docs-build](./docs/docs-build.yml.md) |
-| `docs-cleanup.yml` | [docs-cleanup](./docs/docs-cleanup.yml.md) |
+| `docs-deploy.yml` | [docs-deploy](./docs/docs-deploy.yml.md) |
+| `docs-preview-cleanup.yml` | [docs-preview-cleanup](./docs/docs-preview-cleanup.yml.md) |
 | `github-commands-comment.yml` | [github-commands-comment](./docs/github-commands-comment.yml.md) |
 | `integration-server-test.yml` | [integration-server-test](./docs/integration-server-test.yml.md) |
 | `mergify-labels-copier.yml` | [mergify-labels-copier](./docs/mergify-labels-copier.yml.md) |
@@ -81,6 +82,12 @@ Each workflow in this directory has a page under [`docs/`](./docs/) with its tri
 | `smoke-tests-os-sched.yml` | [smoke-tests-os-sched](./docs/smoke-tests-os-sched.yml.md) |
 | `smoke-tests-os.yml` | [smoke-tests-os](./docs/smoke-tests-os.yml.md) |
 | `terraform-fmt.yml` | [terraform-fmt](./docs/terraform-fmt.yml.md) |
+| `trigger-obs-aw-issue-comment.yml` | [trigger-obs-aw-issue-comment](./docs/trigger-obs-aw-issue-comment.yml.md) |
+| `trigger-obs-aw-issues.yml` | [trigger-obs-aw-issues](./docs/trigger-obs-aw-issues.yml.md) |
+| `trigger-obs-aw-pull-request.yml` | [trigger-obs-aw-pull-request](./docs/trigger-obs-aw-pull-request.yml.md) |
+| `trigger-obs-aw-schedule-daily.yml` | [trigger-obs-aw-schedule-daily](./docs/trigger-obs-aw-schedule-daily.yml.md) |
+| `trigger-obs-aw-schedule-frequent.yml` | [trigger-obs-aw-schedule-frequent](./docs/trigger-obs-aw-schedule-frequent.yml.md) |
+| `trigger-obs-aw-status.yml` | [trigger-obs-aw-status](./docs/trigger-obs-aw-status.yml.md) |
 | `update-beats.yml` | [update-beats](./docs/update-beats.yml.md) |
 | `update-compose.yml` | [update-compose](./docs/update-compose.yml.md) |
 | `update-dependabot-pr.yml` | [update-dependabot-pr](./docs/update-dependabot-pr.yml.md) |

@@ -1,44 +1,43 @@
 # mergify-labels-copier
 
-Copies labels from a merged pull request's original change to the Mergify backport pull request it creates.
+Copies labels to Mergify backport pull requests, using the external `elastic/oblt-actions/mergify/labels-copier@v1` action.
 
 ## At a glance
 
-| Item | Value |
-|------|-------|
-| Definition | [`mergify-labels-copier.yml`](../mergify-labels-copier.yml) |
-| Triggers | `pull_request`: `opened` |
-| Token permissions | `contents: read` (workflow level); `pull-requests: write`, `repository-projects: read` (job level) |
-| Secrets | None declared |
-| Runner | `ubuntu-latest` |
+| | |
+| --- | --- |
+| Platform | GitHub Actions |
+| Source | [`.github/workflows/mergify-labels-copier.yml`](../mergify-labels-copier.yml) |
+| Trigger | `pull_request`, activity type `opened`; the job runs only when the head branch starts with `mergify/bp/` |
 
 ## Purpose
 
-Keeps backport pull requests created by Mergify labeled like their source change, except for `backport-*` labels.
+Labels Mergify backport pull requests so they carry the labels of their source change. The file excludes labels matching `^backport-*` from copying. The copying is done by the external action; its behavior is not in this repository. The file does not state further rationale.
 
 ## When it runs
 
-Only when a newly opened pull request has a head branch that starts with `mergify/bp/`.
+- When a pull request is opened. The job's `if` condition runs it only when `github.head_ref` starts with `mergify/bp/`.
 
-## Jobs and steps
+## Execution flow
 
-| Job | Steps |
-|-----|-------|
-| `mergify-backport-labels-copier` | Runs `elastic/oblt-actions/mergify/labels-copier@v1` with `excluded-labels-regex: "^backport-*"`. |
+| Job | Runs when | Depends on | What it does |
+| --- | --- | --- | --- |
+| `mergify-backport-labels-copier` | Pull request opened from a `mergify/bp/` branch | None declared | Runs on `ubuntu-latest`. Runs `elastic/oblt-actions/mergify/labels-copier@v1` with `excluded-labels-regex: "^backport-*"`. |
 
 ## Inputs, outputs, and access
 
-| Area | Details |
-|------|---------|
-| Inputs | Pull request event payload. |
-| Outputs | Labels added to the backport pull request. |
-| Permissions | Pull request write. |
-| Secrets | None declared. |
+| Item | Details |
+| --- | --- |
+| Inputs | Pull request event payload. `excluded-labels-regex: "^backport-*"` passed to the action. |
+| Outputs | Labels added to the backport pull request, per the external action's behavior. |
+| Permissions | Workflow level: `contents: read`. Job level: `pull-requests: write`, `repository-projects: read`. |
+| Secrets | None passed explicitly. |
 
 ## Operational notes
 
-- Labels matching `^backport-*` are not copied, so backport labels are not propagated to backport pull requests.
+- Source gap: the behavior of `elastic/oblt-actions/mergify/labels-copier@v1` is external and not verifiable here, including which labels it copies beyond the exclusion regex.
 
 ## Sources
 
-- [`.github/workflows/mergify-labels-copier.yml`](../mergify-labels-copier.yml)
+- Workflow: [`.github/workflows/mergify-labels-copier.yml`](../mergify-labels-copier.yml)
+- Source gap: `elastic/oblt-actions/mergify/labels-copier@v1` is external and is not listed as a source.

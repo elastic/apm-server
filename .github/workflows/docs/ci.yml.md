@@ -1,79 +1,89 @@
-# ci
+# CI
 
-The main GitHub Actions CI for APM Server: linting, unit tests, FIPS tests, system tests, packaging, and Docker image publishing.
+The main continuous integration pipeline for apm-server: lint, unit tests on three operating systems, FIPS tests, system tests, and package builds with optional Docker image publishing.
 
 ## At a glance
 
-| Item | Value |
-|------|-------|
+| Field | Value |
+|---|---|
 | Definition | [`ci.yml`](../ci.yml) |
-| Triggers | `push` to `main`, `7.1*`, `8.*`, `9.*`; `pull_request`; `merge_group` |
-| Path filter | Skipped when a change only touches `**.md`, `**.asciidoc`, `**.png`, or `**.svg` |
-| Token permissions | `contents: read` (workflow level) |
-| Secrets | `ELASTIC_DOCKER_REGISTRY`, `ELASTIC_DOCKER_USERNAME`, `ELASTIC_DOCKER_PASSWORD` (only in `test-package-and-push`) |
-| Runners | `ubuntu-latest`, plus `macos-latest` and `windows-2025` for `test` |
+| Triggers | Push to `main`, `7.1*`, `8.*`, `9.*`; pull requests; merge queue (`merge_group`) |
+| Path filter | Skipped when all changes match `**.md`, `**.asciidoc`, `**.png`, `**.svg` |
+| Token permissions | `contents: read` |
+| Secrets | `ELASTIC_DOCKER_REGISTRY`, `ELASTIC_DOCKER_USERNAME`, `ELASTIC_DOCKER_PASSWORD` |
+| Runners | `ubuntu-latest`, `macos-latest`, `windows-2025` |
 
 ## Purpose
 
-Validates every change to APM Server with lint, tests on three operating systems, FIPS-mode tests, and the docker-compose system tests. On trusted refs it also builds the snapshot packages and publishes the Docker images.
+Validates every change to apm-server before merge. It runs the Makefile `check-full`, `test`, `system-test`, and `package-snapshot` targets, and it publishes Docker images only for pushes and non-fork, non-Dependabot pull requests.
 
 ## When it runs
 
-- On pushes to `main`, `7.1*`, `8.*`, and `9.*`, unless the push only changes ignored paths.
-- On every pull request, unless the change only touches ignored paths. Pull requests from forks and Dependabot run the checks but do not publish images.
-- On `merge_group` events.
+- On push to `main`, `7.1*`, `8.*`, and `9.*` branches, unless only documentation or image files changed.
+- On pull requests, unless only documentation or image files changed.
+- On merge queue checks (`merge_group`).
 
-The companion workflow [`ci-docs.yml`](./ci-docs.yml.md) runs for documentation-only changes and must keep the same ignore list.
+The companion [`ci-docs.yml`](ci-docs.yml.md) workflow runs for documentation-only pull requests instead.
 
 ## Execution flow
 
 ```mermaid
 flowchart LR
-    trigger([push / pull_request / merge_group]) --> lint
-    trigger --> test
-    trigger --> itest[test-integration-server-internal]
-    trigger --> fips[test-fips]
-    trigger --> systest[system-test]
-    trigger --> sysfips[system-test-fips]
-    trigger --> pkg[test-package]
-    pkg --> push[test-package-and-push]
-    trigger --> wolfi[validate-wolfi-docker-image]
+    lint[lint<br/>make check-full]
+    test[test<br/>macOS, Ubuntu, Windows]
+    itest[test-integration-server-internal<br/>go test ./internal/...]
+    fips[test-fips<br/>FIPS 140 mode]
+    sys[system-test<br/>docker compose + make system-test]
+    sysfips[system-test-fips<br/>FIPS system tests]
+    pkg[test-package<br/>make package-snapshot]
+    push[test-package-and-push<br/>package + publish Docker images]
 ```
 
-## Jobs
+No job declares `needs`, so all jobs start in parallel. `test-package-and-push` runs only when its `if` condition is met.
 
-| Job | Runs on | Condition | Main command |
-|-----|---------|-----------|--------------|
-| `lint` | `ubuntu-latest` | Always | `make check-full` |
-| `test` | matrix: macOS, Ubuntu, Windows 2025 | Always | `go test -v -race ./...` |
-| `test-integration-server-internal` | `ubuntu-latest` | Always | `go test -v -race ./internal/...` in `integrationservertest` with dummy values |
-| `test-fips` | `ubuntu-latest` | Always | `go test -v -race -tags=requirefips ./...` with `GOFIPS140=latest` |
-| `system-test` | `ubuntu-latest` | Always | `docker compose up -d`, `make apm-server`, then `make system-test` |
-| `system-test-fips` | `ubuntu-latest` | Always | Same as `system-test` with `-tags=requirefips` and FIPS env |
-| `test-package` | `ubuntu-latest` | Always | `make package-snapshot` |
-| `test-package-and-push` | `ubuntu-latest` | Not a pull request, or a pull request from the same repository that is not from `dependabot[bot]` | `make package-snapshot`, then `make publish-docker-images` |
-| `validate-wolfi-docker-image` | `ubuntu-latest` | Fork pull request, or `dependabot[bot]` | Fails when `.go-version` changed, with a note to validate the image upstream |
+| Job | Runs when | Depends on | What it does |
+|---|---|---|---|
+| `lint` | Always | None | Runs `make check-full` on Ubuntu. This target runs `update`, `check`, and `staticcheck`. |
+| `test` | Always | None | Runs `make test` on a three-OS matrix (`macos-latest`, `ubuntu-latest`, `windows-2025`). |
+| `test-integration-server-internal` | Always | None | Runs `go test -v -race ./internal/...` in `integrationservertest` with placeholder environment values. It does not run the upgrade tests. |
+| `test-fips` | Always | None | Runs `make test` with `GOTAGS=requirefips`, `GOFIPS140=latest`, and `GODEBUG=fips140=only`. |
+| `system-test` | Always | None | Starts the Docker Compose services (`docker compose up -d`) and runs `make apm-server` in parallel, then runs `make system-test`. Sets up Go from `systemtest/go.mod`. |
+| `system-test-fips` | Always | None | Same flow as `system-test` with FIPS settings. |
+| `test-package` | Always | None | Runs `make package-snapshot`. |
+| `test-package-and-push` | Not a pull request, or a non-fork pull request that is not from Dependabot | None | Logs in to the Elastic Docker registry, runs `make package-snapshot` with `GENERATE_WOLFI_IMAGES=true`, then runs `make publish-docker-images`. |
+
+The `system-test` jobs use `docker compose` with [`docker-compose.yml`](../../../docker-compose.yml) at the repository root.
+
+### Make targets used
+
+| Target | Definition |
+|---|---|
+| `check-full` | [`Makefile`](../../../Makefile) line 136. Prerequisites: `update`, `check`, `staticcheck`. |
+| `check` | [`Makefile`](../../../Makefile) line 142. Prerequisites: `check-fmt`, `check-headers`, `check-git-diff`, `check-fips-deps`. |
+| `test` | [`Makefile`](../../../Makefile) line 118. |
+| `system-test` | [`Makefile`](../../../Makefile) line 122. |
+| `package-snapshot` | [`packaging.mk`](../../../packaging.mk) line 228. Included by the root Makefile. Subtargets were not traced. |
+| `publish-docker-images` | [`packaging.mk`](../../../packaging.mk) line 240. Runs `docker push --all-tags` on the internal Docker image. |
 
 ## Inputs, outputs, and access
 
-| Area | Details |
-|------|---------|
-| Inputs | Branch, tag, and pull request events. No `workflow_dispatch` inputs. |
-| Outputs | No workflow outputs. Packages are built locally, and images are pushed only by `test-package-and-push`. |
-| Permissions | `contents: read` for all jobs. `test-package-and-push` logs in to the Elastic container registry. |
-| Secrets | Names only: `ELASTIC_DOCKER_REGISTRY`, `ELASTIC_DOCKER_USERNAME`, `ELASTIC_DOCKER_PASSWORD`. Fork pull requests cannot access them. |
-| Environment | `GENERATE_WOLFI_IMAGES=true` for `test-package-and-push`. `GOFIPS140=latest` and `GODEBUG=fips140=only,tlsmlkem=0` for FIPS jobs. |
+| Item | Details |
+|---|---|
+| Inputs | Repository code, `go.mod` files, and the event context. |
+| Outputs | Test results, packaged artifacts from `make package-snapshot`, and images pushed to the Elastic Docker registry on push events. |
+| Permissions | Workflow token: `contents: read`. The publish job uses registry credentials from secrets. |
+| Secrets | `ELASTIC_DOCKER_REGISTRY`, `ELASTIC_DOCKER_USERNAME`, `ELASTIC_DOCKER_PASSWORD`. The `GH_TOKEN` environment variable uses `github.token`, not a repository secret. |
 
 ## Operational notes
 
-- Go versions come from `go.mod` (main module), `integrationservertest/go.mod`, and `systemtest/go.mod`.
-- Caches use the Go module cache keyed by the relevant `go.mod` files.
-- The FIPS jobs disable the `X25519MLKEM768` TLS key exchange until an upstream Go issue is resolved. The source file records this as a TODO.
-- `validate-wolfi-docker-image` always fails for a `.go-version` change from a fork or Dependabot. This is intentional: the image must be validated from an upstream branch.
-- The docs-only workflow [`ci-docs.yml`](./ci-docs.yml.md) defines jobs with the same names as no-ops, so checks with those names still report on documentation-only changes.
+- The `paths-ignore` list must match the one in [`ci-docs.yml`](../ci-docs.yml); the two workflows select complementary sets of changes.
+- `test-integration-server-internal` only runs unit tests in `integrationservertest/internal`. Upgrade tests run in [`integration-server-test.yml`](../integration-server-test.yml).
+- The FIPS jobs set `GOFIPS140` and `GODEBUG` values inline in the workflow.
+- Setup actions in this workflow are external. See Sources.
 
 ## Sources
 
-- [`.github/workflows/ci.yml`](../ci.yml)
-- [`.github/workflows/ci-docs.yml`](../ci-docs.yml)
-- Makefile targets (`check-full`, `package-snapshot`, `publish-docker-images`, `system-test`, `apm-server`) are called but not inspected for this page. See source gaps in the PR description.
+- Workflow: [`ci.yml`](../ci.yml)
+- Make targets: [`Makefile`](../../../Makefile), [`packaging.mk`](../../../packaging.mk)
+- Compose file: [`docker-compose.yml`](../../../docker-compose.yml)
+- Source gaps: external actions (`actions/checkout`, `actions/setup-go`, `docker/login-action`, and `elastic/oblt-actions` steps) are not checked in. The `package-snapshot` subtargets and the Docker publish logic in `packaging.mk` were not traced in full.

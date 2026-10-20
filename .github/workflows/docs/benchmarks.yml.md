@@ -1,78 +1,116 @@
-# benchmarks
+# Benchmarks
 
-Runs the APM Server benchmark suite on a provisioned Elastic Cloud environment, indexes the results, publishes a Kibana PNG report and a CPU profile, and optionally opens a PR that updates the PGO profile. It runs on demand, on a daily schedule, and on a monthly PGO schedule. It is also called by [benchmarks-matrix](./benchmarks-matrix.yml.md).
+Runs apm-server benchmarks against a cloud or standalone environment provisioned with Terraform, indexes the results, publishes a dashboard snapshot, and optionally opens a pull request that updates the PGO profile.
 
 ## At a glance
 
-| Item | Value |
-|------|-------|
+| Field | Value |
+|---|---|
 | Definition | [`benchmarks.yml`](../benchmarks.yml) |
-| Triggers | `workflow_dispatch`; `workflow_call` (same inputs); `schedule`: daily regular run and monthly PGO run |
-| Concurrency | None |
-| Token permissions | `contents: read` (workflow level). The `benchmarks` job uses `contents: write` and `id-token: write`. |
-| Secrets | `GOBENCH_PASSWORD`, `GOBENCH_USERNAME`, `GOBENCH_HOST`, `ELASTIC_DOCKER_REGISTRY`, `ELASTIC_DOCKER_USERNAME`, `ELASTIC_DOCKER_PASSWORD`, `KIBANA_BENCH_ENDPOINT`, `KIBANA_BENCH_USERNAME`, `KIBANA_BENCH_PASSWORD`, `KIBANA_BENCH_DASHBOARD`, `OBS_AUTOMATION_APP_ID`, `OBS_AUTOMATION_APP_PEM`, `GPG_PRIVATE_KEY`, `GPG_PASSPHRASE`, `SLACK_BOT_TOKEN` |
-| Runner | `ubuntu-latest` |
+| Triggers | Manual (`workflow_dispatch`); runs on a weekly schedule and a monthly schedule |
+| Path filter | None |
+| Token permissions | Workflow: `contents: read`. Job: `contents: write`, `id-token: write` |
+| Secrets | `GOBENCH_PASSWORD`, `GOBENCH_USERNAME`, `GOBENCH_HOST`, `ELASTIC_DOCKER_REGISTRY`, `ELASTIC_DOCKER_USERNAME`, `ELASTIC_DOCKER_PASSWORD`, `OBS_AUTOMATION_APP_ID`, `OBS_AUTOMATION_APP_PEM`, `GPG_PRIVATE_KEY`, `GPG_PASSPHRASE`, `KIBANA_BENCH_ENDPOINT`, `KIBANA_BENCH_USERNAME`, `KIBANA_BENCH_PASSWORD`, `KIBANA_BENCH_DASHBOARD`, `SLACK_BOT_TOKEN`, `EC_API_KEY` (read from Secret Manager, not a repository secret) |
+| Runners | `ubuntu-latest` |
 
 ## Purpose
 
-Measures APM Server performance against a benchmark environment and keeps the results and the PGO profile current.
+Measures apm-server performance using `apmbench` against a Terraform-provisioned environment. Each run indexes results into a benchmark Elasticsearch cluster, exports a Kibana dashboard image, and destroys the environment at the end. Monthly runs also collect a CPU profile and open a pull request that updates `default.pgo`.
 
 ## When it runs
 
-- **On demand:** `workflow_dispatch`, or as a called workflow from the matrix workflow.
-- **Daily:** the regular run. It excludes the tracing benchmarks (`BenchmarkTraces*`) and uses a shorter warm-up.
-- **Monthly:** the PGO run. It also deploys the standalone server with Moxy and exports a PGO profile.
+- **Manually**, with the inputs listed below.
+- **On a weekly schedule**: a regular run against a build from the commit. Scheduled runs skip the `BenchmarkTraces*` scenarios.
+- **On a monthly schedule**: a PGO run that uses a standalone APM Server with Moxy, exports a CPU profile, and opens the PGO pull request.
 
-## Inputs
+Scheduled failures and successes are posted to Slack.
 
-| Input | Default | Effect |
-|-------|---------|--------|
-| `runStandalone` | `false` | Benchmarks a standalone APM Server with Moxy. Forced on for the monthly PGO schedule. |
-| `enableTailSampling` | `false` | Enables tail-based sampling. Storage limit and sample rate have their own inputs. |
-| `tailSamplingStorageLimit` | `10GB` | Storage limit for tail-based sampling. |
-| `tailSamplingSampleRate` | `0.1` | Blanket sample rate for tail-based sampling. |
-| `profile` | `system-profiles/8GBx1zone.tfvars` | System profile passed to Terraform. |
-| `runOnStable` | `false` | Benchmarks the latest stable version instead of a build from the commit. |
-| `benchmarkAgents` | Makefile default | Number of benchmark agents. An empty value uses the autotuned run. |
-| `benchmarkRun` | Makefile default | Regex that selects scenarios. |
-| `warmupTime` | Set in the workflow | Warm-up time, for example `3s`, `5m`, or `2h`. |
-| `pgoExport` | `false` | Opens a PR that updates `default.pgo`. Forced on for the monthly PGO schedule. |
+## Execution flow
 
-## Jobs and steps
+```mermaid
+flowchart TD
+    setup[Set up Go, env, and cloud auth] --> build[Build apmbench<br/>and standalone binaries]
+    build --> infra[Provision environment<br/>make apply]
+    infra --> run[Run benchmarks<br/>autotuned or self-tuned]
+    run --> index[Index results<br/>make index-benchmark-results]
+    index --> report[Export dashboard PNG<br/>upload to S3]
+    report --> profile[Upload artifacts<br/>copy CPU profile]
+    profile --> pgo[Open PGO pull request<br/>PGO export only]
+    pgo --> teardown[Re-fetch EC_API_KEY<br/>destroy environment]
+    teardown --> notify[Slack notification<br/>scheduled runs only]
+```
 
-The workflow has one job, `benchmarks`, which runs in `testing/benchmark`.
+The job is a single sequential job, `benchmarks`. Steps marked `always()` run after failures, and the teardown runs even when earlier steps fail.
 
-| Phase | Steps |
-|-------|-------|
-| Set up | Checks out the repository, sets up Go from `go.mod`, computes a slugged branch name and timestamps, sets the warm-up time and scenario regex, and excludes tracing benchmarks on the daily run. |
-| Access | Logs in to the Elastic container registry, authenticates to Google Cloud and AWS through `elastic/oblt-actions`, and loads `EC_API_KEY` from Secret Manager. |
-| Infrastructure | Installs Terraform, runs `make init`, builds `apmbench`, optionally builds APM Server and Moxy, overrides the Docker committed version (not on the standalone or stable path), and runs `make apply`. |
-| Benchmark | Runs `make run-benchmark-autotuned` when no agent count is set, or `make run-benchmark` otherwise. Dumps standalone logs on failure, then runs `make index-benchmark-results`. |
-| Reports | Downloads a PNG from Kibana with [`download-png-from-kibana.sh`](../../../.ci/scripts/download-png-from-kibana.sh). Uploads the PNG as a workflow artifact and to AWS S3. Uploads the benchmark result as an artifact. |
-| PGO | Copies the CPU profile and uploads it as an artifact. Creates a GitHub App token and configures git with GPG signing. When PGO export is on, runs [`push-pgo-pr.sh`](../../../.ci/scripts/push-pgo-pr.sh) to open the profile PR. |
-| Cleanup | Re-loads `EC_API_KEY` and runs `make init destroy` even on failure. |
-| Notify | On the scheduled runs only, posts a failure message or a success message with the report image to Slack. |
+| Job | Runs when | Depends on | What it does |
+|---|---|---|---|
+| `benchmarks` | Manual or scheduled | None | Runs all steps in the flow above, in the `testing/benchmark` working directory. |
+
+### Key steps
+
+| Step | Details |
+|---|---|
+| Set up env | Sets `TF_VAR_BRANCH`, `TF_VAR_CREATED_AT`, and `USER`. Sets `BENCHMARK_WARMUP_TIME`: `10m` for scheduled regular runs, `3m` for scheduled standalone runs, otherwise `5m`, unless the `warmupTime` input is set. |
+| Log in to registry | Logs in to the Elastic Container registry with the `ELASTIC_DOCKER_*` secrets. |
+| Google and AWS auth | Uses `elastic/oblt-actions/google/auth` and `elastic/oblt-actions/aws/auth` (6-hour role). |
+| Read `EC_API_KEY` | Reads `EC_API_KEY` from Secret Manager and exports it to the environment. |
+| `make init` | Runs `terraform init`. |
+| `make apmbench` | Builds `apmbench` from [`systemtest/cmd/apmbench`](../../../systemtest/cmd/apmbench). |
+| `make apm-server` and `make moxy` | Run only for standalone runs. Build the APM Server binary from the root and `moxy` from `tools`. |
+| `make docker-override-committed-version` | Runs unless `runOnStable` is set or the run is standalone. It writes Terraform image overrides and builds a custom Elastic Agent image using [`testing/docker/elastic-agent/build.sh`](../../../testing/docker/elastic-agent/build.sh). |
+| `make apply` | Runs `terraform apply -auto-approve`. |
+| `make run-benchmark-autotuned` or `make run-benchmark` | Autotuned when `benchmarkAgents` is empty. Otherwise `run-benchmark` with the agent count. Both run `apmbench` on the worker over SSH and write `benchmark-result.txt`. |
+| `make cat-apm-server-logs`, `make cat-moxy-logs` | Run only on failure in standalone runs. |
+| `make index-benchmark-results` | Indexes results with `gobench` into the configured Elasticsearch host. |
+| Download PNG | Exports the Kibana dashboard as `out.png` using `elastic/oblt-actions/download-kibana-dashboard`. |
+| Upload PNG | Copies the image to the `elastic-apm-server-benchmark-reports` S3 bucket. |
+| Upload artifacts | Uploads `benchmark-result` and `cpu-profile` artifacts. |
+| `make cp-cpuprof` | Copies `default.pgo` from the worker. Skips with a message if the copy fails. |
+| PGO pull request | Runs [`.ci/scripts/push-pgo-pr.sh`](../../../.ci/scripts/push-pgo-pr.sh) when `PGO_EXPORT` is `true`. It uses a GitHub App token and GPG signing. |
+| `make init destroy` | Runs with `always()`. Runs `terraform init` and `terraform destroy -auto-approve`. |
+
+### Make targets used
+
+| Target | Definition in [`testing/benchmark/Makefile`](../../../testing/benchmark/Makefile) |
+|---|---|
+| `init` | `terraform init` |
+| `apply` | `terraform apply -auto-approve` |
+| `destroy` | `terraform destroy -auto-approve` |
+| `apmbench` | Builds `apmbench` from `systemtest/cmd/apmbench` for `APMBENCH_GOOS` and `APMBENCH_GOARCH`. |
+| `moxy` | Builds `moxy` from `github.com/elastic/apm-perf/cmd/moxy` into `testing/build`. |
+| `apm-server` | Runs the root `build/apm-server-<os>-<arch>` target and renames it to `build/apm-server`. |
+| `docker-override-committed-version` | Writes `docker_image.auto.tfvars` and runs `elastic_agent_docker_image`. |
+| `elastic_agent_docker_image` | Runs [`testing/docker/elastic-agent/build.sh`](../../../testing/docker/elastic-agent/build.sh) to build a custom Elastic Agent image. |
+| `run-benchmark` | Runs `apmbench` on the worker over SSH and pipes output to `benchmark-result.txt`. |
+| `run-benchmark-autotuned` | Scales `BENCHMARK_AGENTS` by the APM Server size from Terraform, then runs `run-benchmark`. |
+| `index-benchmark-results` | Pipes the result file to `gobench` with Elasticsearch connection values and tags. |
+| `cp-cpuprof` | Copies the CPU profile from the worker with `scp`. |
+| `cat-apm-server-logs` | Prints `/var/log/apm-server/*` on the APM Server over SSH. |
+| `cat-moxy-logs` | Prints `moxy.log` on the Moxy host over SSH. |
 
 ## Inputs, outputs, and access
 
-| Area | Details |
-|------|---------|
-| Outputs | Artifacts: `kibana-png-report`, `benchmark-result`, `cpu-profile`. S3 object for the PNG. Slack messages on schedule. Optional PGO PR. |
-| Permissions | Job-level `contents: write` and `id-token: write` for cloud auth and the PR. The GitHub App token has `contents` and `pull-requests` write. |
-| Secrets | Names only, listed above. Secret access requires an allowlist in the external `oblt-infra` configuration. |
+| Item | Details |
+|---|---|
+| Inputs | `runStandalone`, `enableTailSampling`, `tailSamplingStorageLimit` (default `10GB`), `tailSamplingSampleRate` (default `0.1`), `profile` (default `system-profiles/8GBx1zone-aws.tfvars`), `runOnStable`, `benchmarkAgents`, `benchmarkRun`, `warmupTime`, `pgoExport`. |
+| Outputs | `benchmark-result` and `cpu-profile` workflow artifacts. A PNG in S3. Indexed results in Elasticsearch. A pull request with the PGO profile when `pgoExport` is set. Slack messages on scheduled runs. |
+| Permissions | Workflow: `contents: read`. Job: `contents: write` and `id-token: write`. The GitHub App token requests `contents: write` and `pull-requests: write`. |
+| Secrets | See the At a glance table. Secret values are never written to the docs. |
+| External access | Google Cloud, AWS, Elastic Container registry, Elastic Cloud, Slack, S3, and GitHub App APIs. |
 
 ## Operational notes
 
-- A source comment says the secrets are rotated daily, so a run that overlaps the rotation window can fail. The workflow loads `EC_API_KEY` both before and after the run.
-- The Slack failure message on scheduled runs points to an internal runbook. The link is an external URL and is not checked here.
-- The `TF_VAR_*` values and `GOBENCH_TAGS` come from the workflow `env`. Makefile targets and Terraform modules were not inspected in this pass. These are source gaps.
-- The PNG script reads a fixed dashboard and time range from the script. It was read only in part, so its full retry and error handling is a source gap.
-- The S3 upload step uses a fixed bucket in `us-east-1`.
+- The header comment in the workflow notes that secret access needs an allowlist in the `oblt-infra` repository. That allowlist is not checked in here.
+- The secret rotation comment points to an external workflow in another repository. The re-fetch of `EC_API_KEY` before teardown is in the workflow for this reason.
+- The scripts in [`.github/workflows/benchmarks`](../benchmarks/README.md) do not run as steps of this workflow. They call `gh workflow run` to start it with custom inputs. See [`start-workflows.sh`](../benchmarks/start-workflows.sh), [`download-artifacts.sh`](../benchmarks/download-artifacts.sh), and [`analyze-artifacts.sh`](../benchmarks/analyze-artifacts.sh).
+- The `profile` input defaults to a tfvars file in `testing/benchmark/system-profiles`. The Terraform configuration files were not read in full. See Sources.
+- Scheduled runs use a different warmup time from manual runs. Manual runs with no `warmupTime` use `5m`.
 
 ## Sources
 
-- [`.github/workflows/benchmarks.yml`](../benchmarks.yml)
-- [`.github/workflows/benchmarks-matrix.yml`](../benchmarks-matrix.yml)
-- [`.ci/scripts/download-png-from-kibana.sh`](../../../.ci/scripts/download-png-from-kibana.sh) (partly read)
-- [`.ci/scripts/push-pgo-pr.sh`](../../../.ci/scripts/push-pgo-pr.sh)
-- Source gaps: Makefile targets (`apmbench`, `apply`, `destroy`, `run-benchmark`, `run-benchmark-autotuned`, `index-benchmark-results`, `cp-cpuprof`, `docker-override-committed-version`) and the Terraform code under `testing/benchmark` were not inspected.
+- Workflow: [`benchmarks.yml`](../benchmarks.yml)
+- Benchmark Makefile: [`testing/benchmark/Makefile`](../../../testing/benchmark/Makefile)
+- Root Makefile: [`Makefile`](../../../Makefile)
+- Scripts: [`.ci/scripts/push-pgo-pr.sh`](../../../.ci/scripts/push-pgo-pr.sh), [`testing/docker/elastic-agent/build.sh`](../../../testing/docker/elastic-agent/build.sh)
+- Helper scripts: [`README.md`](../benchmarks/README.md), [`start-workflows.sh`](../benchmarks/start-workflows.sh), [`download-artifacts.sh`](../benchmarks/download-artifacts.sh), [`analyze-artifacts.sh`](../benchmarks/analyze-artifacts.sh)
+- Source gaps: the Terraform configurations under `testing/benchmark` and the `system-profiles` files were not read. External actions (`elastic/oblt-actions/*`, `google-github-actions/get-secretmanager-secrets`, `hashicorp/setup-terraform`, `actions/*`, `docker/login-action`, `crazy-max/ghaction-import-gpg`, `slackapi/slack-github-action`, `rlespinasse/github-slug-action`) are not checked in. The `gobench` tool is run through `go tool` and its source was not read. The `oblt-infra` allowlist and external runbook are not in this repository.

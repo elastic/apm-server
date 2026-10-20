@@ -1,58 +1,58 @@
-# smoke-tests-os-sched
+# Smoke Tests OS Scheduled
 
-Runs the [smoke-tests-os](./smoke-tests-os.yml.md) workflow for every active branch except 7.17, on weekdays, and posts a Slack result on `main`.
+Runs the OS smoke tests on weekdays for every active release branch and posts the overall result to Slack from the main branch.
 
 ## At a glance
 
-| Item | Value |
-|------|-------|
+| Field | Value |
+|---|---|
 | Definition | [`smoke-tests-os-sched.yml`](../smoke-tests-os-sched.yml) |
-| Triggers | `workflow_dispatch` with a reminder checkbox; `schedule` on weekdays |
-| Concurrency | None |
-| Token permissions | `contents: read` (workflow level). The `smoke-tests-os` job adds `id-token: write`. |
-| Secrets | Inherited (`secrets: inherit`). `SLACK_BOT_TOKEN` is used by the notify job. |
-| Runner | `ubuntu-latest` |
+| Triggers | Runs on a weekday schedule; manual (`workflow_dispatch`) |
+| Path filter | None |
+| Token permissions | Workflow: `contents: read`. Smoke job: `contents: read`, `id-token: write` |
+| Secrets | `SLACK_BOT_TOKEN`, plus all caller secrets passed to the reusable workflow with `secrets: inherit` |
+| Runners | `ubuntu-slim` (matrix generation), `ubuntu-latest` (notify). The smoke jobs run in the reusable [`smoke-tests-os.yml`](smoke-tests-os.yml.md) workflow. |
 
 ## Purpose
 
-Keeps the OS smoke tests running on a schedule across all supported release branches.
+Runs the [OS smoke tests](smoke-tests-os.yml.md) on every active branch, so each supported release line is checked regularly. The notify job reports the overall result to the `#apm-server` Slack channel.
 
 ## When it runs
 
-- On weekdays, on a schedule.
-- On demand through `workflow_dispatch`.
+- **On a weekday schedule** (Monday through Friday).
+- **Manually**, with `workflow_dispatch`.
 
-## Inputs
+## Execution flow
 
-| Input | Effect |
-|-------|--------|
-| `BRANCH_NOTE` | A reminder checkbox only. The workflow does not read it. |
+```mermaid
+flowchart TD
+    prep[prepare-smoke-tests-os<br/>build branch matrix] --> matrix[smoke-tests-os<br/>one call per branch]
+    matrix --> notify[notify<br/>main branch only]
+```
 
-To test a change on a branch, use [smoke-tests-os](./smoke-tests-os.yml.md) directly. The `BRANCH_NOTE` text says so.
-
-## Jobs and steps
-
-| Job | Depends on | Steps |
-|-----|------------|-------|
-| `prepare-smoke-tests-os` | None | Checks out the repository. Runs `elastic/oblt-actions/elastic/active-branches@v1` with `exclude-branches: '7.17'` to build a matrix of branches. |
-| `smoke-tests-os` | `prepare-smoke-tests-os` | Calls [`smoke-tests-os.yml`](../smoke-tests-os.yml) once per branch in the matrix. `fail-fast: false`. |
-| `notify` | `smoke-tests-os` | Runs on `main` only, including when the matrix jobs fail. Checks the dependent job results and posts a Slack message to `#apm-server`. |
+| Job | Runs when | Depends on | What it does |
+|---|---|---|---|
+| `prepare-smoke-tests-os` | Always | None | Checks out the repository and runs `elastic/oblt-actions/elastic/active-branches@v1` with `filter-branches: true`. The action writes a JSON matrix of branches to the `matrix` output. |
+| `smoke-tests-os` | For each matrix entry | `prepare-smoke-tests-os` | Calls [`smoke-tests-os.yml`](smoke-tests-os.yml.md) with `branch: ${{ matrix.branch }}` and `secrets: inherit`. `fail-fast` is `false`, so one failing branch does not cancel the others. |
+| `notify` | Always, only on the `main` ref | `smoke-tests-os` | Runs `elastic/oblt-actions/check-dependent-jobs@v1`, treating skipped jobs as success, then `elastic/oblt-actions/slack/notify-result@v1` to post the status to `#apm-server`. |
 
 ## Inputs, outputs, and access
 
-| Area | Details |
-|------|---------|
-| Outputs | Per-branch test results from the called workflow. Slack message on `main`. |
-| Permissions | Read-only for the workflow token. `id-token: write` for the called jobs. |
-| Secrets | Names only, inherited by the called workflow: `EC_API_KEY`, and `SLACK_BOT_TOKEN` for the notify job. |
+| Item | Details |
+|---|---|
+| Inputs | None. The branch list comes from the active-branches action. |
+| Outputs | The `matrix` output of `prepare-smoke-tests-os`. Smoke test results appear in each called run. A Slack message from `notify`. |
+| Permissions | Workflow: `contents: read`. Smoke jobs add `id-token: write`. |
+| Secrets | `SLACK_BOT_TOKEN` (used by `notify`). The called workflow uses secrets inherited from the caller, including `EC_API_KEY`. |
 
 ## Operational notes
 
-- The active branch list comes from the external `active-branches` action. Its rules are not verified here. This is a source gap.
-- Scheduled runs use the default branch's copy of this workflow. Changes on a feature branch take effect only after they are merged, which is why the reminder exists.
+- The `notify` job runs even when earlier jobs fail (`always()`), but only on the `main` ref.
+- Because `secrets: inherit` is used, the called workflow receives every secret available to this workflow.
+- The branch list is produced by an external action, so the set of branches tested is not defined in this repository.
 
 ## Sources
 
-- [`.github/workflows/smoke-tests-os-sched.yml`](../smoke-tests-os-sched.yml)
-- [`.github/workflows/smoke-tests-os.yml`](../smoke-tests-os.yml)
-- Source gap: the external `elastic/oblt-actions/elastic/active-branches` action is not verified here.
+- Workflow: [`smoke-tests-os-sched.yml`](../smoke-tests-os-sched.yml)
+- Called workflow: [`smoke-tests-os.yml`](../smoke-tests-os.yml)
+- Source gaps: `elastic/oblt-actions/elastic/active-branches@v1`, `elastic/oblt-actions/check-dependent-jobs@v1`, and `elastic/oblt-actions/slack/notify-result@v1` are external actions and were not checked in. The filtering rules used by `active-branches` are not verified. The Slack channel setup is not in this repository.

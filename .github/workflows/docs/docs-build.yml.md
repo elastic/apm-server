@@ -1,51 +1,49 @@
 # docs-build
 
-Builds a documentation preview for changes under `docs/` by calling a reusable workflow from `elastic/docs-builder`.
+Builds the repository's documentation with Vale linting enabled, by calling a reusable workflow from `elastic/docs-actions`.
 
 ## At a glance
 
-| Item | Value |
-|------|-------|
-| Definition | [`docs-build.yml`](../docs-build.yml) |
-| Triggers | `push` to `main`; `pull_request_target`; `merge_group` |
-| Token permissions | Set by the reusable workflow. The caller requests `deployments: write`, `id-token: write`, `contents: read`, `pull-requests: write`. |
-| Secrets | None declared in this file. |
-| Runner | Set by the reusable workflow. |
+| | |
+| --- | --- |
+| Platform | GitHub Actions |
+| Source | [`.github/workflows/docs-build.yml`](../docs-build.yml) |
+| Trigger | `pull_request` to `main` (types `opened`, `synchronize`, `reopened`); `push` to `main`; `merge_group` |
 
 ## Purpose
 
-Lets reviewers preview rendered documentation before merge.
+The file builds the documentation for pull requests, pushes to `main`, and merge queue checks, with Vale prose linting enabled. The build itself runs in the external reusable workflow `elastic/docs-actions/.github/workflows/docs-build.yml@v1`; its steps are not in this repository. The repository's documentation source includes [`docs/docset.yml`](../../../docs/docset.yml). How the reusable workflow consumes it is not verified here. The file does not state a further reason for the build.
 
 ## When it runs
 
-- On push to `main`.
-- On `pull_request_target` events for pull requests.
-- On merge group events.
+- On `pull_request` events to `main` with types `opened`, `synchronize`, or `reopened`.
+- On `push` to `main`.
+- On `merge_group` events.
+- The file declares no path filter, so any change that matches these events starts the job. Whether the reusable workflow limits the build to documentation changes is a source gap.
 
-The caller passes `path-pattern: docs/**`, so the reusable workflow is responsible for limiting the build to documentation changes.
+## Execution flow
 
-## Jobs and steps
-
-| Job | Steps |
-|-----|-------|
-| `docs-preview` | Calls `elastic/docs-builder/.github/workflows/preview-build.yml@main`. All steps live in the external workflow. |
+| Job | Runs when | Depends on | What it does |
+| --- | --- | --- | --- |
+| `build` | On each event listed under When it runs | None declared | Calls `elastic/docs-actions/.github/workflows/docs-build.yml@v1` with `enable-vale-linting: true`. |
 
 ## Inputs, outputs, and access
 
-| Area | Details |
-|------|---------|
-| Inputs | `path-pattern: docs/**`. |
-| Outputs | A preview deployment for documentation changes. |
-| Permissions | Requested at the caller level and passed to the reusable workflow. |
-| Secrets | None declared in this file. |
+| Item | Details |
+| --- | --- |
+| Inputs | `enable-vale-linting: true` passed to the reusable workflow. |
+| Outputs | Not declared in this file. The reusable workflow's outputs are not verifiable here. |
+| Permissions | Workflow level: `contents: read`, `pull-requests: read`. No job-level permissions declared. |
+| Secrets | None passed explicitly. |
 
 ## Operational notes
 
-- The reusable workflow is pinned to `@main`. Its behavior is not verified in this repository.
-- `pull_request_target` runs with base-branch permissions. This page does not check out pull request code.
+- The reusable workflow is pinned to the `v1` ref of the external `elastic/docs-actions` repository. Its behavior, outputs, and any secrets it requires are not verifiable here (source gap).
+- The workflow uses `pull_request`, not `pull_request_target`.
 
 ## Sources
 
-- [`.github/workflows/docs-build.yml`](../docs-build.yml)
-- Source gap: the `elastic/docs-builder` preview workflow is external and not verified here.
+- Workflow: [`.github/workflows/docs-build.yml`](../docs-build.yml)
+- Documentation source referenced by the build: [`docs/docset.yml`](../../../docs/docset.yml)
+- Source gap: `elastic/docs-actions/.github/workflows/docs-build.yml@v1` is external and is not listed as a source.
 
