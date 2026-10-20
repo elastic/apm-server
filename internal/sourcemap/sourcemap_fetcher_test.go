@@ -30,11 +30,9 @@ import (
 
 func TestSourcemapFetcher(t *testing.T) {
 	defaultID := metadata{
-		identifier: identifier{
-			name:    "app",
-			version: "1.0",
-			path:    "/bundle/path",
-		},
+		name:        "app",
+		version:     "1.0",
+		path:        "/bundle/path",
 		contentHash: "foo",
 	}
 
