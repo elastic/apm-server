@@ -6,9 +6,11 @@ package eventstorage
 
 import (
 	"slices"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPartitioner(t *testing.T) {
@@ -47,4 +49,48 @@ func TestPartitionerCurrentID(t *testing.T) {
 
 	assert.Equal(t, 1, p.CurrentID())
 	assert.Equal(t, []int{1, 0}, slices.Collect(p.ActiveIDs()))
+}
+
+func TestPartitioner_ActiveIDs_Concurrent(t *testing.T) {
+	wg := sync.WaitGroup{}
+	p := NewPartitioner(2, 0)
+	require.Equal(t, []int{0, 2}, slices.Collect(p.ActiveIDs()))
+	done := make(chan struct{})
+	wg.Go(func() {
+		newCurrent, newInactive := p.Rotate()
+		assert.Equal(t, 1, newCurrent)
+		assert.Equal(t, 2, newInactive)
+		close(done)
+	})
+	wg.Go(func() {
+		p.ActiveIDs() // ensure no data race by calling concurrently
+		<-done
+		// check eventual state
+		assert.Equal(t, []int{1, 0}, slices.Collect(p.ActiveIDs()))
+	})
+	wg.Wait()
+}
+
+func TestPartitioner_CurrentIDFunc_Concurrent(t *testing.T) {
+	// Rotate() concurrently with CurrentID()
+	// Ensure no data race, and end state is reached eventually.
+	wg := sync.WaitGroup{}
+	p := NewPartitioner(2, 0)
+	require.Equal(t, 0, p.CurrentID())
+	done := make(chan struct{})
+	wg.Go(func() {
+		newCurrent, newInactive := p.Rotate()
+		assert.Equal(t, 1, newCurrent)
+		assert.Equal(t, 2, newInactive)
+		close(done)
+	})
+	wg.Go(func() {
+		id := p.CurrentID() // ensure no data race, but return value can be either 0 or 1
+		assert.GreaterOrEqual(t, id, 0)
+		assert.LessOrEqual(t, id, 1)
+		<-done
+		// check eventual state
+		assert.Equal(t, 1, p.CurrentID())
+	})
+	wg.Wait()
 }
