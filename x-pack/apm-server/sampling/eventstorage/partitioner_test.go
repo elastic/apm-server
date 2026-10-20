@@ -63,7 +63,7 @@ func TestPartitioner_ActiveIDs_Concurrent(t *testing.T) {
 		close(done)
 	})
 	wg.Go(func() {
-		p.ActiveIDs() // ensure no data race by calling concurrently
+		_ = slices.Collect(p.ActiveIDs()) // ensure no data race by calling concurrently
 		<-done
 		// check eventual state
 		assert.Equal(t, []int{1, 0}, slices.Collect(p.ActiveIDs()))
