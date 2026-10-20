@@ -28,3 +28,11 @@ After a successful build, the pipeline publishes the generated artifacts to the 
 
 To view the pipeline and its configuration, click [here](https://buildkite.com/elastic/apm-server-package) or
 go to the [catalog-info.yaml](../catalog-info.yaml) file.
+
+## Pipeline inventory
+
+| Pipeline | Definition | Page |
+|----------|------------|------|
+| `apm-server-package` | [`package.yml`](./package.yml), trigger settings in [`pull-requests.json`](./pull-requests.json) | [apm-server-package](./docs/apm-server-package.md) |
+
+The trigger summary in the section above describes merged pull requests. The current `pull-requests.json` triggers on commits and `/package` comments. The [apm-server-package](./docs/apm-server-package.md) page describes the configuration.
