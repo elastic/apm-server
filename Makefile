@@ -217,7 +217,7 @@ testing/infra/terraform/modules/%/README.md: .FORCE
 # Beats synchronisation.
 ##############################################################################
 
-BEATS_VERSION?=main
+BEATS_VERSION?=9.6
 BEATS_MODULE:=github.com/elastic/beats/v7
 
 .PHONY: update-beats
