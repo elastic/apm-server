@@ -29,9 +29,9 @@ const (
 // ^......
 // current
 type Partitioner struct {
-	total   int // length of the ring
-	current int
-	mu      sync.RWMutex
+	total     int // length of the ring. constant
+	current   int // current active partition id, protected by currentMu
+	currentMu sync.RWMutex
 }
 
 // NewPartitioner returns a partitioner with `actives` number of active partitions.
@@ -55,8 +55,8 @@ func NewPartitioner(actives, currentID int) *Partitioner {
 // A-A-I-A
 // ..^....
 func (p *Partitioner) Rotate() (newCurrent, newInactive int) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	p.currentMu.Lock()
+	defer p.currentMu.Unlock()
 	p.current = (p.current + 1) % p.total
 	return p.current, (p.current + 1) % p.total
 }
@@ -64,28 +64,27 @@ func (p *Partitioner) Rotate() (newCurrent, newInactive int) {
 // ActiveIDs returns an iterator containing all active partitions.
 // It contains total - 1 partitions.
 //
-// As ActiveIDs holds RLock internally,
-// - Rotate should never be called within ActiveIDs
-// - the returned partition IDs may be outdated if used outside `range`
+// There is no guarantee that the returned IDs are up to date after the function returns.
 func (p *Partitioner) ActiveIDs() iter.Seq[int] {
+	p.currentMu.RLock()
+	defer p.currentMu.RUnlock()
+	current := p.current
+	total := p.total
 	return func(yield func(int) bool) {
-		p.mu.RLock()
-		defer p.mu.RUnlock()
-		for i := 0; i < p.total-1; i++ {
-			if !yield((p.current + p.total - i) % p.total) {
+		// all variables in iterator func are local vars
+		for i := 0; i < total-1; i++ {
+			if !yield((current + total - i) % total) {
 				return
 			}
 		}
 	}
 }
 
-// CurrentIDFunc calls function f which accepts the ID of the current partition (rightmost active).
+// CurrentID returns the ID of the current partition (rightmost active).
 //
-// As CurrentIDFunc holds RLock internally,
-// - Rotate should never be called within CurrentIDFunc
-// - the returned partition ID may be outdated if used outside f
-func (p *Partitioner) CurrentIDFunc(f func(int)) {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-	f(p.current)
+// There is no guarantee that the returned ID is up to date after the function returns.
+func (p *Partitioner) CurrentID() int {
+	p.currentMu.RLock()
+	defer p.currentMu.RUnlock()
+	return p.current
 }
