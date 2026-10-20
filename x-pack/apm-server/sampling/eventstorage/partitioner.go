@@ -7,6 +7,7 @@ package eventstorage
 import (
 	"iter"
 	"sync"
+	"sync/atomic"
 )
 
 const (
@@ -29,9 +30,9 @@ const (
 // ^......
 // current
 type Partitioner struct {
-	total     int // length of the ring. constant
-	current   int // current active partition id, protected by currentMu
-	currentMu sync.RWMutex
+	total    int           // length of the ring. constant
+	current  atomic.Uint32 // current active partition id. Must fit in uint32 since maxTotalPartitions is less than 256
+	rotateMu sync.Mutex    // to prevent concurrent Rotate
 }
 
 // NewPartitioner returns a partitioner with `actives` number of active partitions.
@@ -40,7 +41,9 @@ func NewPartitioner(actives, currentID int) *Partitioner {
 	if total >= maxTotalPartitions {
 		panic("too many partitions")
 	}
-	return &Partitioner{total: total, current: currentID}
+	p := &Partitioner{total: total}
+	p.current.Store(uint32(currentID))
+	return p
 }
 
 // Rotate rotates partitions to the right by 1 position and
@@ -55,20 +58,21 @@ func NewPartitioner(actives, currentID int) *Partitioner {
 // A-A-I-A
 // ..^....
 func (p *Partitioner) Rotate() (newCurrent, newInactive int) {
-	p.currentMu.Lock()
-	defer p.currentMu.Unlock()
-	p.current = (p.current + 1) % p.total
-	return p.current, (p.current + 1) % p.total
+	p.rotateMu.Lock()
+	defer p.rotateMu.Unlock()
+	oldCurrent := int(p.current.Load())
+	newCurrent = (oldCurrent + 1) % p.total
+	p.current.Store(uint32(newCurrent))
+	newInactive = (newCurrent + 1) % p.total
+	return
 }
 
 // ActiveIDs returns an iterator containing all active partitions.
 // It contains total - 1 partitions.
 //
-// There is no guarantee that the returned IDs are up to date after the function returns.
+// A rotation can happen concurrently and render the IDs stale.
 func (p *Partitioner) ActiveIDs() iter.Seq[int] {
-	p.currentMu.RLock()
-	defer p.currentMu.RUnlock()
-	current := p.current
+	current := int(p.current.Load())
 	total := p.total
 	return func(yield func(int) bool) {
 		// all variables in iterator func are local vars
@@ -82,9 +86,7 @@ func (p *Partitioner) ActiveIDs() iter.Seq[int] {
 
 // CurrentID returns the ID of the current partition (rightmost active).
 //
-// There is no guarantee that the returned ID is up to date after the function returns.
+// A rotation can happen concurrently and render the ID stale.
 func (p *Partitioner) CurrentID() int {
-	p.currentMu.RLock()
-	defer p.currentMu.RUnlock()
-	return p.current
+	return int(p.current.Load())
 }
