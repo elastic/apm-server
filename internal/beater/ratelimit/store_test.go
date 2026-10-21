@@ -79,3 +79,97 @@ func TestCacheOk(t *testing.T) {
 	limiter := store.ForIP(netip.MustParseAddr("127.0.0.1"))
 	assert.NotNil(t, limiter)
 }
+
+// BenchmarkStoreMemory to estimate the rate limiter size of N IP address
+// Run with: go test -v -race -bench=BenchmarkStoreMemory -benchmem | benchstat -
+// Output:
+/*
+	goos: darwin
+	goarch: arm64
+	pkg: github.com/elastic/apm-server/internal/beater/ratelimit
+	cpu: Apple M4 Pro
+													│      -       │
+													│    sec/op    │
+	StoreMemory/1_ip/empty_store-14                   269.8n ± ∞ ¹
+	StoreMemory/1_ip/populated_store-14               970.9n ± ∞ ¹
+	StoreMemory/1000_ips_default/empty_store-14       13.54µ ± ∞ ¹
+	StoreMemory/1000_ips_default/populated_store-14   774.0µ ± ∞ ¹
+	StoreMemory/5000_ips/empty_store-14               52.31µ ± ∞ ¹
+	StoreMemory/5000_ips/populated_store-14           3.984m ± ∞ ¹
+	StoreMemory/10000_ips/empty_store-14              108.7µ ± ∞ ¹
+	StoreMemory/10000_ips/populated_store-14          8.080m ± ∞ ¹
+	geomean                                           68.81µ
+	¹ need >= 6 samples for confidence interval at level 0.95
+
+													│       -       │
+													│     B/op      │
+	StoreMemory/1_ip/empty_store-14                     320.0 ± ∞ ¹
+	StoreMemory/1_ip/populated_store-14                 408.0 ± ∞ ¹
+	StoreMemory/1000_ips_default/empty_store-14       68.23Ki ± ∞ ¹
+	StoreMemory/1000_ips_default/populated_store-14   154.2Ki ± ∞ ¹
+	StoreMemory/5000_ips/empty_store-14               340.2Ki ± ∞ ¹
+	StoreMemory/5000_ips/populated_store-14           769.9Ki ± ∞ ¹
+	StoreMemory/10000_ips/empty_store-14              672.2Ki ± ∞ ¹
+	StoreMemory/10000_ips/populated_store-14          1.496Mi ± ∞ ¹
+	geomean                                           65.84Ki
+	¹ need >= 6 samples for confidence interval at level 0.95
+
+													│      -       │
+													│  allocs/op   │
+	StoreMemory/1_ip/empty_store-14                    5.000 ± ∞ ¹
+	StoreMemory/1_ip/populated_store-14                7.000 ± ∞ ¹
+	StoreMemory/1000_ips_default/empty_store-14        5.000 ± ∞ ¹
+	StoreMemory/1000_ips_default/populated_store-14   2.005k ± ∞ ¹
+	StoreMemory/5000_ips/empty_store-14                5.000 ± ∞ ¹
+	StoreMemory/5000_ips/populated_store-14           10.01k ± ∞ ¹
+	StoreMemory/10000_ips/empty_store-14               5.000 ± ∞ ¹
+	StoreMemory/10000_ips/populated_store-14          20.00k ± ∞ ¹
+	geomean                                            80.46
+*/
+func BenchmarkStoreMemory(b *testing.B) {
+	cases := []struct {
+		name string
+		size int
+	}{
+		{
+			name: "1_ip",
+			size: 1,
+		},
+		{
+			name: "1000_ips_default",
+			size: 1000,
+		},
+		{
+			name: "5000_ips",
+			size: 5000,
+		},
+		{
+			name: "10000_ips",
+			size: 10000,
+		},
+	}
+
+	ips := make([]netip.Addr, 10000)
+	for i := range ips {
+		ips[i] = netip.AddrFrom4([4]byte{10, 0, byte(i >> 8), byte(i)})
+	}
+
+	for _, tc := range cases {
+		b.Run(tc.name+"/empty_store", func(b *testing.B) {
+			b.ReportAllocs()
+			for b.Loop() {
+				_, _ = NewStore(tc.size, 300, 3)
+			}
+		})
+
+		b.Run(tc.name+"/populated_store", func(b *testing.B) {
+			b.ReportAllocs()
+			for b.Loop() {
+				s, _ := NewStore(tc.size, 300, 3)
+				for i := 0; i < tc.size; i++ {
+					_ = s.ForIP(ips[i])
+				}
+			}
+		})
+	}
+}
