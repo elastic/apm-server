@@ -184,10 +184,31 @@ func (r *routeBuilder) backendIntakeHandler(metricsPrefix string, mp metric.Mete
 func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, metricsPrefix string, mp metric.MeterProvider, tp trace.TracerProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := func(c *request.Context) {
-			handler(c.ResponseWriter, c.Request)
+			w := &statusRecorder{ResponseWriter: c.ResponseWriter, statusCode: http.StatusOK}
+			handler(w, c.Request)
+			if w.statusCode >= http.StatusBadRequest {
+				// The OTLP handlers write error responses directly, so record
+				// the status in the request result for logging and monitoring.
+				id := request.IDResponseErrorsInternal
+				if w.statusCode == http.StatusBadRequest {
+					id = request.IDResponseErrorsDecode
+				}
+				c.Result.Set(id, w.statusCode, request.MapResultIDToStatus[id].Keyword, nil, nil)
+			}
 		}
 		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp, tp, r.logger)...)
 	}
+}
+
+// statusRecorder is an http.ResponseWriter that records the response status code.
+type statusRecorder struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (w *statusRecorder) WriteHeader(statusCode int) {
+	w.statusCode = statusCode
+	w.ResponseWriter.WriteHeader(statusCode)
 }
 
 func (r *routeBuilder) rumIntakeHandler(mp metric.MeterProvider, tp trace.TracerProvider) func() (request.Handler, error) {

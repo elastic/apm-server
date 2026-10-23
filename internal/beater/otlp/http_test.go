@@ -20,6 +20,7 @@ package otlp_test
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -36,6 +37,7 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.opentelemetry.io/otel/trace/noop"
+	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -45,6 +47,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
@@ -160,7 +163,66 @@ func TestConsumeLogsHTTP(t *testing.T) {
 	})
 }
 
+func TestConsumeHTTPErrors(t *testing.T) {
+	traces := ptrace.NewTraces()
+	traces.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
+	validRequest, err := ptraceotlp.NewExportRequestFromTraces(traces).MarshalProto()
+	require.NoError(t, err)
+
+	for name, test := range map[string]struct {
+		body         []byte
+		reportError  error
+		expectStatus int
+		expectResult string
+	}{
+		"invalid_body": {
+			body:         []byte("not protobuf"),
+			expectStatus: http.StatusBadRequest,
+			expectResult: "http.server.response.errors.decode",
+		},
+		"processor_error": {
+			body:         validRequest,
+			reportError:  errors.New("processor failed"),
+			expectStatus: http.StatusInternalServerError,
+			expectResult: "http.server.response.errors.internal",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			var batchProcessor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
+				return test.reportError
+			}
+			logger, observedLogs := logptest.NewTestingLoggerWithObserver(t, "")
+			addr, reader := newHTTPServerWithLogger(t, batchProcessor, logger)
+
+			req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/traces", addr), bytes.NewReader(test.body))
+			require.NoError(t, err)
+			req.Header.Set("Content-Type", "application/x-protobuf")
+			client := http.Client{}
+			rsp, err := client.Do(req)
+			require.NoError(t, err)
+			assert.NoError(t, rsp.Body.Close())
+			assert.Equal(t, test.expectStatus, rsp.StatusCode)
+
+			monitoringtest.ExpectContainAndNotContainOtelMetrics(t, reader, map[string]any{
+				"http.server.request.count":         1,
+				"http.server.response.count":        1,
+				"http.server.response.errors.count": 1,
+				test.expectResult:                   1,
+			}, []string{"http.server.response.valid.count"})
+
+			requestLogs := observedLogs.FilterLoggerName("handler.request").All()
+			require.Len(t, requestLogs, 1)
+			assert.Equal(t, zapcore.ErrorLevel, requestLogs[0].Level)
+			assert.Equal(t, int64(test.expectStatus), requestLogs[0].ContextMap()["http.response.status_code"])
+		})
+	}
+}
+
 func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) (string, sdkmetric.Reader) {
+	return newHTTPServerWithLogger(t, batchProcessor, logptest.NewTestingLogger(t, ""))
+}
+
+func newHTTPServerWithLogger(t *testing.T, batchProcessor modelpb.BatchProcessor, logger *logp.Logger) (string, sdkmetric.Reader) {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
 	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
@@ -183,7 +245,7 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) (string,
 		semaphore.NewWeighted(1),
 		mp,
 		noop.NewTracerProvider(),
-		logptest.NewTestingLogger(t, ""),
+		logger,
 		monitoring.NewRegistry(),
 	)
 	require.NoError(t, err)
