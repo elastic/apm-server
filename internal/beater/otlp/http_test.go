@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -39,6 +40,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/semaphore"
 	statuspb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
@@ -49,6 +51,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/apm-server/internal/beater/middleware"
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/otlp"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
@@ -207,7 +210,7 @@ func TestOTLPHTTPRequestBodyTooLarge(t *testing.T) {
 	const limit = 32
 	handlers := []struct {
 		name   string
-		handle func(otlp.HTTPHandlers, http.ResponseWriter, *http.Request)
+		handle func(otlp.HTTPHandlers, *request.Context)
 	}{
 		{"traces", otlp.HTTPHandlers.HandleTraces},
 		{"metrics", otlp.HTTPHandlers.HandleMetrics},
@@ -260,14 +263,14 @@ func newHTTPHandlers(t *testing.T, maxBodySize int) otlp.HTTPHandlers {
 func serveOTLP(
 	t *testing.T,
 	h otlp.HTTPHandlers,
-	handle func(otlp.HTTPHandlers, http.ResponseWriter, *http.Request),
+	handle func(otlp.HTTPHandlers, *request.Context),
 	body []byte,
 	contentEncoding string,
 ) *httptest.ResponseRecorder {
 	t.Helper()
 	// request.Context decompresses the body before the OTLP handler reads it.
 	handler := request.NewContextPool().HTTPHandler(func(c *request.Context) {
-		handle(h, c.ResponseWriter, c.Request)
+		handle(h, c)
 	})
 	req := httptest.NewRequest(http.MethodPost, "/v1/traces", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/x-protobuf")
@@ -277,6 +280,88 @@ func serveOTLP(
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 	return rec
+}
+
+func TestOTLPHTTPErrorMonitoring(t *testing.T) {
+	const limit = 32
+	traces := ptrace.NewTraces()
+	traces.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
+	validBody, err := ptraceotlp.NewExportRequestFromTraces(traces).MarshalProto()
+	require.NoError(t, err)
+
+	for name, tc := range map[string]struct {
+		body         []byte
+		processErr   error
+		expectStatus int
+		expectResult string
+	}{
+		"invalid_body": {
+			body:         []byte("not protobuf"),
+			expectStatus: http.StatusBadRequest,
+			expectResult: "http.server.response.errors.decode",
+		},
+		"too_large": {
+			body:         bytes.Repeat([]byte{0x0a}, limit+1),
+			expectStatus: http.StatusRequestEntityTooLarge,
+			expectResult: "http.server.response.errors.toolarge",
+		},
+		"processor_error": {
+			body:         validBody,
+			processErr:   errors.New("processor failed"),
+			expectStatus: http.StatusInternalServerError,
+			expectResult: "http.server.response.errors.internal",
+		},
+		"unauthorized": {
+			body:         validBody,
+			processErr:   auth.ErrUnauthorized,
+			expectStatus: http.StatusForbidden,
+			expectResult: "http.server.response.errors.forbidden",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			handlers := otlp.NewHTTPHandlers(
+				zap.NewNop(),
+				modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
+					return tc.processErr
+				}),
+				semaphore.NewWeighted(1),
+				sdkmetric.NewMeterProvider(),
+				noop.NewTracerProvider(),
+				limit,
+			)
+			logger, observedLogs := logptest.NewTestingLoggerWithObserver(t, "")
+			reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+				func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+					return metricdata.DeltaTemporality
+				},
+			))
+			mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+			handler, err := middleware.Wrap(
+				func(c *request.Context) { handlers.HandleTraces(c) },
+				middleware.LogMiddleware(logger),
+				middleware.MonitoringMiddleware("apm-server.otlp.http.traces.", mp),
+			)
+			require.NoError(t, err)
+
+			req := httptest.NewRequest(http.MethodPost, "/v1/traces", bytes.NewReader(tc.body))
+			req.Header.Set("Content-Type", "application/x-protobuf")
+			rec := httptest.NewRecorder()
+			request.NewContextPool().HTTPHandler(handler).ServeHTTP(rec, req)
+			assert.Equal(t, tc.expectStatus, rec.Code)
+
+			monitoringtest.ExpectContainAndNotContainOtelMetrics(t, reader, map[string]any{
+				"http.server.request.count":         1,
+				"http.server.response.count":        1,
+				"http.server.response.errors.count": 1,
+				tc.expectResult:                     1,
+			}, []string{"http.server.response.valid.count"})
+
+			requestLogs := observedLogs.FilterLoggerName("request").All()
+			require.Len(t, requestLogs, 1)
+			assert.Equal(t, zapcore.ErrorLevel, requestLogs[0].Level)
+			assert.Equal(t, int64(tc.expectStatus), requestLogs[0].ContextMap()["http.response.status_code"])
+		})
+	}
 }
 
 func assertRequestBodyTooLarge(t *testing.T, rec *httptest.ResponseRecorder) {
