@@ -98,8 +98,7 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 
 // HTTPHandlers encapsulates http.HandlerFuncs for handling traces, metrics, and logs.
 type HTTPHandlers struct {
-	consumer *otlp.Consumer
-	// maxBodySize caps the decompressed body. NewHTTPHandlers sets MaxRequestSize.
+	consumer    *otlp.Consumer
 	maxBodySize int
 }
 
