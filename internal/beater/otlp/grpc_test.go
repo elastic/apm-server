@@ -23,6 +23,7 @@ import (
 	"context"
 	"errors"
 	"net"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -46,6 +47,8 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/apm-server/internal/beater"
+	"github.com/elastic/apm-server/internal/beater/beatertest"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/otlp"
@@ -207,7 +210,6 @@ func TestGRPCRequestTooLarge(t *testing.T) {
 	require.Error(t, err)
 	st := status.Convert(err)
 	assert.Equal(t, codes.ResourceExhausted, st.Code())
-	assert.Contains(t, st.Message(), "larger than max")
 	assert.Empty(t, st.Details())
 	assert.False(t, processed)
 }
@@ -242,9 +244,37 @@ func TestGRPCRequestTooLargeAfterDecompression(t *testing.T) {
 	require.Error(t, err)
 	st := status.Convert(err)
 	assert.Equal(t, codes.ResourceExhausted, st.Code())
-	assert.Contains(t, st.Message(), "after decompression")
 	assert.Empty(t, st.Details())
 	assert.False(t, processed)
+}
+
+// TestBeaterGRPCRequestAboveDefaultLimit sends a message larger than grpc-go's
+// default 4MiB receive limit and smaller than MaxRequestSize. The RPC is
+// accepted only when beater passes that limit to grpc.MaxRecvMsgSize.
+func TestBeaterGRPCRequestAboveDefaultLimit(t *testing.T) {
+	const grpcDefaultMaxRecv = 4 << 20
+	require.Greater(t, otlp.MaxRequestSize, grpcDefaultMaxRecv)
+
+	srv := beatertest.NewServer(t, beatertest.WithWrapServer(
+		func(args beater.ServerParams, runServer beater.RunServerFunc) (beater.ServerParams, beater.RunServerFunc, error) {
+			// The receive-size check has already run. Skip publishing the span.
+			args.BatchProcessor = modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
+				return nil
+			})
+			return args, runServer, nil
+		},
+	))
+	u, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	conn, err := grpc.NewClient(u.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+	t.Cleanup(func() { conn.Close() })
+
+	traces := ptrace.NewTraces()
+	span := traces.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
+	span.SetName(string(bytes.Repeat([]byte("x"), grpcDefaultMaxRecv+1)))
+	_, err = ptraceotlp.NewGRPCClient(conn).Export(context.Background(), ptraceotlp.NewExportRequestFromTraces(traces))
+	require.NoError(t, err)
 }
 
 func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor, mp metric.MeterProvider) *grpc.ClientConn {

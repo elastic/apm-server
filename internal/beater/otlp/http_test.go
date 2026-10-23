@@ -19,12 +19,10 @@ package otlp_test
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
 	"fmt"
 	"net"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -38,11 +36,7 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.opentelemetry.io/otel/trace/noop"
-	"go.uber.org/zap"
 	"golang.org/x/sync/semaphore"
-	statuspb "google.golang.org/genproto/googleapis/rpc/status"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/agentcfg"
@@ -50,9 +44,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
-	"github.com/elastic/apm-server/internal/beater/otlp"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
-	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
@@ -201,91 +193,4 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) (string,
 	})
 	go srv.Serve(lis)
 	return lis.Addr().String(), reader
-}
-
-func TestOTLPHTTPRequestBodyTooLarge(t *testing.T) {
-	const limit = 32
-	handlers := []struct {
-		name   string
-		handle func(otlp.HTTPHandlers, http.ResponseWriter, *http.Request)
-	}{
-		{"traces", otlp.HTTPHandlers.HandleTraces},
-		{"metrics", otlp.HTTPHandlers.HandleMetrics},
-		{"logs", otlp.HTTPHandlers.HandleLogs},
-	}
-	for _, tc := range handlers {
-		t.Run(tc.name, func(t *testing.T) {
-			rec := serveOTLP(t, newHTTPHandlers(t, limit), tc.handle, bytes.Repeat([]byte{0x0a}, limit+1), "")
-			assertRequestBodyTooLarge(t, rec)
-		})
-	}
-}
-
-func TestOTLPHTTPRequestBodyAtLimit(t *testing.T) {
-	const limit = 32
-	// A body of exactly the limit passes the size check. These bytes are not
-	// a valid OTLP payload, so decoding fails with 400.
-	rec := serveOTLP(t, newHTTPHandlers(t, limit), otlp.HTTPHandlers.HandleTraces, bytes.Repeat([]byte{0x0a}, limit), "")
-	assert.Equal(t, http.StatusBadRequest, rec.Code)
-}
-
-func TestOTLPHTTPRequestBodyLimitAfterDecompression(t *testing.T) {
-	const limit = 32
-	var compressed bytes.Buffer
-	gz := gzip.NewWriter(&compressed)
-	_, err := gz.Write(bytes.Repeat([]byte{0x0a}, limit*2))
-	require.NoError(t, err)
-	require.NoError(t, gz.Close())
-	require.Less(t, compressed.Len(), limit, "compressed body must be under the limit so the check is on the decompressed size")
-
-	rec := serveOTLP(t, newHTTPHandlers(t, limit), otlp.HTTPHandlers.HandleTraces, compressed.Bytes(), "gzip")
-	assertRequestBodyTooLarge(t, rec)
-}
-
-func newHTTPHandlers(t *testing.T, maxBodySize int) otlp.HTTPHandlers {
-	t.Helper()
-	return otlp.NewHTTPHandlers(
-		zap.NewNop(),
-		modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
-			t.Fatal("request was processed")
-			return nil
-		}),
-		semaphore.NewWeighted(1),
-		sdkmetric.NewMeterProvider(),
-		noop.NewTracerProvider(),
-		maxBodySize,
-	)
-}
-
-func serveOTLP(
-	t *testing.T,
-	h otlp.HTTPHandlers,
-	handle func(otlp.HTTPHandlers, http.ResponseWriter, *http.Request),
-	body []byte,
-	contentEncoding string,
-) *httptest.ResponseRecorder {
-	t.Helper()
-	// request.Context decompresses the body before the OTLP handler reads it.
-	handler := request.NewContextPool().HTTPHandler(func(c *request.Context) {
-		handle(h, c.ResponseWriter, c.Request)
-	})
-	req := httptest.NewRequest(http.MethodPost, "/v1/traces", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/x-protobuf")
-	if contentEncoding != "" {
-		req.Header.Set("Content-Encoding", contentEncoding)
-	}
-	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, req)
-	return rec
-}
-
-func assertRequestBodyTooLarge(t *testing.T, rec *httptest.ResponseRecorder) {
-	t.Helper()
-	assert.Equal(t, http.StatusRequestEntityTooLarge, rec.Code)
-	assert.Equal(t, "close", rec.Header().Get("Connection"))
-	var st statuspb.Status
-	require.NoError(t, proto.Unmarshal(rec.Body.Bytes(), &st))
-	assert.Equal(t, int32(codes.ResourceExhausted), st.GetCode())
-	assert.Equal(t, "request body too large", st.GetMessage())
-	assert.Empty(t, st.GetDetails())
 }

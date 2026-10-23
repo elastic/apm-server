@@ -49,8 +49,8 @@ import (
 const MaxRequestSize = 64 * 1024 * 1024
 
 // errRequestBodyTooLarge is returned when an OTLP/HTTP request body exceeds
-// HTTPHandlers.maxBodySize after decompression. It is a non-retryable failure
-// and is reported as HTTP 413.
+// MaxRequestSize after decompression. It is a non-retryable failure and is
+// reported as HTTP 413.
 var errRequestBodyTooLarge = errors.New("request body too large")
 
 var (
@@ -59,8 +59,8 @@ var (
 )
 
 // NewHTTPHandlers returns OTLP/HTTP handlers that reject a decompressed
-// request body larger than maxBodySize.
-func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semaphore input.Semaphore, mp metric.MeterProvider, tp trace.TracerProvider, maxBodySize int) HTTPHandlers {
+// request body larger than MaxRequestSize.
+func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semaphore input.Semaphore, mp metric.MeterProvider, tp trace.TracerProvider) HTTPHandlers {
 	// TODO(axw) stop assuming we have only one OTLP HTTP consumer running
 	// at any time, and instead aggregate metrics from consumers that are
 	// dynamically registered and unregistered.
@@ -93,12 +93,13 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 		return nil
 	}, httpMetricsConsumerUnsupportedDropped)
 
-	return HTTPHandlers{consumer: consumer, maxBodySize: maxBodySize}
+	return HTTPHandlers{consumer: consumer, maxBodySize: MaxRequestSize}
 }
 
 // HTTPHandlers encapsulates http.HandlerFuncs for handling traces, metrics, and logs.
 type HTTPHandlers struct {
-	consumer    *otlp.Consumer
+	consumer *otlp.Consumer
+	// maxBodySize caps the decompressed body. NewHTTPHandlers sets MaxRequestSize.
 	maxBodySize int
 }
 
