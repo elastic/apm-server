@@ -39,6 +39,9 @@ import (
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
+
+	"github.com/elastic/apm-server/internal/beater/auth"
+	"github.com/elastic/apm-server/internal/beater/request"
 )
 
 // MaxRequestSize is the maximum OTLP request size in bytes, including after
@@ -96,24 +99,24 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 	return HTTPHandlers{consumer: consumer, maxBodySize: MaxRequestSize}
 }
 
-// HTTPHandlers encapsulates http.HandlerFuncs for handling traces, metrics, and logs.
+// HTTPHandlers encapsulates handlers for OTLP/HTTP traces, metrics, and logs.
 type HTTPHandlers struct {
 	consumer    *otlp.Consumer
 	maxBodySize int
 }
 
-// HandleTraces is an http.HandlerFunc that receives a protobuf-encoded traces export
-// request, and processes it with the handler's OTLP consumer.
-func (h HTTPHandlers) HandleTraces(w http.ResponseWriter, r *http.Request) {
+// HandleTraces receives a protobuf-encoded traces export request and processes
+// it with the handler's OTLP consumer.
+func (h HTTPHandlers) HandleTraces(c *request.Context) {
 	req := ptraceotlp.NewExportRequest()
-	if err := h.readRequest(r, req); err != nil {
-		h.writeRequestError(w, err)
+	if err := h.readRequest(c.Request, req); err != nil {
+		h.writeRequestError(c, err)
 		return
 	}
 	var result otlp.ConsumeTracesResult
 	var err error
-	if result, err = h.consumer.ConsumeTracesWithResult(r.Context(), req.Traces()); err != nil {
-		h.writeError(w, err, http.StatusInternalServerError)
+	if result, err = h.consumer.ConsumeTracesWithResult(c.Request.Context(), req.Traces()); err != nil {
+		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
 	resp := ptraceotlp.NewExportResponse()
@@ -121,24 +124,24 @@ func (h HTTPHandlers) HandleTraces(w http.ResponseWriter, r *http.Request) {
 		resp.PartialSuccess().SetRejectedSpans(result.RejectedSpans)
 		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
 	}
-	if err := h.writeResponse(w, resp); err != nil {
-		h.writeError(w, err, http.StatusInternalServerError)
+	if err := h.writeResponse(c.ResponseWriter, resp); err != nil {
+		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
 }
 
-// HandleMetrics is an http.HandlerFunc that receives a protobuf-encoded metrics export
-// request, and processes it with the handler's OTLP consumer.
-func (h HTTPHandlers) HandleMetrics(w http.ResponseWriter, r *http.Request) {
+// HandleMetrics receives a protobuf-encoded metrics export request and processes
+// it with the handler's OTLP consumer.
+func (h HTTPHandlers) HandleMetrics(c *request.Context) {
 	req := pmetricotlp.NewExportRequest()
-	if err := h.readRequest(r, req); err != nil {
-		h.writeRequestError(w, err)
+	if err := h.readRequest(c.Request, req); err != nil {
+		h.writeRequestError(c, err)
 		return
 	}
 	var result otlp.ConsumeMetricsResult
 	var err error
-	if result, err = h.consumer.ConsumeMetricsWithResult(r.Context(), req.Metrics()); err != nil {
-		h.writeError(w, err, http.StatusInternalServerError)
+	if result, err = h.consumer.ConsumeMetricsWithResult(c.Request.Context(), req.Metrics()); err != nil {
+		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
 	resp := pmetricotlp.NewExportResponse()
@@ -146,24 +149,24 @@ func (h HTTPHandlers) HandleMetrics(w http.ResponseWriter, r *http.Request) {
 		resp.PartialSuccess().SetRejectedDataPoints(result.RejectedDataPoints)
 		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
 	}
-	if err := h.writeResponse(w, resp); err != nil {
-		h.writeError(w, err, http.StatusInternalServerError)
+	if err := h.writeResponse(c.ResponseWriter, resp); err != nil {
+		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
 }
 
-// HandleLogs is an http.HandlerFunc that receives a protobuf-encoded logs export
-// request, and processes it with the handler's OTLP consumer.
-func (h HTTPHandlers) HandleLogs(w http.ResponseWriter, r *http.Request) {
+// HandleLogs receives a protobuf-encoded logs export request and processes
+// it with the handler's OTLP consumer.
+func (h HTTPHandlers) HandleLogs(c *request.Context) {
 	req := plogotlp.NewExportRequest()
-	if err := h.readRequest(r, req); err != nil {
-		h.writeRequestError(w, err)
+	if err := h.readRequest(c.Request, req); err != nil {
+		h.writeRequestError(c, err)
 		return
 	}
 	var result otlp.ConsumeLogsResult
 	var err error
-	if result, err = h.consumer.ConsumeLogsWithResult(r.Context(), req.Logs()); err != nil {
-		h.writeError(w, err, http.StatusInternalServerError)
+	if result, err = h.consumer.ConsumeLogsWithResult(c.Request.Context(), req.Logs()); err != nil {
+		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
 	resp := plogotlp.NewExportResponse()
@@ -171,8 +174,8 @@ func (h HTTPHandlers) HandleLogs(w http.ResponseWriter, r *http.Request) {
 		resp.PartialSuccess().SetRejectedLogRecords(result.RejectedLogRecords)
 		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
 	}
-	if err := h.writeResponse(w, resp); err != nil {
-		h.writeError(w, err, http.StatusInternalServerError)
+	if err := h.writeResponse(c.ResponseWriter, resp); err != nil {
+		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
 }
@@ -211,12 +214,12 @@ func readLimitedBody(r io.Reader, limit int) ([]byte, error) {
 	return body, nil
 }
 
-func (h HTTPHandlers) writeRequestError(w http.ResponseWriter, err error) {
+func (h HTTPHandlers) writeRequestError(c *request.Context, err error) {
 	if errors.Is(err, errRequestBodyTooLarge) {
-		h.writeError(w, err, http.StatusRequestEntityTooLarge)
+		h.writeError(c, err, http.StatusRequestEntityTooLarge)
 		return
 	}
-	h.writeError(w, err, http.StatusBadRequest)
+	h.writeError(c, err, http.StatusBadRequest)
 }
 
 func (h HTTPHandlers) writeResponse(w http.ResponseWriter, m protoMarshaler) error {
@@ -230,7 +233,13 @@ func (h HTTPHandlers) writeResponse(w http.ResponseWriter, m protoMarshaler) err
 	return nil
 }
 
-func (h HTTPHandlers) writeError(w http.ResponseWriter, err error, statusCode int) {
+func (h HTTPHandlers) writeError(c *request.Context, err error, statusCode int) {
+	// The auth middleware rewrites an internal result whose error is
+	// ErrUnauthorized to 403 after this handler has already written the
+	// response. Write 403 here so the client and the recorded result match.
+	if errors.Is(err, auth.ErrUnauthorized) {
+		statusCode = http.StatusForbidden
+	}
 	s, ok := status.FromError(err)
 	if !ok {
 		switch statusCode {
@@ -240,13 +249,21 @@ func (h HTTPHandlers) writeError(w http.ResponseWriter, err error, statusCode in
 			// RESOURCE_EXHAUSTED without RetryInfo is non-retryable. HTTP 413
 			// is also outside the OTLP retryable status codes.
 			s = status.New(codes.ResourceExhausted, err.Error())
-			w.Header().Set("Connection", "close")
+			c.ResponseWriter.Header().Set("Connection", "close")
+		case http.StatusForbidden:
+			s = status.New(codes.PermissionDenied, err.Error())
 		default:
 			s = status.New(codes.Unknown, err.Error())
 		}
 	}
-	msg, err := proto.Marshal(s.Proto())
-	if err != nil {
+	// Record the result before proto.Marshal reassigns err. This also covers
+	// errors that already carry a gRPC status and skip the switch above.
+	h.recordResult(c, err, statusCode)
+
+	w := c.ResponseWriter
+	msg, merr := proto.Marshal(s.Proto())
+	if merr != nil {
+		h.recordResult(c, merr, http.StatusInternalServerError)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(`{"code": 13, "message": "failed to marshal error message"}`))
@@ -255,4 +272,20 @@ func (h HTTPHandlers) writeError(w http.ResponseWriter, err error, statusCode in
 	w.Header().Set("Content-Type", "application/x-protobuf")
 	w.WriteHeader(statusCode)
 	w.Write(msg)
+}
+
+// recordResult stores the HTTP status on the request result so the logging and
+// monitoring middleware observe the status this handler writes.
+func (h HTTPHandlers) recordResult(c *request.Context, err error, statusCode int) {
+	id := request.IDResponseErrorsInternal
+	switch statusCode {
+	case http.StatusBadRequest:
+		id = request.IDResponseErrorsDecode
+	case http.StatusRequestEntityTooLarge:
+		id = request.IDResponseErrorsRequestTooLarge
+	case http.StatusForbidden:
+		id = request.IDResponseErrorsForbidden
+	}
+	st := request.MapResultIDToStatus[id]
+	c.Result.Set(id, statusCode, st.Keyword, nil, err)
 }
