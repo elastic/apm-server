@@ -234,9 +234,13 @@ func (h HTTPHandlers) writeResponse(w http.ResponseWriter, m protoMarshaler) err
 }
 
 func (h HTTPHandlers) writeError(c *request.Context, err error, statusCode int) {
-	// The auth middleware rewrites an internal result whose error is
-	// ErrUnauthorized to 403 after this handler has already written the
-	// response. Write 403 here so the client and the recorded result match.
+	// auth.ErrUnauthorized comes from batch processing, after this handler
+	// has started. It means the caller is authenticated but not allowed to
+	// ingest the event. The auth middleware then rewrites an internal result
+	// to 403 without writing the response again. Write 403 here and record
+	// response.errors.forbidden so the client, log, and metrics stay on 403.
+	// A failed credential check is auth.ErrAuthFailed: the middleware returns
+	// 401 before this handler runs.
 	if errors.Is(err, auth.ErrUnauthorized) {
 		statusCode = http.StatusForbidden
 	}
