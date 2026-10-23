@@ -6,12 +6,16 @@ We expect no more minor versions in the `8.x` line after 8.19, but only patch re
 
 Run the `run-patch-release` with the new `8.17.x` patch version.
 
+**NOTE**: This automation does not handle the changelog, which should be manually handled.
+
 Changelogs should be prepared and merged separately by release day.
 - Add the changelog pull request to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/3613)).
 
 ## 8.18 patch releases
 
 Run the `run-patch-release` with the new `8.18.x` patch version.
+
+**NOTE**: This automation does not handle the changelog, which should be manually handled.
 
 Changelogs should be prepared and merged separately by release day.
 - Add the changelog pull request to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/3613)).
@@ -44,6 +48,8 @@ Refer to `release.mk` and the `minor-release` target for further details.
 ## 8.19 patch releases
 
 Run the `run-patch-release` with the new `8.19.x` patch version.
+
+**NOTE**: This automation does not handle the changelog, which should be manually handled.
 
 Changelogs should be prepared and merged separately by release day.
 - Add the changelog pull request to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/3613)).
