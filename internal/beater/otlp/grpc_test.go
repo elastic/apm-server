@@ -55,6 +55,10 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
 
+// testMaxBodySize stays above OTLP protobuf framing and a small gzip frame,
+// so a rejection is the payload crossing the cap.
+const testMaxBodySize = 256
+
 func TestConsumeTracesGRPC(t *testing.T) {
 	var batches []modelpb.Batch
 	var reportError error
@@ -196,21 +200,19 @@ func TestConsumeLogsGRPC(t *testing.T) {
 }
 
 func TestGRPCRequestTooLarge(t *testing.T) {
-	// 256 stays above OTLP protobuf framing. The span name itself crosses the cap.
-	const limit = 256
 	var processed bool
-	conn := newGRPCServerWithLimit(t, limit, modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
+	conn := newGRPCServerWithLimit(t, testMaxBodySize, modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
 		processed = true
 		return nil
 	}), sdkmetric.NewMeterProvider())
 
 	traces := ptrace.NewTraces()
 	span := traces.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
-	span.SetName(string(bytes.Repeat([]byte("x"), limit+1)))
+	span.SetName(string(bytes.Repeat([]byte("x"), testMaxBodySize+1)))
 	raw, err := ptraceotlp.NewExportRequestFromTraces(traces).MarshalProto()
 	require.NoError(t, err)
-	require.Greater(t, len(span.Name()), limit)
-	require.Greater(t, len(raw), limit)
+	require.Greater(t, len(span.Name()), testMaxBodySize)
+	require.Greater(t, len(raw), testMaxBodySize)
 
 	_, err = ptraceotlp.NewGRPCClient(conn).Export(context.Background(), ptraceotlp.NewExportRequestFromTraces(traces))
 	require.Error(t, err)
@@ -254,13 +256,12 @@ func TestGRPCRequestTooLargeAfterDecompression(t *testing.T) {
 	assert.False(t, processed)
 }
 
-// TestBeaterGRPCRequestTooLarge installs the same 256-byte receive limit the
-// HTTP tests use. The production server uses MaxRequestSize.
+// TestBeaterGRPCRequestTooLarge installs testMaxBodySize on the server started
+// by beater. The production server uses MaxRequestSize.
 func TestBeaterGRPCRequestTooLarge(t *testing.T) {
-	const limit = 256
 	srv := beatertest.NewServer(t, beatertest.WithWrapServer(
 		func(args beater.ServerParams, runServer beater.RunServerFunc) (beater.ServerParams, beater.RunServerFunc, error) {
-			args.GRPCServer = grpc.NewServer(grpc.MaxRecvMsgSize(limit))
+			args.GRPCServer = grpc.NewServer(grpc.MaxRecvMsgSize(testMaxBodySize))
 			return args, runServer, nil
 		},
 	))
@@ -272,11 +273,11 @@ func TestBeaterGRPCRequestTooLarge(t *testing.T) {
 
 	traces := ptrace.NewTraces()
 	span := traces.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
-	span.SetName(string(bytes.Repeat([]byte("x"), limit+1)))
+	span.SetName(string(bytes.Repeat([]byte("x"), testMaxBodySize+1)))
 	raw, err := ptraceotlp.NewExportRequestFromTraces(traces).MarshalProto()
 	require.NoError(t, err)
-	require.Greater(t, len(span.Name()), limit)
-	require.Greater(t, len(raw), limit)
+	require.Greater(t, len(span.Name()), testMaxBodySize)
+	require.Greater(t, len(raw), testMaxBodySize)
 
 	_, err = ptraceotlp.NewGRPCClient(conn).Export(context.Background(), ptraceotlp.NewExportRequestFromTraces(traces))
 	require.Error(t, err)
