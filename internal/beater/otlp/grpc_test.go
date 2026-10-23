@@ -18,6 +18,8 @@
 package otlp_test
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"errors"
 	"net"
@@ -38,7 +40,9 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	grpcgzip "google.golang.org/grpc/encoding/gzip"
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -188,11 +192,74 @@ func TestConsumeLogsGRPC(t *testing.T) {
 	})
 }
 
+func TestGRPCRequestTooLarge(t *testing.T) {
+	const limit = 64
+	var processed bool
+	conn := newGRPCServerWithLimit(t, limit, modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
+		processed = true
+		return nil
+	}), sdkmetric.NewMeterProvider())
+
+	traces := ptrace.NewTraces()
+	span := traces.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
+	span.SetName(string(bytes.Repeat([]byte("x"), limit*2)))
+	_, err := ptraceotlp.NewGRPCClient(conn).Export(context.Background(), ptraceotlp.NewExportRequestFromTraces(traces))
+	require.Error(t, err)
+	st := status.Convert(err)
+	assert.Equal(t, codes.ResourceExhausted, st.Code())
+	assert.Contains(t, st.Message(), "larger than max")
+	assert.Empty(t, st.Details())
+	assert.False(t, processed)
+}
+
+func TestGRPCRequestTooLargeAfterDecompression(t *testing.T) {
+	traces := ptrace.NewTraces()
+	span := traces.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
+	span.SetName(string(bytes.Repeat([]byte("x"), 4<<10)))
+	tracesRequest := ptraceotlp.NewExportRequestFromTraces(traces)
+	raw, err := tracesRequest.MarshalProto()
+	require.NoError(t, err)
+
+	var compressed bytes.Buffer
+	zw := gzip.NewWriter(&compressed)
+	_, err = zw.Write(raw)
+	require.NoError(t, err)
+	require.NoError(t, zw.Close())
+	require.Less(t, compressed.Len(), len(raw))
+
+	// Stay above the gzip frame and below the decompressed message so a
+	// failure is the post-decompression check, not the compressed-frame check.
+	limit := compressed.Len() * 4
+	require.Less(t, limit, len(raw))
+
+	var processed bool
+	conn := newGRPCServerWithLimit(t, limit, modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
+		processed = true
+		return nil
+	}), sdkmetric.NewMeterProvider())
+
+	_, err = ptraceotlp.NewGRPCClient(conn).Export(context.Background(), tracesRequest, grpc.UseCompressor(grpcgzip.Name))
+	require.Error(t, err)
+	st := status.Convert(err)
+	assert.Equal(t, codes.ResourceExhausted, st.Code())
+	assert.Contains(t, st.Message(), "after decompression")
+	assert.Empty(t, st.Details())
+	assert.False(t, processed)
+}
+
 func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor, mp metric.MeterProvider) *grpc.ClientConn {
+	return newGRPCServerWithLimit(t, otlp.MaxRequestSize, batchProcessor, mp)
+}
+
+func newGRPCServerWithLimit(t *testing.T, maxRecvMsgSize int, batchProcessor modelpb.BatchProcessor, mp metric.MeterProvider) *grpc.ClientConn {
+	t.Helper()
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
 	logger := logptest.NewTestingLogger(t, "otlp.grpc.test")
-	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Metrics(logger, mp)))
+	srv := grpc.NewServer(
+		grpc.MaxRecvMsgSize(maxRecvMsgSize),
+		grpc.UnaryInterceptor(interceptors.Metrics(logger, mp)),
+	)
 	semaphore := semaphore.NewWeighted(1)
 	otlp.RegisterGRPCServices(srv, zap.NewNop(), batchProcessor, semaphore, mp, noop.NewTracerProvider())
 
