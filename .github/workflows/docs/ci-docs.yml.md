@@ -1,0 +1,62 @@
+# CI (docs-only)
+
+A placeholder CI workflow for pull requests that change only documentation or image files. It reports the same check names as [`ci.yml`](ci.yml.md) without running any tests or lint.
+
+## At a glance
+
+| Field | Value |
+|---|---|
+| Definition | [`ci-docs.yml`](../ci-docs.yml) |
+| Triggers | Pull requests that change only `**.md`, `**.asciidoc`, `**.png`, or `**.svg` files; merge queue (`merge_group`) |
+| Path filter | Negated `paths-ignore`: runs only when every changed file matches an exception |
+| Token permissions | `contents: read` |
+| Secrets | None |
+| Runners | `macos-latest`, `windows-latest`, `ubuntu-latest` |
+
+## Purpose
+
+Lets required status checks from [`ci.yml`](ci.yml.md) pass on documentation-only changes. The jobs only print a message and do not run tests, system tests, or linters.
+
+## When it runs
+
+- On pull requests whose changes match only the documentation and image patterns above.
+- On merge queue checks.
+
+## Execution flow
+
+```mermaid
+flowchart LR
+    test[test<br/>macOS and Windows matrix]
+    sys[system-test<br/>Ubuntu]
+    lint[lint<br/>Ubuntu]
+    test ~~~ sys ~~~ lint
+```
+
+All three jobs start in parallel. Each one runs a single `echo` step.
+
+| Job | Runs when | Depends on | What it does |
+|---|---|---|---|
+| `test` | Always | None | Prints `No tests required to run` on a macOS and Windows matrix. |
+| `system-test` | Always | None | Prints `No tests required to run` on Ubuntu. |
+| `lint` | Always | None | Prints `No lint required to run` on Ubuntu. |
+
+## Inputs, outputs, and access
+
+| Item | Details |
+|---|---|
+| Inputs | Pull request or merge group context only. |
+| Outputs | Placeholder status checks. No artifacts. |
+| Permissions | Workflow token: `contents: read`. |
+| Secrets | None. |
+
+## Operational notes
+
+- The `paths-ignore` expression must match the one in [`ci.yml`](../ci.yml). Otherwise a change could skip both workflows or run both.
+- The job names match `ci.yml` (`test`, `system-test`, `lint`) so that the same required checks are reported for docs-only changes.
+- This workflow has no `ci.yml` jobs for FIPS, packaging, or integration server tests. Those checks are not reported here.
+
+## Sources
+
+- Workflow: [`ci-docs.yml`](../ci-docs.yml)
+- Companion workflow: [`ci.yml`](../ci.yml)
+- Source gaps: none for this workflow. Branch protection and required-check settings were not in the checked-in files and were not verified.
