@@ -47,8 +47,11 @@ import (
 	"github.com/elastic/apm-server/internal/beater/request"
 )
 
+// testMaxBodySize stays above OTLP protobuf framing and a small gzip frame,
+// so a rejection is the payload crossing the cap.
+const testMaxBodySize = 256
+
 func TestOTLPHTTPRequestBodyTooLarge(t *testing.T) {
-	const limit = 32
 	handlers := []struct {
 		name   string
 		handle func(HTTPHandlers, http.ResponseWriter, *http.Request)
@@ -59,17 +62,16 @@ func TestOTLPHTTPRequestBodyTooLarge(t *testing.T) {
 	}
 	for _, tc := range handlers {
 		t.Run(tc.name, func(t *testing.T) {
-			rec := serveOTLP(t, newHTTPHandlers(t, limit), tc.handle, bytes.Repeat([]byte{0x0a}, limit+1), "")
+			rec := serveOTLP(t, newHTTPHandlers(t, testMaxBodySize), tc.handle, bytes.Repeat([]byte{0x0a}, testMaxBodySize+1), "")
 			assertRequestBodyTooLarge(t, rec)
 		})
 	}
 }
 
 func TestOTLPHTTPRequestBodyAtLimit(t *testing.T) {
-	const limit = 32
 	// A body of exactly the limit passes the size check. These bytes are not
 	// a valid OTLP payload, so decoding fails with 400.
-	rec := serveOTLP(t, newHTTPHandlers(t, limit), HTTPHandlers.HandleTraces, bytes.Repeat([]byte{0x0a}, limit), "")
+	rec := serveOTLP(t, newHTTPHandlers(t, testMaxBodySize), HTTPHandlers.HandleTraces, bytes.Repeat([]byte{0x0a}, testMaxBodySize), "")
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 }
 
@@ -97,7 +99,6 @@ func TestOTLPHTTPRequestBodyTooLargeAfterDecompression(t *testing.T) {
 }
 
 func TestOTLPHTTPUnfinishedChunkedRequestBody(t *testing.T) {
-	const limit = 32
 	// The client sends one byte past the limit and leaves the chunked body open.
 	// The 413 must be readable without the terminating chunk. ResponseRecorder
 	// cannot show this: it does not buffer the response or drain on Body.Close.
@@ -112,7 +113,7 @@ func TestOTLPHTTPUnfinishedChunkedRequestBody(t *testing.T) {
 		sdkmetric.NewMeterProvider(),
 		noop.NewTracerProvider(),
 	)
-	handlers.maxBodySize = limit
+	handlers.maxBodySize = testMaxBodySize
 	srv := httptest.NewServer(request.NewContextPool().HTTPHandler(func(c *request.Context) {
 		handlers.HandleTraces(c.ResponseWriter, c.Request)
 	}))
@@ -122,7 +123,7 @@ func TestOTLPHTTPUnfinishedChunkedRequestBody(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { conn.Close() })
 
-	payload := bytes.Repeat([]byte{0x0a}, limit+1)
+	payload := bytes.Repeat([]byte{0x0a}, testMaxBodySize+1)
 	_, err = fmt.Fprintf(conn, "POST /v1/traces HTTP/1.1\r\nHost: %s\r\nContent-Type: application/x-protobuf\r\nTransfer-Encoding: chunked\r\n\r\n%x\r\n", srv.Listener.Addr().String(), len(payload))
 	require.NoError(t, err)
 	_, err = conn.Write(payload)
