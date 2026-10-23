@@ -124,7 +124,7 @@ func (h HTTPHandlers) HandleTraces(c *request.Context) {
 		resp.PartialSuccess().SetRejectedSpans(result.RejectedSpans)
 		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
 	}
-	if err := h.writeResponse(c.ResponseWriter, resp); err != nil {
+	if err := h.writeResponse(c, resp); err != nil {
 		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
@@ -149,7 +149,7 @@ func (h HTTPHandlers) HandleMetrics(c *request.Context) {
 		resp.PartialSuccess().SetRejectedDataPoints(result.RejectedDataPoints)
 		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
 	}
-	if err := h.writeResponse(c.ResponseWriter, resp); err != nil {
+	if err := h.writeResponse(c, resp); err != nil {
 		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
@@ -174,7 +174,7 @@ func (h HTTPHandlers) HandleLogs(c *request.Context) {
 		resp.PartialSuccess().SetRejectedLogRecords(result.RejectedLogRecords)
 		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
 	}
-	if err := h.writeResponse(c.ResponseWriter, resp); err != nil {
+	if err := h.writeResponse(c, resp); err != nil {
 		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
@@ -222,14 +222,16 @@ func (h HTTPHandlers) writeRequestError(c *request.Context, err error) {
 	h.writeError(c, err, http.StatusBadRequest)
 }
 
-func (h HTTPHandlers) writeResponse(w http.ResponseWriter, m protoMarshaler) error {
+func (h HTTPHandlers) writeResponse(c *request.Context, m protoMarshaler) error {
 	body, err := m.MarshalProto()
 	if err != nil {
 		return fmt.Errorf("failed to marshal response: %w", err)
 	}
+	w := c.ResponseWriter
 	w.Header().Set("Content-Type", "application/x-protobuf")
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
+	c.Result.SetDefault(request.IDResponseValidOK)
 	return nil
 }
 

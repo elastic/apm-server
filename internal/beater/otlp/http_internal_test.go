@@ -207,7 +207,7 @@ func TestOTLPHTTPErrorMonitoring(t *testing.T) {
 		"success": {
 			body:         validBody,
 			expectStatus: http.StatusOK,
-			expectResult: "http.server." + string(request.IDUnset),
+			expectResult: "http.server." + string(request.IDResponseValidOK),
 			expectLevel:  zapcore.InfoLevel,
 		},
 		"invalid_body": {
@@ -279,7 +279,10 @@ func TestOTLPHTTPErrorMonitoring(t *testing.T) {
 				absent = []string{"http.server.response.valid.count"}
 			} else {
 				counts["http.server.response.valid.count"] = 1
-				absent = []string{"http.server.response.errors.count"}
+				absent = []string{
+					"http.server.response.errors.count",
+					"http.server." + string(request.IDUnset),
+				}
 			}
 			monitoringtest.ExpectContainAndNotContainOtelMetrics(t, reader, counts, absent)
 
@@ -287,6 +290,9 @@ func TestOTLPHTTPErrorMonitoring(t *testing.T) {
 			require.Len(t, requestLogs, 1)
 			assert.Equal(t, tc.expectLevel, requestLogs[0].Level)
 			assert.Equal(t, int64(tc.expectStatus), requestLogs[0].ContextMap()["http.response.status_code"])
+			if tc.expectStatus < http.StatusBadRequest {
+				assert.Equal(t, "request ok", requestLogs[0].Message)
+			}
 		})
 	}
 }
