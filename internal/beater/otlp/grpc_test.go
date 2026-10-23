@@ -248,19 +248,14 @@ func TestGRPCRequestTooLargeAfterDecompression(t *testing.T) {
 	assert.False(t, processed)
 }
 
-// TestBeaterGRPCRequestAboveDefaultLimit sends a message larger than grpc-go's
-// default 4MiB receive limit and smaller than MaxRequestSize. The RPC is
-// accepted only when beater passes that limit to grpc.MaxRecvMsgSize.
-func TestBeaterGRPCRequestAboveDefaultLimit(t *testing.T) {
-	const grpcDefaultMaxRecv = 4 << 20
-	require.Greater(t, otlp.MaxRequestSize, grpcDefaultMaxRecv)
-
+// TestBeaterGRPCRequestTooLarge installs a small receive limit on the server
+// started by beater. The production server uses MaxRequestSize; this test uses
+// a small cap, as the HTTP tests do, so it does not allocate a multi-megabyte message.
+func TestBeaterGRPCRequestTooLarge(t *testing.T) {
+	const limit = 64
 	srv := beatertest.NewServer(t, beatertest.WithWrapServer(
 		func(args beater.ServerParams, runServer beater.RunServerFunc) (beater.ServerParams, beater.RunServerFunc, error) {
-			// The receive-size check has already run. Skip publishing the span.
-			args.BatchProcessor = modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
-				return nil
-			})
+			args.GRPCServer = grpc.NewServer(grpc.MaxRecvMsgSize(limit))
 			return args, runServer, nil
 		},
 	))
@@ -272,9 +267,12 @@ func TestBeaterGRPCRequestAboveDefaultLimit(t *testing.T) {
 
 	traces := ptrace.NewTraces()
 	span := traces.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
-	span.SetName(string(bytes.Repeat([]byte("x"), grpcDefaultMaxRecv+1)))
+	span.SetName(string(bytes.Repeat([]byte("x"), limit*2)))
 	_, err = ptraceotlp.NewGRPCClient(conn).Export(context.Background(), ptraceotlp.NewExportRequestFromTraces(traces))
-	require.NoError(t, err)
+	require.Error(t, err)
+	st := status.Convert(err)
+	assert.Equal(t, codes.ResourceExhausted, st.Code())
+	assert.Empty(t, st.Details())
 }
 
 func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor, mp metric.MeterProvider) *grpc.ClientConn {
