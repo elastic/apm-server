@@ -196,7 +196,8 @@ func TestConsumeLogsGRPC(t *testing.T) {
 }
 
 func TestGRPCRequestTooLarge(t *testing.T) {
-	const limit = 64
+	// 256 stays above OTLP protobuf framing. The span name itself crosses the cap.
+	const limit = 256
 	var processed bool
 	conn := newGRPCServerWithLimit(t, limit, modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
 		processed = true
@@ -205,8 +206,13 @@ func TestGRPCRequestTooLarge(t *testing.T) {
 
 	traces := ptrace.NewTraces()
 	span := traces.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
-	span.SetName(string(bytes.Repeat([]byte("x"), limit*2)))
-	_, err := ptraceotlp.NewGRPCClient(conn).Export(context.Background(), ptraceotlp.NewExportRequestFromTraces(traces))
+	span.SetName(string(bytes.Repeat([]byte("x"), limit+1)))
+	raw, err := ptraceotlp.NewExportRequestFromTraces(traces).MarshalProto()
+	require.NoError(t, err)
+	require.Greater(t, len(span.Name()), limit)
+	require.Greater(t, len(raw), limit)
+
+	_, err = ptraceotlp.NewGRPCClient(conn).Export(context.Background(), ptraceotlp.NewExportRequestFromTraces(traces))
 	require.Error(t, err)
 	st := status.Convert(err)
 	assert.Equal(t, codes.ResourceExhausted, st.Code())
@@ -248,11 +254,10 @@ func TestGRPCRequestTooLargeAfterDecompression(t *testing.T) {
 	assert.False(t, processed)
 }
 
-// TestBeaterGRPCRequestTooLarge installs a small receive limit on the server
-// started by beater. The production server uses MaxRequestSize; this test uses
-// a small cap, as the HTTP tests do, so it does not allocate a multi-megabyte message.
+// TestBeaterGRPCRequestTooLarge installs the same 256-byte receive limit the
+// HTTP tests use. The production server uses MaxRequestSize.
 func TestBeaterGRPCRequestTooLarge(t *testing.T) {
-	const limit = 64
+	const limit = 256
 	srv := beatertest.NewServer(t, beatertest.WithWrapServer(
 		func(args beater.ServerParams, runServer beater.RunServerFunc) (beater.ServerParams, beater.RunServerFunc, error) {
 			args.GRPCServer = grpc.NewServer(grpc.MaxRecvMsgSize(limit))
@@ -267,7 +272,12 @@ func TestBeaterGRPCRequestTooLarge(t *testing.T) {
 
 	traces := ptrace.NewTraces()
 	span := traces.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
-	span.SetName(string(bytes.Repeat([]byte("x"), limit*2)))
+	span.SetName(string(bytes.Repeat([]byte("x"), limit+1)))
+	raw, err := ptraceotlp.NewExportRequestFromTraces(traces).MarshalProto()
+	require.NoError(t, err)
+	require.Greater(t, len(span.Name()), limit)
+	require.Greater(t, len(raw), limit)
+
 	_, err = ptraceotlp.NewGRPCClient(conn).Export(context.Background(), ptraceotlp.NewExportRequestFromTraces(traces))
 	require.Error(t, err)
 	st := status.Convert(err)
