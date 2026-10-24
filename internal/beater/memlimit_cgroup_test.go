@@ -21,10 +21,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/elastic/elastic-agent-libs/opt"
 	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/cgroup"
 	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/cgroup/cgv1"
 	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/cgroup/cgv2"
+	"github.com/elastic/elastic-agent-libs/opt"
 
 	"github.com/stretchr/testify/assert"
 )

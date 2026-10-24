@@ -51,6 +51,8 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring/report"
 	"github.com/elastic/beats/v7/libbeat/monitoring/report/log"
 	"github.com/elastic/beats/v7/libbeat/pprof"
+	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/host"
+	metricreport "github.com/elastic/beats/v7/pkg/systemmetrics/report"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/file"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -59,8 +61,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring/report/buffer"
 	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/elastic-agent-libs/service"
-	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/host"
-	metricreport "github.com/elastic/beats/v7/pkg/systemmetrics/report"
 	"github.com/elastic/go-sysinfo"
 	"github.com/elastic/go-sysinfo/types"
 
