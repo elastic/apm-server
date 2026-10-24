@@ -59,8 +59,8 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring/report/buffer"
 	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/elastic-agent-libs/service"
-	"github.com/elastic/elastic-agent-system-metrics/metric/system/host"
-	metricreport "github.com/elastic/elastic-agent-system-metrics/report"
+	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/host"
+	metricreport "github.com/elastic/beats/v7/pkg/systemmetrics/report"
 	"github.com/elastic/go-sysinfo"
 	"github.com/elastic/go-sysinfo/types"
 
