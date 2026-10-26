@@ -388,22 +388,10 @@ func (s *Runner) Run(ctx context.Context) error {
 	// decompression. Oversized messages are rejected with RESOURCE_EXHAUSTED
 	// and no RetryInfo, which the OTLP spec treats as non-retryable.
 	gRPCLogger := s.logger.Named("grpc")
-<<<<<<< HEAD
-	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
-		apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer)),
-		interceptors.ClientMetadata(),
-		interceptors.Logging(gRPCLogger),
-		interceptors.Metrics(gRPCLogger, s.meterProvider),
-		interceptors.Timeout(),
-		interceptors.Auth(authenticator),
-		interceptors.AnonymousRateLimit(ratelimitStore),
-	))
-=======
 	grpcServer := grpc.NewServer(
 		grpc.MaxRecvMsgSize(otlp.MaxRequestSize),
 		grpc.ChainUnaryInterceptor(
-			interceptors.Tracing(s.tracerProvider),
-			interceptors.Recover(),
+			apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer)),
 			interceptors.ClientMetadata(),
 			interceptors.Logging(gRPCLogger),
 			interceptors.Metrics(gRPCLogger, s.meterProvider),
@@ -412,7 +400,6 @@ func (s *Runner) Run(ctx context.Context) error {
 			interceptors.AnonymousRateLimit(ratelimitStore),
 		),
 	)
->>>>>>> abac07c (otlp: limit request bodies to 64MiB for OTLP/gRPC and OTLP/HTTP (#22208))
 
 	// Create the BatchProcessor chain that is used to process all events,
 	// including the metrics aggregated by APM Server.
