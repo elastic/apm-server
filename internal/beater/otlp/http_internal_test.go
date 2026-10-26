@@ -49,6 +49,7 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/middleware"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
@@ -200,39 +201,39 @@ func TestOTLPHTTPErrorMonitoring(t *testing.T) {
 		body         []byte
 		processErr   error
 		expectStatus int
-		expectResult string
+		expectResult request.ResultID
 		expectLevel  zapcore.Level
 	}{
 		"success": {
 			body:         validBody,
 			expectStatus: http.StatusOK,
-			expectResult: "http.server." + string(request.IDResponseValidOK),
+			expectResult: request.IDResponseValidOK,
 			expectLevel:  zapcore.InfoLevel,
 		},
 		"invalid_body": {
 			body:         []byte("not protobuf"),
 			expectStatus: http.StatusBadRequest,
-			expectResult: "http.server.response.errors.decode",
+			expectResult: request.IDResponseErrorsDecode,
 			expectLevel:  zapcore.ErrorLevel,
 		},
 		"too_large": {
 			body:         bytes.Repeat([]byte{0x0a}, testMaxBodySize+1),
 			expectStatus: http.StatusRequestEntityTooLarge,
-			expectResult: "http.server.response.errors.toolarge",
+			expectResult: request.IDResponseErrorsRequestTooLarge,
 			expectLevel:  zapcore.ErrorLevel,
 		},
 		"processor_error": {
 			body:         validBody,
 			processErr:   errors.New("processor failed"),
 			expectStatus: http.StatusInternalServerError,
-			expectResult: "http.server.response.errors.internal",
+			expectResult: request.IDResponseErrorsInternal,
 			expectLevel:  zapcore.ErrorLevel,
 		},
 		"unauthorized": {
 			body:         validBody,
 			processErr:   auth.ErrUnauthorized,
 			expectStatus: http.StatusForbidden,
-			expectResult: "http.server.response.errors.forbidden",
+			expectResult: request.IDResponseErrorsForbidden,
 			expectLevel:  zapcore.ErrorLevel,
 		},
 	} {
@@ -267,23 +268,22 @@ func TestOTLPHTTPErrorMonitoring(t *testing.T) {
 			request.NewContextPool().HTTPHandler(handler).ServeHTTP(rec, req)
 			assert.Equal(t, tc.expectStatus, rec.Code)
 
-			counts := map[string]any{
-				"http.server.request.count":  1,
-				"http.server.response.count": 1,
-				tc.expectResult:              1,
-			}
-			var absent []string
+			const legacyPrefix = "apm-server.otlp.http.traces."
+			outcome := request.IDResponseValidCount
 			if tc.expectStatus >= http.StatusBadRequest {
-				counts["http.server.response.errors.count"] = 1
-				absent = []string{"http.server.response.valid.count"}
-			} else {
-				counts["http.server.response.valid.count"] = 1
-				absent = []string{
-					"http.server.response.errors.count",
-					"http.server." + string(request.IDUnset),
-				}
+				outcome = request.IDResponseErrorsCount
 			}
-			expectContainAndNotContainOtelMetrics(t, reader, counts, absent)
+			monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+				"http.server." + string(request.IDRequestCount):  1,
+				legacyPrefix + string(request.IDRequestCount):    1,
+				"http.server." + string(request.IDResponseCount): 1,
+				legacyPrefix + string(request.IDResponseCount):   1,
+				"http.server." + string(outcome):                 1,
+				legacyPrefix + string(outcome):                   1,
+				"http.server." + string(tc.expectResult):         1,
+				legacyPrefix + string(tc.expectResult):           1,
+				"http.server.request.duration":                   1,
+			})
 
 			requestLogs := observedLogs.FilterLoggerName("request").All()
 			require.Len(t, requestLogs, 1)
@@ -293,40 +293,6 @@ func TestOTLPHTTPErrorMonitoring(t *testing.T) {
 				assert.Equal(t, "request ok", requestLogs[0].Message)
 			}
 		})
-	}
-}
-
-// expectContainAndNotContainOtelMetrics checks expected metric values and that
-// absent names were not recorded. 8.19 monitoringtest has no combined helper,
-// and a delta reader can be collected only once.
-func expectContainAndNotContainOtelMetrics(t *testing.T, reader sdkmetric.Reader, expected map[string]any, absent []string) {
-	t.Helper()
-	var rm metricdata.ResourceMetrics
-	require.NoError(t, reader.Collect(context.Background(), &rm))
-
-	found := make(map[string]any)
-	for _, sm := range rm.ScopeMetrics {
-		for _, m := range sm.Metrics {
-			switch d := m.Data.(type) {
-			case metricdata.Sum[int64]:
-				require.Len(t, d.DataPoints, 1)
-				found[m.Name] = d.DataPoints[0].Value
-			case metricdata.Gauge[int64]:
-				require.Len(t, d.DataPoints, 1)
-				found[m.Name] = d.DataPoints[0].Value
-			case metricdata.Histogram[int64]:
-				require.Len(t, d.DataPoints, 1)
-				found[m.Name] = d.DataPoints[0].Count
-			}
-		}
-	}
-	for name, want := range expected {
-		got, ok := found[name]
-		require.Truef(t, ok, "missing metric %s", name)
-		assert.EqualValues(t, want, got, name)
-	}
-	for _, name := range absent {
-		assert.NotContains(t, found, name)
 	}
 }
 
