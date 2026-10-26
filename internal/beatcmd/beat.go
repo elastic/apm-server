@@ -53,6 +53,8 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring/report/log"
 	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 	"github.com/elastic/beats/v7/libbeat/pprof"
+	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/host"
+	metricreport "github.com/elastic/beats/v7/pkg/systemmetrics/report"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/file"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -61,10 +63,14 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring/report/buffer"
 	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/elastic-agent-libs/service"
+<<<<<<< HEAD
 	libversion "github.com/elastic/elastic-agent-libs/version"
 	"github.com/elastic/elastic-agent-system-metrics/metric/system/host"
 	metricreport "github.com/elastic/elastic-agent-system-metrics/report"
 	sysinfo "github.com/elastic/go-sysinfo"
+=======
+	"github.com/elastic/go-sysinfo"
+>>>>>>> 630c8ea (refactor: replace elastic-agent-system-metrics lib with beats pkg (#22221))
 	"github.com/elastic/go-sysinfo/types"
 
 	"github.com/elastic/apm-server/internal/version"

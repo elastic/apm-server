@@ -43,14 +43,14 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/cgroup"
+	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/cgroup/cgv1"
+	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/cgroup/cgv2"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/opt"
-	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup"
-	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup/cgv1"
-	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup/cgv2"
 	"github.com/elastic/go-docappender/v2"
 )
 
