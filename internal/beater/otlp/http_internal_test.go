@@ -49,7 +49,6 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/middleware"
-	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 )
@@ -284,7 +283,7 @@ func TestOTLPHTTPErrorMonitoring(t *testing.T) {
 					"http.server." + string(request.IDUnset),
 				}
 			}
-			monitoringtest.ExpectContainAndNotContainOtelMetrics(t, reader, counts, absent)
+			expectContainAndNotContainOtelMetrics(t, reader, counts, absent)
 
 			requestLogs := observedLogs.FilterLoggerName("request").All()
 			require.Len(t, requestLogs, 1)
@@ -294,6 +293,40 @@ func TestOTLPHTTPErrorMonitoring(t *testing.T) {
 				assert.Equal(t, "request ok", requestLogs[0].Message)
 			}
 		})
+	}
+}
+
+// expectContainAndNotContainOtelMetrics checks expected metric values and that
+// absent names were not recorded. 8.19 monitoringtest has no combined helper,
+// and a delta reader can be collected only once.
+func expectContainAndNotContainOtelMetrics(t *testing.T, reader sdkmetric.Reader, expected map[string]any, absent []string) {
+	t.Helper()
+	var rm metricdata.ResourceMetrics
+	require.NoError(t, reader.Collect(context.Background(), &rm))
+
+	found := make(map[string]any)
+	for _, sm := range rm.ScopeMetrics {
+		for _, m := range sm.Metrics {
+			switch d := m.Data.(type) {
+			case metricdata.Sum[int64]:
+				require.Len(t, d.DataPoints, 1)
+				found[m.Name] = d.DataPoints[0].Value
+			case metricdata.Gauge[int64]:
+				require.Len(t, d.DataPoints, 1)
+				found[m.Name] = d.DataPoints[0].Value
+			case metricdata.Histogram[int64]:
+				require.Len(t, d.DataPoints, 1)
+				found[m.Name] = d.DataPoints[0].Count
+			}
+		}
+	}
+	for name, want := range expected {
+		got, ok := found[name]
+		require.Truef(t, ok, "missing metric %s", name)
+		assert.EqualValues(t, want, got, name)
+	}
+	for _, name := range absent {
+		assert.NotContains(t, found, name)
 	}
 }
 

@@ -38,13 +38,8 @@ import (
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
-<<<<<<< HEAD
-=======
-	"github.com/elastic/apm-data/model/modelprocessor"
-
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/request"
->>>>>>> 1ae1c73 (otlp: record HTTP error status in logs and metrics (#22209))
 )
 
 // MaxRequestSize is the maximum OTLP request size in bytes, including after
