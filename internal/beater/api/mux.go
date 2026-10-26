@@ -186,12 +186,9 @@ func (r *routeBuilder) backendIntakeHandler(metricsPrefix string, mp metric.Mete
 	}
 }
 
-func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, metricsPrefix string, mp metric.MeterProvider) func() (request.Handler, error) {
+func (r *routeBuilder) otlpHandler(handler request.Handler, metricsPrefix string, mp metric.MeterProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		h := func(c *request.Context) {
-			handler(c.ResponseWriter, c.Request)
-		}
-		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp, r.logger)...)
+		return middleware.Wrap(handler, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp, r.logger)...)
 	}
 }
 
