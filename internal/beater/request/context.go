@@ -123,9 +123,9 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// Close the request body, which may have been replaced
-		// by decodeRequestBody. net/http holds onto the original
-		// body, so it won't close the decompressor.
+		// Close the request body, which may be replaced by decodeRequestBody.
+		// net/http holds onto the original body,
+		// and is responsible for closing only the original body but not the replaced body.
 		if c.Request.Body != nil {
 			c.Request.Body.Close()
 		}
@@ -302,7 +302,9 @@ func (c *Context) decodeRequestBody() error {
 		} else if rc.magic[0]&0x0f == zlibDeflate {
 			reader, err = c.resetZlib(rc)
 		} else {
-			reader = rc
+			// Setting a NopClose on non-compressed reader to make it behave like gzip reader and zlib reader
+			// in a way that Close() only closes the decoder but not the underlying reader.
+			reader = io.NopCloser(rc)
 		}
 	}
 	if err != nil {
