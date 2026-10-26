@@ -68,6 +68,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
+	"github.com/elastic/apm-server/internal/beater/otlp"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/fips140"
@@ -392,17 +393,24 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	// Note that we intentionally do not use a grpc.Creds ServerOption
 	// even if TLS is enabled, as TLS is handled by the net/http server.
+	//
+	// MaxRecvMsgSize applies to the compressed frame and to the message after
+	// decompression. Oversized messages are rejected with RESOURCE_EXHAUSTED
+	// and no RetryInfo, which the OTLP spec treats as non-retryable.
 	gRPCLogger := s.logger.Named("grpc")
-	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
-		interceptors.Tracing(s.tracerProvider),
-		interceptors.Recover(),
-		interceptors.ClientMetadata(),
-		interceptors.Logging(gRPCLogger),
-		interceptors.Metrics(gRPCLogger, s.meterProvider),
-		interceptors.Timeout(),
-		interceptors.Auth(authenticator),
-		interceptors.AnonymousRateLimit(ratelimitStore),
-	))
+	grpcServer := grpc.NewServer(
+		grpc.MaxRecvMsgSize(otlp.MaxRequestSize),
+		grpc.ChainUnaryInterceptor(
+			interceptors.Tracing(s.tracerProvider),
+			interceptors.Recover(),
+			interceptors.ClientMetadata(),
+			interceptors.Logging(gRPCLogger),
+			interceptors.Metrics(gRPCLogger, s.meterProvider),
+			interceptors.Timeout(),
+			interceptors.Auth(authenticator),
+			interceptors.AnonymousRateLimit(ratelimitStore),
+		),
+	)
 
 	// Create the BatchProcessor chain that is used to process all events,
 	// including the metrics aggregated by APM Server.
