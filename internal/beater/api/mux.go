@@ -186,12 +186,18 @@ func (r *routeBuilder) backendIntakeHandler(metricsPrefix string, mp metric.Mete
 	}
 }
 
+<<<<<<< HEAD
 func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, metricsPrefix string, mp metric.MeterProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := func(c *request.Context) {
 			handler(c.ResponseWriter, c.Request)
 		}
 		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp, r.logger)...)
+=======
+func (r *routeBuilder) otlpHandler(handler request.Handler, metricsPrefix string, mp metric.MeterProvider, tp trace.TracerProvider) func() (request.Handler, error) {
+	return func() (request.Handler, error) {
+		return middleware.Wrap(handler, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp, tp, r.logger)...)
+>>>>>>> 1ae1c73 (otlp: record HTTP error status in logs and metrics (#22209))
 	}
 }
 
