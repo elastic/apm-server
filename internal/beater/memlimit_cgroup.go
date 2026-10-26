@@ -21,15 +21,10 @@ import (
 	"fmt"
 	"os"
 
-<<<<<<< HEAD
 	"github.com/pkg/errors"
 
-	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup"
-	"github.com/elastic/elastic-agent-system-metrics/metric/system/resolve"
-=======
 	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/cgroup"
 	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/resolve"
->>>>>>> 630c8ea (refactor: replace elastic-agent-system-metrics lib with beats pkg (#22221))
 )
 
 // cgroupReader defines a short interface useful for testing purposes
