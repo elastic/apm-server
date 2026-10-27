@@ -76,7 +76,7 @@ TRIG
     agents:
       image: "docker.elastic.co/release-eng/wolfi-build-essential-release-eng:latest"
       cpu: "250m"
-      memory: "512Mi"
+      memory: "1Gi"
       ephemeralStorage: "1Gi"
     timeout_in_minutes: 5
 ANN
