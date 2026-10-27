@@ -80,8 +80,7 @@ echo "--- Setting up the :github: environment..."
 GH_TOKEN="${VAULT_GITHUB_TOKEN}"
 export GH_TOKEN
 
-# Go setup is opt-in. Package steps set SETUP_GO=true because they build
-# with the Go toolchain. DRA annotate does not, so it leaves this unset.
+# Steps that need the Go toolchain set SETUP_GO=true.
 if [[ "${SETUP_GO:-}" == "true" ]]; then
   echo "--- Setting up the :golang: environment..."
   GO_VERSION=$(grep '^go' go.mod | cut -d' ' -f2)
