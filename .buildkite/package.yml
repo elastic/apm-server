@@ -56,8 +56,6 @@ steps:
   - label: ":pipeline: Generate DRA steps ({{matrix}})"
     key: "dra-step-generator"
     command: ".buildkite/scripts/dra.sh {{matrix}}"
-    env:
-      SETUP_GO: "true"
     agents:
       provider: "gcp"
       image: "${IMAGE_UBUNTU_X86_64}"
