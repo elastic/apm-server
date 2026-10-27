@@ -17,6 +17,8 @@ steps:
       - label: "Package x86_64"
         key: "package-x86-64"
         command: ".buildkite/scripts/package.sh {{matrix}}"
+        env:
+          SETUP_GO: "true"
         agents:
           provider: "gcp"
           image: "${IMAGE_UBUNTU_X86_64}"
@@ -35,6 +37,8 @@ steps:
       - label: "Package aarch64"
         key: "package-arm"
         command: ".buildkite/scripts/package.sh {{matrix}}"
+        env:
+          SETUP_GO: "true"
         agents:
           provider: "aws"
           imagePrefix: "${IMAGE_UBUNTU_ARM_64}"
