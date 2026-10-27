@@ -23,6 +23,7 @@ steps:
           provider: "gcp"
           image: "${IMAGE_UBUNTU_X86_64}"
           machineType: "c4d-standard-16"
+          diskType: "hyperdisk-balanced"
         matrix:
           - "snapshot"
           - "staging"
@@ -62,6 +63,7 @@ steps:
       provider: "gcp"
       image: "${IMAGE_UBUNTU_X86_64}"
       machineType: "c4d-standard-16"
+      diskType: "hyperdisk-balanced"
     matrix:
       - "snapshot"
       - "staging"

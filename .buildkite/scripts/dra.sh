@@ -96,6 +96,7 @@ steps:
       provider: "gcp"
       image: "${IMAGE_UBUNTU_X86_64}"
       machineType: "c4d-standard-16"
+      diskType: "hyperdisk-balanced"
     timeout_in_minutes: 30
     artifact_paths:
       - "artifacts/dra/apm-server/*/manifest-*.json"
