@@ -50,6 +50,18 @@ _No new features, enhancements, or fixes._
 
 * Skip loading and applying source maps that exceed the configured `max_sourcemap_size` limit (default 500MiB) to prevent excessive memory usage. ([#21520](https://github.com/elastic/apm-server/pull/21520))
 
+## 9.4.9 [apm-9.4.9-release-notes]
+
+### Features and enhancements [apm-9.4.9-features-enhancements]
+
+* Limit OTLP/gRPC and OTLP/HTTP request bodies to 64MiB, including after decompression. ([#22208](https://github.com/elastic/apm-server/pull/22208))
+
+### Fixes [apm-9.4.9-fixes]
+
+* Record the HTTP status of failed OTLP/HTTP requests in request logs and monitoring metrics, and return HTTP 403 instead of HTTP 500 for unauthorized ingest. ([#22209](https://github.com/elastic/apm-server/pull/22209))
+* Fix a deadlock in Tail-Based Sampling that stops APM Server from accepting data when storage rotation runs during a paged read of trace events. ([#22144](https://github.com/elastic/apm-server/pull/22144)). For more details, refer to our known issues [page](https://www.elastic.co/docs/release-notes/apm/known-issues)
+* Fix agent configuration cache collisions between service name and environment. ([#22046](https://github.com/elastic/apm-server/pull/22046))
+
 ## 9.4.8 [apm-9.4.8-release-notes]
 
 _No new features, enhancements, or fixes._
