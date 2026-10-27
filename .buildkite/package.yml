@@ -20,7 +20,7 @@ steps:
         agents:
           provider: "gcp"
           image: "${IMAGE_UBUNTU_X86_64}"
-          machineType: "c2-standard-16"
+          machineType: "c4d-standard-16"
         matrix:
           - "snapshot"
           - "staging"
@@ -38,7 +38,7 @@ steps:
         agents:
           provider: "aws"
           imagePrefix: "${IMAGE_UBUNTU_ARM_64}"
-          instanceType: "t4g.2xlarge"
+          instanceType: "c8g.2xlarge"
         matrix:
           - "snapshot"
           - "staging"
@@ -55,7 +55,7 @@ steps:
     agents:
       provider: "gcp"
       image: "${IMAGE_UBUNTU_X86_64}"
-      machineType: "c2-standard-16"
+      machineType: "c4d-standard-16"
     matrix:
       - "snapshot"
       - "staging"
