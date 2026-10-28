@@ -1,0 +1,95 @@
+notify:
+  - slack:
+      channels:
+        - "#apm-server"
+      message: "<!subteam^S07C12216KY|obs-ds-intake-service-team> Version bump to ${NEW_VERSION} — ${BUILDKITE_BUILD_URL}"
+    if: (build.branch == 'main' || build.branch =~ /^[0-9]+\.[0-9x]+\$/) && (build.state == 'passed' || build.state == 'failed')
+
+steps:
+  - label: ":slack: Notify team version bump started"
+    if: build.branch == 'main' || build.branch =~ /^[0-9]+\.[0-9x]+\$/
+    command: echo "Version bump started"
+    env:
+      SETUP_GO: "false"
+    notify:
+      - slack:
+          channels:
+            - "#apm-server"
+          message: "<!subteam^S07C12216KY|obs-ds-intake-service-team> Version bump to ${NEW_VERSION} started — ${BUILDKITE_BUILD_URL}"
+
+  - label: "Validate WORKFLOW and NEW_VERSION consistency"
+    env:
+      SETUP_GO: "false"
+    command: |
+      if [ "$${WORKFLOW}" = "minor" ]; then
+        if ! echo "$${NEW_VERSION}" | grep -q '\.0$$'; then
+          echo "❌ Error: WORKFLOW is 'minor' but NEW_VERSION ($${NEW_VERSION}) does not end with 0"
+          exit 1
+        fi
+        echo "✅ Valid: WORKFLOW is 'minor' and NEW_VERSION ($${NEW_VERSION}) ends with 0"
+      elif [ "$${WORKFLOW}" = "patch" ]; then
+        if echo "$${NEW_VERSION}" | grep -q '\.0$$'; then
+          echo "❌ Error: WORKFLOW is 'patch' but NEW_VERSION ($${NEW_VERSION}) ends with 0"
+          exit 1
+        fi
+        echo "✅ Valid: WORKFLOW is 'patch' and NEW_VERSION ($${NEW_VERSION}) does not end with 0"
+      else
+        echo "❌ Error: WORKFLOW must be either 'minor' or 'patch', got '$${WORKFLOW}'"
+        exit 1
+      fi
+
+  - wait:
+
+  - label: "Bump version minor"
+    if: build.env("WORKFLOW") == "minor"
+    env:
+      SETUP_GO: "false"
+    plugins:
+      - elastic/vault-github-token#v0.1.0:
+      - elastic/gh-cli#v0.1.1:
+          version: "2.88.1"
+          wait: true
+          workflow-file: "run-minor-release.yml"
+          workflow-ref: "main"
+          workflow-inputs:
+            version: "${NEW_VERSION}"
+
+  - label: "Bump version patch"
+    if: build.env("WORKFLOW") == "patch"
+    env:
+      SETUP_GO: "false"
+    plugins:
+      - elastic/vault-github-token#v0.1.0:
+      - elastic/gh-cli#v0.1.1:
+          version: "2.88.1"
+          wait: true
+          workflow-file: "run-patch-release.yml"
+          workflow-ref: "main"
+          workflow-inputs:
+            version: "${NEW_VERSION}"
+
+  - wait:
+
+  - label: "Fetch DRA Artifacts"
+    key: fetch-dra-artifacts
+    env:
+      SETUP_GO: "false"
+    agents:
+      image: docker.elastic.co/release-eng/wolfi-build-essential-release-eng:latest
+      cpu: 250m
+      memory: 512Mi
+      ephemeralStorage: 1Gi
+    timeout_in_minutes: 480
+    retry:
+      automatic:
+        - exit_status: "*"
+          limit: 2
+      manual:
+        permit_on_passed: true
+
+    plugins:
+      - elastic/version-bump-dra#v1.0.0:
+          product: "apm-server"
+          version: "${NEW_VERSION}"
+          workflow: "${WORKFLOW}"
+          polling_interval: 30
