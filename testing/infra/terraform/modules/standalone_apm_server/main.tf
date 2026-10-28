@@ -95,12 +95,6 @@ locals {
     "OL8"                             = "ec2-user"
     "OL9"                             = "ec2-user"
   }
-  # The 20240528 Rocky 8 AMIs were deprecated on 2026-05-31. Match the
-  # republished 8.10 images (Rocky-8-EC2-Base-8.10-20260625 and later 2026
-  # rebuilds) so the lookup cannot return that deprecated AMI.
-  ami_name_patterns = {
-    "Rocky-8-EC2-Base" = "Rocky-8-EC2-Base-8.10-2026*"
-  }
 
   apm_port  = "8200"
   conf_path = "/tmp/local-apm-config.yml"
@@ -109,13 +103,10 @@ locals {
 
 data "aws_ami" "os" {
   most_recent = true
-  # The 20240528 Rocky 8 images are deprecated (2026-05-31). Exclude them so
-  # most_recent resolves the republished Rocky-8-EC2-Base image.
-  include_deprecated = false
 
   filter {
     name   = "name"
-    values = [lookup(local.ami_name_patterns, var.aws_os, "*${var.aws_os}*")]
+    values = ["*${var.aws_os}*"]
   }
 
   filter {
