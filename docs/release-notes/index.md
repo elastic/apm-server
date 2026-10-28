@@ -54,7 +54,7 @@ _No new features, enhancements, or fixes._
 
 ### Features and enhancements [apm-9.4.9-features-enhancements]
 
-* Limit OTLP/gRPC and OTLP/HTTP request bodies to 64MiB, including after decompression. ([#22208](https://github.com/elastic/apm-server/pull/22208))
+* Limit OTLP/gRPC and OTLP/HTTP request bodies to 64MiB, whether uncompressed or decompressed. ([#22208](https://github.com/elastic/apm-server/pull/22208))
 
 ### Fixes [apm-9.4.9-fixes]
 
