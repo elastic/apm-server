@@ -19,6 +19,8 @@ notify:
 
 steps:
   - label: "Validate WORKFLOW and NEW_VERSION consistency"
+    env:
+      SETUP_GO: "false"
     command: |
       if [ "$${WORKFLOW}" = "minor" ]; then
         if ! echo "$${NEW_VERSION}" | grep -q '0$$'; then
@@ -41,6 +43,8 @@ steps:
 
   - label: "Bump version minor"
     if: build.env("WORKFLOW") == "minor"
+    env:
+      SETUP_GO: "false"
     plugins:
       - elastic/vault-github-token#v0.1.0:
       - elastic/gh-cli#v0.1.1:
@@ -53,6 +57,8 @@ steps:
 
   - label: "Bump version patch"
     if: build.env("WORKFLOW") == "patch"
+    env:
+      SETUP_GO: "false"
     plugins:
       - elastic/vault-github-token#v0.1.0:
       - elastic/gh-cli#v0.1.1:
@@ -77,6 +83,8 @@ steps:
   - label: "Fetch DRA Artifacts"
     key: fetch-dra-artifacts
     depends_on: block-get-dra-artifacts
+    env:
+      SETUP_GO: "false"
     agents:
       image: docker.elastic.co/release-eng/wolfi-build-essential-release-eng:latest
       cpu: 250m
