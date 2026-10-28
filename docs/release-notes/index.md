@@ -24,6 +24,18 @@ To check for security updates, go to [Security announcements for the Elastic sta
 % ### Fixes [apm-next-fixes]
 % * 1 sentence describing the change. ([#PR number](https://github.com/elastic/apm-server/pull/PR number))
 
+## 9.5.6 [apm-9.5.6-release-notes]
+
+### Features and enhancements [apm-9.5.6-features-enhancements]
+
+* Limit OTLP/gRPC and OTLP/HTTP request bodies to 64MiB, whether uncompressed or decompressed. ([#22208](https://github.com/elastic/apm-server/pull/22208))
+
+### Fixes [apm-9.5.6-fixes]
+
+* Record the HTTP status of failed OTLP/HTTP requests in request logs and monitoring metrics, and return HTTP 403 instead of HTTP 500 for unauthorized ingest. ([#22209](https://github.com/elastic/apm-server/pull/22209))
+* Fix a deadlock in Tail-Based Sampling that stops APM Server from accepting data when storage rotation runs during a paged read of trace events. ([#22144](https://github.com/elastic/apm-server/pull/22144)). For more details, refer to our known issues [page](https://www.elastic.co/docs/release-notes/apm/known-issues)
+* Fix agent configuration cache collisions between service name and environment. ([#22046](https://github.com/elastic/apm-server/pull/22046))
+
 ## 9.5.5 [apm-9.5.5-release-notes]
 
 _No new features, enhancements, or fixes._
