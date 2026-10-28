@@ -27,7 +27,7 @@ import (
 
 func adjustMemlimit(ctx context.Context, d time.Duration, logger *slog.Logger) error {
 	setMemLimit := func() {
-		memlimit.SetGoMemLimitWithOpts(
+		memlimit.Set(
 			memlimit.WithProvider(
 				memlimit.ApplyFallback(
 					memlimit.FromCgroup,
@@ -35,7 +35,6 @@ func adjustMemlimit(ctx context.Context, d time.Duration, logger *slog.Logger) e
 				),
 			),
 			memlimit.WithLogger(logger),
-			memlimit.WithRefreshInterval(0),
 			memlimit.WithRatio(0.9),
 		)
 	}
