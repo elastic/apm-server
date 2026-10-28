@@ -111,7 +111,10 @@ func (c *addKeystoreCmd) validate(args []string) error {
 }
 
 func (c *addKeystoreCmd) run(cmd *cobra.Command, args []string) error {
-	c.keys = args
+	c.keys = make([]string, len(args))
+	for i, arg := range args {
+		c.keys[i] = strings.TrimSpace(arg)
+	}
 	var err error
 	if c.fromDir != "" {
 		c.keys, err = getKeysFromDir(c.fromDir)
@@ -236,7 +239,6 @@ func addKey(store keystore.Keystore, keys []string, getKeyValue keyValueGetter, 
 	}
 
 	for _, key := range keys {
-		key = strings.TrimSpace(key)
 		if _, err := store.Retrieve(key); err == nil {
 			if !force {
 				if !interactive {
@@ -258,6 +260,7 @@ func addKey(store keystore.Keystore, keys []string, getKeyValue keyValueGetter, 
 		if err != nil {
 			return err
 		}
+
 		if err = writableKeystore.Store(key, keyValue); err != nil {
 			return fmt.Errorf("could not add the key in the keystore, error: %w", err)
 		}
@@ -287,7 +290,6 @@ func removeKey(store keystore.Keystore, keys []string) error {
 	}
 
 	for _, key := range keys {
-		key = strings.TrimSpace(key)
 		_, err := store.Retrieve(key)
 		if err != nil {
 			return fmt.Errorf("could not find key '%v' in the keystore", key)
@@ -362,7 +364,14 @@ func getKeysFromDir(dir string) ([]string, error) {
 	var keys []string
 	for _, entry := range entries {
 		name := entry.Name()
-		if entry.IsDir() || strings.HasPrefix(name, ".") {
+		if strings.HasPrefix(name, ".") {
+			continue
+		}
+		info, err := os.Stat(filepath.Join(dir, name))
+		if err != nil {
+			return nil, fmt.Errorf("could not stat %q error: %w", name, err)
+		}
+		if !info.Mode().IsRegular() {
 			continue
 		}
 		keys = append(keys, name)

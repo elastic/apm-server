@@ -125,6 +125,13 @@ func TestGetKeysFromDir(t *testing.T) {
 			want: nil,
 		},
 		{
+			name:     "symlinks to directories are skipped",
+			files:    []string{"a"},
+			dirs:     []string{"sub"},
+			symlinks: map[string]string{"link": "sub"},
+			want:     []string{"a"},
+		},
+		{
 			name: "only subdirectories",
 			dirs: []string{"sub"},
 			want: nil,
