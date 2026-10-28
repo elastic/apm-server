@@ -73,10 +73,12 @@ TRIG
     key: "dra-annotate-${workflow}"
     depends_on: "dra-process-${workflow}"
     command: ".buildkite/scripts/dra-annotate.sh ${workflow}"
+    env:
+      SETUP_GO: "false"
     agents:
       image: "docker.elastic.co/release-eng/wolfi-build-essential-release-eng:latest"
       cpu: "250m"
-      memory: "1Gi"
+      memory: "512Mi"
       ephemeralStorage: "1Gi"
     timeout_in_minutes: 5
 ANN
@@ -90,12 +92,14 @@ steps:
     key: "dra-prep-${workflow}"
     command: ".buildkite/scripts/stage-dra-artifacts.sh"
     env:
+      SETUP_GO: "false"
       DRA_WORKFLOW: "${workflow}"
       DRA_STACK_VERSION: "${stack_version}"
     agents:
       provider: "gcp"
       image: "${IMAGE_UBUNTU_X86_64}"
-      machineType: "c2-standard-16"
+      machineType: "c4d-standard-16"
+      diskType: "hyperdisk-balanced"
     timeout_in_minutes: 30
     artifact_paths:
       - "artifacts/dra/apm-server/*/manifest-*.json"
