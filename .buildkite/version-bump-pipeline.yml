@@ -20,20 +20,6 @@ notify:
     if: build.state == "blocked"
 
 steps:
-<<<<<<< HEAD
-=======
-  - label: ":slack: Notify team version bump started"
-    if: build.branch == 'main' || build.branch =~ /^[0-9]+\.[0-9x]+\$/
-    command: echo "Version bump started"
-    env:
-      SETUP_GO: "false"
-    notify:
-      - slack:
-          channels:
-            - "#apm-server"
-          message: "<!subteam^S07C12216KY|obs-ds-intake-service-team> Version bump to ${NEW_VERSION} started — ${BUILDKITE_BUILD_URL}"
-
->>>>>>> 1909905 (ci: install Go unless a step opts out and modernize package instance types (#22282))
   - label: "Validate WORKFLOW and NEW_VERSION consistency"
     env:
       SETUP_GO: "false"
@@ -98,12 +84,9 @@ steps:
 
   - label: "Fetch DRA Artifacts"
     key: fetch-dra-artifacts
-<<<<<<< HEAD
     depends_on: block-get-dra-artifacts
-=======
     env:
       SETUP_GO: "false"
->>>>>>> 1909905 (ci: install Go unless a step opts out and modernize package instance types (#22282))
     agents:
       image: docker.elastic.co/release-eng/wolfi-build-essential-release-eng:latest
       cpu: 250m
