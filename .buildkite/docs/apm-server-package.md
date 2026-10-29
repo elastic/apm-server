@@ -66,9 +66,9 @@ flowchart TD
 
 | Job or step | Runs when | Depends on | What it does |
 | --- | --- | --- | --- |
-| `package-x86-64` (`Package x86_64`) | Each matrix value: `snapshot`, `staging` | None declared | Runs [`package.sh`](../scripts/package.sh) on GCP `c2-standard-16` with Ubuntu 24.04 (`family/core-ubuntu-2404`). Uploads `build/distributions/**/*` and `build/dependencies*.csv`. Timeout 120 minutes. |
-| `package-arm` (`Package aarch64`) | Each matrix value: `snapshot`, `staging` | None declared | Runs `package.sh` on AWS `t4g.2xlarge` with the `core-ubuntu-2404-aarch64` image prefix. Uploads `build/distributions/**/*` only. Timeout 120 minutes. |
-| `dra-step-generator` (`:pipeline: Generate DRA steps`) | Each matrix value: `snapshot`, `staging` | `package` group, `allow_failure: false` | Runs [`dra.sh`](../scripts/dra.sh) on GCP `c2-standard-16`, which uploads the DRA sub-pipeline. Timeout 10 minutes. |
+| `package-x86-64` (`Package x86_64`) | Each matrix value: `snapshot`, `staging` | None declared | Runs [`package.sh`](../scripts/package.sh) on GCP `c4d-standard-16` (`hyperdisk-balanced` disk) with Ubuntu 24.04 (`family/core-ubuntu-2404`). Uploads `build/distributions/**/*` and `build/dependencies*.csv`. Timeout 120 minutes. |
+| `package-arm` (`Package aarch64`) | Each matrix value: `snapshot`, `staging` | None declared | Runs `package.sh` on AWS `c8g.2xlarge` with the `core-ubuntu-2404-aarch64` image prefix. Uploads `build/distributions/**/*` only. Timeout 120 minutes. |
+| `dra-step-generator` (`:pipeline: Generate DRA steps`) | Each matrix value: `snapshot`, `staging` | `package` group, `allow_failure: false` | Runs [`dra.sh`](../scripts/dra.sh) on GCP `c4d-standard-16` (`hyperdisk-balanced` disk), which uploads the DRA sub-pipeline. Timeout 10 minutes. |
 | `dra-prep-WORKFLOW` | Uploaded by `dra.sh` | `None declared` | Runs [`stage-dra-artifacts.sh`](../scripts/stage-dra-artifacts.sh) and the `elastic/dra-prep` plugin. Timeout 30 minutes. |
 | `dra-process-WORKFLOW` | Uploaded only when `DRA_UPLOAD` is `true` | `dra-prep-WORKFLOW` | Triggers the `unified-release-dra-processing` pipeline. |
 | `dra-annotate-WORKFLOW` | Uploaded only when `DRA_UPLOAD` is `true` | `dra-process-WORKFLOW` | Runs [`dra-annotate.sh`](../scripts/dra-annotate.sh). Timeout 5 minutes. |
