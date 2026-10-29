@@ -290,6 +290,7 @@ func removeKey(store keystore.Keystore, keys []string) error {
 	}
 
 	for _, key := range keys {
+		key = strings.TrimSpace(key)
 		_, err := store.Retrieve(key)
 		if err != nil {
 			return fmt.Errorf("could not find key '%v' in the keystore", key)
