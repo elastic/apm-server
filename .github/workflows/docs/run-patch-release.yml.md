@@ -52,7 +52,7 @@ On success, the workflow posts that the pull requests to bump versions have been
 ## Operational notes
 
 - The `run-patch` job checks out the default ref of the repository, not the release branch. The release branch is used by the make target through `RELEASE_BRANCH` and the `BASE` and `TARGET_BRANCH` values.
-- Version checks: the composite rejects versions that end in `.0` and performs no other format validation. It runs `git ls-remote` to check for the tag, and any `ls-remote` failure other than a found tag counts as "not found".
+- Version checks: the composite rejects versions that end in `.0`. It runs `git ls-remote` to check for the tag, and any `ls-remote` failure other than a found tag counts as "not found".
 - The update branch is reused if it already exists on the remote, and the commit step runs only when there is a diff.
 - Pull request creation skips when a pull request with the `release` label already exists for the same head and base, unless `FORCE_PR_CREATION=true`. The `gh pr create` call ends with `|| echo "There is no changes"`, so a failed creation does not fail the step.
 - Failure handling: `prepare` failures post the failure reason to the Slack thread. `run-patch` failures post a generic message with a link to the run logs. The workflow has no cleanup or rollback.
