@@ -43,7 +43,7 @@ flowchart TD
 | Inputs | None. The branch list comes from the active-branches action. |
 | Outputs | The `matrix` output of `prepare-smoke-tests-os`. Smoke test results appear in each called run. A Slack message from `notify`. |
 | Permissions | Workflow: `contents: read`. Smoke jobs add `id-token: write`. |
-| Secrets | `SLACK_BOT_TOKEN` (used by `notify`). The called workflow uses secrets inherited from the caller, including `EC_API_KEY`. |
+| Secrets | `SLACK_BOT_TOKEN` (used by `notify`). The called workflow's credentials are described in [`smoke-tests-os.yml.md`](smoke-tests-os.yml.md). |
 
 ## Operational notes
 
