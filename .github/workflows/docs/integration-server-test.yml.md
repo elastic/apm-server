@@ -48,7 +48,7 @@ Each test job runs the [`setup-integration-server-test`](../setup-integration-se
 
 | Action | Used by | What it does |
 |---|---|---|
-| [`setup-integration-server-test`](../setup-integration-server-test/action.yml) | `generate-upgrade-paths`, `run-upgrade`, `run-upgrade-bc` | Installs Terraform (`TERRAFORM_VERSION`, 1.10.2 in this workflow) with the wrapper disabled. Sets up Go from `integrationservertest/go.mod`. Authenticates to Google Cloud with `elastic/oblt-actions/google/auth`. Writes `EC_TARGET=qa` to `GITHUB_ENV`. Reads `EC_API_KEY` from Secret Manager. |
+| [`setup-integration-server-test`](../setup-integration-server-test/action.yml) | `generate-upgrade-paths`, `run-upgrade`, `run-upgrade-bc` | Installs Terraform (`TERRAFORM_VERSION`, 1.10.2 in this workflow). Sets up Go from `integrationservertest/go.mod`. Authenticates to Google Cloud with `elastic/oblt-actions/google/auth`. Writes `EC_TARGET=qa` to `GITHUB_ENV`. Reads `EC_API_KEY` from Secret Manager. |
 | [`generate-upgrade-paths`](../generate-upgrade-paths/action.yml) | `prepare` | Runs the setup action, then [`script.sh`](../generate-upgrade-paths/script.sh). The script runs `go run ./scripts/genpath` in `integrationservertest` twice, once with `--snapshots=true` and once with `--snapshots=false`, and writes both lists to `GITHUB_OUTPUT`. |
 
 ### Make target used

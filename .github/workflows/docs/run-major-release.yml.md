@@ -51,7 +51,7 @@ flowchart TD
 
 ## Operational notes
 
-- Version checks: the composite requires a major version (`<major>.0.0`) and fails for any other value. It runs `git ls-remote` to check for the tag, and any `ls-remote` failure other than a found tag counts as "not found".
+- Version checks: the composite rejects versions that do not end in `.0.0` and performs no other format validation. It runs `git ls-remote` to check for the tag, and any `ls-remote` failure other than a found tag counts as "not found".
 - Failure handling: `prepare` failures post the failure reason to the Slack thread. `run-major` failures post a generic message with a link to the run logs. The workflow has no cleanup or rollback, so branches, labels, and commits created before a failure remain.
 - Pull request creation skips when a pull request with the `release` label already exists for the same head and base, unless `FORCE_PR_CREATION=true`. The `gh pr create` call ends with `|| echo "There is no changes"`, so a failed creation does not fail the step.
 - The major release does not set `BACKPORT_LABEL`, so the label argument passed to `gh pr create` is empty.

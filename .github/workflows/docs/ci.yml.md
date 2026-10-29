@@ -15,7 +15,7 @@ The main continuous integration pipeline for apm-server: lint, unit tests on thr
 
 ## Purpose
 
-Validates every change to apm-server before merge. It runs the Makefile `check-full`, `test`, `system-test`, and `package-snapshot` targets, and it publishes Docker images only for pushes and non-fork, non-Dependabot pull requests.
+Validates every change to apm-server before merge. It runs the Makefile `check-full`, `test`, `system-test`, and `package-snapshot` targets, and it publishes Docker images for pushes, merge-queue runs, and non-fork, non-Dependabot pull requests.
 
 ## When it runs
 
@@ -70,7 +70,7 @@ The `system-test` jobs use `docker compose` with [`docker-compose.yml`](../../..
 | Item | Details |
 |---|---|
 | Inputs | Repository code, `go.mod` files, and the event context. |
-| Outputs | Test results, packaged artifacts from `make package-snapshot`, and images pushed to the Elastic Docker registry on push events. |
+| Outputs | Test results, packaged artifacts from `make package-snapshot`, and images pushed to the Elastic Docker registry (see `test-package-and-push`). |
 | Permissions | Workflow token: `contents: read`. The publish job uses registry credentials from secrets. |
 | Secrets | `ELASTIC_DOCKER_REGISTRY`, `ELASTIC_DOCKER_USERNAME`, `ELASTIC_DOCKER_PASSWORD`. The `GH_TOKEN` environment variable uses `github.token`, not a repository secret. |
 
