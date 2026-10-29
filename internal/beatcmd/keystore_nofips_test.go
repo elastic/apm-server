@@ -65,7 +65,12 @@ func setStdin(t *testing.T, content string) {
 
 	origStdin := os.Stdin
 	os.Stdin = stdin
-	t.Cleanup(func() { os.Stdin = origStdin })
+	t.Cleanup(func() {
+		os.Stdin = origStdin
+		// Close the file before t.TempDir removes it: Windows refuses
+		// to delete a file that still has an open handle.
+		stdin.Close()
+	})
 }
 
 func assertPersistedSecrets(t *testing.T, path string, expected map[string]string) {
