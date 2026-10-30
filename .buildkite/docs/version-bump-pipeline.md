@@ -39,6 +39,9 @@ flowchart TD
   wait2 --> fetch["Fetch DRA Artifacts"]
 ```
 
+> [!NOTE]
+> The diagram above shows `Notify team version bump started` feeding into `Validate WORKFLOW and NEW_VERSION consistency`, but the pipeline file declares no dependency between them. Buildkite can run both steps in parallel; validation does not wait for the notification to finish.
+
 | Job or step | Runs when | Depends on | What it does |
 | --- | --- | --- | --- |
 | `Notify team version bump started` | Branch is `main` or matches the branch pattern above | None declared | Runs `echo "Version bump started"` and sends a Slack message to `#apm-server` that names `NEW_VERSION` and links the build. |
