@@ -455,11 +455,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.22.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20261019215014-1f94b9713b9c
+Version: v7.0.0-alpha2.0.20261030162620-b75191814d96
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20261019215014-1f94b9713b9c/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20261030162620-b75191814d96/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -478,11 +478,11 @@ License Version 2.0.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-client/v7
-Version: v7.18.1
+Version: v7.19.0
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.18.1/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.19.0/LICENSE.txt:
 
 ELASTIC LICENSE AGREEMENT
 
@@ -1344,11 +1344,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.3.3/LIC
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-docappender/v2
-Version: v2.14.1
+Version: v2.15.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender/v2@v2.14.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender/v2@v2.15.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3233,11 +3233,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/pdata
-Version: v1.69.0
+Version: v1.70.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.69.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.70.0/LICENSE:
 
 
                                  Apache License
@@ -4914,11 +4914,11 @@ Contents of probable licence file $GOMODCACHE/go.yaml.in/yaml/v2@v2.4.4/LICENSE:
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.61.0
+Version: v0.62.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.61.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.62.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -5317,11 +5317,11 @@ Indirect dependencies
 
 --------------------------------------------------------------------------------
 Dependency : github.com/Microsoft/go-winio
-Version: v0.6.3
+Version: v0.6.4
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/!microsoft/go-winio@v0.6.3/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/!microsoft/go-winio@v0.6.4/LICENSE:
 
 The MIT License (MIT)
 
@@ -15274,11 +15274,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/auto/sdk@v1.2.
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/consumer
-Version: v1.69.0
+Version: v1.70.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.69.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.70.0/LICENSE:
 
 
                                  Apache License
@@ -15486,11 +15486,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/cons
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/featuregate
-Version: v1.69.0
+Version: v1.70.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/featuregate@v1.69.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/featuregate@v1.70.0/LICENSE:
 
 
                                  Apache License
