@@ -13,8 +13,8 @@ metadata:
 
 # Debug updatecli workflow failures
 
-Investigate the workflow run provided by the user. If no run is given, start from the
-most recent failed run of the workflows below.
+Investigate the failed runs of the workflows below in the lookback window given by the user
+(default 7 days). If the user names a run, start from that run.
 
 ## Workflows in scope
 
@@ -29,7 +29,9 @@ All of them run `elastic/oblt-actions/updatecli/run@v1`, some of them in a matri
 active branches returned by `elastic/oblt-actions/elastic/active-branches` (the `filter` job).
 Shared SCM values live in `.ci/updatecli/values.d/scm.yml`.
 
-## Step 1 — Inspect the failed run
+## Step 1 — List and inspect the failed runs
+
+List the runs of each workflow in the window first (see Step 3), then inspect each failed run:
 
 ```bash
 gh run view <run_id> --repo elastic/apm-server --json name,conclusion,createdAt,event,jobs,url
@@ -94,7 +96,7 @@ Anything else: quote the relevant log lines and describe it as unclassified.
 
 ## Step 3 — Check recurrence
 
-List recent runs of the same workflow (default lookback: 14 days):
+List recent runs of each workflow (default lookback: 7 days):
 
 ```bash
 gh run list --repo elastic/apm-server --workflow <file> --limit 100 \
@@ -109,7 +111,7 @@ say so rather than guessing.
 ## Step 4 — Summarise and propose a fix
 
 Report:
-1. Which workflow, run and branches failed, and since when
+1. Which workflows, runs and branches failed, and since when
 2. The exact error lines
 3. The pattern (A–F or unclassified) and whether it is transient or needs action
 4. Whether it is recurring, with the frequency over the lookback window
