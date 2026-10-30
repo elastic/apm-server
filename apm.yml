@@ -18,4 +18,4 @@ version: 1.0.0
 
 dependencies:
   apm:
-    - path: .apm/skills/debug-updatecli
+    - path: ./.apm/skills/debug-updatecli
