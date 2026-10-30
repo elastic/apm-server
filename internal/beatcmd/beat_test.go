@@ -218,7 +218,12 @@ func TestLibbeatMetrics(t *testing.T) {
 		},
 	}, snapshot)
 
-	snapshot = monitoring.CollectStructSnapshot(statsRegistry.GetRegistry("output"), monitoring.Full, false)
+	assert.Eventually(t, func() bool {
+		snapshot = monitoring.CollectStructSnapshot(statsRegistry.GetRegistry("output"), monitoring.Full, false)
+		elasticsearch := snapshot["elasticsearch"].(map[string]any)
+		bulkRequests := elasticsearch["bulk_requests"].(map[string]any)
+		return bulkRequests["available"] == int64(10)
+	}, 10*time.Second, 100*time.Millisecond)
 	assert.Equal(t, map[string]any{
 		"elasticsearch": map[string]any{
 			"bulk_requests": map[string]any{
