@@ -1,36 +1,21 @@
 ---
 on:
-  # Triage every failed updatecli automation run.
-  workflow_run:
-    workflows:
-      - bump-elastic-stack-snapshot
-      - bump-golang
-      - update-beats
-      - update-compose
-    types: [completed]
-    branches: [main]
-    conclusion: [failure, timed_out]
-  # Can also be triggered on demand to investigate a specific run.
+  # Fuzzy weekly schedule distributes execution time and reduces load spikes.
+  # A weekly report builds a history of failures for the host of the week.
+  schedule:
+    - cron: weekly on monday
+  # Can also be triggered on demand to investigate an active outage.
   workflow_dispatch:
     inputs:
-      run_id:
-        type: number
-        required: true
-        description: "ID of the failed workflow run to analyse"
       lookback_days:
         type: string
-        default: "14"
-        description: "Days of run history to inspect for recurrence"
-  # Scheduled runs are attributed to whoever last edited the cron, who may only have
-  # read access, so the default role check would skip the triage. `all` is safe only
-  # because the triggers are our own main-branch workflow_run and write-gated dispatch.
-  # Switch back to an explicit role list if you add an issue/comment/PR trigger
-  # (e.g. a self-remediation command).
-  roles: all
+        default: "7"
+        description: "Days of run history to inspect"
 
-# One slot per analysed run: failures of different runs don't cancel each other.
+# Each on-demand dispatch gets its own concurrency slot so two triggered runs
+# don't cancel each other; scheduled runs share a single slot (deduplication).
 concurrency:
-  job-discriminator: "${{ github.event.workflow_run.id || inputs.run_id }}"
+  job-discriminator: "${{ github.run_id }}"
 
 permissions:
   actions: read
@@ -60,7 +45,6 @@ tools:
 network:
   allowed:
     - defaults
-    - github
     - github-actions
 
 safe-outputs:
@@ -68,17 +52,15 @@ safe-outputs:
     title-prefix: "[updatecli] "
     labels: [automation, ci]
     max: 1
-    # Only supersede older issues of the same upstream workflow; manual runs never
-    # close issues filed for other runs.
-    close-older-issues: true
-    close-older-key: "${{ github.event.workflow_run.name || format('manual-{0}', inputs.run_id) }}"
+    # One report per week: a new one supersedes the previous.
 
 ---
 
 # updatecli-failure-report
 
-Use the **debug-updatecli** skill to investigate the failed workflow run
-`${{ github.event.workflow_run.id || inputs.run_id }}` in `${{ github.repository }}`
-and check recurrence of the same workflow over the last
-`${{ inputs.lookback_days || '14' }}` days. Follow the skill and the
+Use the **debug-updatecli** skill to investigate the failed runs of the updatecli
+workflows (`bump-elastic-stack-snapshot`, `bump-golang`, `update-beats`, `update-compose`)
+on `main` in `${{ github.repository }}` over the last `${{ inputs.lookback_days || '7' }}` days.
+Group the failures by workflow and pattern, and check recurrence in the same window.
+If nothing failed, do not create an issue. Follow the skill and the
 `.apm/instructions/updatecli-failure-issue.instructions.md` output requirements.
