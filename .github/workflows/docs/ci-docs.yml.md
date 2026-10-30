@@ -1,14 +1,14 @@
 # CI (docs-only)
 
-A placeholder CI workflow for pull requests that change only documentation or image files. It reports the same check names as [`ci.yml`](ci.yml.md) without running any tests or lint.
+A placeholder CI workflow for pull requests that change documentation or image files. It reports the same check names as [`ci.yml`](ci.yml.md) without running any tests or lint.
 
 ## At a glance
 
 | Field | Value |
 |---|---|
 | Definition | [`ci-docs.yml`](../ci-docs.yml) |
-| Triggers | Pull requests that change only `**.md`, `**.asciidoc`, `**.png`, or `**.svg` files; merge queue (`merge_group`) |
-| Path filter | Negated `paths-ignore`: runs only when every changed file matches an exception |
+| Triggers | Pull requests that change at least one `**.md`, `**.asciidoc`, `**.png`, or `**.svg` file; merge queue (`merge_group`) |
+| Path filter | Negated `paths-ignore`: the workflow runs only if the pull request includes a change to a documentation or image file matching one of the four patterns above. |
 | Token permissions | `contents: read` |
 | Secrets | None |
 | Runners | `macos-latest`, `windows-latest`, `ubuntu-latest` |
@@ -19,7 +19,7 @@ Lets required status checks from [`ci.yml`](ci.yml.md) pass on documentation-onl
 
 ## When it runs
 
-- On pull requests whose changes match only the documentation and image patterns above.
+- On pull requests that change at least one documentation or image file, even when code files also change.
 - On merge queue checks.
 
 ## Execution flow
@@ -51,7 +51,7 @@ All three jobs start in parallel. Each one runs a single `echo` step.
 
 ## Operational notes
 
-- The `paths-ignore` expression must match the one in [`ci.yml`](../ci.yml). Otherwise a change could skip both workflows or run both.
+- The `paths-ignore` expression must match the one in [`ci.yml`](../ci.yml). Docs-only changes run only this workflow, code-only changes run only `ci.yml`, and mixed changes run both.
 - The job names match `ci.yml` (`test`, `system-test`, `lint`) so that the same required checks are reported for docs-only changes.
 - This workflow has no `ci.yml` jobs for FIPS, packaging, or integration server tests. Those checks are not reported here.
 

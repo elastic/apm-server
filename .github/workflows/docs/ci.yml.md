@@ -23,7 +23,7 @@ Validates every change to apm-server before merge. It runs the Makefile `check-f
 - On pull requests, unless only documentation or image files changed.
 - On merge queue checks (`merge_group`).
 
-The companion [`ci-docs.yml`](ci-docs.yml.md) workflow runs for documentation-only pull requests instead.
+The companion [`ci-docs.yml`](ci-docs.yml.md) workflow runs for pull requests that change documentation or image files; a pull request that changes both code and documentation runs both workflows.
 
 ## Execution flow
 
@@ -76,7 +76,7 @@ The `system-test` jobs use `docker compose` with [`docker-compose.yml`](../../..
 
 ## Operational notes
 
-- The `paths-ignore` list must match the one in [`ci-docs.yml`](../ci-docs.yml); the two workflows select complementary sets of changes.
+- The `paths-ignore` list must match the one in [`ci-docs.yml`](../ci-docs.yml); docs-only changes run only `ci-docs.yml`, code-only changes run only this workflow, and mixed changes run both.
 - `test-integration-server-internal` only runs unit tests in `integrationservertest/internal`. Upgrade tests run in [`integration-server-test.yml`](../integration-server-test.yml).
 - The FIPS jobs set `GOFIPS140` and `GODEBUG` values inline in the workflow.
 - Setup actions in this workflow are external. See Sources.
