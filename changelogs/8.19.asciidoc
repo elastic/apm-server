@@ -1,5 +1,6 @@
 [[apm-release-notes-8.19]]
 == APM version 8.19
+* <<apm-release-notes-8.19.24>>
 * <<apm-release-notes-8.19.23>>
 * <<apm-release-notes-8.19.22>>
 * <<apm-release-notes-8.19.21>>
@@ -24,6 +25,24 @@
 * <<apm-release-notes-8.19.2>>
 * <<apm-release-notes-8.19.1>>
 * <<apm-release-notes-8.19.0>>
+
+[float]
+[[apm-release-notes-8.19.24]]
+=== APM version 8.19.24
+
+https://github.com/elastic/apm-server/compare/v8.19.23\...v8.19.24[View commits]
+
+[float]
+==== Added
+
+- Limit OTLP/gRPC and OTLP/HTTP request bodies to 64MiB, whether uncompressed or decompressed. {pull}22208[22208]
+
+[float]
+==== Bug fixes
+
+- Record the HTTP status of failed OTLP/HTTP requests in request logs and monitoring metrics, and return HTTP 403 instead of HTTP 500 for unauthorized ingest. {pull}22209[22209]
+- Fix agent configuration cache collisions between service name and environment. {pull}22046[22046]
+- Fix a deadlock in Tail-Based Sampling when dropping the database after the storage limit is reached. {pull}22084[22084]
 
 [float]
 [[apm-release-notes-8.19.23]]
