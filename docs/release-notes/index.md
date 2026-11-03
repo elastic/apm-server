@@ -26,6 +26,10 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 ## 9.5.6 [apm-9.5.6-release-notes]
 
+::::{important}
+This release contains security fixes. Please see our [security advisory](https://discuss.elastic.co/c/announcements/security-announcements/31) for more details.
+::::
+
 ### Features and enhancements [apm-9.5.6-features-enhancements]
 
 * Limit OTLP/gRPC and OTLP/HTTP request bodies to 64MiB, whether uncompressed or decompressed. ([#22208](https://github.com/elastic/apm-server/pull/22208))
@@ -63,6 +67,10 @@ _No new features, enhancements, or fixes._
 * Skip loading and applying source maps that exceed the configured `max_sourcemap_size` limit (default 500MiB) to prevent excessive memory usage. ([#21520](https://github.com/elastic/apm-server/pull/21520))
 
 ## 9.4.9 [apm-9.4.9-release-notes]
+
+::::{important}
+This release contains security fixes. Please see our [security advisory](https://discuss.elastic.co/c/announcements/security-announcements/31) for more details.
+::::
 
 ### Features and enhancements [apm-9.4.9-features-enhancements]
 
