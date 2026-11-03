@@ -80,24 +80,19 @@ echo "--- Setting up the :github: environment..."
 GH_TOKEN="${VAULT_GITHUB_TOKEN}"
 export GH_TOKEN
 
-echo "--- Setting up the :golang: environment..."
-GO_VERSION=$(grep '^go' go.mod | cut -d' ' -f2)
-WORKSPACE=$(git rev-parse --show-toplevel)
-export GO_VERSION WORKSPACE
-get_os_details
-retry 5 curl -sL -o ${WORKSPACE}/gvm "https://github.com/andrewkroh/gvm/releases/download/v0.6.0/gvm-${OS_NAME}-${OS_ARCH}"
-chmod +x ${WORKSPACE}/gvm
-eval "$(${WORKSPACE}/gvm $GO_VERSION)"
-echo "Golang version:"
-go version
-GOPATH=$(command go env GOPATH)
-PATH="${PATH}:$GOPATH:$GOPATH/bin"
-export PATH
-
-echo "--- Prepare vault context :vault:"
-CI_DRA_ROLE_PATH="kv/ci-shared/release/dra-role"
-DRA_CREDS_SECRET=$(retry 5 vault kv get -field=data -format=json ${CI_DRA_ROLE_PATH})
-VAULT_ADDR_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.vault_addr')
-VAULT_ROLE_ID_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.role_id')
-VAULT_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.secret_id')
-export VAULT_ADDR_SECRET VAULT_ROLE_ID_SECRET VAULT_SECRET
+# Go setup runs unless a step sets SETUP_GO=false.
+if [[ "${SETUP_GO:-true}" != "false" ]]; then
+  echo "--- Setting up the :golang: environment..."
+  GO_VERSION=$(grep '^go' go.mod | cut -d' ' -f2)
+  WORKSPACE=$(git rev-parse --show-toplevel)
+  export GO_VERSION WORKSPACE
+  get_os_details
+  retry 5 curl -sL -o ${WORKSPACE}/gvm "https://github.com/andrewkroh/gvm/releases/download/v0.6.0/gvm-${OS_NAME}-${OS_ARCH}"
+  chmod +x ${WORKSPACE}/gvm
+  eval "$(${WORKSPACE}/gvm $GO_VERSION)"
+  echo "Golang version:"
+  go version
+  GOPATH=$(command go env GOPATH)
+  PATH="${PATH}:$GOPATH:$GOPATH/bin"
+  export PATH
+fi

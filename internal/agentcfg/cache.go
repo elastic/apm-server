@@ -18,9 +18,8 @@
 package agentcfg
 
 import (
+	"hash/maphash"
 	"time"
-
-	"github.com/cespare/xxhash/v2"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-freelru"
@@ -28,16 +27,16 @@ import (
 
 type cache struct {
 	logger  *logp.Logger
-	gocache *freelru.ShardedLRU[string, Result]
-}
-
-func hashStringXXHASH(s string) uint32 {
-	return uint32(xxhash.Sum64String(s))
+	gocache *freelru.ShardedLRU[cacheKey, Result]
 }
 
 func newCache(logger *logp.Logger, exp time.Duration) (*cache, error) {
 	logger.Infof("Cache creation with expiration %v.", exp)
-	lru, err := freelru.NewSharded[string, Result](8192, hashStringXXHASH)
+	seed := maphash.MakeSeed()
+	hashFunc := func(key cacheKey) uint32 {
+		return uint32(maphash.Comparable[cacheKey](seed, key))
+	}
+	lru, err := freelru.NewSharded[cacheKey, Result](8192, hashFunc)
 	if err != nil {
 		return nil, err
 	}

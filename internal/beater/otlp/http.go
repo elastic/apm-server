@@ -19,6 +19,7 @@ package otlp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -38,13 +39,30 @@ import (
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
+
+	"github.com/elastic/apm-server/internal/beater/auth"
+	"github.com/elastic/apm-server/internal/beater/request"
 )
+
+// MaxRequestSize is the maximum OTLP request size in bytes, including after
+// decompression. The OTLP specification recommends 64 MiB for both OTLP/gRPC
+// and OTLP/HTTP.
+//
+// https://opentelemetry.io/docs/specs/otlp/
+const MaxRequestSize = 64 * 1024 * 1024
+
+// errRequestBodyTooLarge is returned when an OTLP/HTTP request body exceeds
+// MaxRequestSize after decompression. It is a non-retryable failure and is
+// reported as HTTP 413.
+var errRequestBodyTooLarge = errors.New("request body too large")
 
 var (
 	httpMetricRegistrationMu          sync.Mutex
 	unsupportedHTTPMetricRegistration metric.Registration
 )
 
+// NewHTTPHandlers returns OTLP/HTTP handlers that reject a decompressed
+// request body larger than MaxRequestSize.
 func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semaphore input.Semaphore, mp metric.MeterProvider, tp trace.TracerProvider) HTTPHandlers {
 	// TODO(axw) stop assuming we have only one OTLP HTTP consumer running
 	// at any time, and instead aggregate metrics from consumers that are
@@ -78,26 +96,27 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 		return nil
 	}, httpMetricsConsumerUnsupportedDropped)
 
-	return HTTPHandlers{consumer: consumer}
+	return HTTPHandlers{consumer: consumer, maxBodySize: MaxRequestSize}
 }
 
-// HTTPHandlers encapsulates http.HandlerFuncs for handling traces, metrics, and logs.
+// HTTPHandlers encapsulates handlers for OTLP/HTTP traces, metrics, and logs.
 type HTTPHandlers struct {
-	consumer *otlp.Consumer
+	consumer    *otlp.Consumer
+	maxBodySize int
 }
 
-// HandleTraces is an http.HandlerFunc that receives a protobuf-encoded traces export
-// request, and processes it with the handler's OTLP consumer.
-func (h HTTPHandlers) HandleTraces(w http.ResponseWriter, r *http.Request) {
+// HandleTraces receives a protobuf-encoded traces export request and processes
+// it with the handler's OTLP consumer.
+func (h HTTPHandlers) HandleTraces(c *request.Context) {
 	req := ptraceotlp.NewExportRequest()
-	if err := h.readRequest(r, req); err != nil {
-		h.writeError(w, err, http.StatusBadRequest)
+	if err := h.readRequest(c.Request, req); err != nil {
+		h.writeRequestError(c, err)
 		return
 	}
 	var result otlp.ConsumeTracesResult
 	var err error
-	if result, err = h.consumer.ConsumeTracesWithResult(r.Context(), req.Traces()); err != nil {
-		h.writeError(w, err, http.StatusInternalServerError)
+	if result, err = h.consumer.ConsumeTracesWithResult(c.Request.Context(), req.Traces()); err != nil {
+		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
 	resp := ptraceotlp.NewExportResponse()
@@ -105,24 +124,24 @@ func (h HTTPHandlers) HandleTraces(w http.ResponseWriter, r *http.Request) {
 		resp.PartialSuccess().SetRejectedSpans(result.RejectedSpans)
 		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
 	}
-	if err := h.writeResponse(w, resp); err != nil {
-		h.writeError(w, err, http.StatusInternalServerError)
+	if err := h.writeResponse(c, resp); err != nil {
+		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
 }
 
-// HandleMetrics is an http.HandlerFunc that receives a protobuf-encoded metrics export
-// request, and processes it with the handler's OTLP consumer.
-func (h HTTPHandlers) HandleMetrics(w http.ResponseWriter, r *http.Request) {
+// HandleMetrics receives a protobuf-encoded metrics export request and processes
+// it with the handler's OTLP consumer.
+func (h HTTPHandlers) HandleMetrics(c *request.Context) {
 	req := pmetricotlp.NewExportRequest()
-	if err := h.readRequest(r, req); err != nil {
-		h.writeError(w, err, http.StatusBadRequest)
+	if err := h.readRequest(c.Request, req); err != nil {
+		h.writeRequestError(c, err)
 		return
 	}
 	var result otlp.ConsumeMetricsResult
 	var err error
-	if result, err = h.consumer.ConsumeMetricsWithResult(r.Context(), req.Metrics()); err != nil {
-		h.writeError(w, err, http.StatusInternalServerError)
+	if result, err = h.consumer.ConsumeMetricsWithResult(c.Request.Context(), req.Metrics()); err != nil {
+		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
 	resp := pmetricotlp.NewExportResponse()
@@ -130,24 +149,24 @@ func (h HTTPHandlers) HandleMetrics(w http.ResponseWriter, r *http.Request) {
 		resp.PartialSuccess().SetRejectedDataPoints(result.RejectedDataPoints)
 		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
 	}
-	if err := h.writeResponse(w, resp); err != nil {
-		h.writeError(w, err, http.StatusInternalServerError)
+	if err := h.writeResponse(c, resp); err != nil {
+		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
 }
 
-// HandleLogs is an http.HandlerFunc that receives a protobuf-encoded logs export
-// request, and processes it with the handler's OTLP consumer.
-func (h HTTPHandlers) HandleLogs(w http.ResponseWriter, r *http.Request) {
+// HandleLogs receives a protobuf-encoded logs export request and processes
+// it with the handler's OTLP consumer.
+func (h HTTPHandlers) HandleLogs(c *request.Context) {
 	req := plogotlp.NewExportRequest()
-	if err := h.readRequest(r, req); err != nil {
-		h.writeError(w, err, http.StatusBadRequest)
+	if err := h.readRequest(c.Request, req); err != nil {
+		h.writeRequestError(c, err)
 		return
 	}
 	var result otlp.ConsumeLogsResult
 	var err error
-	if result, err = h.consumer.ConsumeLogsWithResult(r.Context(), req.Logs()); err != nil {
-		h.writeError(w, err, http.StatusInternalServerError)
+	if result, err = h.consumer.ConsumeLogsWithResult(c.Request.Context(), req.Logs()); err != nil {
+		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
 	resp := plogotlp.NewExportResponse()
@@ -155,8 +174,8 @@ func (h HTTPHandlers) HandleLogs(w http.ResponseWriter, r *http.Request) {
 		resp.PartialSuccess().SetRejectedLogRecords(result.RejectedLogRecords)
 		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
 	}
-	if err := h.writeResponse(w, resp); err != nil {
-		h.writeError(w, err, http.StatusInternalServerError)
+	if err := h.writeResponse(c, resp); err != nil {
+		h.writeError(c, err, http.StatusInternalServerError)
 		return
 	}
 }
@@ -170,9 +189,11 @@ type protoMarshaler interface {
 }
 
 func (h HTTPHandlers) readRequest(req *http.Request, out protoUnmarshaler) error {
-	body, err := io.ReadAll(req.Body)
+	// Limit the body the handler observes. request.Context decompresses gzip
+	// and deflate before the handler runs, so this cap applies after decompression.
+	body, err := readLimitedBody(req.Body, h.maxBodySize)
 	if err != nil {
-		return fmt.Errorf("failed to read request body: %w", err)
+		return err
 	}
 	if err := out.UnmarshalProto(body); err != nil {
 		return fmt.Errorf("failed to unmarshal request body: %w", err)
@@ -180,28 +201,75 @@ func (h HTTPHandlers) readRequest(req *http.Request, out protoUnmarshaler) error
 	return nil
 }
 
-func (h HTTPHandlers) writeResponse(w http.ResponseWriter, m protoMarshaler) error {
+func readLimitedBody(r io.Reader, limit int) ([]byte, error) {
+	// Read one byte past the limit so an oversized body is rejected without
+	// buffering the remainder of the stream.
+	body, err := io.ReadAll(io.LimitReader(r, int64(limit)+1))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read request body: %w", err)
+	}
+	if len(body) > limit {
+		return nil, errRequestBodyTooLarge
+	}
+	return body, nil
+}
+
+func (h HTTPHandlers) writeRequestError(c *request.Context, err error) {
+	if errors.Is(err, errRequestBodyTooLarge) {
+		h.writeError(c, err, http.StatusRequestEntityTooLarge)
+		return
+	}
+	h.writeError(c, err, http.StatusBadRequest)
+}
+
+func (h HTTPHandlers) writeResponse(c *request.Context, m protoMarshaler) error {
 	body, err := m.MarshalProto()
 	if err != nil {
 		return fmt.Errorf("failed to marshal response: %w", err)
 	}
+	w := c.ResponseWriter
 	w.Header().Set("Content-Type", "application/x-protobuf")
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
+	c.Result.SetDefault(request.IDResponseValidOK)
 	return nil
 }
 
-func (h HTTPHandlers) writeError(w http.ResponseWriter, err error, statusCode int) {
+func (h HTTPHandlers) writeError(c *request.Context, err error, statusCode int) {
+	// auth.ErrUnauthorized comes from batch processing, after this handler
+	// has started. It means the caller is authenticated but not allowed to
+	// ingest the event. The auth middleware then rewrites an internal result
+	// to 403 without writing the response again. Write 403 here and record
+	// response.errors.forbidden so the client, log, and metrics stay on 403.
+	// A failed credential check is auth.ErrAuthFailed: the middleware returns
+	// 401 before this handler runs.
+	if errors.Is(err, auth.ErrUnauthorized) {
+		statusCode = http.StatusForbidden
+	}
 	s, ok := status.FromError(err)
 	if !ok {
-		if statusCode == http.StatusBadRequest {
+		switch statusCode {
+		case http.StatusBadRequest:
 			s = status.New(codes.InvalidArgument, err.Error())
-		} else {
+		case http.StatusRequestEntityTooLarge:
+			// RESOURCE_EXHAUSTED without RetryInfo is non-retryable. HTTP 413
+			// is also outside the OTLP retryable status codes.
+			s = status.New(codes.ResourceExhausted, err.Error())
+			c.ResponseWriter.Header().Set("Connection", "close")
+		case http.StatusForbidden:
+			s = status.New(codes.PermissionDenied, err.Error())
+		default:
 			s = status.New(codes.Unknown, err.Error())
 		}
 	}
-	msg, err := proto.Marshal(s.Proto())
-	if err != nil {
+	// Record the result before proto.Marshal reassigns err. This also covers
+	// errors that already carry a gRPC status and skip the switch above.
+	h.recordResult(c, err, statusCode)
+
+	w := c.ResponseWriter
+	msg, merr := proto.Marshal(s.Proto())
+	if merr != nil {
+		h.recordResult(c, merr, http.StatusInternalServerError)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(`{"code": 13, "message": "failed to marshal error message"}`))
@@ -210,4 +278,20 @@ func (h HTTPHandlers) writeError(w http.ResponseWriter, err error, statusCode in
 	w.Header().Set("Content-Type", "application/x-protobuf")
 	w.WriteHeader(statusCode)
 	w.Write(msg)
+}
+
+// recordResult stores the HTTP status on the request result so the logging and
+// monitoring middleware observe the status this handler writes.
+func (h HTTPHandlers) recordResult(c *request.Context, err error, statusCode int) {
+	id := request.IDResponseErrorsInternal
+	switch statusCode {
+	case http.StatusBadRequest:
+		id = request.IDResponseErrorsDecode
+	case http.StatusRequestEntityTooLarge:
+		id = request.IDResponseErrorsRequestTooLarge
+	case http.StatusForbidden:
+		id = request.IDResponseErrorsForbidden
+	}
+	st := request.MapResultIDToStatus[id]
+	c.Result.Set(id, statusCode, st.Keyword, nil, err)
 }
