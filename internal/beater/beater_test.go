@@ -417,3 +417,21 @@ func TestProcessMemoryLimit(t *testing.T) {
 		})
 	}
 }
+
+func TestMaxConcurrentDecoders(t *testing.T) {
+	cases := []struct {
+		name    string
+		limitGB float64
+		want    uint
+	}{
+		{name: "1GB", limitGB: 1, want: 102},
+		{name: "32GB", limitGB: 32, want: 3276},
+		{name: "64GB max", limitGB: 64, want: 6553},
+		{name: "above 64GB is capped", limitGB: 960, want: 6553},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.want, maxConcurrentDecoders(tc.limitGB))
+		})
+	}
+}
