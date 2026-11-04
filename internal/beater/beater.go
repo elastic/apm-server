@@ -652,8 +652,8 @@ func newInstrumentation(rawConfig *agentconfig.C, logger *logp.Logger) (instrume
 }
 
 func maxConcurrentDecoders(memLimitGB float64) uint {
-	// Allow 128 concurrent decoders for each 1GB memory, limited to at most 2048.
-	const max = 2048
+	// Allow 128 concurrent decoders for each 1GB memory, limited to at most 6553 (80% of 64GB).
+	const max = 6553
 	// Use 80% of the total memory limit to calculate decoders
 	decoders := uint(128 * memLimitGB * 0.8)
 	if decoders > max {
