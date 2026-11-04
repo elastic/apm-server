@@ -425,9 +425,9 @@ func TestMaxConcurrentDecoders(t *testing.T) {
 		want    uint
 	}{
 		{name: "1GB", limitGB: 1, want: 102},
-		{name: "30GB", limitGB: 30, want: 3072},
-		{name: "32GB max", limitGB: 32, want: 3276},
-		{name: "above 32GB is capped", limitGB: 960, want: 3276},
+		{name: "32GB", limitGB: 32, want: 3276},
+		{name: "64GB max", limitGB: 64, want: 6553},
+		{name: "above 64GB is capped", limitGB: 960, want: 6553},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
