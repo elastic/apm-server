@@ -345,7 +345,11 @@ func TestServerOTLPGRPCShutdownTimeout(t *testing.T) {
 		response := &coltracepb.ExportTraceServiceResponse{}
 		conn.Invoke(context.Background(), "/opentelemetry.proto.collector.trace.v1.TraceService/Export", request, response)
 	}()
-	<-processing
+	select {
+	case <-processing:
+	case <-time.After(10 * time.Second):
+		t.Fatal("request did not reach the batch processor")
+	}
 
 	closed := make(chan struct{})
 	go func() {
