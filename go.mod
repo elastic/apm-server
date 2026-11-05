@@ -91,7 +91,7 @@ require (
 	github.com/ebitengine/purego v0.11.1 // indirect
 	github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 // indirect
 	github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe // indirect
-	github.com/elastic/go-elasticsearch/v8 v8.19.6 // indirect
+	github.com/elastic/go-elasticsearch/v8 v8.19.7 // indirect
 	github.com/elastic/go-licenser v0.4.2 // indirect
 	github.com/elastic/go-lumber v0.2.0 // indirect
 	github.com/elastic/go-structform v0.0.12 // indirect
