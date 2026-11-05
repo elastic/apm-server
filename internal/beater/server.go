@@ -234,9 +234,19 @@ func (s server) run(ctx context.Context) error {
 	})
 	g.Go(func() error {
 		<-ctx.Done()
-		s.grpcServer.GracefulStop()
 		stopctx, cancel := context.WithTimeout(context.Background(), s.cfg.ShutdownTimeout)
 		defer cancel()
+		grpcStopped := make(chan struct{})
+		go func() {
+			defer close(grpcStopped)
+			s.grpcServer.GracefulStop()
+		}()
+		select {
+		case <-grpcStopped:
+		case <-stopctx.Done():
+			// Close connections and cancel in-flight RPCs that did not finish in time.
+			s.grpcServer.Stop()
+		}
 		s.httpServer.stop(stopctx)
 		return nil
 	})
