@@ -130,6 +130,7 @@ jobs:
           GOOS: "linux"
           GOARCH: "amd64"
         run: |
+            cp .env.example .env
             docker compose up -d &
             make apm-server &
             wait
@@ -158,6 +159,7 @@ jobs:
           GOOS: "linux"
           GOARCH: "amd64"
         run: |
+            cp .env.example .env
             docker compose up -d &
             make apm-server &
             wait

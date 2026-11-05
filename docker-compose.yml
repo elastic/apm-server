@@ -3,6 +3,10 @@
 # For manual testing, you should probably prefer using Tilt.
 # See https://github.com/elastic/apm-server/blob/main/dev_docs/TESTING.md#tilt--kubernetes
 #
+# Host bind address and ports, heap size, log level and credentials come from .env:
+#   cp .env.example .env
+# Every variable is required; docker compose fails if one is unset.
+#
 version: '3.9'
 x-logging: &default-logging
   driver: "json-file"
@@ -12,13 +16,13 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-wolfi:9.7.0-4b4a17d3-SNAPSHOT
     ports:
-      - 9200:9200
+      - "${STACK_BIND_IP:?set STACK_BIND_IP in .env (see .env.example)}:${ES_PORT:?set ES_PORT in .env (see .env.example)}:9200"
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=500ms"]
       retries: 300
       interval: 1s
     environment:
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "ES_JAVA_OPTS=-Xms${ES_HEAP:?set ES_HEAP in .env (see .env.example)} -Xmx${ES_HEAP:?set ES_HEAP in .env (see .env.example)}"
       - "network.host=0.0.0.0"
       - "transport.host=127.0.0.1"
       - "http.host=0.0.0.0"
@@ -31,7 +35,7 @@ services:
       - "xpack.license.self_generated.type=trial"
       - "xpack.security.authc.token.enabled=true"
       - "xpack.security.authc.api_key.enabled=true"
-      - "logger.org.elasticsearch=${ES_LOG_LEVEL:-error}"
+      - "logger.org.elasticsearch=${ES_LOG_LEVEL:?set ES_LOG_LEVEL in .env (see .env.example)}"
       - "action.destructive_requires_name=false"
     volumes:
       - "./testing/docker/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml"
@@ -42,15 +46,15 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana-wolfi:9.7.0-4b4a17d3-SNAPSHOT
     ports:
-      - 5601:5601
+      - "${STACK_BIND_IP:?set STACK_BIND_IP in .env (see .env.example)}:${KIBANA_PORT:?set KIBANA_PORT in .env (see .env.example)}:5601"
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:5601/api/status | grep -q 'All services are available'"]
       retries: 300
       interval: 1s
     environment:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
-      ELASTICSEARCH_USERNAME: "${KIBANA_ES_USER:-kibana_system_user}"
-      ELASTICSEARCH_PASSWORD: "${KIBANA_ES_PASS:-changeme}"
+      ELASTICSEARCH_USERNAME: "${KIBANA_ES_USER:?set KIBANA_ES_USER in .env (see .env.example)}"
+      ELASTICSEARCH_PASSWORD: "${KIBANA_ES_PASS:?set KIBANA_ES_PASS in .env (see .env.example)}"
       XPACK_FLEET_AGENTS_ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
     depends_on:
       elasticsearch: { condition: service_healthy }
@@ -62,8 +66,8 @@ services:
     image: docker.elastic.co/beats/metricbeat:9.7.0-4b4a17d3-SNAPSHOT
     environment:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
-      ELASTICSEARCH_USERNAME: "${KIBANA_ES_USER:-admin}"
-      ELASTICSEARCH_PASSWORD: "${KIBANA_ES_PASS:-changeme}"
+      ELASTICSEARCH_USERNAME: "${METRICBEAT_ES_USER:?set METRICBEAT_ES_USER in .env (see .env.example)}"
+      ELASTICSEARCH_PASSWORD: "${METRICBEAT_ES_PASS:?set METRICBEAT_ES_PASS in .env (see .env.example)}"
     depends_on:
       elasticsearch: { condition: service_healthy }
     volumes:

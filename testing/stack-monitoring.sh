@@ -5,10 +5,15 @@ set -e
 CONTAINER_NAME=apm-server
 GITROOT=$(git rev-parse --show-toplevel)
 
+# Ports come from .env (see .env.example); fail if it is missing.
+set -a
+. ${GITROOT}/.env
+set +a
+
 if [[ ! -z $(docker ps --filter=name=${CONTAINER_NAME} --format='{{.Names}}') ]]; then
     docker rm -f ${CONTAINER_NAME}
 fi
-curl -s localhost:5601 > /dev/null && docker compose --profile=monitoring down || true
+curl -s localhost:${KIBANA_PORT} > /dev/null && docker compose --profile=monitoring down || true
 
 docker compose up -d
 cd ${GITROOT}/systemtest/cmd/runapm

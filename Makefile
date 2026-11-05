@@ -120,10 +120,13 @@ test:
 	@go test $(GOMODFLAG) $(GOTESTFLAGS) -tags=$(DEFAULT_TAGS),$(GOTAGS) -race ./...
 
 .PHONY: system-test
-system-test:
+system-test: .env
 	# CGO is disabled when building APM Server binary, so the race detector in this case
 	# would only work on the parts that don't involve APM Server binary.
-	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -tags=$(DEFAULT_TAGS),$(GOTAGS) -race -timeout=20m ./...)
+	@(set -a && . ./.env && set +a && cd systemtest && go test $(GOMODFLAG) $(GOTESTFLAGS) -tags=$(DEFAULT_TAGS),$(GOTAGS) -race -timeout=20m ./...)
+
+.env:
+	@echo "missing .env: cp .env.example .env" >&2; exit 1
 
 .PHONY:
 clean:

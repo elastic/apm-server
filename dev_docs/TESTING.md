@@ -15,7 +15,8 @@ you should build APM Server directly: `go build -o apm-server ./x-pack/apm-serve
 To run the unit tests, you can use `make test` or simply `go test ./...`. The unit tests do not require any external services.
 
 The APM Server "system tests" run the APM Server in various scenarios, with the Elastic Stack running inside Docker containers.
-To run the system tests locally, you can run `go test` inside the systemtest directory.
+To run the system tests locally, create `.env` from `.env.example` (see [Manual testing](#manual-testing)) and run
+`make system-test`, or export the `.env` values and run `go test` inside the systemtest directory.
 
 ## Snapshot-Testing
 
@@ -133,6 +134,17 @@ ESS deployment from being destroyed to allow some debugging to be done.
 
 Often, we need to manually test the integration between different features, PR testing or pre-release testing.
 Our `docker-compose.yml` contains the basic components that make up the Elastic Stack for the APM Server.
+
+`docker-compose.yml` reads host ports, Elasticsearch heap size, log level and credentials from a `.env`
+file at the repository root. Create it from the documented example before the first `docker compose up`
+or `make system-test`:
+
+```console
+$ cp .env.example .env
+```
+
+Every variable is required: `docker compose` fails with `set <VAR> in .env` when one is unset.
+`make system-test` loads the same `.env`, so the system tests connect to the ports it defines.
 
 ### Tilt / Kubernetes
 
