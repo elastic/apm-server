@@ -57,7 +57,7 @@ flowchart TD
 4. Registers a `terraform_destroy 0` trap on exit, unless `SKIP_DESTROY` is set.
 5. For each OS in [`testing/smoke/os_matrix.sh`](../../../testing/smoke/os_matrix.sh), writes a `.tfvars` file with the key name, OS, and stack version. Then it runs `terraform_apply`, `delete_all`, `healthcheck 1`, `send_events`, and `data_stream_assertions` (or the matching assertion function).
 
-The OS matrix in `os_matrix.sh` currently includes Ubuntu 20.04, 22.04, and 24.04 (arm64), Debian 12 (arm64), Amazon Linux 2023, RHEL 8 and 9, Rocky Linux 9, and AlmaLinux 8 and 9. Entries for Rocky 8 and Oracle Linux are commented out.
+The OS matrix in `os_matrix.sh` currently includes Ubuntu 20.04, 22.04, 24.04, and 26.04 (arm64), Debian 12 (arm64), Amazon Linux 2023, RHEL 8, 9, and 10, Rocky Linux 8, 9, and 10, and AlmaLinux 8, 9, and 10. Entries for Oracle Linux are commented out.
 
 ## Inputs, outputs, and access
 
