@@ -627,11 +627,11 @@ License Version 2.0.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-client/v7
-Version: v7.19.0
+Version: v7.20.0
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.19.0/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.20.0/LICENSE.txt:
 
 ELASTIC LICENSE AGREEMENT
 
@@ -3201,11 +3201,11 @@ Contents of probable licence file $GOMODCACHE/github.com/spf13/cobra@v1.10.2/LIC
 
 --------------------------------------------------------------------------------
 Dependency : github.com/spf13/pflag
-Version: v1.0.10
+Version: v1.1.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/spf13/pflag@v1.0.10/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/spf13/pflag@v1.1.0/LICENSE:
 
 Copyright (c) 2012 Alex Ogier. All rights reserved.
 Copyright (c) 2012 The Go Authors. All rights reserved.
@@ -6220,11 +6220,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : go.yaml.in/yaml/v3
-Version: v3.0.5
+Version: v3.0.6
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.yaml.in/yaml/v3@v3.0.5/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.yaml.in/yaml/v3@v3.0.6/LICENSE:
 
 
 This project is covered by two different licenses: MIT and Apache.
@@ -6280,11 +6280,11 @@ limitations under the License.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.61.0
+Version: v0.62.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.61.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.62.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
