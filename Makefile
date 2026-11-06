@@ -13,7 +13,11 @@ GOTESTFLAGS?=
 
 # Prevent unintended modifications of go.[mod|sum]
 GOMODFLAG?=-mod=readonly
-DEFAULT_TAGS=grpcnotrace,pebblegozstd,nooteloutput
+# http2legacy has been added to mitigate the changes on http2
+# package on go 1.27 https://pkg.go.dev/golang.org/x/net/http2
+# An issue is created to implement long term fix on 
+# gmux: https://github.com/elastic/gmux/issues/103
+DEFAULT_TAGS=grpcnotrace,pebblegozstd,nooteloutput,http2legacy
 
 PYTHON_ENV?=.
 PYTHON_VENV_DIR:=$(PYTHON_ENV)/build/ve/$(shell go env GOOS)
