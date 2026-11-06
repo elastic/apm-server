@@ -169,8 +169,8 @@ github.com/ebitengine/purego v0.11.1 h1:2zpWRSQNVKN4eKsKO9eM1ILDgWfYMY9GwqRmK6Xe
 github.com/ebitengine/purego v0.11.1/go.mod h1:DCHPP08djqhNSoTfImcnHYQRZmd0qhakvrozqaEYhGQ=
 github.com/elastic/apm-aggregation v1.5.1 h1:PBXwhSrSPsg2JR5C7Zrq+jSSfZ5CVuu72Xp1/5h1QNQ=
 github.com/elastic/apm-aggregation v1.5.1/go.mod h1:8D/GafHCcd16SlfFgxwHfIU4EVhjNpDDqFMA/alE21o=
-github.com/elastic/apm-data v1.23.0 h1:cMCNsPs02hXITAke070DPnI/VBLKmgavqwZhgLFGxQ0=
-github.com/elastic/apm-data v1.23.0/go.mod h1:1x03+qUs6uRSdaDKaokUSPQ0J90+JXWxQjFZKvysCFw=
+github.com/elastic/apm-data v1.22.2 h1:Q0WaIDScK8hvcI3vzwtOi1LtaVKcaHtNDRiH2xFf+tk=
+github.com/elastic/apm-data v1.22.2/go.mod h1:7aC1alvZtKrq02N7JG/sff6rAicmQ1Qt/n4qCb+7fAg=
 github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 h1:br+XeQOcxNFSv+HzO3jC0bjIBgG6FJeBn7oXQFQvKtM=
 github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22/go.mod h1:gE+FV7xXv0/nBenviCvpvnvTpUkjJXtuOWs2UT+ZRtw=
 github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe h1:LDtn/A8Tsfz8DQlbXtmDud9ha9oOGriwJGB7V0Ozik8=
@@ -213,8 +213,8 @@ github.com/elastic/gosigar v0.14.4 h1:7NRnWJDFjEKpOjnHhtzrPGZWr9EMrYFsLjF4q0Czos
 github.com/elastic/gosigar v0.14.4/go.mod h1:tx91Eb3YgFk6y++h88fRAnxic3Si1ZDHooqnJU/hqo8=
 github.com/elastic/mock-es v0.0.0-20250530054253-8c3b6053f9b6 h1:JVNuBrmOoqLJgp9o68YBMnOrXCzQI3mCppW+suwRSlw=
 github.com/elastic/mock-es v0.0.0-20250530054253-8c3b6053f9b6/go.mod h1:cXqWcLnmu5y4QveTb2hjk7rgzkHMuZsqeXtbJpNAcu0=
-github.com/elastic/opentelemetry-lib v0.49.0 h1:KDluQQswaB+U6BaJ3e+RIIN86yrvseqyulPrwg6IRWM=
-github.com/elastic/opentelemetry-lib v0.49.0/go.mod h1:vk2JIlNFoLuUuFhbvtir/wIiDccAn/T/Iiw6uF7rII4=
+github.com/elastic/opentelemetry-lib v0.39.0 h1:cPm4ZiqKXiZKcTAnBQtqeOK3gwcihDRgfev5483AY64=
+github.com/elastic/opentelemetry-lib v0.39.0/go.mod h1:QQdXp/oIhTimGoMExJJ5TrIURuGVhNwi1r3wdmaPJ6A=
 github.com/elastic/sarama v1.19.1-0.20260310070522-abae92ca1603 h1:QFDM5JuLch52FxjHizLP2tiuzfhulUdyOsUe/JuPhrQ=
 github.com/elastic/sarama v1.19.1-0.20260310070522-abae92ca1603/go.mod h1:J0lqNUlLxjFJpAGJDmFT8+vOlAnOMbQCoBQmUJ79zT4=
 github.com/elazarl/goproxy v1.7.2 h1:Y2o6urb7Eule09PjlhQRGNsqRfPmYI3KKQLFpCAV3+o=
