@@ -64,8 +64,9 @@ func TestApprovedMetrics(t *testing.T) {
 			espoll.TermQuery{Field: "processor.event", Value: "metric"},
 		},
 		MustNot: []interface{}{
-			// Ignore server-produced transaction metrics; we're only interested in the metrics sent by the agent.
-			espoll.TermQuery{Field: "metricset.name", Value: "transaction"},
+			// Ignore all server-aggregated metrics (transaction, service_transaction,
+			// service_destination, service_summary) to focus on metrics sent by the agent.
+			espoll.ExistsQuery{Field: "metricset.interval"},
 		},
 	})
 	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits)
