@@ -122,13 +122,11 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
 	for i, in := range tailSamplingConfig.Policies {
 		policies[i] = sampling.Policy{
-			PolicyCriteria: sampling.PolicyCriteria{
-				ServiceName:        in.Service.Name,
-				ServiceEnvironment: in.Service.Environment,
-				TraceName:          in.Trace.Name,
-				TraceOutcome:       in.Trace.Outcome,
-			},
-			SampleRate: in.SampleRate,
+			ServiceName:        in.Service.Name,
+			ServiceEnvironment: in.Service.Environment,
+			TraceName:          in.Trace.Name,
+			TraceOutcome:       in.Trace.Outcome,
+			SampleRate:         in.SampleRate,
 		}
 	}
 
