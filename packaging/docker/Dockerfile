@@ -2,8 +2,8 @@ ARG BASE_STAGE=base-ubuntu
 ARG GOLANG_VERSION
 
 # Literal base-image stages so Dependabot can track both Ubuntu and UBI.
-FROM ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac AS base-ubuntu
-FROM registry.access.redhat.com/ubi10-micro:latest@sha256:1c105e547de5d9e0bc20d06ebabee73b20bc6bba994c50ae3e207684fd8bef2b AS base-ubi
+FROM ubuntu:24.04@sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852 AS base-ubuntu
+FROM registry.access.redhat.com/ubi10-micro:latest@sha256:8488f5ec082768a01d1ce4e0ef3878f782a40ff6d233afa74bc23d4e740620a4 AS base-ubi
 
 ################################################################################
 # Build stage 0
