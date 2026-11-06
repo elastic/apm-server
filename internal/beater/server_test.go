@@ -40,6 +40,7 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	coltracepb "go.opentelemetry.io/proto/otlp/collector/trace/v1"
+	tracepb "go.opentelemetry.io/proto/otlp/trace/v1"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 	"google.golang.org/grpc"
@@ -311,6 +312,55 @@ func TestServerOTLPGRPC(t *testing.T) {
 	ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs("Authorization", "Bearer abc123"))
 	err = invokeExport(ctx, conn)
 	assert.NoError(t, err)
+}
+
+func TestServerOTLPGRPCShutdownTimeout(t *testing.T) {
+	processing := make(chan struct{})
+	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]any{
+		"apm-server.shutdown_timeout": "100ms",
+	})), beatertest.WithWrapServer(
+		func(args beater.ServerParams, runServer beater.RunServerFunc) (beater.ServerParams, beater.RunServerFunc, error) {
+			args.BatchProcessor = modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+				// Block until the RPC context is cancelled.
+				close(processing)
+				<-ctx.Done()
+				return ctx.Err()
+			})
+			return args, runServer, nil
+		},
+	))
+
+	baseURL, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	conn, err := grpc.NewClient(baseURL.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+	defer conn.Close()
+
+	go func() {
+		request := &coltracepb.ExportTraceServiceRequest{ResourceSpans: []*tracepb.ResourceSpans{{
+			ScopeSpans: []*tracepb.ScopeSpans{{Spans: []*tracepb.Span{{
+				TraceId: make([]byte, 16), SpanId: make([]byte, 8), Name: "span",
+			}}}},
+		}}}
+		response := &coltracepb.ExportTraceServiceResponse{}
+		conn.Invoke(context.Background(), "/opentelemetry.proto.collector.trace.v1.TraceService/Export", request, response)
+	}()
+	select {
+	case <-processing:
+	case <-time.After(10 * time.Second):
+		t.Fatal("request did not reach the batch processor")
+	}
+
+	closed := make(chan struct{})
+	go func() {
+		defer close(closed)
+		srv.Close()
+	}()
+	select {
+	case <-closed:
+	case <-time.After(10 * time.Second):
+		t.Fatal("server did not stop within shutdown_timeout")
+	}
 }
 
 func TestServerFailedPreconditionDoesNotIndex(t *testing.T) {
