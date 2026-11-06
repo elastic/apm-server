@@ -40,13 +40,13 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/cgroup"
+	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/cgroup/cgv1"
+	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/cgroup/cgv2"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp/logptest"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/opt"
-	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup"
-	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup/cgv1"
-	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup/cgv2"
 	"github.com/elastic/go-docappender/v2"
 )
 
@@ -414,6 +414,24 @@ func TestProcessMemoryLimit(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			memLimitGB := processMemoryLimit(testCase.cgroups, testCase.sys, logptest.NewTestingLogger(t, "test"))
 			assert.Equal(t, testCase.wantMemLimitGB, memLimitGB)
+		})
+	}
+}
+
+func TestMaxConcurrentDecoders(t *testing.T) {
+	cases := []struct {
+		name    string
+		limitGB float64
+		want    uint
+	}{
+		{name: "1GB", limitGB: 1, want: 102},
+		{name: "32GB", limitGB: 32, want: 3276},
+		{name: "64GB max", limitGB: 64, want: 6553},
+		{name: "above 64GB is capped", limitGB: 960, want: 6553},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.want, maxConcurrentDecoders(tc.limitGB))
 		})
 	}
 }

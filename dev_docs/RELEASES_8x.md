@@ -8,11 +8,17 @@ Run the `run-patch-release` with the new `8.17.x` patch version.
 
 **NOTE**: This automation does not handle the changelog, which should be manually handled.
 
+Changelogs should be prepared and merged separately by release day.
+- Add the changelog pull request to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/3613)).
+
 ## 8.18 patch releases
 
 Run the `run-patch-release` with the new `8.18.x` patch version.
 
 **NOTE**: This automation does not handle the changelog, which should be manually handled.
+
+Changelogs should be prepared and merged separately by release day.
+- Add the changelog pull request to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/3613)).
 
 ## 8.19.0
 
@@ -45,6 +51,9 @@ Run the `run-patch-release` with the new `8.19.x` patch version.
 
 **NOTE**: This automation does not handle the changelog, which should be manually handled.
 
+Changelogs should be prepared and merged separately by release day.
+- Add the changelog pull request to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/3613)).
+
 
 ## Feature Freeze
 
@@ -62,19 +71,24 @@ Run the `run-patch-release` with the new `8.19.x` patch version.
        * Version: Specify the **new** patch release version - e.g: if versions should be bumped to `8.14.2`, use `8.14.2`.
    
     This workflow will: create the `update-<VERSION>` branch for the provided version, update version constants across the codebase and create a PR targeting the release branch.
-    
+
+    Changelogs should be prepared and merged separately by release day.
     Release notes for patch releases **must be manually added** at least one day before release.
     Create a PR targeting the relevant `8.x` branch.
     To add release notes:
     * Add a new section to the existing release notes file ([Sample PR](https://github.com/elastic/apm-server/pull/12680)).
     * Review the [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) file and move relevant changelog entries from `head.asciidoc` to `release_version.asciidoc` if the change is backported to release_version. If changes do not apply to the version being released, keep them in the `head.asciidoc` file.
     * Review the commits in the release to ensure all changes are reflected in the release notes. Check for backported changes without release notes in `release_version.asciidoc`.
-    * Add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2485)).
+    * Add the changelog pull request to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/3613)).
     * The PR should be merged the day before release.
   * For **minor releases**: run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the minor release version the release is for).
-    This workflow will: create a new release branch using the stack version (X.Y); update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`; create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`. Before merging them compare commits between latest minor and the new minor versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging. After it's merged add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2895)).
+    This workflow will: create a new release branch using the stack version (X.Y) and create a PR on `main` titled `<major>.<minor>: update mergify and versions`. Request and wait a PR review from the team before merging.
+    Changelogs should be prepared and merged separately by release day.
+    - Add the changelog pull request to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/3613)).
   * For **major releases**: run the [`run-major-release`](https://github.com/elastic/apm-server/actions/workflows/run-major-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the major release version the release is for).
-    This workflow will: create a new release branch using the stack version (X.Y); update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`; create a PR on `main` titled `<major>.0: update docs, mergify, versions and changelogs`. Before merging them compare commits between latest minor and the new major versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging. After it's merged add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2895)).
+    This workflow will: create a new release branch using the stack version (X.Y) and create a PR on `main` titled `<major>.0: update mergify and versions`. Request and wait a PR review from the team before merging.
+    Changelogs should be prepared and merged separately by release day.
+    - Add the changelog pull request to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/3613)).
 * The Release Manager will ping the team to align the release process
 
 * Update dependencies

@@ -22,13 +22,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup"
-	"github.com/elastic/elastic-agent-system-metrics/metric/system/resolve"
+	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/cgroup"
+	"github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/resolve"
 )
 
 // cgroupReader defines a short interface useful for testing purposes
 // that provides a way to obtain cgroups process memory limit.
-// Implemented by github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup Reader.
+// Implemented by github.com/elastic/beats/v7/pkg/systemmetrics/metric/system/cgroup Reader.
 type cgroupReader interface {
 	CgroupsVersion(int) (cgroup.CgroupsVersion, error)
 	GetV1StatsForProcess(int) (*cgroup.StatsV1, error)
