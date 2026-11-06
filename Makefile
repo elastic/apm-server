@@ -12,7 +12,7 @@ GOTESTFLAGS?=
 
 # Prevent unintended modifications of go.[mod|sum]
 GOMODFLAG?=-mod=readonly
-DEFAULT_TAGS=grpcnotrace,pebblegozstd,nooteloutput
+DEFAULT_TAGS=grpcnotrace,pebblegozstd,nooteloutput,http2legacy
 
 PYTHON_ENV?=.
 PYTHON_VENV_DIR:=$(PYTHON_ENV)/build/ve/$(shell go env GOOS)
