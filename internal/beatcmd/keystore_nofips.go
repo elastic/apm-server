@@ -95,9 +95,6 @@ func (c *addKeystoreCmd) validate(args []string) error {
 		if len(args) > 0 {
 			return errors.New("--from-dir cannot be combined with a key argument")
 		}
-		if len(c.keys) == 0 {
-			return fmt.Errorf("directory %q is empty", c.fromDir)
-		}
 		return nil
 	}
 
@@ -111,20 +108,30 @@ func (c *addKeystoreCmd) validate(args []string) error {
 }
 
 func (c *addKeystoreCmd) run(cmd *cobra.Command, args []string) error {
-	c.keys = make([]string, len(args))
-	for i, arg := range args {
-		c.keys[i] = strings.TrimSpace(arg)
-	}
-	var err error
 	if c.fromDir != "" {
-		c.keys, err = getKeysFromDir(c.fromDir)
+		keys, err := getKeysFromDir(c.fromDir)
 		if err != nil {
 			return fmt.Errorf("failed to create the secret: %w", err)
+		}
+
+		if len(keys) == 0 {
+			fmt.Printf("No files found in %q, 0 keys imported\n", c.fromDir)
+			return nil
+		}
+		c.keys = keys
+	} else {
+		c.keys = make([]string, len(args))
+		for i, arg := range args {
+			c.keys[i] = strings.TrimSpace(arg)
 		}
 	}
 
 	if err := c.validate(args); err != nil {
 		return fmt.Errorf("failed to create the secret: %w", err)
+	}
+	if c.fromDir != "" && len(c.keys) == 0 {
+		// An empty directory is not an error: there is simply nothing to do.
+		return nil
 	}
 
 	store, err := getKeystore()
@@ -133,7 +140,6 @@ func (c *addKeystoreCmd) run(cmd *cobra.Command, args []string) error {
 	}
 
 	var getKeyValue keyValueGetter
-	var interactive bool
 	switch {
 	case c.fromDir != "":
 		getKeyValue = getKeyValueFromDir(c.fromDir)
@@ -141,9 +147,9 @@ func (c *addKeystoreCmd) run(cmd *cobra.Command, args []string) error {
 		getKeyValue = getKeyValueFromStdin
 	default:
 		getKeyValue = getKeyValueFromInput
-		interactive = true
 	}
-	if err := addKey(store, c.keys, getKeyValue, c.force, interactive); err != nil {
+
+	if err := addKey(store, c.keys, getKeyValue, c.force, c.stdin); err != nil {
 		return fmt.Errorf("failed to create the secret: %w", err)
 	}
 	return nil
@@ -214,64 +220,67 @@ func getKeystore() (keystore.Keystore, error) {
 	return keystore, err
 }
 
-// addKey stores a value for each key, fetched via getKeyValue, and saves the
 // keystore once at the end. When interactive is false there is no terminal to
 // answer prompts on, so a missing keystore is created and an existing key is
 // an error unless force is set.
-func addKey(store keystore.Keystore, keys []string, getKeyValue keyValueGetter, force, interactive bool) error {
+func addKey(store keystore.Keystore, keys []string, getKeyValue keyValueGetter, force, stdin bool) error {
 	writableKeystore, err := keystore.AsWritableKeystore(store)
 	if err != nil {
 		return fmt.Errorf("error creating the keystore: %w", err)
 	}
 
 	if !store.IsPersisted() {
-		if !force && interactive {
+		if !force {
 			create := terminal.PromptYesNo("The keystore does not exist. Do you want to create it?", false)
 			if !create {
 				return errors.New("exiting without creating keystore")
 			}
 		}
-		err := writableKeystore.Create(true)
-		if err != nil {
+		if err := writableKeystore.Create(true); err != nil {
 			return fmt.Errorf("could not create keystore, error: %w", err)
 		}
 		fmt.Println("Created keystore")
 	}
 
+	var added, updated int
 	for _, key := range keys {
-		if _, err := store.Retrieve(key); err == nil {
-			if !force {
-				if !interactive {
-					return fmt.Errorf("the settings %s already exist in the keystore use `--force` to replace it", key)
-				}
-				// Only reachable with a single key, so returning here cannot
-				// discard values stored for earlier keys.
-				overwrite := terminal.PromptYesNo(fmt.Sprintf("Setting %s already exists, Overwrite?", key), false)
-				if !overwrite {
-					fmt.Println("Exiting without modifying keystore.")
-					return nil
-				}
-			}
-		} else if !errors.Is(err, keystore.ErrKeyDoesntExists) {
+		exists := true
+		if _, err := store.Retrieve(key); errors.Is(err, keystore.ErrKeyDoesntExists) {
+			exists = false
+		} else if err != nil {
 			return err
+		}
+		if exists && !force {
+			if stdin {
+				return fmt.Errorf("the settings %s already exist in the keystore use `--force` to replace it", key)
+			}
+			// Values are only written to disk by Save below, so returning
+			// here leaves the keystore unchanged.
+			overwrite := terminal.PromptYesNo(fmt.Sprintf("Setting %s already exists, Overwrite?", key), false)
+			if !overwrite {
+				fmt.Println("Exiting without modifying keystore.")
+				return nil
+			}
 		}
 
 		keyValue, err := getKeyValue(key)
 		if err != nil {
 			return err
 		}
-
-		if err = writableKeystore.Store(key, keyValue); err != nil {
+		if err := writableKeystore.Store(key, keyValue); err != nil {
 			return fmt.Errorf("could not add the key in the keystore, error: %w", err)
 		}
-
+		if exists {
+			updated++
+		} else {
+			added++
+		}
 	}
 
-	if err = writableKeystore.Save(); err != nil {
+	if err := writableKeystore.Save(); err != nil {
 		return fmt.Errorf("fail to save the keystore: %w", err)
-	} else {
-		fmt.Println("Successfully updated the keystore")
 	}
+	fmt.Printf("Successfully updated the keystore: %d added, %d updated\n", added, updated)
 	return nil
 }
 
