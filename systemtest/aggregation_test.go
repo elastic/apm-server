@@ -170,7 +170,7 @@ func TestServiceDestinationAggregation(t *testing.T) {
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
 	// timeout while waiting for the aggregated metrics to be indexed.
-	estest.ExpectMinDocs(t, systemtest.Elasticsearch, 6, "traces-apm*", nil)
+	estest.ExpectMinDocs(t, systemtest.Elasticsearch, 6, "traces-apm*", espoll.BoolQuery{})
 	require.NoError(t, srv.Close())
 
 	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.service_destination*",

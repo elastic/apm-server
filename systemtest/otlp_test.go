@@ -98,7 +98,7 @@ func TestOTLPGRPCTraces(t *testing.T) {
 	require.NoError(t, err)
 
 	indices := "traces-apm*,logs-apm*"
-	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 3, indices, nil)
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 3, indices, espoll.BoolQuery{})
 	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, "error.id", "agent.version")
 }
 
@@ -266,7 +266,7 @@ func TestOTLPGRPCLogs(t *testing.T) {
 	_, err = logsClient.Export(ctx, plogotlp.NewExportRequestFromLogs(logs))
 	require.NoError(t, err)
 
-	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", nil)
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", espoll.BoolQuery{})
 	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits)
 }
 
@@ -340,14 +340,14 @@ func TestOTLPHTTP(t *testing.T) {
 		systemtest.CleanupElasticsearch(t)
 		exporter := newOTLPHTTPTraceExporter(t, srv)
 		sendOTLPTrace(ctx, newOTLPTracerProvider(exporter))
-		estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", nil)
+		estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", espoll.BoolQuery{})
 	})
 
 	t.Run("gzip_compressed", func(t *testing.T) {
 		systemtest.CleanupElasticsearch(t)
 		exporter := newOTLPHTTPTraceExporter(t, srv, otlptracehttp.WithCompression(otlptracehttp.GzipCompression))
 		sendOTLPTrace(ctx, newOTLPTracerProvider(exporter))
-		estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", nil)
+		estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", espoll.BoolQuery{})
 	})
 }
 
@@ -504,7 +504,7 @@ func TestOTLPGRPCLogsClientIP(t *testing.T) {
 	_, err = logsClient.Export(ctx, plogotlp.NewExportRequestFromLogs(logs))
 	require.NoError(t, err)
 
-	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", nil)
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", espoll.BoolQuery{})
 	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, "client.geo.city_name",
 		"client.geo.location", "client.geo.region_iso_code", "client.geo.region_name")
 }
