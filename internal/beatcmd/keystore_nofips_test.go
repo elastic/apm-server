@@ -53,22 +53,6 @@ func writeSecretFiles(t *testing.T, dir string, secrets map[string]string) {
 	}
 }
 
-// pipeStdin replaces os.Stdin with the read end of a pipe and returns the
-// write end, so a test can feed input incrementally: an answer to a prompt,
-// then (unlike a plain file) a secret value that is only written afterwards.
-func pipeStdin(t *testing.T) *os.File {
-	t.Helper()
-	r, w, err := os.Pipe()
-	require.NoError(t, err)
-	origStdin := os.Stdin
-	os.Stdin = r
-	t.Cleanup(func() {
-		os.Stdin = origStdin
-		r.Close()
-	})
-	return w
-}
-
 // setStdin replaces os.Stdin with a file containing content for the test.
 func setStdin(t *testing.T, content string) {
 	t.Helper()
@@ -234,6 +218,7 @@ func TestAddKeystoreCmd(t *testing.T) {
 		files    map[string]string         // written to a new directory passed as --from-dir
 		fromDir  func(t *testing.T) string // alternative to files: builds the --from-dir path
 		stdin    string                    // fed to --stdin
+		answer   string                    // fed to stdin, without --stdin, to answer the create/overwrite prompts
 		args     []string
 		force    bool
 		wantErr  string
@@ -241,10 +226,24 @@ func TestAddKeystoreCmd(t *testing.T) {
 		expected map[string]string // keystore contents afterwards; nil means the keystore must not exist
 	}{
 		{
-			name:     "from-dir creates keystore",
+			name:     "from-dir creates keystore when confirmed",
 			files:    map[string]string{"a": "1", "b": "2\n"},
+			answer:   "y\n",
 			wantOut:  "2 added, 0 updated",
 			expected: map[string]string{"a": "1", "b": "2\n"},
+		},
+		{
+			name:    "from-dir does not create keystore when declined",
+			files:   map[string]string{"a": "1"},
+			answer:  "n\n",
+			wantErr: "exiting without creating keystore",
+		},
+		{
+			name:     "from-dir with force creates keystore without prompting",
+			files:    map[string]string{"a": "1"},
+			force:    true,
+			wantOut:  "Created keystore",
+			expected: map[string]string{"a": "1"},
 		},
 		{
 			name:     "from-dir adds to existing keystore",
@@ -253,11 +252,25 @@ func TestAddKeystoreCmd(t *testing.T) {
 			expected: map[string]string{"a": "1", "b": "2"},
 		},
 		{
-			name:     "from-dir conflict without force does not overwrite existing values",
+			// Unlike --stdin, --from-dir prompts on a conflicting key rather
+			// than erroring: the answer is read from stdin while the values
+			// still come from the directory. "a" is new and is stored before
+			// the prompt for "b", but declining returns before Save, so the
+			// keystore on disk must be left untouched.
+			name:     "from-dir conflict declined leaves keystore unchanged",
 			seed:     map[string]string{"b": "old"},
 			files:    map[string]string{"a": "1", "b": "new"},
-			wantErr:  "the settings b already exist",
+			answer:   "n\n",
+			wantOut:  "Exiting without modifying keystore",
 			expected: map[string]string{"b": "old"},
+		},
+		{
+			name:     "from-dir conflict confirmed overwrites",
+			seed:     map[string]string{"a": "old"},
+			files:    map[string]string{"a": "new-a", "b": "new-b"},
+			answer:   "y\n",
+			wantOut:  "Setting a already exists",
+			expected: map[string]string{"a": "new-a", "b": "new-b"},
 		},
 		{
 			name:     "from-dir conflict with force overwrites",
@@ -285,14 +298,29 @@ func TestAddKeystoreCmd(t *testing.T) {
 			wantOut: "0 keys imported",
 		},
 		{
+			name:    "from-dir with no files still rejects stdin",
+			fromDir: dirWithOnlySubdir,
+			stdin:   "secret",
+			wantErr: "cannot be combined with --stdin",
+		},
+		{
+			name:    "from-dir with no files still rejects a key argument",
+			fromDir: dirWithOnlySubdir,
+			args:    []string{"a"},
+			wantErr: "cannot be combined with a key argument",
+		},
+		{
 			name:    "from-dir missing",
 			fromDir: missingDir,
 			wantErr: "could not read directory",
 		},
 		{
+			// force: without it the creation prompt would read its answer
+			// from the same stdin that carries the value.
 			name:     "stdin creates keystore and trims the key",
 			stdin:    "secret\n",
 			args:     []string{" token "},
+			force:    true,
 			expected: map[string]string{"token": "secret\n"},
 		},
 		{
@@ -343,9 +371,12 @@ func TestAddKeystoreCmd(t *testing.T) {
 				c.fromDir = t.TempDir()
 				writeSecretFiles(t, c.fromDir, tt.files)
 			}
-			if tt.stdin != "" {
+			switch {
+			case tt.stdin != "":
 				c.stdin = true
 				setStdin(t, tt.stdin)
+			case tt.answer != "":
+				setStdin(t, tt.answer)
 			}
 
 			stdout := captureStdout(t)
@@ -368,31 +399,4 @@ func TestAddKeystoreCmd(t *testing.T) {
 			assertPersistedSecrets(t, ksPath, tt.expected)
 		})
 	}
-}
-
-// TestAddKeystoreCmdFromDirOverwritePrompt checks that, like the default
-// manual-entry path, --from-dir prompts on a conflicting key rather than
-// erroring outright (unlike --stdin, which always errors): the prompt's
-// answer is read from stdin, same as any other overwrite prompt, while the
-// secret values themselves still come from the directory's files.
-func TestAddKeystoreCmdFromDirOverwritePrompt(t *testing.T) {
-	home := initCfgfile(t, "")
-	ksPath := filepath.Join(home, "data", "apm-server.keystore")
-	seedKeystore(t, ksPath, map[string]string{"a": "old"})
-
-	dir := t.TempDir()
-	writeSecretFiles(t, dir, map[string]string{"a": "new-a", "b": "new-b"})
-
-	w := pipeStdin(t)
-	go func() {
-		_, _ = w.WriteString("y\n")
-		w.Close()
-	}()
-
-	stdout := captureStdout(t)
-	c := &addKeystoreCmd{fromDir: dir}
-	require.NoError(t, c.run(nil, nil))
-
-	assert.Contains(t, stdout(), "Setting a already exists")
-	assertPersistedSecrets(t, ksPath, map[string]string{"a": "new-a", "b": "new-b"})
 }

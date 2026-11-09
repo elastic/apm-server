@@ -98,22 +98,25 @@ func (c *addKeystoreCmd) validate(args []string) error {
 		return nil
 	}
 
-	if len(c.keys) == 0 {
+	if len(args) == 0 {
 		return errors.New("no key provided")
 	}
-	if len(c.keys) > 1 {
-		return fmt.Errorf("you can only provide one key per invocation, got: %s", c.keys)
+	if len(args) > 1 {
+		return fmt.Errorf("you can only provide one key per invocation, got: %s", args)
 	}
 	return nil
 }
 
 func (c *addKeystoreCmd) run(cmd *cobra.Command, args []string) error {
+	if err := c.validate(args); err != nil {
+		return fmt.Errorf("failed to create the secret: %w", err)
+	}
+
 	if c.fromDir != "" {
 		keys, err := getKeysFromDir(c.fromDir)
 		if err != nil {
 			return fmt.Errorf("failed to create the secret: %w", err)
 		}
-
 		if len(keys) == 0 {
 			fmt.Printf("No files found in %q, 0 keys imported\n", c.fromDir)
 			return nil
@@ -124,14 +127,6 @@ func (c *addKeystoreCmd) run(cmd *cobra.Command, args []string) error {
 		for i, arg := range args {
 			c.keys[i] = strings.TrimSpace(arg)
 		}
-	}
-
-	if err := c.validate(args); err != nil {
-		return fmt.Errorf("failed to create the secret: %w", err)
-	}
-	if c.fromDir != "" && len(c.keys) == 0 {
-		// An empty directory is not an error: there is simply nothing to do.
-		return nil
 	}
 
 	store, err := getKeystore()

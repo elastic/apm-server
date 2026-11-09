@@ -33,10 +33,13 @@ import (
 )
 
 // keystoreHome returns a path.home with the empty apm-server.yml that
-// every keystore subcommand requires.
+// every keystore subcommand requires and an already created keystore, so
+// that add does not prompt for creation (there is no stdin to answer on).
 func keystoreHome(tb testing.TB) string {
 	homedir := tb.TempDir()
 	require.NoError(tb, os.WriteFile(filepath.Join(homedir, "apm-server.yml"), nil, 0644))
+	out, err := keystoreCommand(homedir, "create").CombinedOutput()
+	require.NoError(tb, err, string(out))
 	return homedir
 }
 
