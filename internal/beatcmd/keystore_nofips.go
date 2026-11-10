@@ -71,7 +71,6 @@ type addKeystoreCmd struct {
 	force   bool
 	stdin   bool
 	fromDir string
-	keys    []string
 }
 
 func genAddKeystoreCmd() *cobra.Command {
@@ -112,8 +111,10 @@ func (c *addKeystoreCmd) run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create the secret: %w", err)
 	}
 
+	var keys []string
 	if c.fromDir != "" {
-		keys, err := getKeysFromDir(c.fromDir)
+		var err error
+		keys, err = getKeysFromDir(c.fromDir)
 		if err != nil {
 			return fmt.Errorf("failed to create the secret: %w", err)
 		}
@@ -121,11 +122,10 @@ func (c *addKeystoreCmd) run(cmd *cobra.Command, args []string) error {
 			fmt.Printf("No files found in %q, 0 keys imported\n", c.fromDir)
 			return nil
 		}
-		c.keys = keys
 	} else {
-		c.keys = make([]string, len(args))
+		keys = make([]string, len(args))
 		for i, arg := range args {
-			c.keys[i] = strings.TrimSpace(arg)
+			keys[i] = strings.TrimSpace(arg)
 		}
 	}
 
@@ -144,7 +144,7 @@ func (c *addKeystoreCmd) run(cmd *cobra.Command, args []string) error {
 		getKeyValue = getKeyValueFromInput
 	}
 
-	if err := addKey(store, c.keys, getKeyValue, c.force, c.stdin); err != nil {
+	if err := addKey(store, keys, getKeyValue, c.force, c.stdin); err != nil {
 		return fmt.Errorf("failed to create the secret: %w", err)
 	}
 	return nil
@@ -363,7 +363,7 @@ func getKeyValueFromDir(dir string) keyValueGetter {
 func getKeysFromDir(dir string) ([]string, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, fmt.Errorf("could not read directory %q error: %w", dir, err)
+		return nil, fmt.Errorf("could not read directory %q: %w", dir, err)
 	}
 
 	var keys []string
@@ -374,7 +374,7 @@ func getKeysFromDir(dir string) ([]string, error) {
 		}
 		info, err := os.Stat(filepath.Join(dir, name))
 		if err != nil {
-			return nil, fmt.Errorf("could not stat %q error: %w", name, err)
+			return nil, fmt.Errorf("could not stat %q: %w", name, err)
 		}
 		if !info.Mode().IsRegular() {
 			continue
