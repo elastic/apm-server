@@ -1,5 +1,6 @@
 [[apm-release-notes-8.19]]
 == APM version 8.19
+* <<apm-release-notes-8.19.25>>
 * <<apm-release-notes-8.19.24>>
 * <<apm-release-notes-8.19.23>>
 * <<apm-release-notes-8.19.22>>
@@ -25,6 +26,17 @@
 * <<apm-release-notes-8.19.2>>
 * <<apm-release-notes-8.19.1>>
 * <<apm-release-notes-8.19.0>>
+
+[float]
+[[apm-release-notes-8.19.25]]
+=== APM version 8.19.25
+
+https://github.com/elastic/apm-server/compare/v8.19.24\...v8.19.25[View commits]
+
+[float]
+==== Added
+
+- Raise the maximum number of concurrent decoders from 2048 to 6553, so the limit scales up to 64GB of memory instead of about 20GB. {pull}22354[22354]
 
 [float]
 [[apm-release-notes-8.19.24]]
