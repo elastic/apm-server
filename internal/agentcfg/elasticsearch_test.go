@@ -35,7 +35,7 @@ import (
 	tracenoop "go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/beats/v7/pkg/logp/logptest"
 )
 
 var sampleHits = []map[string]any{

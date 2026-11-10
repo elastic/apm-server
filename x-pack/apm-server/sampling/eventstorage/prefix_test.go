@@ -15,7 +15,7 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/beats/v7/pkg/logp/logptest"
 )
 
 func newEventPebble(t *testing.T) *pebble.DB {

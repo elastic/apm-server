@@ -22,7 +22,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/beats/v7/pkg/logp"
 	"github.com/elastic/go-docappender/v2"
 
 	"github.com/elastic/apm-data/model/modeljson"

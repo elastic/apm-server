@@ -20,9 +20,9 @@
 package beatcmd
 
 import (
-	"github.com/elastic/elastic-agent-libs/config"
-	libkeystore "github.com/elastic/elastic-agent-libs/keystore"
-	"github.com/elastic/elastic-agent-libs/paths"
+	"github.com/elastic/beats/v7/pkg/config"
+	libkeystore "github.com/elastic/beats/v7/pkg/keystore"
+	"github.com/elastic/beats/v7/pkg/paths"
 )
 
 // loadKeystore returns the appropriate keystore based on the configuration.

@@ -52,7 +52,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/interceptors"
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/otlp"
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/beats/v7/pkg/logp/logptest"
 )
 
 // testMaxBodySize stays above OTLP protobuf framing and a small gzip frame,
