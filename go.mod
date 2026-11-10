@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.1.0
 	github.com/elastic/apm-aggregation v1.5.1
 	github.com/elastic/apm-data v1.22.2
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20261109105419-7208dece7f6c
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20261110150157-dd319ad6e486
 	github.com/elastic/elastic-agent-client/v7 v7.18.1
 	github.com/elastic/elastic-agent-libs v0.47.0
 	github.com/elastic/elastic-agent-system-metrics v0.14.5
@@ -104,7 +104,7 @@ require (
 	github.com/elastic/gosigar v0.14.4 // indirect
 	github.com/elastic/mock-es v0.0.0-20250530054253-8c3b6053f9b6 // indirect
 	github.com/elastic/opentelemetry-lib v0.39.0 // indirect
-	github.com/elastic/sarama v1.19.1-0.20260310070522-abae92ca1603 // indirect
+	github.com/elastic/sarama v1.19.1-0.20261105163725-10d0ecc585be // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect

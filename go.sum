@@ -175,8 +175,8 @@ github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 h1:br+XeQOcxNFSv+
 github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22/go.mod h1:gE+FV7xXv0/nBenviCvpvnvTpUkjJXtuOWs2UT+ZRtw=
 github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe h1:LDtn/A8Tsfz8DQlbXtmDud9ha9oOGriwJGB7V0Ozik8=
 github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe/go.mod h1:SIlGcpTnnosxZ3OvoRC7ADxhHdlsu/nwUdVMF9OkgYc=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20261109105419-7208dece7f6c h1:Xy48zdicaOx+l6zIvQW3HROtxS4Pzs07ZcLss1NhZBI=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20261109105419-7208dece7f6c/go.mod h1:xnXRXGHcXudC1jCuyiLoErJHR4cRZJUL3UQseOJn2b8=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20261110150157-dd319ad6e486 h1:WI+3OInKp8IIVR5N2PnX4NLUo2W5Ek+PH5T+QudOvGg=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20261110150157-dd319ad6e486/go.mod h1:1i42Y8spgnGnrFMfzqym235PDsxEY3Zwo153dToEmUo=
 github.com/elastic/elastic-agent-client/v7 v7.18.1 h1:WnM53JjaukeysrAuiTyrhDPmFxJG07ZAByc2TrkcKcs=
 github.com/elastic/elastic-agent-client/v7 v7.18.1/go.mod h1:uDpSGZ+YCKgqgtkwCA0qjwX0gU/wmixDsVbPjY3GkPs=
 github.com/elastic/elastic-agent-libs v0.47.0 h1:fltOh0mETIlW3LYExX62iacL63sHXSTfDB/8Qi+wXso=
@@ -217,8 +217,8 @@ github.com/elastic/mock-es v0.0.0-20250530054253-8c3b6053f9b6 h1:JVNuBrmOoqLJgp9
 github.com/elastic/mock-es v0.0.0-20250530054253-8c3b6053f9b6/go.mod h1:cXqWcLnmu5y4QveTb2hjk7rgzkHMuZsqeXtbJpNAcu0=
 github.com/elastic/opentelemetry-lib v0.39.0 h1:cPm4ZiqKXiZKcTAnBQtqeOK3gwcihDRgfev5483AY64=
 github.com/elastic/opentelemetry-lib v0.39.0/go.mod h1:QQdXp/oIhTimGoMExJJ5TrIURuGVhNwi1r3wdmaPJ6A=
-github.com/elastic/sarama v1.19.1-0.20260310070522-abae92ca1603 h1:QFDM5JuLch52FxjHizLP2tiuzfhulUdyOsUe/JuPhrQ=
-github.com/elastic/sarama v1.19.1-0.20260310070522-abae92ca1603/go.mod h1:J0lqNUlLxjFJpAGJDmFT8+vOlAnOMbQCoBQmUJ79zT4=
+github.com/elastic/sarama v1.19.1-0.20261105163725-10d0ecc585be h1:AbN9OyZ+o9tNmbY5cEDRrXq4pdCY6thW02NF9CiUJpk=
+github.com/elastic/sarama v1.19.1-0.20261105163725-10d0ecc585be/go.mod h1:J0lqNUlLxjFJpAGJDmFT8+vOlAnOMbQCoBQmUJ79zT4=
 github.com/elazarl/goproxy v1.7.2 h1:Y2o6urb7Eule09PjlhQRGNsqRfPmYI3KKQLFpCAV3+o=
 github.com/elazarl/goproxy v1.7.2/go.mod h1:82vkLNir0ALaW14Rc399OTTjyNREgmdL2cVoIbS6XaE=
 github.com/emicklei/go-restful/v3 v3.13.0 h1:C4Bl2xDndpU6nJ4bc1jXd+uTmYPVUwkD6bFY/oTyCes=
