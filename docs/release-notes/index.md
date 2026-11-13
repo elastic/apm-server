@@ -29,7 +29,7 @@ To check for security updates, go to [Security announcements for the Elastic sta
 ### Features and enhancements [apm-9.5.7-features-enhancements]
 
 * Increase the maximum allowed concurrent decoders so throughput can scale with memory limits up to 64 GiB (previously capped at ~20 GiB). ([#22354](https://github.com/elastic/apm-server/pull/22354))
-* Added support for OpenTelemetry semantic conventions v1.33. ([#22375](https://github.com/elastic/apm-server/pull/22375)) ([#649](https://github.com/elastic/apm-data/pull/649))
+* Added support for OpenTelemetry semantic conventions v1.33. ([#22375](https://github.com/elastic/apm-server/pull/22375))
 
 ## 9.5.6 [apm-9.5.6-release-notes]
 
