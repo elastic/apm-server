@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	apmVersion "github.com/elastic/apm-server/internal/version"
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/beats/v7/pkg/logp/logptest"
 )
 
 func TestClient(t *testing.T) {

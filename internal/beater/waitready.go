@@ -25,7 +25,7 @@ import (
 
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/beats/v7/pkg/logp"
 )
 
 // waitReady waits for preconditions to be satisfied, by calling check
@@ -57,8 +57,7 @@ func waitReady(
 			}
 		}
 		if err := check(ctx); err != nil {
-			var e *actionableError
-			if errors.As(err, &e) {
+			if e, ok := errors.AsType[*actionableError](err); ok {
 				logger.Errorf("precondition '%s' failed: %s", e.Name, e.Error())
 			} else {
 				logger.Errorf("precondition failed: %s", err)

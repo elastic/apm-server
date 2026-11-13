@@ -16,7 +16,7 @@ import (
 	"github.com/elastic/apm-aggregation/aggregators"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/beats/v7/pkg/logp"
 )
 
 type Aggregator struct {

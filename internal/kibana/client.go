@@ -25,7 +25,7 @@ import (
 
 	"go.elastic.co/apm/module/apmhttp/v2"
 
-	"github.com/elastic/elastic-agent-libs/kibana"
+	"github.com/elastic/beats/v7/pkg/kibana"
 
 	"github.com/elastic/apm-server/internal/version"
 )

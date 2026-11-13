@@ -19,7 +19,7 @@ package beater
 
 import (
 	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/elastic-agent-libs/monitoring"
+	"github.com/elastic/beats/v7/pkg/monitoring"
 )
 
 // recordAPMServerConfig records dynamic APM Server config properties for telemetry.
