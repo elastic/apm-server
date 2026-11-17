@@ -433,12 +433,14 @@ jobs:
       - name: Mint installation token
         id: token
         if: ${{ matrix.group.has-app == 'true' }}
-        uses: actions/create-github-app-token@v3.2.0
+        uses: actions/create-github-app-token@v3.3.0
         with:
           app-id: ${{ env.ROW_APP_ID }}
           private-key: ${{ env.ROW_PRIVATE_KEY }}
           owner: ${{ matrix.group.owner != '' && matrix.group.owner || github.repository_owner }}
           repositories: ${{ matrix.group.repositories }}
+          # Local change vs upstream: gh-aw strict mode requires explicit permission scopes.
+          permission-contents: read
       - name: Select APM package token
         id: package-token
         env:
@@ -530,7 +532,7 @@ jobs:
           working-directory: /tmp/gh-aw/apm-workspace
       - name: Upload APM bundle artifact
         if: success()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ needs.activation.outputs.artifact_prefix }}apm-${{ matrix.group.id }}
           path: ${{ steps.pack.outputs.bundle-path }}
@@ -538,7 +540,7 @@ jobs:
 
 steps:
   - name: Download APM bundle artifacts (all groups)
-    uses: actions/download-artifact@v8.0.1
+    uses: actions/download-artifact@v8.0.2
     with:
       pattern: ${{ needs.activation.outputs.artifact_prefix }}apm-*
       path: /tmp/gh-aw/apm-bundles
