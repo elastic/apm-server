@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.head_ref, 'mergify/bp/')
     permissions:
+<<<<<<< HEAD
       # Add GH labels
       pull-requests: write
       # See https://github.com/cli/cli/issues/6274
@@ -21,3 +22,14 @@ jobs:
       - uses: elastic/oblt-actions/mergify/labels-copier@v1
         with:
           excluded-labels-regex: "^backport-*"
+=======
+      # OIDC for create-token (required when use-ephemeral-token is true)
+      id-token: write
+    steps:
+      - name: Copy parent labels to backport
+        uses: elastic/oblt-actions/mergify/labels-copier@v1
+        with:
+          excluded-labels-regex: "^backport-*"
+          use-ephemeral-token: true
+
+>>>>>>> e5fcd7f (Use use-ephemeral-token for Mergify labels copier (#22256))
