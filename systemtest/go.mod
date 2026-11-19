@@ -3,6 +3,7 @@ module github.com/elastic/apm-server/systemtest
 go 1.26.11
 
 require (
+<<<<<<< HEAD
 	github.com/docker/docker v27.5.1+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22
@@ -10,6 +11,14 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.17.0
 	github.com/elastic/go-lumber v0.1.1
 	github.com/elastic/go-sysinfo v1.15.0
+=======
+	github.com/docker/docker v28.5.2+incompatible
+	github.com/elastic/apm-perf v1.1.0
+	github.com/elastic/apm-tools v0.0.0-20261112210110-d081dba5dcb1
+	github.com/elastic/go-elasticsearch/v8 v8.19.7
+	github.com/elastic/go-lumber v0.2.0
+	github.com/elastic/go-sysinfo v1.15.5
+>>>>>>> 6c6babb (bump apm-tools to pick up espoll retry fix (#22487))
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jaegertracing/jaeger-idl v0.5.0
@@ -95,6 +104,7 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
+<<<<<<< HEAD
 	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
@@ -103,4 +113,12 @@ require (
 	google.golang.org/protobuf v1.36.4 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	howett.net/plist v1.0.0 // indirect
+=======
+	golang.org/x/crypto v0.57.0 // indirect
+	golang.org/x/text v0.42.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260928230214-8a89bd6388cc // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260928230214-8a89bd6388cc // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
+	howett.net/plist v1.0.1 // indirect
+>>>>>>> 6c6babb (bump apm-tools to pick up espoll retry fix (#22487))
 )
