@@ -5,8 +5,13 @@ go 1.26.10
 require (
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/elastic/apm-perf v1.1.0
+<<<<<<< HEAD
 	github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959
 	github.com/elastic/go-elasticsearch/v8 v8.19.6
+=======
+	github.com/elastic/apm-tools v0.0.0-20261112210110-d081dba5dcb1
+	github.com/elastic/go-elasticsearch/v8 v8.19.7
+>>>>>>> 6c6babb (bump apm-tools to pick up espoll retry fix (#22487))
 	github.com/elastic/go-lumber v0.2.0
 	github.com/elastic/go-sysinfo v1.15.5
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
@@ -103,5 +108,5 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20260819154853-08b0e4226688 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260819154853-08b0e4226688 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
-	howett.net/plist v1.0.0 // indirect
+	howett.net/plist v1.0.1 // indirect
 )
