@@ -18,8 +18,8 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
-	"github.com/elastic/elastic-agent-libs/paths"
+	"github.com/elastic/beats/v7/pkg/logp/logptest"
+	"github.com/elastic/beats/v7/pkg/paths"
 
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/beater/config"

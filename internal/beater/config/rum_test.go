@@ -23,8 +23,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
-	"github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/beats/v7/pkg/config"
+	"github.com/elastic/beats/v7/pkg/logp/logptest"
 
 	"github.com/stretchr/testify/assert"
 )

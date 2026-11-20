@@ -50,7 +50,7 @@ import (
 
 	_ "github.com/elastic/beats/v7/libbeat/outputs/console"
 	_ "github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
-	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	agentconfig "github.com/elastic/beats/v7/pkg/config"
 
 	"github.com/elastic/apm-data/model/modelpb"
 
