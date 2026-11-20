@@ -3,7 +3,7 @@ ARG GOLANG_VERSION
 
 # Literal base-image stages so Dependabot can track both Ubuntu and UBI.
 FROM ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac AS base-ubuntu
-FROM registry.access.redhat.com/ubi10-micro:latest@sha256:1c105e547de5d9e0bc20d06ebabee73b20bc6bba994c50ae3e207684fd8bef2b AS base-ubi
+FROM registry.access.redhat.com/ubi10-micro:latest@sha256:2ad0f98cb13160c4773c945ef93f88b25831c7f27cd3780d72a7e78b210ea72b AS base-ubi
 
 ################################################################################
 # Build stage 0
@@ -25,7 +25,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 
-FROM cgr.dev/chainguard/static:latest@sha256:fc42af33e643f20d08baf03cddcc1c02ba57052dfb02edb0d79f3fc47bcea8d9 AS builder-certs
+FROM cgr.dev/chainguard/static:latest@sha256:8658e9eaeb2294fa0e49b0667f7d66b4e21fa7690b8d2a4c30cd1d013ceb9eb7 AS builder-certs
 
 ################################################################################
 # Build stage 1
