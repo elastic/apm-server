@@ -21,6 +21,7 @@ import (
 	"context"
 	"net/url"
 	"path"
+	"slices"
 	"time"
 
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -99,8 +100,8 @@ func (p BatchProcessor) processException(ctx context.Context, service *modelpb.S
 // - sourcemap.updated is set to true
 func (p BatchProcessor) processStacktraceFrames(ctx context.Context, service *modelpb.Service, frames ...*modelpb.StacktraceFrame) {
 	prevFunction := "<anonymous>"
-	for i := len(frames) - 1; i >= 0; i-- {
-		frame := frames[i]
+	for _, frame := range slices.Backward(frames) {
+
 		if mapped, function := p.processStacktraceFrame(ctx, service, frame, prevFunction); mapped {
 			prevFunction = function
 		}
