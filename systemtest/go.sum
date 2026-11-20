@@ -43,8 +43,8 @@ github.com/ebitengine/purego v0.10.1 h1:dewVBCBT2GaMu1SrNTYxQhgQBethzfhiwvZiLGP/
 github.com/ebitengine/purego v0.10.1/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
 github.com/elastic/apm-perf v1.1.0 h1:iTlgsLms463p6Jj2D0JuZOEPvYPQgJUk6VoRMCcA/wg=
 github.com/elastic/apm-perf v1.1.0/go.mod h1:ftcKez6E7D8tHXbW7RXNA+krm/odHgeV6o2p8gWdJ54=
-github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959 h1:N76IIqinReb57QDdQ9we7tPzuZx56BH5P6309u/ALec=
-github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959/go.mod h1:kHvCTEbLhFbP0g2k4R8BMLIANRWzqHA7e84AQ84TQLc=
+github.com/elastic/apm-tools v0.0.0-20261112210110-d081dba5dcb1 h1:YDk4lKCqkRCV9T6cDzfW0EeZ+thmoiWsVjn+6/j32z8=
+github.com/elastic/apm-tools v0.0.0-20261112210110-d081dba5dcb1/go.mod h1:jPn/lxRvOez2IjCueIQFhbvjHfxE1idRyAhUX01myhU=
 github.com/elastic/elastic-transport-go/v8 v8.9.0 h1:KeT/2P54F0xS0S8Y3Pf+tFDg4HmBgReQMB+BMz8dDAs=
 github.com/elastic/elastic-transport-go/v8 v8.9.0/go.mod h1:ssMTvNS2hwf7CaiGsRRsx4gQHFZ/jS/DkLcISxekWzc=
 github.com/elastic/go-elasticsearch/v8 v8.19.6 h1:4qa7ecJkr5rLsoHKIVGbaqcFt2o57CnOHQJi9Pts/rk=
@@ -243,7 +243,7 @@ gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8
 gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0/go.mod h1:WDnlLJ4WF5VGsH/HVa3CI79GS0ol3YnhVnKP89i0kNg=
 gotest.tools/v3 v3.5.2 h1:7koQfIKdy+I8UTetycgUqXWSDwpgv193Ka+qRsmBY8Q=
 gotest.tools/v3 v3.5.2/go.mod h1:LtdLGcnqToBH83WByAAi/wiwSFCArdFIUV/xxN4pcjA=
-howett.net/plist v1.0.0 h1:7CrbWYbPPO/PyNy38b2EB/+gYbjCe2DXBxgtOOZbSQM=
-howett.net/plist v1.0.0/go.mod h1:lqaXoTrLY4hg8tnEzNru53gicrbv7rrk+2xJA/7hw9g=
+howett.net/plist v1.0.1 h1:37GdZ8tP09Q35o9ych3ehygcsL+HqKSwzctveSlarvM=
+howett.net/plist v1.0.1/go.mod h1:lqaXoTrLY4hg8tnEzNru53gicrbv7rrk+2xJA/7hw9g=
 pgregory.net/rapid v1.2.0 h1:keKAYRcjm+e1F0oAuU5F5+YPAWcyxNNRK2wud503Gnk=
 pgregory.net/rapid v1.2.0/go.mod h1:PY5XlDGj0+V1FCq0o192FdRhpKHGTRIWBgqjDBTrq04=
