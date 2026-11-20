@@ -30,6 +30,7 @@ To check for security updates, go to [Security announcements for the Elastic sta
 
 * Increase the maximum allowed concurrent decoders so throughput can scale with memory limits up to 64 GiB (previously capped at ~20 GiB). ([#22354](https://github.com/elastic/apm-server/pull/22354))
 * Added support for OpenTelemetry semantic conventions v1.33. ([#22375](https://github.com/elastic/apm-server/pull/22375))
+* Add `apm-server keystore add --from-dir` to import each file in a directory as a secret, using the filename as the key. ([#22305](https://github.com/elastic/apm-server/pull/22305))
 
 ## 9.5.6 [apm-9.5.6-release-notes]
 
