@@ -65,7 +65,7 @@ func TestMonitoring(t *testing.T) {
 		tx.End()
 	}
 	tracer.Flush(nil)
-	estest.ExpectMinDocs(t, systemtest.Elasticsearch, N, "traces-*", nil)
+	estest.ExpectMinDocs(t, systemtest.Elasticsearch, N, "traces-*", espoll.BoolQuery{})
 
 	var metrics struct {
 		Libbeat json.RawMessage

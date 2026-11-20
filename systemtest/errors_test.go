@@ -71,7 +71,7 @@ func TestErrorExceptionCause(t *testing.T) {
 	)).Send()
 	tracer.Flush(nil)
 
-	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm.error*", nil)
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm.error*", espoll.BoolQuery{})
 	errorObj := result.Hits.Hits[0].Source["error"].(map[string]any)
 	exceptions := errorObj["exception"].([]any)
 
