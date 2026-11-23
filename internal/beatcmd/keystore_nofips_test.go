@@ -25,9 +25,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/elastic/beats/v7/pkg/keystore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/beats/v7/pkg/keystore"
 )
 
 func seedKeystore(t *testing.T, path string, secrets map[string]string) keystore.Keystore {
