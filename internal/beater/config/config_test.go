@@ -46,7 +46,7 @@ var testdataCertificateConfig = tlscommon.CertificateConfig{
 }
 
 func TestUnpackConfig(t *testing.T) {
-	// When unpacking elastic-agent-libs/kibana.ClientConfig, proxy headers
+	// When unpacking kibana.ClientConfig, proxy headers
 	// are set to nil rather than an empty map like in the default
 	// instantiated value.
 	defaultDecodedKibanaClientConfig := defaultKibanaConfig().ClientConfig

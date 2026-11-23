@@ -10,7 +10,7 @@ require (
 	github.com/elastic/apm-aggregation v1.5.1
 	github.com/elastic/apm-data v1.23.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20261109221706-f2982798020f
-	github.com/elastic/elastic-agent-client/v7 v7.19.0
+	github.com/elastic/elastic-agent-client/v7 v7.21.0
 	github.com/elastic/elastic-transport-go/v8 v8.11.0
 	github.com/elastic/gmux v0.3.3
 	github.com/elastic/go-docappender/v2 v2.15.0
@@ -91,7 +91,6 @@ require (
 	github.com/ebitengine/purego v0.11.1 // indirect
 	github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 // indirect
 	github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe // indirect
-	github.com/elastic/elastic-agent-libs v0.47.0 // indirect
 	github.com/elastic/go-concert v0.3.1 // indirect
 	github.com/elastic/go-elasticsearch/v8 v8.19.7 // indirect
 	github.com/elastic/go-licenser v0.4.2 // indirect
