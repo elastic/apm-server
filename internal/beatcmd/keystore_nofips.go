@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -48,6 +49,10 @@ func init() {
 	keystoreCommand.AddCommand(genListKeystoreCmd())
 }
 
+// keyValueGetter defines a function responsible for fetching
+// the key value from the src based on the user option selection.
+type keyValueGetter func(key string) ([]byte, error)
+
 func genCreateKeystoreCmd() *cobra.Command {
 	var flagForce bool
 	command := &cobra.Command{
@@ -61,23 +66,88 @@ func genCreateKeystoreCmd() *cobra.Command {
 	return command
 }
 
+// addKeystoreCmd wraps the keystore add command and its flags
+type addKeystoreCmd struct {
+	force   bool
+	stdin   bool
+	fromDir string
+}
+
 func genAddKeystoreCmd() *cobra.Command {
-	var flagForce bool
-	var flagStdin bool
+	c := &addKeystoreCmd{}
 	command := &cobra.Command{
 		Use:   "add",
 		Short: "Add secret",
-		Run: cli.RunWith(func(cmd *cobra.Command, args []string) error {
-			store, err := getKeystore()
-			if err != nil {
-				return err
-			}
-			return addKey(store, args, flagForce, flagStdin)
-		}),
+		Run:   cli.RunWith(c.run),
 	}
-	command.Flags().BoolVar(&flagStdin, "stdin", false, "Use the stdin as the source of the secret")
-	command.Flags().BoolVar(&flagForce, "force", false, "Override the existing key")
+	command.Flags().BoolVar(&c.stdin, "stdin", false, "Use the stdin as the source of the secret")
+	command.Flags().BoolVar(&c.force, "force", false, "Override the existing key")
+	command.Flags().StringVar(&c.fromDir, "from-dir", "", "Import every file in the directory as a key (filename) / value (file content) pair")
 	return command
+}
+
+func (c *addKeystoreCmd) validate(args []string) error {
+	if c.fromDir != "" {
+		if c.stdin {
+			return errors.New("--from-dir cannot be combined with --stdin")
+		}
+		if len(args) > 0 {
+			return errors.New("--from-dir cannot be combined with a key argument")
+		}
+		return nil
+	}
+
+	if len(args) == 0 {
+		return errors.New("no key provided")
+	}
+	if len(args) > 1 {
+		return fmt.Errorf("you can only provide one key per invocation, got: %s", args)
+	}
+	return nil
+}
+
+func (c *addKeystoreCmd) run(cmd *cobra.Command, args []string) error {
+	if err := c.validate(args); err != nil {
+		return fmt.Errorf("failed to create the secret: %w", err)
+	}
+
+	var keys []string
+	if c.fromDir != "" {
+		var err error
+		keys, err = getKeysFromDir(c.fromDir)
+		if err != nil {
+			return fmt.Errorf("failed to create the secret: %w", err)
+		}
+		if len(keys) == 0 {
+			fmt.Printf("No files found in %q, 0 keys imported\n", c.fromDir)
+			return nil
+		}
+	} else {
+		keys = make([]string, len(args))
+		for i, arg := range args {
+			keys[i] = strings.TrimSpace(arg)
+		}
+	}
+
+	store, err := getKeystore()
+	if err != nil {
+		return fmt.Errorf("failed to create the secret: %w", err)
+	}
+
+	var getKeyValue keyValueGetter
+	switch {
+	case c.fromDir != "":
+		getKeyValue = getKeyValueFromDir(c.fromDir)
+	case c.stdin:
+		getKeyValue = getKeyValueFromStdin
+	default:
+		getKeyValue = getKeyValueFromInput
+	}
+
+	if err := addKey(store, keys, getKeyValue, c.force, c.stdin); err != nil {
+		return fmt.Errorf("failed to create the secret: %w", err)
+	}
+	return nil
 }
 
 func genRemoveKeystoreCmd() *cobra.Command {
@@ -145,15 +215,10 @@ func getKeystore() (keystore.Keystore, error) {
 	return keystore, err
 }
 
-func addKey(store keystore.Keystore, keys []string, force, stdin bool) error {
-	if len(keys) == 0 {
-		return errors.New("failed to create the secret: no key provided")
-	}
-
-	if len(keys) > 1 {
-		return fmt.Errorf("could not create secret for: %s, you can only provide one key per invocation", keys)
-	}
-
+// keystore once at the end. When interactive is false there is no terminal to
+// answer prompts on, so a missing keystore is created and an existing key is
+// an error unless force is set.
+func addKey(store keystore.Keystore, keys []string, getKeyValue keyValueGetter, force, stdin bool) error {
 	writableKeystore, err := keystore.AsWritableKeystore(store)
 	if err != nil {
 		return fmt.Errorf("error creating the keystore: %w", err)
@@ -166,52 +231,51 @@ func addKey(store keystore.Keystore, keys []string, force, stdin bool) error {
 				return errors.New("exiting without creating keystore")
 			}
 		}
-		err := writableKeystore.Create(true)
-		if err != nil {
+		if err := writableKeystore.Create(true); err != nil {
 			return fmt.Errorf("could not create keystore, error: %w", err)
 		}
 		fmt.Println("Created keystore")
 	}
 
-	key := strings.TrimSpace(keys[0])
-	if _, err := store.Retrieve(key); err == nil {
-		if !force {
+	var added, updated int
+	for _, key := range keys {
+		exists := true
+		if _, err := store.Retrieve(key); errors.Is(err, keystore.ErrKeyDoesntExists) {
+			exists = false
+		} else if err != nil {
+			return err
+		}
+		if exists && !force {
 			if stdin {
 				return fmt.Errorf("the settings %s already exist in the keystore use `--force` to replace it", key)
 			}
+			// Values are only written to disk by Save below, so returning
+			// here leaves the keystore unchanged.
 			overwrite := terminal.PromptYesNo(fmt.Sprintf("Setting %s already exists, Overwrite?", key), false)
 			if !overwrite {
 				fmt.Println("Exiting without modifying keystore.")
 				return nil
 			}
 		}
-	} else if !errors.Is(err, keystore.ErrKeyDoesntExists) {
-		return err
+
+		keyValue, err := getKeyValue(key)
+		if err != nil {
+			return err
+		}
+		if err := writableKeystore.Store(key, keyValue); err != nil {
+			return fmt.Errorf("could not add the key in the keystore, error: %w", err)
+		}
+		if exists {
+			updated++
+		} else {
+			added++
+		}
 	}
 
-	var keyValue []byte
-	if stdin {
-		reader := bufio.NewReader(os.Stdin)
-		keyValue, err = io.ReadAll(reader)
-		if err != nil {
-			return fmt.Errorf("could not read input from stdin")
-		}
-	} else {
-		fmt.Printf("Enter value for %s: ", key)
-		keyValue, err = term.ReadPassword(int(syscall.Stdin))
-		fmt.Println()
-		if err != nil {
-			return fmt.Errorf("could not read value from the input, error: %w", err)
-		}
-	}
-	if err = writableKeystore.Store(key, keyValue); err != nil {
-		return fmt.Errorf("could not add the key in the keystore, error: %w", err)
-	}
-	if err = writableKeystore.Save(); err != nil {
+	if err := writableKeystore.Save(); err != nil {
 		return fmt.Errorf("fail to save the keystore: %w", err)
-	} else {
-		fmt.Println("Successfully updated the keystore")
 	}
+	fmt.Printf("Successfully updated the keystore: %d added, %d updated\n", added, updated)
 	return nil
 }
 
@@ -259,4 +323,64 @@ func list(store keystore.Keystore) error {
 		fmt.Println(key)
 	}
 	return nil
+}
+
+func getKeyValueFromStdin(_ string) ([]byte, error) {
+	reader := bufio.NewReader(os.Stdin)
+	keyValue, err := io.ReadAll(reader)
+	if err != nil {
+		return []byte{}, fmt.Errorf("could not read input from stdin")
+	}
+
+	return keyValue, nil
+}
+
+func getKeyValueFromInput(key string) ([]byte, error) {
+	fmt.Printf("Enter value for %s: ", key)
+	keyValue, err := term.ReadPassword(int(syscall.Stdin))
+	fmt.Println()
+	if err != nil {
+		return []byte{}, fmt.Errorf("could not read value from the input, error: %w", err)
+	}
+
+	return keyValue, nil
+}
+
+// getKeyValueFromDir returns a getter that reads the value for key from the
+// file of the same name under dir.
+func getKeyValueFromDir(dir string) keyValueGetter {
+	return func(key string) ([]byte, error) {
+		keyValue, err := os.ReadFile(filepath.Join(dir, key))
+		if err != nil {
+			return nil, fmt.Errorf("could not read value for key %q from %q: %w", key, dir, err)
+		}
+		return keyValue, nil
+	}
+}
+
+// getKeysFromDir lists the files directly under dir, skipping subdirectories
+// and hidden entries.
+func getKeysFromDir(dir string) ([]string, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, fmt.Errorf("could not read directory %q: %w", dir, err)
+	}
+
+	var keys []string
+	for _, entry := range entries {
+		name := entry.Name()
+		if strings.HasPrefix(name, ".") {
+			continue
+		}
+		info, err := os.Stat(filepath.Join(dir, name))
+		if err != nil {
+			return nil, fmt.Errorf("could not stat %q: %w", name, err)
+		}
+		if !info.Mode().IsRegular() {
+			continue
+		}
+		keys = append(keys, name)
+	}
+
+	return keys, nil
 }
