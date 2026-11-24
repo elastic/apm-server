@@ -25,7 +25,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	agentconfig "github.com/elastic/beats/v7/pkg/config"
 
 	"github.com/elastic/go-docappender/v2/docappendertest"
 )
