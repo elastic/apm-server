@@ -1,5 +1,6 @@
 [[apm-release-notes-8.19]]
 == APM version 8.19
+* <<apm-release-notes-8.19.26>>
 * <<apm-release-notes-8.19.25>>
 * <<apm-release-notes-8.19.24>>
 * <<apm-release-notes-8.19.23>>
@@ -26,6 +27,17 @@
 * <<apm-release-notes-8.19.2>>
 * <<apm-release-notes-8.19.1>>
 * <<apm-release-notes-8.19.0>>
+
+[float]
+[[apm-release-notes-8.19.26]]
+=== APM version 8.19.26
+
+https://github.com/elastic/apm-server/compare/v8.19.25\...v8.19.26[View commits]
+
+[float]
+==== Added
+
+- Add `apm-server keystore add --from-dir` to import each file in a directory as a secret, using the filename as the key. {pull}22305[22305]
 
 [float]
 [[apm-release-notes-8.19.25]]
