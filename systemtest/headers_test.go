@@ -24,8 +24,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/systemtest"
-	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/v9/systemtest"
+	"github.com/elastic/apm-server/v9/systemtest/apmservertest"
 )
 
 func TestResponseHeaders(t *testing.T) {

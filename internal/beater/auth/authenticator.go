@@ -26,9 +26,9 @@ import (
 
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/beater/headers"
-	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/v9/internal/beater/config"
+	"github.com/elastic/apm-server/v9/internal/beater/headers"
+	"github.com/elastic/apm-server/v9/internal/elasticsearch"
 	"github.com/elastic/beats/v7/pkg/logp"
 )
 

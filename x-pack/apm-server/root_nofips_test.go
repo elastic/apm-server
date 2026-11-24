@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/internal/beatcmd"
+	"github.com/elastic/apm-server/v9/internal/beatcmd"
 )
 
 func TestSubCommands(t *testing.T) {

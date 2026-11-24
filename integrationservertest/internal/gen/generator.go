@@ -32,8 +32,8 @@ import (
 	"github.com/elastic/apm-perf/pkg/supportedstacks"
 	"github.com/elastic/apm-perf/pkg/telemetrygen"
 
-	"github.com/elastic/apm-server/integrationservertest/internal/ech"
-	"github.com/elastic/apm-server/integrationservertest/internal/kibana"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/ech"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/kibana"
 )
 
 type Generator struct {

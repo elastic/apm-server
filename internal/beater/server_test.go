@@ -54,12 +54,12 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 
-	"github.com/elastic/apm-server/internal/beater"
-	"github.com/elastic/apm-server/internal/beater/api"
-	"github.com/elastic/apm-server/internal/beater/beatertest"
-	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/beater/monitoringtest"
-	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/beater"
+	"github.com/elastic/apm-server/v9/internal/beater/api"
+	"github.com/elastic/apm-server/v9/internal/beater/beatertest"
+	"github.com/elastic/apm-server/v9/internal/beater/config"
+	"github.com/elastic/apm-server/v9/internal/beater/monitoringtest"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
 )
 
 func TestServerOk(t *testing.T) {

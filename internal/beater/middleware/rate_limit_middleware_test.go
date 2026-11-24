@@ -25,8 +25,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/internal/beater/ratelimit"
-	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/beater/ratelimit"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
 )
 
 func TestAnonymousRateLimitMiddleware(t *testing.T) {

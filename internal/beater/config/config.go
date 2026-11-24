@@ -26,7 +26,7 @@ import (
 	"github.com/elastic/beats/v7/pkg/logp"
 	"github.com/elastic/beats/v7/pkg/transport/tlscommon"
 
-	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/v9/internal/logs"
 )
 
 const (

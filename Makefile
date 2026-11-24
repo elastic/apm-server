@@ -47,7 +47,7 @@ APM_SERVER_FIPS_BINARIES:= \
 # Strip binary and inject the Git commit hash and timestamp.
 LDFLAGS := \
 	-s \
-	-X github.com/elastic/apm-server/internal/version.qualifier=$(ELASTIC_QUALIFIER) \
+	-X github.com/elastic/apm-server/v9/internal/version.qualifier=$(ELASTIC_QUALIFIER) \
 	-X github.com/elastic/beats/v7/libbeat/version.commit=$(GITCOMMIT) \
 	-X github.com/elastic/beats/v7/libbeat/version.buildTime=$(GITCOMMITTIMESTAMP)
 

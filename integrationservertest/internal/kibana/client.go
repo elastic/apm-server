@@ -31,7 +31,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/apm-server/integrationservertest/internal/ech"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/ech"
 )
 
 func NewClient(kibanaURL, username, password string) (*Client, error) {

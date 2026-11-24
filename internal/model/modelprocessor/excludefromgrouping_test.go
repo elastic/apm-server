@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/internal/model/modelprocessor"
+	"github.com/elastic/apm-server/v9/internal/model/modelprocessor"
 )
 
 func TestSetExcludeFromGrouping(t *testing.T) {

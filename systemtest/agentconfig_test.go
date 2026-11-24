@@ -30,9 +30,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
 
-	"github.com/elastic/apm-server/systemtest"
-	"github.com/elastic/apm-server/systemtest/apmservertest"
-	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-server/v9/systemtest"
+	"github.com/elastic/apm-server/v9/systemtest/apmservertest"
+	"github.com/elastic/apm-server/v9/systemtest/estest"
 	"github.com/elastic/apm-tools/pkg/approvaltest"
 	"github.com/elastic/apm-tools/pkg/espoll"
 )

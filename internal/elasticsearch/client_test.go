@@ -28,7 +28,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	apmVersion "github.com/elastic/apm-server/internal/version"
+	apmVersion "github.com/elastic/apm-server/v9/internal/version"
 	"github.com/elastic/beats/v7/pkg/logp/logptest"
 )
 

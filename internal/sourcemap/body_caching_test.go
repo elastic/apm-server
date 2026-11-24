@@ -28,7 +28,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 
-	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/v9/internal/elasticsearch"
 	"github.com/elastic/beats/v7/pkg/logp/logptest"
 )
 

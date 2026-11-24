@@ -27,7 +27,7 @@ import (
 
 	"github.com/elastic/beats/v7/pkg/kibana"
 
-	"github.com/elastic/apm-server/internal/version"
+	"github.com/elastic/apm-server/v9/internal/version"
 )
 
 type ClientConfig = kibana.ClientConfig

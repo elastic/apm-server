@@ -38,8 +38,8 @@ import (
 
 	"github.com/elastic/beats/v7/pkg/logp/logptest"
 
-	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/headers"
+	"github.com/elastic/apm-server/v9/internal/beater/auth"
+	"github.com/elastic/apm-server/v9/internal/beater/headers"
 )
 
 func TestContext_Reset(t *testing.T) {

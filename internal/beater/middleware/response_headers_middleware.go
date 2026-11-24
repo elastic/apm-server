@@ -18,7 +18,7 @@
 package middleware
 
 import (
-	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
 )
 
 // ResponseHeadersMiddleware sets the configured headers in the response

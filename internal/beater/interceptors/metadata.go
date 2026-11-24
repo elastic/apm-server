@@ -27,7 +27,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	"github.com/elastic/apm-server/internal/netutil"
+	"github.com/elastic/apm-server/v9/internal/netutil"
 )
 
 // ClientMetadata returns an interceptor that intercepts unary gRPC requests,

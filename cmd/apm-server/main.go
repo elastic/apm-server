@@ -20,8 +20,8 @@ package main
 import (
 	"os"
 
-	"github.com/elastic/apm-server/internal/beatcmd"
-	"github.com/elastic/apm-server/internal/beater"
+	"github.com/elastic/apm-server/v9/internal/beatcmd"
+	"github.com/elastic/apm-server/v9/internal/beater"
 )
 
 func main() {

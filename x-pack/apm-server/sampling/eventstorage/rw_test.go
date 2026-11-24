@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
+	"github.com/elastic/apm-server/v9/x-pack/apm-server/sampling/eventstorage"
 )
 
 type mockChecker struct {

@@ -64,7 +64,7 @@ import (
 	"github.com/elastic/go-sysinfo"
 	"github.com/elastic/go-sysinfo/types"
 
-	"github.com/elastic/apm-server/internal/version"
+	"github.com/elastic/apm-server/v9/internal/version"
 )
 
 const (

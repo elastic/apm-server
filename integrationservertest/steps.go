@@ -31,12 +31,12 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
-	"github.com/elastic/apm-server/integrationservertest/internal/asserts"
-	"github.com/elastic/apm-server/integrationservertest/internal/ech"
-	"github.com/elastic/apm-server/integrationservertest/internal/elasticsearch"
-	"github.com/elastic/apm-server/integrationservertest/internal/gen"
-	"github.com/elastic/apm-server/integrationservertest/internal/kibana"
-	"github.com/elastic/apm-server/integrationservertest/internal/terraform"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/asserts"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/ech"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/elasticsearch"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/gen"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/kibana"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/terraform"
 )
 
 // testStepsRunner consists of composable testStep(s) that is run

@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
+	"github.com/elastic/apm-server/v9/x-pack/apm-server/sampling"
 	"github.com/elastic/beats/v7/pkg/logp"
 )
 

@@ -34,7 +34,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	tracenoop "go.opentelemetry.io/otel/trace/noop"
 
-	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/v9/internal/elasticsearch"
 	"github.com/elastic/beats/v7/pkg/logp/logptest"
 )
 

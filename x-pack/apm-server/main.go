@@ -26,11 +26,11 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
-	"github.com/elastic/apm-server/internal/beatcmd"
-	"github.com/elastic/apm-server/internal/beater"
-	"github.com/elastic/apm-server/internal/elasticsearch"
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
+	"github.com/elastic/apm-server/v9/internal/beatcmd"
+	"github.com/elastic/apm-server/v9/internal/beater"
+	"github.com/elastic/apm-server/v9/internal/elasticsearch"
+	"github.com/elastic/apm-server/v9/x-pack/apm-server/sampling"
+	"github.com/elastic/apm-server/v9/x-pack/apm-server/sampling/eventstorage"
 )
 
 const (

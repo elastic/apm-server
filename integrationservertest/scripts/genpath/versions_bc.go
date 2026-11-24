@@ -26,7 +26,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/elastic/apm-server/integrationservertest/internal/ech"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/ech"
 )
 
 const (

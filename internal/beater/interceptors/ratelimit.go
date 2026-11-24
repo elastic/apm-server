@@ -25,7 +25,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/apm-server/internal/beater/ratelimit"
+	"github.com/elastic/apm-server/v9/internal/beater/ratelimit"
 )
 
 // AnonymousRateLimit returns a grpc.UnaryServerInterceptor that adds a rate limiter

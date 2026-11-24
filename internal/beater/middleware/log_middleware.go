@@ -25,9 +25,9 @@ import (
 
 	"github.com/elastic/beats/v7/pkg/logp"
 
-	"github.com/elastic/apm-server/internal/beater/headers"
-	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/v9/internal/beater/headers"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/logs"
 )
 
 // LogMiddleware returns a middleware taking care of logging processing a request in the middleware and the request handler

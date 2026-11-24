@@ -20,7 +20,7 @@ package middleware
 import (
 	"errors"
 
-	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
 )
 
 // KillSwitchMiddleware returns a Middleware checking whether the path for the request is enabled

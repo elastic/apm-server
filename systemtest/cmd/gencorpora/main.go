@@ -25,7 +25,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/elastic/apm-server/systemtest/gencorpora"
+	"github.com/elastic/apm-server/v9/systemtest/gencorpora"
 )
 
 func main() {

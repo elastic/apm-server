@@ -24,8 +24,8 @@ import (
 
 	"github.com/ryanuber/go-glob"
 
-	"github.com/elastic/apm-server/internal/beater/headers"
-	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/beater/headers"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
 )
 
 var (

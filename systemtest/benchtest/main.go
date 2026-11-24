@@ -41,7 +41,7 @@ import (
 	"github.com/elastic/apm-perf/loadgen"
 	loadgencfg "github.com/elastic/apm-perf/loadgen/config"
 
-	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
+	"github.com/elastic/apm-server/v9/systemtest/benchtest/expvar"
 )
 
 const waitInactiveTimeout = time.Minute

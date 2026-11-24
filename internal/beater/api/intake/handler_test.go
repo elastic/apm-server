@@ -40,12 +40,12 @@ import (
 
 	"github.com/elastic/apm-data/input/elasticapm"
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/beater/headers"
-	"github.com/elastic/apm-server/internal/beater/monitoringtest"
-	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/apm-server/internal/model/modelprocessor"
-	"github.com/elastic/apm-server/internal/publish"
+	"github.com/elastic/apm-server/v9/internal/beater/config"
+	"github.com/elastic/apm-server/v9/internal/beater/headers"
+	"github.com/elastic/apm-server/v9/internal/beater/monitoringtest"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/model/modelprocessor"
+	"github.com/elastic/apm-server/v9/internal/publish"
 )
 
 // TODO: these tests should be rewritten to use a mock StreamHandler

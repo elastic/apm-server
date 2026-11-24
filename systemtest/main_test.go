@@ -28,7 +28,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/v9/systemtest/apmservertest"
 )
 
 func TestMain(m *testing.M) {

@@ -29,8 +29,8 @@ import (
 
 	"github.com/elastic/beats/v7/pkg/logp"
 
-	"github.com/elastic/apm-server/internal/kibana"
-	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/v9/internal/kibana"
+	"github.com/elastic/apm-server/v9/internal/logs"
 )
 
 const sourcemapArtifactType = "sourcemap"

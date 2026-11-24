@@ -30,7 +30,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/net/netutil"
 
-	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/apm-server/v9/internal/beater/config"
 	"github.com/elastic/beats/v7/pkg/logp"
 	"github.com/elastic/beats/v7/pkg/transport/tlscommon"
 	"github.com/elastic/gmux"

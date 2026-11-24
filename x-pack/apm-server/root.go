@@ -7,7 +7,7 @@ package main
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/elastic/apm-server/internal/beatcmd"
+	"github.com/elastic/apm-server/v9/internal/beatcmd"
 	_ "github.com/elastic/beats/v7/x-pack/libbeat/management" // Fleet
 )
 

@@ -1,4 +1,4 @@
-module github.com/elastic/apm-server
+module github.com/elastic/apm-server/v9
 
 go 1.26.11
 
