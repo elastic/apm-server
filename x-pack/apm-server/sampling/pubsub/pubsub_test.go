@@ -28,8 +28,8 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
-	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
+	"github.com/elastic/beats/v7/pkg/logp"
+	"github.com/elastic/beats/v7/pkg/logp/logptest"
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 )
 
