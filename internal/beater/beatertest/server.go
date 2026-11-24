@@ -37,9 +37,9 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beatmonitoring"
-	agentconfig "github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
-	"github.com/elastic/elastic-agent-libs/paths"
+	agentconfig "github.com/elastic/beats/v7/pkg/config"
+	"github.com/elastic/beats/v7/pkg/logp/logptest"
+	"github.com/elastic/beats/v7/pkg/paths"
 
 	"github.com/elastic/apm-server/internal/beater"
 )

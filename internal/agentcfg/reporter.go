@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/beats/v7/pkg/logp"
 )
 
 type Reporter struct {
