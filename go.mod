@@ -9,14 +9,8 @@ require (
 	github.com/dustin/go-humanize v1.1.0
 	github.com/elastic/apm-aggregation v1.5.1
 	github.com/elastic/apm-data v1.23.0
-<<<<<<< HEAD
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20261020133020-0973fada84ca
-	github.com/elastic/elastic-agent-client/v7 v7.18.1
-	github.com/elastic/elastic-agent-libs v0.47.0
-=======
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20261109221706-f2982798020f
 	github.com/elastic/elastic-agent-client/v7 v7.21.0
->>>>>>> f77f498 (fix: bump beats and drop elastic-agent-libs usage (#22422))
 	github.com/elastic/elastic-transport-go/v8 v8.11.0
 	github.com/elastic/gmux v0.3.3
 	github.com/elastic/go-docappender/v2 v2.15.0
@@ -140,7 +134,7 @@ require (
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/go-version v1.9.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
-	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/hashicorp/hcl v1.0.1-vault-7 // indirect
 	github.com/hashicorp/hcl/v2 v2.22.0 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
@@ -229,7 +223,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zclconf/go-cty v1.15.0 // indirect
 	gitlab.com/digitalxero/go-conventional-commit v1.0.7 // indirect
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.3 // indirect
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.7.12 // indirect
 	go.elastic.co/ecszap v1.0.3 // indirect
 	go.elastic.co/go-licence-detector v0.11.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
