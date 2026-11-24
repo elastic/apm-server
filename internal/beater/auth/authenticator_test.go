@@ -235,7 +235,7 @@ func TestAuthenticatorAPIKeyCache(t *testing.T) {
                             }
                           }
 		       }`))
-		case invalidCredentials:
+		case validCredentials2, invalidCredentials:
 			w.WriteHeader(http.StatusUnauthorized)
 		default:
 			panic("unexpected credentials: " + credentials)
@@ -248,7 +248,7 @@ func TestAuthenticatorAPIKeyCache(t *testing.T) {
 
 	esConfig := elasticsearch.DefaultConfig()
 	esConfig.Hosts = elasticsearch.Hosts{srv.URL}
-	apikeyAuthConfig := config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 2, ESConfig: esConfig}
+	apikeyAuthConfig := config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 3, ESConfig: esConfig}
 	authenticator, err := NewAuthenticator(config.AgentAuth{APIKey: apikeyAuthConfig}, tp, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
@@ -261,8 +261,12 @@ func TestAuthenticatorAPIKeyCache(t *testing.T) {
 	assert.Equal(t, "Elasticsearch: GET _security/user/_has_privileges", spans[0].Name())
 	exporter.clear()
 
-	// API Key checks are cached based on the API Key ID, not the full credential.
 	_, _, err = authenticator.Authenticate(context.Background(), headers.APIKey, validCredentials2)
+	assert.Equal(t, ErrAuthFailed, err)
+	assert.Len(t, exporter.payloads(), 1)
+	exporter.clear()
+
+	_, _, err = authenticator.Authenticate(context.Background(), headers.APIKey, validCredentials)
 	assert.NoError(t, err)
 	assert.Len(t, exporter.payloads(), 0)
 	exporter.clear()

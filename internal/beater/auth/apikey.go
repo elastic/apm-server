@@ -20,7 +20,9 @@ package auth
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
@@ -111,7 +113,8 @@ func (a *apikeyAuth) authenticate(ctx context.Context, credentials string) (*API
 }
 
 func (a *apikeyAuth) hasPrivileges(ctx context.Context, id, credentials string, resource es.Resource) (*es.HasPrivilegesResponse, error) {
-	cacheKey := id + "_" + string(resource)
+	sum := sha256.Sum256([]byte(credentials))
+	cacheKey := hex.EncodeToString(sum[:]) + "_" + string(resource)
 	if response, ok := a.cache.get(cacheKey); ok {
 		if response == nil {
 			return nil, ErrAuthFailed
