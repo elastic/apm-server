@@ -13,7 +13,7 @@ import (
 	"github.com/cockroachdb/pebble/v2/sstable"
 
 	"github.com/elastic/apm-server/internal/logs"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/beats/v7/pkg/logp"
 )
 
 func eventComparer() *pebble.Comparer {
