@@ -30,7 +30,7 @@ import (
 // that blocks until all clients are closed, and all published events at the
 // time the clients are closed are acknowledged.
 type WaitPublishedAcker struct {
-	active int64 // atomic
+	active atomic.Int64 // atomic
 
 	mu    sync.Mutex
 	empty *sync.Cond
@@ -75,11 +75,11 @@ func (w *WaitPublishedAcker) ClientClosed() {
 }
 
 func (w *WaitPublishedAcker) incref(n int64) {
-	atomic.AddInt64(&w.active, 1)
+	w.active.Add(1)
 }
 
 func (w *WaitPublishedAcker) decref(n int64) {
-	if atomic.AddInt64(&w.active, int64(-n)) == 0 {
+	if w.active.Add(int64(-n)) == 0 {
 		w.empty.Broadcast()
 	}
 }
@@ -96,7 +96,7 @@ func (w *WaitPublishedAcker) Wait(ctx context.Context) error {
 
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	for atomic.LoadInt64(&w.active) != 0 && ctx.Err() == nil {
+	for w.active.Load() != 0 && ctx.Err() == nil {
 		w.empty.Wait()
 	}
 	return ctx.Err()
