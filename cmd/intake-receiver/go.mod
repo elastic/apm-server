@@ -1,4 +1,4 @@
-module github.com/elastic/apm-server/cmd/intake-receiver
+module github.com/elastic/apm-server/v9/cmd/intake-receiver
 
 go 1.26.11
 
