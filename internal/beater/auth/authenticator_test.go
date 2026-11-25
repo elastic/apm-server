@@ -233,7 +233,7 @@ func TestAuthenticatorAPIKeyCache(t *testing.T) {
                             }
                           }
 		       }`))
-		case invalidCredentials:
+		case validCredentials2, invalidCredentials:
 			w.WriteHeader(http.StatusUnauthorized)
 		default:
 			panic("unexpected credentials: " + credentials)
@@ -243,7 +243,7 @@ func TestAuthenticatorAPIKeyCache(t *testing.T) {
 
 	esConfig := elasticsearch.DefaultConfig()
 	esConfig.Hosts = elasticsearch.Hosts{srv.URL}
-	apikeyAuthConfig := config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 2, ESConfig: esConfig}
+	apikeyAuthConfig := config.APIKeyAgentAuth{Enabled: true, LimitPerMin: 3, ESConfig: esConfig}
 	authenticator, err := NewAuthenticator(config.AgentAuth{APIKey: apikeyAuthConfig}, logptest.NewTestingLogger(t, ""))
 	require.NoError(t, err)
 
@@ -257,8 +257,16 @@ func TestAuthenticatorAPIKeyCache(t *testing.T) {
 	assert.Equal(t, "elasticsearch", spans[0].Subtype)
 
 	_, spans, _ = apmtest.WithTransaction(func(ctx context.Context) {
-		// API Key checks are cached based on the API Key ID, not the full credential.
+		// API Key checks are cached based on the full credential, so a different
+		// secret for the same API Key ID is checked against Elasticsearch.
 		_, _, err := authenticator.Authenticate(ctx, headers.APIKey, validCredentials2)
+		assert.Equal(t, ErrAuthFailed, err)
+	})
+	assert.Len(t, spans, 1)
+
+	_, spans, _ = apmtest.WithTransaction(func(ctx context.Context) {
+		// The valid credential is still served from the cache.
+		_, _, err := authenticator.Authenticate(ctx, headers.APIKey, validCredentials)
 		assert.NoError(t, err)
 	})
 	assert.Len(t, spans, 0)
