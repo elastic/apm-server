@@ -29,15 +29,9 @@ import (
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	"github.com/elastic/beats/v7/libbeat/publisher"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
-<<<<<<< HEAD
-	"github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
-	"github.com/elastic/elastic-agent-libs/mapstr"
-=======
 	"github.com/elastic/beats/v7/pkg/config"
-	"github.com/elastic/beats/v7/pkg/logp"
+	"github.com/elastic/beats/v7/pkg/logp/logptest"
 	"github.com/elastic/beats/v7/pkg/mapstr"
->>>>>>> f77f498 (fix: bump beats and drop elastic-agent-libs usage (#22422))
 
 	"github.com/elastic/apm-server/internal/publish"
 )

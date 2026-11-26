@@ -729,7 +729,7 @@ func newMockManager() *mockManager {
 	}
 }
 
-func (m *mockManager) ConfigFromControlProtocol() bool {
+func (m *mockManager) Enabled() bool {
 	return m.enabled
 }
 

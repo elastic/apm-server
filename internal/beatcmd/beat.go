@@ -391,7 +391,7 @@ func (b *Beat) Run(ctx context.Context) error {
 		return err
 	}
 
-	if b.Manager.ConfigFromControlProtocol() {
+	if b.Manager.Enabled() {
 		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer, b.tracerProvider, b.Monitoring, b.Manager)
 		if err != nil {
 			return err
@@ -485,7 +485,7 @@ func (b *Beat) registerStateMetrics() {
 
 	// state.management
 	managementRegistry := stateRegistry.GetOrCreateRegistry("management")
-	monitoring.NewBool(managementRegistry, "enabled").Set(b.Manager.ConfigFromControlProtocol())
+	monitoring.NewBool(managementRegistry, "enabled").Set(b.Manager.Enabled())
 }
 
 func (b *Beat) registerStatsMetrics() {
