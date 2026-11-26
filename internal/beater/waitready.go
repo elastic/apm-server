@@ -25,7 +25,7 @@ import (
 
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/beats/v7/pkg/logp"
 )
 
 // waitReady waits for preconditions to be satisfied, by calling check
