@@ -27,7 +27,7 @@ import (
 	"go.elastic.co/apm/module/apmelasticsearch/v2"
 
 	"github.com/elastic/apm-server/internal/version"
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/beats/v7/pkg/logp"
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 )
 

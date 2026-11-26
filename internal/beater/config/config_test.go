@@ -27,9 +27,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp/logptest"
-	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
+	"github.com/elastic/beats/v7/pkg/config"
+	"github.com/elastic/beats/v7/pkg/logp/logptest"
+	"github.com/elastic/beats/v7/pkg/transport/tlscommon"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 )
@@ -46,7 +46,7 @@ var testdataCertificateConfig = tlscommon.CertificateConfig{
 }
 
 func TestUnpackConfig(t *testing.T) {
-	// When unpacking elastic-agent-libs/kibana.ClientConfig, proxy headers
+	// When unpacking kibana.ClientConfig, proxy headers
 	// are set to nil rather than an empty map like in the default
 	// instantiated value.
 	defaultDecodedKibanaClientConfig := defaultKibanaConfig().ClientConfig

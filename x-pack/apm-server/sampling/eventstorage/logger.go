@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/beats/v7/pkg/logp"
 )
 
 // LogpAdaptor adapts logp.Logger to the badger.Logger interface.

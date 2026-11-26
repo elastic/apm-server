@@ -15,7 +15,7 @@ Version: v1.0.1
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/!kim!machine!gun/automemlimit@v1.0.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/!kim!machine!gun/automemlimit@v1.0.1/LICENSE:
 
 MIT License
 
@@ -46,7 +46,7 @@ Version: v2.3.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cespare/xxhash/v2@v2.3.0/LICENSE.txt:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/cespare/xxhash/v2@v2.3.0/LICENSE.txt:
 
 Copyright (c) 2016 Caleb Spare
 
@@ -78,7 +78,7 @@ Version: v2.2007.4
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/dgraph-io/badger/v2@v2.2007.4/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/dgraph-io/badger/v2@v2.2007.4/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -264,7 +264,7 @@ Version: v1.1.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/dustin/go-humanize@v1.1.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/dustin/go-humanize@v1.1.0/LICENSE:
 
 Copyright (c) 2005-2008  Dustin Sallings <dustin@spy.net>
 
@@ -295,7 +295,7 @@ Version: v1.5.1
 Licence type (autodetected): Elastic-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-aggregation@v1.5.1/LICENSE.txt:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/apm-aggregation@v1.5.1/LICENSE.txt:
 
 Elastic License 2.0
 
@@ -397,7 +397,7 @@ Version: v1.22.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.22.2/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/apm-data@v1.22.2/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -604,11 +604,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.22.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20261019233208-4dd243778db2
+Version: v7.0.0-alpha2.0.20261124220049-72068356dd89
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20261019233208-4dd243778db2/LICENSE.txt:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20261124220049-72068356dd89/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -627,11 +627,11 @@ License Version 2.0.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-client/v7
-Version: v7.19.0
+Version: v7.20.0
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.19.0/LICENSE.txt:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/elastic-agent-client/v7@v7.20.0/LICENSE.txt:
 
 ELASTIC LICENSE AGREEMENT
 
@@ -859,223 +859,12 @@ SOFTWARE
 
 
 --------------------------------------------------------------------------------
-Dependency : github.com/elastic/elastic-agent-libs
-Version: v0.47.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.47.0/LICENSE:
-
-                                 Apache License
-                           Version 2.0, January 2004
-                        http://www.apache.org/licenses/
-
-   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
-
-   1. Definitions.
-
-      "License" shall mean the terms and conditions for use, reproduction,
-      and distribution as defined by Sections 1 through 9 of this document.
-
-      "Licensor" shall mean the copyright owner or entity authorized by
-      the copyright owner that is granting the License.
-
-      "Legal Entity" shall mean the union of the acting entity and all
-      other entities that control, are controlled by, or are under common
-      control with that entity. For the purposes of this definition,
-      "control" means (i) the power, direct or indirect, to cause the
-      direction or management of such entity, whether by contract or
-      otherwise, or (ii) ownership of fifty percent (50%) or more of the
-      outstanding shares, or (iii) beneficial ownership of such entity.
-
-      "You" (or "Your") shall mean an individual or Legal Entity
-      exercising permissions granted by this License.
-
-      "Source" form shall mean the preferred form for making modifications,
-      including but not limited to software source code, documentation
-      source, and configuration files.
-
-      "Object" form shall mean any form resulting from mechanical
-      transformation or translation of a Source form, including but
-      not limited to compiled object code, generated documentation,
-      and conversions to other media types.
-
-      "Work" shall mean the work of authorship, whether in Source or
-      Object form, made available under the License, as indicated by a
-      copyright notice that is included in or attached to the work
-      (an example is provided in the Appendix below).
-
-      "Derivative Works" shall mean any work, whether in Source or Object
-      form, that is based on (or derived from) the Work and for which the
-      editorial revisions, annotations, elaborations, or other modifications
-      represent, as a whole, an original work of authorship. For the purposes
-      of this License, Derivative Works shall not include works that remain
-      separable from, or merely link (or bind by name) to the interfaces of,
-      the Work and Derivative Works thereof.
-
-      "Contribution" shall mean any work of authorship, including
-      the original version of the Work and any modifications or additions
-      to that Work or Derivative Works thereof, that is intentionally
-      submitted to Licensor for inclusion in the Work by the copyright owner
-      or by an individual or Legal Entity authorized to submit on behalf of
-      the copyright owner. For the purposes of this definition, "submitted"
-      means any form of electronic, verbal, or written communication sent
-      to the Licensor or its representatives, including but not limited to
-      communication on electronic mailing lists, source code control systems,
-      and issue tracking systems that are managed by, or on behalf of, the
-      Licensor for the purpose of discussing and improving the Work, but
-      excluding communication that is conspicuously marked or otherwise
-      designated in writing by the copyright owner as "Not a Contribution."
-
-      "Contributor" shall mean Licensor and any individual or Legal Entity
-      on behalf of whom a Contribution has been received by Licensor and
-      subsequently incorporated within the Work.
-
-   2. Grant of Copyright License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      copyright license to reproduce, prepare Derivative Works of,
-      publicly display, publicly perform, sublicense, and distribute the
-      Work and such Derivative Works in Source or Object form.
-
-   3. Grant of Patent License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      (except as stated in this section) patent license to make, have made,
-      use, offer to sell, sell, import, and otherwise transfer the Work,
-      where such license applies only to those patent claims licensable
-      by such Contributor that are necessarily infringed by their
-      Contribution(s) alone or by combination of their Contribution(s)
-      with the Work to which such Contribution(s) was submitted. If You
-      institute patent litigation against any entity (including a
-      cross-claim or counterclaim in a lawsuit) alleging that the Work
-      or a Contribution incorporated within the Work constitutes direct
-      or contributory patent infringement, then any patent licenses
-      granted to You under this License for that Work shall terminate
-      as of the date such litigation is filed.
-
-   4. Redistribution. You may reproduce and distribute copies of the
-      Work or Derivative Works thereof in any medium, with or without
-      modifications, and in Source or Object form, provided that You
-      meet the following conditions:
-
-      (a) You must give any other recipients of the Work or
-          Derivative Works a copy of this License; and
-
-      (b) You must cause any modified files to carry prominent notices
-          stating that You changed the files; and
-
-      (c) You must retain, in the Source form of any Derivative Works
-          that You distribute, all copyright, patent, trademark, and
-          attribution notices from the Source form of the Work,
-          excluding those notices that do not pertain to any part of
-          the Derivative Works; and
-
-      (d) If the Work includes a "NOTICE" text file as part of its
-          distribution, then any Derivative Works that You distribute must
-          include a readable copy of the attribution notices contained
-          within such NOTICE file, excluding those notices that do not
-          pertain to any part of the Derivative Works, in at least one
-          of the following places: within a NOTICE text file distributed
-          as part of the Derivative Works; within the Source form or
-          documentation, if provided along with the Derivative Works; or,
-          within a display generated by the Derivative Works, if and
-          wherever such third-party notices normally appear. The contents
-          of the NOTICE file are for informational purposes only and
-          do not modify the License. You may add Your own attribution
-          notices within Derivative Works that You distribute, alongside
-          or as an addendum to the NOTICE text from the Work, provided
-          that such additional attribution notices cannot be construed
-          as modifying the License.
-
-      You may add Your own copyright statement to Your modifications and
-      may provide additional or different license terms and conditions
-      for use, reproduction, or distribution of Your modifications, or
-      for any such Derivative Works as a whole, provided Your use,
-      reproduction, and distribution of the Work otherwise complies with
-      the conditions stated in this License.
-
-   5. Submission of Contributions. Unless You explicitly state otherwise,
-      any Contribution intentionally submitted for inclusion in the Work
-      by You to the Licensor shall be under the terms and conditions of
-      this License, without any additional terms or conditions.
-      Notwithstanding the above, nothing herein shall supersede or modify
-      the terms of any separate license agreement you may have executed
-      with Licensor regarding such Contributions.
-
-   6. Trademarks. This License does not grant permission to use the trade
-      names, trademarks, service marks, or product names of the Licensor,
-      except as required for reasonable and customary use in describing the
-      origin of the Work and reproducing the content of the NOTICE file.
-
-   7. Disclaimer of Warranty. Unless required by applicable law or
-      agreed to in writing, Licensor provides the Work (and each
-      Contributor provides its Contributions) on an "AS IS" BASIS,
-      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-      implied, including, without limitation, any warranties or conditions
-      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
-      PARTICULAR PURPOSE. You are solely responsible for determining the
-      appropriateness of using or redistributing the Work and assume any
-      risks associated with Your exercise of permissions under this License.
-
-   8. Limitation of Liability. In no event and under no legal theory,
-      whether in tort (including negligence), contract, or otherwise,
-      unless required by applicable law (such as deliberate and grossly
-      negligent acts) or agreed to in writing, shall any Contributor be
-      liable to You for damages, including any direct, indirect, special,
-      incidental, or consequential damages of any character arising as a
-      result of this License or out of the use or inability to use the
-      Work (including but not limited to damages for loss of goodwill,
-      work stoppage, computer failure or malfunction, or any and all
-      other commercial damages or losses), even if such Contributor
-      has been advised of the possibility of such damages.
-
-   9. Accepting Warranty or Additional Liability. While redistributing
-      the Work or Derivative Works thereof, You may choose to offer,
-      and charge a fee for, acceptance of support, warranty, indemnity,
-      or other liability obligations and/or rights consistent with this
-      License. However, in accepting such obligations, You may act only
-      on Your own behalf and on Your sole responsibility, not on behalf
-      of any other Contributor, and only if You agree to indemnify,
-      defend, and hold each Contributor harmless for any liability
-      incurred by, or claims asserted against, such Contributor by reason
-      of your accepting any such warranty or additional liability.
-
-   END OF TERMS AND CONDITIONS
-
-   APPENDIX: How to apply the Apache License to your work.
-
-      To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "[]"
-      replaced with your own identifying information. (Don't include
-      the brackets!)  The text should be enclosed in the appropriate
-      comment syntax for the file format. We also recommend that a
-      file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
-      identification within third-party archives.
-
-   Copyright [yyyy] [name of copyright owner]
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-
---------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-transport-go/v8
 Version: v8.11.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-transport-go/v8@v8.11.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/elastic-transport-go/v8@v8.11.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -1286,7 +1075,7 @@ Version: v0.3.3
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.3.3/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/gmux@v0.3.3/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -1497,7 +1286,7 @@ Version: v2.15.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender/v2@v2.15.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/go-docappender/v2@v2.15.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -1708,7 +1497,7 @@ Version: v0.16.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-freelru@v0.16.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/go-freelru@v0.16.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -1919,7 +1708,7 @@ Version: v1.15.5
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-sysinfo@v1.15.5/LICENSE.txt:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/go-sysinfo@v1.15.5/LICENSE.txt:
 
 
                                  Apache License
@@ -2131,7 +1920,7 @@ Version: v0.9.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-ucfg@v0.9.2/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/go-ucfg@v0.9.2/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -2342,7 +2131,7 @@ Version: v2.1.4+incompatible
 Licence type (autodetected): BSD-2-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/go-sourcemap/sourcemap@v2.1.4+incompatible/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/go-sourcemap/sourcemap@v2.1.4+incompatible/LICENSE:
 
 Copyright (c) 2016 The github.com/go-sourcemap/sourcemap Contributors.
 All rights reserved.
@@ -2377,7 +2166,7 @@ Version: v0.13.1
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/gofrs/flock@v0.13.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/gofrs/flock@v0.13.1/LICENSE:
 
 Copyright (c) 2018-2025, The Gofrs
 Copyright (c) 2015-2020, Tim Heckman
@@ -2415,7 +2204,7 @@ Version: v5.5.1
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/gofrs/uuid/v5@v5.5.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/gofrs/uuid/v5@v5.5.1/LICENSE:
 
 Copyright (C) 2013-2018 by Maxim Bublis <b@codemonkey.ru>
 
@@ -2445,7 +2234,7 @@ Version: v1.8.1
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/gorilla/mux@v1.8.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/gorilla/mux@v1.8.1/LICENSE:
 
 Copyright (c) 2023 The Gorilla Authors. All rights reserved.
 
@@ -2482,7 +2271,7 @@ Version: v0.14.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/jaegertracing/jaeger-idl@v0.14.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/jaegertracing/jaeger-idl@v0.14.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -2693,7 +2482,7 @@ Version: v0.0.0-20140124173710-69b34d4ec901
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/joeshaw/multierror@v0.0.0-20140124173710-69b34d4ec901/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/joeshaw/multierror@v0.0.0-20140124173710-69b34d4ec901/LICENSE:
 
 The MIT License (MIT)
 
@@ -2724,7 +2513,7 @@ Version: v0.4.0
 Licence type (autodetected): ISC
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/libp2p/go-reuseport@v0.4.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/libp2p/go-reuseport@v0.4.0/LICENSE:
 
 Copyright (c) 2013 Conformal Systems LLC.
 
@@ -2742,11 +2531,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger
-Version: v0.164.1
+Version: v0.165.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger@v0.164.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger@v0.165.1/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -2957,7 +2746,7 @@ Version: v0.9.1
 Licence type (autodetected): BSD-2-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/pkg/errors@v0.9.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/pkg/errors@v0.9.1/LICENSE:
 
 Copyright (c) 2015, Dave Cheney <dave@cheney.net>
 All rights reserved.
@@ -2990,7 +2779,7 @@ Version: v1.0.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/ryanuber/go-glob@v1.0.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/ryanuber/go-glob@v1.0.0/LICENSE:
 
 The MIT License (MIT)
 
@@ -3021,7 +2810,7 @@ Version: v1.10.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/spf13/cobra@v1.10.2/LICENSE.txt:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/spf13/cobra@v1.10.2/LICENSE.txt:
 
                                 Apache License
                            Version 2.0, January 2004
@@ -3205,7 +2994,7 @@ Version: v1.0.10
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/spf13/pflag@v1.0.10/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/spf13/pflag@v1.0.10/LICENSE:
 
 Copyright (c) 2012 Alex Ogier. All rights reserved.
 Copyright (c) 2012 The Go Authors. All rights reserved.
@@ -3243,7 +3032,7 @@ Version: v2.7.12
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmelasticsearch/v2@v2.7.12/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.elastic.co/apm/module/apmelasticsearch/v2@v2.7.12/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3454,7 +3243,7 @@ Version: v2.7.12
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgorilla/v2@v2.7.12/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.elastic.co/apm/module/apmgorilla/v2@v2.7.12/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3665,7 +3454,7 @@ Version: v2.7.12
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgrpc/v2@v2.7.12/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.elastic.co/apm/module/apmgrpc/v2@v2.7.12/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3876,7 +3665,7 @@ Version: v2.7.12
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp/v2@v2.7.12/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.elastic.co/apm/module/apmhttp/v2@v2.7.12/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4087,7 +3876,7 @@ Version: v2.7.12
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmotel/v2@v2.7.12/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.elastic.co/apm/module/apmotel/v2@v2.7.12/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4298,7 +4087,7 @@ Version: v2.7.12
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/v2@v2.7.12/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.elastic.co/apm/v2@v2.7.12/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4509,7 +4298,7 @@ Version: v1.5.1
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/fastjson@v1.5.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.elastic.co/fastjson@v1.5.1/LICENSE:
 
 Copyright 2018 Elasticsearch BV
 
@@ -4538,11 +4327,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/consumer
-Version: v1.70.0
+Version: v1.71.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v1.70.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.opentelemetry.io/collector/consumer@v1.71.0/LICENSE:
 
 
                                  Apache License
@@ -4750,11 +4539,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/cons
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/pdata
-Version: v1.70.0
+Version: v1.71.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.70.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.opentelemetry.io/collector/pdata@v1.71.0/LICENSE:
 
 
                                  Apache License
@@ -4966,7 +4755,7 @@ Version: v1.47.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.47.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.opentelemetry.io/otel@v1.47.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5206,7 +4995,7 @@ Version: v1.47.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1.47.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.opentelemetry.io/otel/metric@v1.47.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5446,7 +5235,7 @@ Version: v1.47.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.47.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.opentelemetry.io/otel/sdk@v1.47.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5686,7 +5475,7 @@ Version: v1.47.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk/metric@v1.47.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.opentelemetry.io/otel/sdk/metric@v1.47.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5926,7 +5715,7 @@ Version: v1.47.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/trace@v1.47.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.opentelemetry.io/otel/trace@v1.47.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -6166,7 +5955,7 @@ Version: v1.28.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.uber.org/zap@v1.28.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.uber.org/zap@v1.28.0/LICENSE:
 
 Copyright (c) 2016-2024 Uber Technologies, Inc.
 
@@ -6195,7 +5984,7 @@ Version: v0.3.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.uber.org/zap/exp@v0.3.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.uber.org/zap/exp@v0.3.0/LICENSE:
 
 Copyright (c) 2016-2024 Uber Technologies, Inc.
 
@@ -6220,11 +6009,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : go.yaml.in/yaml/v3
-Version: v3.0.5
+Version: v3.0.6
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.yaml.in/yaml/v3@v3.0.5/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.yaml.in/yaml/v3@v3.0.6/LICENSE:
 
 
 This project is covered by two different licenses: MIT and Apache.
@@ -6280,11 +6069,11 @@ limitations under the License.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.61.0
+Version: v0.62.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.61.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/golang.org/x/net@v0.62.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -6321,7 +6110,7 @@ Version: v0.24.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.24.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/golang.org/x/sync@v0.24.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -6358,7 +6147,7 @@ Version: v0.47.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/term@v0.47.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/golang.org/x/term@v0.47.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -6395,7 +6184,7 @@ Version: v0.16.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/time@v0.16.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/golang.org/x/time@v0.16.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -6432,7 +6221,7 @@ Version: v1.85.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.85.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/google.golang.org/grpc@v1.85.0/LICENSE:
 
 
                                  Apache License
@@ -6644,7 +6433,7 @@ Version: v1.36.12
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/protobuf@v1.36.12/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/google.golang.org/protobuf@v1.36.12/LICENSE:
 
 Copyright (c) 2018 The Go Authors. All rights reserved.
 
@@ -6683,11 +6472,11 @@ Indirect dependencies
 
 --------------------------------------------------------------------------------
 Dependency : github.com/Microsoft/go-winio
-Version: v0.6.3
+Version: v0.6.4
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/!microsoft/go-winio@v0.6.3/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/!microsoft/go-winio@v0.6.4/LICENSE:
 
 The MIT License (MIT)
 
@@ -6719,7 +6508,7 @@ Version: v0.1.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/!radu!berinde/axisds@v0.1.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/!radu!berinde/axisds@v0.1.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -6930,7 +6719,7 @@ Version: v0.0.0-20250419174037-3d62b7205d54
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/!radu!berinde/btreemap@v0.0.0-20250419174037-3d62b7205d54/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/!radu!berinde/btreemap@v0.0.0-20250419174037-3d62b7205d54/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -7141,7 +6930,7 @@ Version: v0.25.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/apache/thrift@v0.25.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/apache/thrift@v0.25.0/LICENSE:
 
 
                                  Apache License
@@ -7459,7 +7248,7 @@ Version: v1.0.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/armon/go-radix@v1.0.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/armon/go-radix@v1.0.0/LICENSE:
 
 The MIT License (MIT)
 
@@ -7489,7 +7278,7 @@ Version: v0.2.5
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/axiomhq/hyperloglog@v0.2.5/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/axiomhq/hyperloglog@v0.2.5/LICENSE:
 
 Copyright (c) 2021, Axiom, Inc.
 
@@ -7517,7 +7306,7 @@ Version: v1.0.1
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/beorn7/perks@v1.0.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/beorn7/perks@v1.0.1/LICENSE:
 
 Copyright (C) 2013 Blake Mizerany
 
@@ -7547,7 +7336,7 @@ Version: v1.1.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cespare/xxhash@v1.1.0/LICENSE.txt:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/cespare/xxhash@v1.1.0/LICENSE.txt:
 
 Copyright (c) 2016 Caleb Spare
 
@@ -7579,7 +7368,7 @@ Version: v0.0.0-20241112164430-1264a2edc35b
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/crlib@v0.0.0-20241112164430-1264a2edc35b/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/cockroachdb/crlib@v0.0.0-20241112164430-1264a2edc35b/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -7790,7 +7579,7 @@ Version: v1.11.3
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/errors@v1.11.3/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/cockroachdb/errors@v1.11.3/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -8001,7 +7790,7 @@ Version: v0.0.0-20230118201751-21c54148d20b
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/logtags@v0.0.0-20230118201751-21c54148d20b/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/cockroachdb/logtags@v0.0.0-20230118201751-21c54148d20b/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -8212,7 +8001,7 @@ Version: v2.1.4
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble/v2@v2.1.4/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/cockroachdb/pebble/v2@v2.1.4/LICENSE:
 
 Copyright (c) 2011 The LevelDB-Go Authors. All rights reserved.
 
@@ -8249,7 +8038,7 @@ Version: v1.1.5
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/redact@v1.1.5/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/cockroachdb/redact@v1.1.5/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -8460,7 +8249,7 @@ Version: v0.0.0-20251224182025-b0f6560f979b
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/swiss@v0.0.0-20251224182025-b0f6560f979b/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/cockroachdb/swiss@v0.0.0-20251224182025-b0f6560f979b/LICENSE:
 
 Apache License
                            Version 2.0, January 2004
@@ -8672,7 +8461,7 @@ Version: v0.0.0-20230807174530-cc333fc44b06
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/tokenbucket@v0.0.0-20230807174530-cc333fc44b06/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/cockroachdb/tokenbucket@v0.0.0-20230807174530-cc333fc44b06/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -8883,7 +8672,7 @@ Version: v1.1.2-0.20180830191138-d8f796af33cc
 Licence type (autodetected): ISC
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/davecgh/go-spew@v1.1.2-0.20180830191138-d8f796af33cc/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/davecgh/go-spew@v1.1.2-0.20180830191138-d8f796af33cc/LICENSE:
 
 ISC License
 
@@ -8908,7 +8697,7 @@ Version: v0.2.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/dgraph-io/ristretto@v0.2.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/dgraph-io/ristretto@v0.2.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -9094,7 +8883,7 @@ Version: v0.0.0-20200201041132-a6ae2369ad13
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/dgryski/go-farm@v0.0.0-20200201041132-a6ae2369ad13/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/dgryski/go-farm@v0.0.0-20200201041132-a6ae2369ad13/LICENSE:
 
 Copyright (c) 2014-2017 Damian Gryski
 Copyright (c) 2016-2017 Nicola Asuni - Tecnick.com
@@ -9125,7 +8914,7 @@ Version: v0.0.0-20211217172704-adc40b04c140
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/dgryski/go-metro@v0.0.0-20211217172704-adc40b04c140/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/dgryski/go-metro@v0.0.0-20211217172704-adc40b04c140/LICENSE:
 
 This package is a mechanical translation of the reference C++ code for
 MetroHash, available at https://github.com/jandrewrogers/MetroHash 
@@ -9159,7 +8948,7 @@ Version: v1.7.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/eapache/go-resiliency@v1.7.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/eapache/go-resiliency@v1.7.0/LICENSE:
 
 The MIT License (MIT)
 
@@ -9191,7 +8980,7 @@ Version: v0.0.0-20230731223053-c322873962e3
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/eapache/go-xerial-snappy@v0.0.0-20230731223053-c322873962e3/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/eapache/go-xerial-snappy@v0.0.0-20230731223053-c322873962e3/LICENSE:
 
 The MIT License (MIT)
 
@@ -9222,7 +9011,7 @@ Version: v1.1.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/eapache/queue@v1.1.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/eapache/queue@v1.1.0/LICENSE:
 
 The MIT License (MIT)
 
@@ -9248,11 +9037,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/ebitengine/purego
-Version: v0.11.1
+Version: v0.11.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/ebitengine/purego@v0.11.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/ebitengine/purego@v0.11.2/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -9458,12 +9247,223 @@ Contents of probable licence file $GOMODCACHE/github.com/ebitengine/purego@v0.11
 
 
 --------------------------------------------------------------------------------
+Dependency : github.com/elastic/elastic-agent-libs
+Version: v0.47.0
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/elastic-agent-libs@v0.47.0/LICENSE:
+
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+
+--------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-lumber
 Version: v0.2.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-lumber@v0.2.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/go-lumber@v0.2.0/LICENSE:
 
 
                                  Apache License
@@ -9675,7 +9675,7 @@ Version: v0.0.12
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-structform@v0.0.12/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/go-structform@v0.0.12/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -9886,7 +9886,7 @@ Version: v1.0.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-windows@v1.0.2/LICENSE.txt:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/go-windows@v1.0.2/LICENSE.txt:
 
 
                                  Apache License
@@ -10098,7 +10098,7 @@ Version: v8.0.0-20251105095404-23cc45e6a102
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/gokrb5/v8@v8.0.0-20251105095404-23cc45e6a102/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/gokrb5/v8@v8.0.0-20251105095404-23cc45e6a102/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -10309,7 +10309,7 @@ Version: v0.14.4
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/gosigar@v0.14.4/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/gosigar@v0.14.4/LICENSE:
 
                               Apache License
                         Version 2.0, January 2004
@@ -10520,7 +10520,7 @@ Version: v0.39.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/opentelemetry-lib@v0.39.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/opentelemetry-lib@v0.39.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -10727,11 +10727,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/opentelemetry-l
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/sarama
-Version: v1.19.1-0.20260310070522-abae92ca1603
+Version: v1.19.1-0.20261105163725-10d0ecc585be
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/sarama@v1.19.1-0.20260310070522-abae92ca1603/LICENSE.md:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/sarama@v1.19.1-0.20261105163725-10d0ecc585be/LICENSE.md:
 
 # MIT License
 
@@ -10765,7 +10765,7 @@ Version: v1.18.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/fatih/color@v1.18.0/LICENSE.md:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/fatih/color@v1.18.0/LICENSE.md:
 
 The MIT License (MIT)
 
@@ -10795,7 +10795,7 @@ Version: v0.29.1
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/getsentry/sentry-go@v0.29.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/getsentry/sentry-go@v0.29.1/LICENSE:
 
 MIT License
 
@@ -10826,7 +10826,7 @@ Version: v1.4.4
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/go-logr/logr@v1.4.4/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/go-logr/logr@v1.4.4/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -11037,7 +11037,7 @@ Version: v1.2.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/go-logr/stdr@v1.2.2/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/go-logr/stdr@v1.2.2/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -11248,7 +11248,7 @@ Version: v1.3.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/go-ole/go-ole@v1.3.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/go-ole/go-ole@v1.3.0/LICENSE:
 
 The MIT License (MIT)
 
@@ -11279,7 +11279,7 @@ Version: v1.4.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/gogo/googleapis@v1.4.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/gogo/googleapis@v1.4.1/LICENSE:
 
 Apache License
                            Version 2.0, January 2004
@@ -11492,7 +11492,7 @@ Version: v1.3.2
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/gogo/protobuf@v1.3.2/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/gogo/protobuf@v1.3.2/LICENSE:
 
 Copyright (c) 2013, The GoGo Authors. All rights reserved.
 
@@ -11537,7 +11537,7 @@ Version: v0.5.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/gohugoio/hashstructure@v0.5.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/gohugoio/hashstructure@v0.5.0/LICENSE:
 
 The MIT License (MIT)
 
@@ -11568,7 +11568,7 @@ Version: v1.5.4
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/golang/protobuf@v1.5.4/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/golang/protobuf@v1.5.4/LICENSE:
 
 Copyright 2010 The Go Authors.  All rights reserved.
 
@@ -11606,7 +11606,7 @@ Version: v1.0.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/golang/snappy@v1.0.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/golang/snappy@v1.0.0/LICENSE:
 
 Copyright (c) 2011 The Snappy-Go Authors. All rights reserved.
 
@@ -11643,7 +11643,7 @@ Version: v1.8.9
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/gomodule/redigo@v1.8.9/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/gomodule/redigo@v1.8.9/LICENSE:
 
 
                                  Apache License
@@ -11830,7 +11830,7 @@ Version: v1.6.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/google/uuid@v1.6.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/google/uuid@v1.6.0/LICENSE:
 
 Copyright (c) 2009,2014 Google Inc. All rights reserved.
 
@@ -11867,7 +11867,7 @@ Version: v1.0.3
 Licence type (autodetected): MPL-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/hashicorp/go-uuid@v1.0.3/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/hashicorp/go-uuid@v1.0.3/LICENSE:
 
 Copyright © 2015-2022 HashiCorp, Inc.
 
@@ -12242,7 +12242,7 @@ Version: v1.9.0
 Licence type (autodetected): MPL-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/hashicorp/go-version@v1.9.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/hashicorp/go-version@v1.9.0/LICENSE:
 
 Copyright IBM Corp. 2014, 2025
 
@@ -12608,7 +12608,7 @@ Version: v1.1.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/inconshreveable/mousetrap@v1.1.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/inconshreveable/mousetrap@v1.1.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -12819,7 +12819,7 @@ Version: v2.0.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/jcmturner/aescts/v2@v2.0.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/jcmturner/aescts/v2@v2.0.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -13030,7 +13030,7 @@ Version: v2.0.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/jcmturner/dnsutils/v2@v2.0.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/jcmturner/dnsutils/v2@v2.0.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -13241,7 +13241,7 @@ Version: v1.7.6
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/jcmturner/gofork@v1.7.6/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/jcmturner/gofork@v1.7.6/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -13278,7 +13278,7 @@ Version: v6.0.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/jcmturner/goidentity/v6@v6.0.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/jcmturner/goidentity/v6@v6.0.1/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -13489,7 +13489,7 @@ Version: v2.0.3
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/jcmturner/rpc/v2@v2.0.3/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/jcmturner/rpc/v2@v2.0.3/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -13700,7 +13700,7 @@ Version: v1.1.12
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/json-iterator/go@v1.1.12/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/json-iterator/go@v1.1.12/LICENSE:
 
 MIT License
 
@@ -13731,7 +13731,7 @@ Version: v0.5.1
 Licence type (autodetected): BSD-2-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/kamstrup/intmap@v0.5.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/kamstrup/intmap@v0.5.1/LICENSE:
 
 Copyright (c) 2016, Brent Pedersen - Bioinformatics
 All rights reserved.
@@ -13764,7 +13764,7 @@ Version: v1.20.3
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/klauspost/compress@v1.20.3/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/klauspost/compress@v1.20.3/LICENSE:
 
 Copyright (c) 2012 The Go Authors. All rights reserved.
 Copyright (c) 2019 Klaus Post. All rights reserved.
@@ -14078,7 +14078,7 @@ Version: v0.3.1
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/kr/pretty@v0.3.1/License:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/kr/pretty@v0.3.1/License:
 
 Copyright 2012 Keith Rarick
 
@@ -14107,7 +14107,7 @@ Version: v0.2.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/kr/text@v0.2.0/License:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/kr/text@v0.2.0/License:
 
 Copyright 2012 Keith Rarick
 
@@ -14136,7 +14136,7 @@ Version: v0.1.14
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/mattn/go-colorable@v0.1.14/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/mattn/go-colorable@v0.1.14/LICENSE:
 
 The MIT License (MIT)
 
@@ -14167,7 +14167,7 @@ Version: v0.0.20
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/mattn/go-isatty@v0.0.20/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/mattn/go-isatty@v0.0.20/LICENSE:
 
 Copyright (c) Yasuhiro MATSUMOTO <mattn.jp@gmail.com>
 
@@ -14186,7 +14186,7 @@ Version: v1.0.1-0.20250507153514-87eb42fe8882
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/minio/minlz@v1.0.1-0.20250507153514-87eb42fe8882/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/minio/minlz@v1.0.1-0.20250507153514-87eb42fe8882/LICENSE:
 
 
                                  Apache License
@@ -14372,7 +14372,7 @@ Version: v0.0.0-20180306012644-bacd9c7ef1dd
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/modern-go/concurrent@v0.0.0-20180306012644-bacd9c7ef1dd/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/modern-go/concurrent@v0.0.0-20180306012644-bacd9c7ef1dd/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -14583,7 +14583,7 @@ Version: v1.0.3-0.20250322232337-35a7c28c31ee
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/modern-go/reflect2@v1.0.3-0.20250322232337-35a7c28c31ee/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/modern-go/reflect2@v1.0.3-0.20250322232337-35a7c28c31ee/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -14794,7 +14794,7 @@ Version: v0.0.0-20191010083416-a7dc8b61c822
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/munnerz/goautoneg@v0.0.0-20191010083416-a7dc8b61c822/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/munnerz/goautoneg@v0.0.0-20191010083416-a7dc8b61c822/LICENSE:
 
 Copyright (c) 2011, Open Knowledge Foundation Ltd.
 All rights reserved.
@@ -14831,11 +14831,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal
-Version: v0.164.1
+Version: v0.165.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal@v0.164.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal@v0.165.1/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -15042,11 +15042,11 @@ Contents of probable licence file $GOMODCACHE/github.com/open-telemetry/opentele
 
 --------------------------------------------------------------------------------
 Dependency : github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils
-Version: v0.164.1
+Version: v0.165.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils@v0.164.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils@v0.165.1/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -15257,7 +15257,7 @@ Version: v0.0.0-20210728143218-7b4eea64cf58
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/pbnjay/memory@v0.0.0-20210728143218-7b4eea64cf58/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/pbnjay/memory@v0.0.0-20210728143218-7b4eea64cf58/LICENSE:
 
 BSD 3-Clause License
 
@@ -15296,7 +15296,7 @@ Version: v4.1.33
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/pierrec/lz4/v4@v4.1.33/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/pierrec/lz4/v4@v4.1.33/LICENSE:
 
 Copyright (c) 2015, Pierre Curto
 All rights reserved.
@@ -15334,7 +15334,7 @@ Version: v0.6.1-0.20240319094008-0393e58bdf10
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/planetscale/vtprotobuf@v0.6.1-0.20240319094008-0393e58bdf10/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/planetscale/vtprotobuf@v0.6.1-0.20240319094008-0393e58bdf10/LICENSE:
 
 Copyright (c) 2021, PlanetScale Inc. All rights reserved.
 Copyright (c) 2013, The GoGo Authors. All rights reserved.
@@ -15373,7 +15373,7 @@ Version: v1.24.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/prometheus/client_golang@v1.24.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/prometheus/client_golang@v1.24.1/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -15584,7 +15584,7 @@ Version: v0.6.3
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/prometheus/client_model@v0.6.3/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/prometheus/client_model@v0.6.3/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -15795,7 +15795,7 @@ Version: v0.72.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/prometheus/common@v0.72.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/prometheus/common@v0.72.1/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -16002,11 +16002,11 @@ Contents of probable licence file $GOMODCACHE/github.com/prometheus/common@v0.72
 
 --------------------------------------------------------------------------------
 Dependency : github.com/prometheus/procfs
-Version: v0.21.1
+Version: v0.22.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/prometheus/procfs@v0.21.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/prometheus/procfs@v0.22.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -16217,7 +16217,7 @@ Version: v0.0.0-20250401214520-65e299d6c5c9
 Licence type (autodetected): BSD-2-Clause-FreeBSD
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/rcrowley/go-metrics@v0.0.0-20250401214520-65e299d6c5c9/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/rcrowley/go-metrics@v0.0.0-20250401214520-65e299d6c5c9/LICENSE:
 
 Copyright 2012 Richard Crowley. All rights reserved.
 
@@ -16256,7 +16256,7 @@ Version: v1.14.1
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/rogpeppe/go-internal@v1.14.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/rogpeppe/go-internal@v1.14.1/LICENSE:
 
 Copyright (c) 2018 The Go Authors. All rights reserved.
 
@@ -16289,11 +16289,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/shirou/gopsutil/v4
-Version: v4.26.9
+Version: v4.26.10
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/shirou/gopsutil/v4@v4.26.9/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/shirou/gopsutil/v4@v4.26.10/LICENSE:
 
 gopsutil is distributed under BSD license reproduced below.
 
@@ -16363,7 +16363,7 @@ Version: v0.4.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/tklauser/go-sysconf@v0.4.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/tklauser/go-sysconf@v0.4.0/LICENSE:
 
 BSD 3-Clause License
 
@@ -16402,7 +16402,7 @@ Version: v0.12.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/tklauser/numcpus@v0.12.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/tklauser/numcpus@v0.12.0/LICENSE:
 
 
                                  Apache License
@@ -16614,7 +16614,7 @@ Version: v1.2.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/xdg-go/scram@v1.2.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/xdg-go/scram@v1.2.0/LICENSE:
 
 
                                  Apache License
@@ -16799,7 +16799,7 @@ Version: v1.0.4
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/xdg-go/stringprep@v1.0.4/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/xdg-go/stringprep@v1.0.4/LICENSE:
 
 
                                  Apache License
@@ -16984,7 +16984,7 @@ Version: v0.0.0-20240726163527-a2c0da244d78
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/youmark/pkcs8@v0.0.0-20240726163527-a2c0da244d78/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/youmark/pkcs8@v0.0.0-20240726163527-a2c0da244d78/LICENSE:
 
 The MIT License (MIT)
 
@@ -17014,7 +17014,7 @@ Version: v1.2.4
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/yusufpapurcu/wmi@v1.2.4/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/yusufpapurcu/wmi@v1.2.4/LICENSE:
 
 The MIT License (MIT)
 
@@ -17044,7 +17044,7 @@ Version: v1.0.3
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/ecszap@v1.0.3/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.elastic.co/ecszap@v1.0.3/LICENSE:
 
 
                                  Apache License
@@ -17255,7 +17255,7 @@ Version: v1.2.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/auto/sdk@v1.2.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.opentelemetry.io/auto/sdk@v1.2.1/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -17462,11 +17462,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/auto/sdk@v1.2.
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/featuregate
-Version: v1.70.0
+Version: v1.71.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/featuregate@v1.70.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.opentelemetry.io/collector/featuregate@v1.71.0/LICENSE:
 
 
                                  Apache License
@@ -17678,7 +17678,7 @@ Version: v1.47.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/log@v1.47.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.opentelemetry.io/otel/log@v1.47.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -17918,7 +17918,7 @@ Version: v1.11.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.uber.org/multierr@v1.11.0/LICENSE.txt:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/go.uber.org/multierr@v1.11.0/LICENSE.txt:
 
 Copyright (c) 2017-2021 Uber Technologies, Inc.
 
@@ -17947,7 +17947,7 @@ Version: v0.58.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.58.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/golang.org/x/crypto@v0.58.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -17984,7 +17984,7 @@ Version: v0.0.0-20260908205506-85c1c2202aba
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/exp@v0.0.0-20260908205506-85c1c2202aba/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/golang.org/x/exp@v0.0.0-20260908205506-85c1c2202aba/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -18021,7 +18021,7 @@ Version: v0.49.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.49.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/golang.org/x/sys@v0.49.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -18058,7 +18058,7 @@ Version: v0.43.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/text@v0.43.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/golang.org/x/text@v0.43.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -18091,11 +18091,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto/googleapis/rpc
-Version: v0.0.0-20260928230214-8a89bd6388cc
+Version: v0.0.0-20261019180522-ce908d29299b
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20260928230214-8a89bd6388cc/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/google.golang.org/genproto/googleapis/rpc@v0.0.0-20261019180522-ce908d29299b/LICENSE:
 
 
                                  Apache License
@@ -18307,7 +18307,7 @@ Version: v2.4.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/gopkg.in/yaml.v2@v2.4.0/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/gopkg.in/yaml.v2@v2.4.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -18518,7 +18518,7 @@ Version: v1.0.1
 Licence type (autodetected): BSD-2-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/howett.net/plist@v1.0.1/LICENSE:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/howett.net/plist@v1.0.1/LICENSE:
 
 Copyright (c) 2013, Dustin L. Howett. All rights reserved.
 
