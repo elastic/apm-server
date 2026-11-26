@@ -455,11 +455,11 @@ Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20261124215226-a55859eabecd
+Version: v7.0.0-alpha2.0.20261126112628-a335670a011e
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20261124215226-a55859eabecd/LICENSE.txt:
+Contents of probable licence file /var/folders/t6/f676yv596gj2h72lwcw3y2940000gn/T/cursor-sandbox-cache/4a42307367094a8fda6e60746f035625/go-mod/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20261126112628-a335670a011e/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
