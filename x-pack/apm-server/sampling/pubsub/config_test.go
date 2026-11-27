@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
+	"github.com/elastic/apm-server/v9/x-pack/apm-server/sampling/pubsub"
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 )
 

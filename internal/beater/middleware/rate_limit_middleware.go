@@ -18,9 +18,9 @@
 package middleware
 
 import (
-	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/ratelimit"
-	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/beater/auth"
+	"github.com/elastic/apm-server/v9/internal/beater/ratelimit"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
 )
 
 // AnonymousRateLimitMiddleware adds a rate.Limiter to the context of anonymous

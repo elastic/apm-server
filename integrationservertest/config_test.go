@@ -24,7 +24,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/integrationservertest/internal/ech"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/ech"
 )
 
 // TestInternal_ConfigLazyRollover will not be run in CI, make sure to run this test if

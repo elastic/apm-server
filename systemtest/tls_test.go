@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/v9/systemtest/apmservertest"
 )
 
 func TestDefaultTLSConfig(t *testing.T) {

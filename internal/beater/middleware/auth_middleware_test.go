@@ -26,9 +26,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/headers"
-	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/beater/auth"
+	"github.com/elastic/apm-server/v9/internal/beater/headers"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
 )
 
 func TestAuthMiddleware(t *testing.T) {

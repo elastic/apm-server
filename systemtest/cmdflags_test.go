@@ -20,7 +20,7 @@ package systemtest_test
 import (
 	"testing"
 
-	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/v9/systemtest/apmservertest"
 )
 
 func TestAPMServerEnvironment(t *testing.T) {

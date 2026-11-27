@@ -32,7 +32,7 @@ import (
 
 	"github.com/docker/docker/client"
 
-	"github.com/elastic/apm-server/systemtest"
+	"github.com/elastic/apm-server/v9/systemtest"
 )
 
 var (

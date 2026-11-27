@@ -7,8 +7,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/elastic/apm-server/internal/beater"
-	"github.com/elastic/apm-server/x-pack/apm-server/aggregation"
+	"github.com/elastic/apm-server/v9/internal/beater"
+	"github.com/elastic/apm-server/v9/x-pack/apm-server/aggregation"
 )
 
 func newAggregationProcessor(args beater.ServerParams) (namedProcessor, error) {

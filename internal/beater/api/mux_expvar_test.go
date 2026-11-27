@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/apm-server/v9/internal/beater/config"
 )
 
 func TestExpvarDefaultDisabled(t *testing.T) {

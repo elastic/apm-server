@@ -31,7 +31,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/time/rate"
 
-	"github.com/elastic/apm-server/systemtest/benchtest"
+	"github.com/elastic/apm-server/v9/systemtest/benchtest"
 	"github.com/elastic/go-sysinfo"
 )
 

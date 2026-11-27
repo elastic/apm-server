@@ -27,7 +27,7 @@ import (
 
 	"github.com/elastic/apm-data/model/modeljson"
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/v9/internal/logs"
 )
 
 // ErrClosed may be returned by Pubsub methods after the Close method is called.

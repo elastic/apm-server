@@ -38,15 +38,15 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 
-	"github.com/elastic/apm-server/internal/agentcfg"
-	"github.com/elastic/apm-server/internal/beater/api"
-	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/beater/otlp"
-	"github.com/elastic/apm-server/internal/beater/ratelimit"
-	"github.com/elastic/apm-server/internal/elasticsearch"
-	"github.com/elastic/apm-server/internal/kibana"
-	"github.com/elastic/apm-server/internal/sourcemap"
+	"github.com/elastic/apm-server/v9/internal/agentcfg"
+	"github.com/elastic/apm-server/v9/internal/beater/api"
+	"github.com/elastic/apm-server/v9/internal/beater/auth"
+	"github.com/elastic/apm-server/v9/internal/beater/config"
+	"github.com/elastic/apm-server/v9/internal/beater/otlp"
+	"github.com/elastic/apm-server/v9/internal/beater/ratelimit"
+	"github.com/elastic/apm-server/v9/internal/elasticsearch"
+	"github.com/elastic/apm-server/v9/internal/kibana"
+	"github.com/elastic/apm-server/v9/internal/sourcemap"
 )
 
 // WrapServerFunc is a function for injecting behaviour into ServerParams

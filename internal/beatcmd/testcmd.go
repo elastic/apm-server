@@ -27,7 +27,7 @@ import (
 	"github.com/elastic/beats/v7/pkg/logp"
 	"github.com/elastic/beats/v7/pkg/testing"
 
-	beaterconfig "github.com/elastic/apm-server/internal/beater/config"
+	beaterconfig "github.com/elastic/apm-server/v9/internal/beater/config"
 )
 
 func genTestCmd(beatParams BeatParams) *cobra.Command {

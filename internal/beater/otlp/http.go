@@ -40,8 +40,8 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 
-	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/beater/auth"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
 )
 
 // MaxRequestSize is the maximum OTLP request size in bytes, including after

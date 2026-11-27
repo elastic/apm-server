@@ -25,7 +25,7 @@ import (
 	"github.com/elastic/beats/v7/pkg/logp/logptest"
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
+	"github.com/elastic/apm-server/v9/x-pack/apm-server/sampling/pubsub"
 )
 
 const (

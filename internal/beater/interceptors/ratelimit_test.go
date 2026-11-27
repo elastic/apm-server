@@ -28,9 +28,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/interceptors"
-	"github.com/elastic/apm-server/internal/beater/ratelimit"
+	"github.com/elastic/apm-server/v9/internal/beater/auth"
+	"github.com/elastic/apm-server/v9/internal/beater/interceptors"
+	"github.com/elastic/apm-server/v9/internal/beater/ratelimit"
 )
 
 func TestAnonymousRateLimit(t *testing.T) {

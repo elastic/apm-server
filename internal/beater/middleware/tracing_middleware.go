@@ -22,7 +22,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
 )
 
 func TracingMiddleware(tp trace.TracerProvider) Middleware {

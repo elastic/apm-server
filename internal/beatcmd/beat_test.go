@@ -51,7 +51,7 @@ import (
 	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-docappender/v2/docappendertest"
 
-	"github.com/elastic/apm-server/internal/version"
+	"github.com/elastic/apm-server/v9/internal/version"
 )
 
 func TestRunnerParams(t *testing.T) {

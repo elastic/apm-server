@@ -34,9 +34,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.yaml.in/yaml/v3"
 
-	"github.com/elastic/apm-server/systemtest/apmservertest"
-	"github.com/elastic/apm-server/systemtest/estest"
-	"github.com/elastic/apm-server/systemtest/fleettest"
+	"github.com/elastic/apm-server/v9/systemtest/apmservertest"
+	"github.com/elastic/apm-server/v9/systemtest/estest"
+	"github.com/elastic/apm-server/v9/systemtest/fleettest"
 	"github.com/elastic/apm-tools/pkg/espoll"
 )
 

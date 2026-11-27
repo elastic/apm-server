@@ -30,8 +30,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/apm-server/internal/beater/monitoringtest"
-	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/beater/monitoringtest"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
 	"github.com/elastic/beats/v7/pkg/logp/logptest"
 )
 

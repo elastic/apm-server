@@ -39,12 +39,12 @@ import (
 	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/internal/agentcfg"
-	"github.com/elastic/apm-server/internal/beater/api"
-	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/beater/monitoringtest"
-	"github.com/elastic/apm-server/internal/beater/ratelimit"
+	"github.com/elastic/apm-server/v9/internal/agentcfg"
+	"github.com/elastic/apm-server/v9/internal/beater/api"
+	"github.com/elastic/apm-server/v9/internal/beater/auth"
+	"github.com/elastic/apm-server/v9/internal/beater/config"
+	"github.com/elastic/apm-server/v9/internal/beater/monitoringtest"
+	"github.com/elastic/apm-server/v9/internal/beater/ratelimit"
 	"github.com/elastic/beats/v7/pkg/logp/logptest"
 	"github.com/elastic/beats/v7/pkg/monitoring"
 )

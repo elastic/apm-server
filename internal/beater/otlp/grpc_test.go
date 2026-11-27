@@ -47,11 +47,11 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/internal/beater"
-	"github.com/elastic/apm-server/internal/beater/beatertest"
-	"github.com/elastic/apm-server/internal/beater/interceptors"
-	"github.com/elastic/apm-server/internal/beater/monitoringtest"
-	"github.com/elastic/apm-server/internal/beater/otlp"
+	"github.com/elastic/apm-server/v9/internal/beater"
+	"github.com/elastic/apm-server/v9/internal/beater/beatertest"
+	"github.com/elastic/apm-server/v9/internal/beater/interceptors"
+	"github.com/elastic/apm-server/v9/internal/beater/monitoringtest"
+	"github.com/elastic/apm-server/v9/internal/beater/otlp"
 	"github.com/elastic/beats/v7/pkg/logp/logptest"
 )
 

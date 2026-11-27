@@ -22,8 +22,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/elastic/apm-server/integrationservertest/internal/asserts"
-	"github.com/elastic/apm-server/integrationservertest/internal/ech"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/asserts"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/ech"
 )
 
 func formatUpgradePath(p string) string {

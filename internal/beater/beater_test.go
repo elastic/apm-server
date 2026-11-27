@@ -38,8 +38,8 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 
-	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/v9/internal/beater/config"
+	"github.com/elastic/apm-server/v9/internal/elasticsearch"
 	agentconfig "github.com/elastic/beats/v7/pkg/config"
 	"github.com/elastic/beats/v7/pkg/logp/logptest"
 	"github.com/elastic/beats/v7/pkg/monitoring"

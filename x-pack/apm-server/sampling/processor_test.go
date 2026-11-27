@@ -31,10 +31,10 @@ import (
 	"github.com/elastic/beats/v7/pkg/logp"
 	"github.com/elastic/beats/v7/pkg/logp/logptest"
 
-	"github.com/elastic/apm-server/internal/beater/monitoringtest"
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub/pubsubtest"
+	"github.com/elastic/apm-server/v9/internal/beater/monitoringtest"
+	"github.com/elastic/apm-server/v9/x-pack/apm-server/sampling"
+	"github.com/elastic/apm-server/v9/x-pack/apm-server/sampling/eventstorage"
+	"github.com/elastic/apm-server/v9/x-pack/apm-server/sampling/pubsub/pubsubtest"
 )
 
 func TestProcessUnsampled(t *testing.T) {

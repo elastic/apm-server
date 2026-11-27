@@ -35,7 +35,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
+	"github.com/elastic/apm-server/v9/systemtest/benchtest/expvar"
 )
 
 func Test_warmup(t *testing.T) {

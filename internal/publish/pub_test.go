@@ -33,7 +33,7 @@ import (
 	"github.com/elastic/beats/v7/pkg/logp"
 	"github.com/elastic/beats/v7/pkg/mapstr"
 
-	"github.com/elastic/apm-server/internal/publish"
+	"github.com/elastic/apm-server/v9/internal/publish"
 )
 
 func TestPublisherStop(t *testing.T) {

@@ -35,8 +35,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/elastic/apm-server/systemtest"
-	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/v9/systemtest"
+	"github.com/elastic/apm-server/v9/systemtest/apmservertest"
 )
 
 func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {

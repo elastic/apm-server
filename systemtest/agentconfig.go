@@ -26,7 +26,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/v9/systemtest/apmservertest"
 )
 
 // CreateAgentConfig creates or updates agent central config via Kibana.

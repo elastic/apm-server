@@ -1,4 +1,4 @@
-module github.com/elastic/apm-server/systemtest
+module github.com/elastic/apm-server/v9/systemtest
 
 go 1.26.11
 

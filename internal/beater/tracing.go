@@ -30,11 +30,11 @@ import (
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/internal/agentcfg"
-	"github.com/elastic/apm-server/internal/beater/api"
-	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/beater/ratelimit"
+	"github.com/elastic/apm-server/v9/internal/agentcfg"
+	"github.com/elastic/apm-server/v9/internal/beater/api"
+	"github.com/elastic/apm-server/v9/internal/beater/auth"
+	"github.com/elastic/apm-server/v9/internal/beater/config"
+	"github.com/elastic/apm-server/v9/internal/beater/ratelimit"
 )
 
 func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Logger, batchProcessor modelpb.BatchProcessor, semaphore input.Semaphore, mp metric.MeterProvider) (*http.Server, error) {

@@ -26,7 +26,7 @@ import (
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/internal/beater/ratelimit"
+	"github.com/elastic/apm-server/v9/internal/beater/ratelimit"
 )
 
 func TestRateLimitBatchProcessor(t *testing.T) {

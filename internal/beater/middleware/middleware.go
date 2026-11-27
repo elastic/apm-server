@@ -20,7 +20,7 @@ package middleware
 import (
 	"slices"
 
-	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
 )
 
 // Middleware wraps a request.Handler

@@ -1,4 +1,4 @@
-module github.com/elastic/apm-server/integrationservertest
+module github.com/elastic/apm-server/v9/integrationservertest
 
 go 1.26.11
 

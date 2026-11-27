@@ -24,9 +24,9 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 
-	"github.com/elastic/apm-server/internal/logs"
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
+	"github.com/elastic/apm-server/v9/internal/logs"
+	"github.com/elastic/apm-server/v9/x-pack/apm-server/sampling/eventstorage"
+	"github.com/elastic/apm-server/v9/x-pack/apm-server/sampling/pubsub"
 )
 
 const (

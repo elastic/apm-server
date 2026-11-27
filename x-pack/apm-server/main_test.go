@@ -21,10 +21,10 @@ import (
 	"github.com/elastic/beats/v7/pkg/logp/logptest"
 	"github.com/elastic/beats/v7/pkg/paths"
 
-	"github.com/elastic/apm-server/internal/beater"
-	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/beater/monitoringtest"
-	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/v9/internal/beater"
+	"github.com/elastic/apm-server/v9/internal/beater/config"
+	"github.com/elastic/apm-server/v9/internal/beater/monitoringtest"
+	"github.com/elastic/apm-server/v9/internal/elasticsearch"
 )
 
 func TestMainMonitoring(t *testing.T) {

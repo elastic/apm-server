@@ -28,8 +28,8 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/internal/beater/interceptors"
-	"github.com/elastic/apm-server/internal/beater/otlp"
+	"github.com/elastic/apm-server/v9/internal/beater/interceptors"
+	"github.com/elastic/apm-server/v9/internal/beater/otlp"
 )
 
 func TestSetClientMetadata(t *testing.T) {

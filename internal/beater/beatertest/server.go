@@ -41,7 +41,7 @@ import (
 	"github.com/elastic/beats/v7/pkg/logp/logptest"
 	"github.com/elastic/beats/v7/pkg/paths"
 
-	"github.com/elastic/apm-server/internal/beater"
+	"github.com/elastic/apm-server/v9/internal/beater"
 )
 
 // Server runs the core APM Server that, by default, listens on a system-chosen port

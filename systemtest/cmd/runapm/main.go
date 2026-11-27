@@ -31,7 +31,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.yaml.in/yaml/v3"
 
-	"github.com/elastic/apm-server/systemtest"
+	"github.com/elastic/apm-server/v9/systemtest"
 )
 
 const (

@@ -24,7 +24,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/elastic/apm-server/internal/version"
+	"github.com/elastic/apm-server/v9/internal/version"
 	"github.com/elastic/beats/v7/libbeat/common/cli"
 	beatVersion "github.com/elastic/beats/v7/libbeat/version"
 )

@@ -33,9 +33,9 @@ import (
 	"github.com/elastic/beats/v7/pkg/logp/logptest"
 	"github.com/elastic/beats/v7/pkg/mapstr"
 
-	"github.com/elastic/apm-server/internal/beater/headers"
-	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/v9/internal/beater/headers"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/logs"
 )
 
 func TestLogMiddleware(t *testing.T) {

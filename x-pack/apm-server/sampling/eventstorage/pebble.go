@@ -12,7 +12,7 @@ import (
 	"github.com/cockroachdb/pebble/v2/bloom"
 	"github.com/cockroachdb/pebble/v2/sstable"
 
-	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/v9/internal/logs"
 	"github.com/elastic/beats/v7/pkg/logp"
 )
 

@@ -32,7 +32,7 @@ import (
 
 	"github.com/elastic/go-freelru"
 
-	es "github.com/elastic/apm-server/internal/elasticsearch"
+	es "github.com/elastic/apm-server/v9/internal/elasticsearch"
 )
 
 const (

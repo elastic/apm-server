@@ -31,10 +31,10 @@ import (
 
 	"github.com/elastic/beats/v7/pkg/logp"
 
-	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/headers"
-	"github.com/elastic/apm-server/internal/logs"
-	"github.com/elastic/apm-server/internal/netutil"
+	"github.com/elastic/apm-server/v9/internal/beater/auth"
+	"github.com/elastic/apm-server/v9/internal/beater/headers"
+	"github.com/elastic/apm-server/v9/internal/logs"
+	"github.com/elastic/apm-server/v9/internal/netutil"
 )
 
 const (

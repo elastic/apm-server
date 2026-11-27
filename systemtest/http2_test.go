@@ -33,7 +33,7 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/hpack"
 
-	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/v9/systemtest/apmservertest"
 )
 
 // TestHTTP2OverTLS performs a sanity check on http2 request response flow.

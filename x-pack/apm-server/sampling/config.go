@@ -13,8 +13,8 @@ import (
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
+	"github.com/elastic/apm-server/v9/x-pack/apm-server/sampling/eventstorage"
+	"github.com/elastic/apm-server/v9/x-pack/apm-server/sampling/pubsub"
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 )
 

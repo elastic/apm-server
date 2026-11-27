@@ -23,8 +23,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/integrationservertest/internal/asserts"
-	"github.com/elastic/apm-server/integrationservertest/internal/ech"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/asserts"
+	"github.com/elastic/apm-server/v9/integrationservertest/internal/ech"
 )
 
 // TestTimestampUSMappingUpgrade is a regression test for

@@ -33,11 +33,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/internal/agentcfg"
-	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/headers"
-	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/apm-server/internal/kibana"
+	"github.com/elastic/apm-server/v9/internal/agentcfg"
+	"github.com/elastic/apm-server/v9/internal/beater/auth"
+	"github.com/elastic/apm-server/v9/internal/beater/headers"
+	"github.com/elastic/apm-server/v9/internal/beater/request"
+	"github.com/elastic/apm-server/v9/internal/kibana"
 	"github.com/elastic/beats/v7/pkg/logp/logptest"
 )
 
