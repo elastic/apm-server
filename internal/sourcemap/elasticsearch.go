@@ -32,7 +32,7 @@ import (
 
 	"github.com/go-sourcemap/sourcemap"
 
-	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/beats/v7/pkg/logp"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
@@ -74,8 +74,7 @@ func NewElasticsearchFetcher(c *elasticsearch.Client, index string, maxSourceMap
 func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	resp, err := s.runSearchQuery(ctx, name, version, path)
 	if err != nil {
-		var networkErr net.Error
-		if errors.As(err, &networkErr) {
+		if _, ok := errors.AsType[net.Error](err); ok {
 			return nil, fmt.Errorf("failed to reach elasticsearch: %w: %v ", errFetcherUnvailable, err)
 		}
 		return nil, fmt.Errorf("failure querying ES: %w", err)

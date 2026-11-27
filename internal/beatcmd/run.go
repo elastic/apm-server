@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/elastic/elastic-agent-libs/service"
+	"github.com/elastic/beats/v7/pkg/service"
 )
 
 func genRunCmd(params BeatParams) *cobra.Command {
